@@ -1,0 +1,1045 @@
+scalar Point
+scalar Date
+scalar DateTime
+scalar Time
+scalar Long
+
+enum Role {
+  reader
+  user
+  admin
+}
+
+enum ActivityStatus {
+  ACTIVE
+  INACTIVE
+  UNKNOWN
+  RETIRED
+}
+
+interface Person {
+  firstName: String!
+  lastName: String!
+  birthday: Date
+  userName: String @unique
+  phone: String @unique
+  gender: String
+  height: String
+  weight: String
+  internalId: Int
+  isActive: ActivityStatus
+  country: String
+  city: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# :Player :Goalkeeper
+
+type Player implements Person {
+  playerId: ID! @id
+  firstName: String!
+  lastName: String!
+  birthday: Date
+  userName: String @unique
+  phone: String @unique
+  gender: String
+  stick: String
+  height: String
+  weight: String
+  internalId: Int
+  isActive: ActivityStatus
+  country: String
+  city: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
+  meta: MetaPlayer @relation(name: "META_FOR", direction: IN)
+  teams: [Team] @relation(name: "PLAY_IN", direction: OUT)
+  positions: [Position] @relation(name: "HAS_POSITION", direction: OUT)
+  jerseys: [JerseyNo] @relation(name: "HAS_JERSEY", direction: OUT)
+  achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
+  awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
+  events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+}
+
+# :MetaPlayer
+
+type MetaPlayer {
+  metaPlayerId: ID! @id
+  player: Player @relation(name: "META_FOR", direction: OUT)
+  availabilityStatus: AvailabilityStatus
+    @relation(name: "GAME_READY_FOR", direction: IN)
+  lineups: [TakingPartIn]
+  transfers: [Transfer] @relation(name: "TRANSFER_FOR_PLAYER", direction: IN)
+  stars: [Star] @relation(name: "IS_STAR", direction: IN)
+  collectedPasses: [Pass] @relation(name: "COLLECT_BY", direction: IN)
+  sentPasses: [Pass] @relation(name: "SENT_BY", direction: IN)
+  offsides: [Offside] @relation(name: "CAUSED_BY", direction: IN)
+  scoredGoals: [Goal] @relation(name: "SCORED_BY", direction: IN)
+  allowedGoals: [Goal] @relation(name: "ALLOWED_BY", direction: IN)
+  firedShots: [Shot] @relation(name: "FIRED_BY", direction: IN)
+  blockedShots: [Shot] @relation(name: "BLOCKED_BY", direction: IN)
+  facedShots: [Shot] @relation(name: "FACED_TO", direction: IN)
+  executedPenaltyShots: [PenaltyShot]
+    @relation(name: "EXECUTED_BY", direction: IN)
+  facedPenaltyShots: [PenaltyShot]
+    @relation(name: "FACED_AGAINST", direction: IN)
+  penalties: [Penalty] @relation(name: "PENALIZED", direction: IN)
+  intervalOnIce: [IntervalOnIce] @relation(name: "SPENT_BY", direction: IN)
+  fights: [Fight] @relation(name: "PARTICIPATE_IN", direction: IN)
+  lostFaceOffs: [FaceOff] @relation(name: "LOST_BY", direction: IN)
+  wonFaceOffs: [FaceOff] @relation(name: "WON_BY", direction: IN)
+  icings: [Icing] @relation(name: "CAUSED_BY", direction: IN)
+  lostTakeOvers: [TakeOver] @relation(name: "LOST_BY", direction: IN)
+  richedTakeOvers: [TakeOver] @relation(name: "RICHED_BY", direction: IN)
+  hits: [Hit] @relation(name: "GIVE_BY", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+}
+
+# staff types: :Person :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
+
+type Staff implements Person {
+  staffId: ID! @id
+  firstName: String!
+  lastName: String!
+  birthday: Date
+  userName: String @unique
+  phone: String @unique
+  gender: String
+  height: String
+  weight: String
+  internalId: Int
+  isActive: ActivityStatus
+  country: String
+  city: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  type: String
+  account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
+  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
+  teamManager: [Team] @relation(name: "HAS_MANAGER", direction: IN)
+  teamCoach: [Team] @relation(name: "HAS_COACH", direction: IN)
+  teamCoachAssistant: [Team]
+    @relation(name: "HAS_COACH_ASSISTANT", direction: IN)
+  teamMedic: [Team] @relation(name: "HAS_MEDIC", direction: IN)
+  teamSupporter: [Team] @relation(name: "HAS_SUPPORTER", direction: IN)
+  gameOfficial: [Game] @relation(name: "HAS_GAME_OFFICIAL", direction: IN)
+  gameTimePicker: [Game] @relation(name: "HAS_TIMEPICKER", direction: IN)
+  gameReferee: [Game] @relation(name: "HAS_REFEREE", direction: IN)
+  competitionTimePicker: [Competition]
+    @relation(name: "HAS_TIMEPICKER", direction: IN)
+  competitionLeagueOfficial: [Competition]
+    @relation(name: "HAS_LEAGUE_OFFICIAL", direction: IN)
+  competitionReferee: [Competition]
+    @relation(name: "HAS_REFEREE", direction: IN)
+  competitionManager: [Competition]
+    @relation(name: "HAS_MANAGER", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  payments: [Payment] @relation(name: "INITIATES_PAYMENT", direction: OUT)
+  associationManager: [Association]
+    @relation(name: "HAS_MANAGER", direction: IN)
+  awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
+  comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
+  events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
+  sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
+  acceptedInvitations: [InvitationList]
+    @relation(name: "ACCEPTED_BY", direction: IN)
+  rejectedInvitations: [InvitationList]
+    @relation(name: "REJECTED_BY", direction: IN)
+  maybeInvitations: [InvitationList] @relation(name: "MAYBE_BY", direction: IN)
+  attendedInvitations: [InvitationList]
+    @relation(name: "ATTENDED_BY", direction: IN)
+}
+
+# :Account
+
+type Account {
+  accountId: ID! @id
+  firstName: String!
+  lastName: String!
+  userName: String
+  phone: String
+  email: String
+  player: Player @relation(name: "ACCOUNT_FOR", direction: OUT)
+  staff: Staff @relation(name: "ACCOUNT_FOR", direction: OUT)
+}
+
+# :Team
+
+type Team {
+  teamId: ID! @id
+  name: String!
+  fullName: String
+  nick: String
+  shortcut: String
+  primaryColor: String
+  secondaryColor: String
+  disabled: Boolean
+  createdAt: DateTime
+  updateAt: DateTime
+  manager: Staff @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
+  lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
+  lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
+  players: [Player] @relation(name: "PLAY_IN", direction: IN)
+  coaches: [Staff] @relation(name: "HAS_COACH", direction: OUT)
+  coachAssistants: [Staff]
+    @relation(name: "HAS_COACH_ASSISTANT", direction: OUT)
+  medics: [Staff] @relation(name: "HAS_MEDIC", direction: OUT)
+  supporters: [Staff] @relation(name: "HAS_SUPPORTER", direction: OUT)
+  awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
+  transfersFrom: [Transfer] @relation(name: "FROM_TEAM", direction: OUT)
+  transfersTo: [Transfer] @relation(name: "TO_TEAM", direction: IN)
+  competitions: [Competition] @relation(name: "PARTICIPATE_IN", direction: OUT)
+  positions: [Position] @relation(name: "USE_POSITION", direction: OUT)
+  associations: [Association] @relation(name: "PARTICIPATE_IN", direction: OUT)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  jerseys: [JerseyNo] @relation(name: "USE_JERSEY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
+  wear: Wear @relation(name: "HAS_WEAR", direction: OUT)
+}
+
+# :Lineup
+type Lineup {
+  lineupId: ID! @id
+  teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
+  teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
+  listGuest: [TakingPartIn]
+  listHost: [TakingPartIn]
+  game: Game @relation(name: "GENERATES", direction: OUT)
+}
+
+# TakingPartIn
+
+type TakingPartIn @relation(name: "TAKING_PART_IN") {
+  from: MetaPlayer
+  to: Lineup
+  jerseyNo: Int
+}
+
+# :Game
+
+type Game {
+  gameId: ID! @id
+  name: String
+  type: String
+  startDate: Date
+  endDate: Date
+  startTime: Time
+  endTime: Time
+  foreignId: String
+  info: String
+  description: String
+  lineup: Lineup @relation(name: "GENERATES", direction: IN)
+  gameOfficial: Staff @relation(name: "HAS_GAME_OFFICIAL", direction: OUT)
+  referee: Staff @relation(name: "HAS_REFEREE", direction: OUT)
+  timePicker: Staff @relation(name: "HAS_TIMEPICKER", direction: OUT)
+  phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
+  group: Group @relation(name: "PARTICIPATE_IN", direction: OUT)
+  venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  payment: Payment @relation(name: "PAYMENT_FOR_GAME", direction: IN)
+  event: Event @relation(name: "TRANSFORM_TO", direction: IN)
+  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  finalResult: FinalResult @relation(name: "COMPOSE_RESULT", direction: OUT)
+}
+
+# :GameEvent
+
+type GameEvent {
+  gameEventId: ID! @id
+  timestamp: DateTime!
+  location: String
+  period: String
+  goals: [Goal] @relation(name: "CREATE_GOAL", direction: OUT)
+  penalties: [Penalty] @relation(name: "CREATE_PENALTY", direction: OUT)
+  faceOffs: [FaceOff] @relation(name: "CREATE_FACEOFF", direction: OUT)
+  passes: [Pass] @relation(name: "CREATE_PASS", direction: OUT)
+  hits: [Hit] @relation(name: "CREATE_HIT", direction: OUT)
+  penaltyShots: [PenaltyShot]
+    @relation(name: "CREATE_PENALTY_SHOT", direction: OUT)
+  shots: [Shot] @relation(name: "CREATE_SHOT", direction: OUT)
+  revisions: [Revision] @relation(name: "CREATE_REVISION", direction: OUT)
+  fights: [Fight] @relation(name: "CREATE_FIGHT", direction: OUT)
+  intervalsOnIce: [IntervalOnIce]
+    @relation(name: "CREATE_INTERVAL_ON_ICE", direction: OUT)
+  icings: [Icing] @relation(name: "CREATE_ICING", direction: OUT)
+  timeouts: [Timeout] @relation(name: "CREATE_TIMEOUT", direction: OUT)
+  offsides: [Offside] @relation(name: "CREATE_OFFSIDE", direction: OUT)
+  stars: [Star] @relation(name: "CREATE_STAR", direction: OUT)
+  takeOvers: [TakeOver] @relation(name: "CREATE_TAKEOVER", direction: OUT)
+  injuries: [Injury] @relation(name: "CREATE_INJURY", direction: OUT)
+  team: Team @relation(name: "CREATED_BY", direction: OUT)
+  saves: [Save] @relation(name: "CREATE_SAVE", direction: OUT)
+  previousGameEvent: GameEvent
+    @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)
+  nextGameEvent: GameEvent @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
+}
+
+# :Save
+
+type Save {
+  saveId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_SAVE", direction: IN)
+  shot: Shot @relation(name: "CREATE_SAVE", direction: IN)
+  metaPlayer: MetaPlayer @relation(name: "SAVED_BY", direction: OUT)
+}
+
+# :Star
+
+type Star {
+  starId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_STAR", direction: IN)
+  metaPlayer: MetaPlayer @relation(name: "IS_STAR", direction: OUT)
+  award: Award @relation(name: "WIN_AN_AWARD", direction: OUT)
+}
+
+# :Pass
+
+type Pass {
+  passId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_PASS", direction: IN)
+  locationStart: String
+  locationEnd: String
+  collectBy: MetaPlayer @relation(name: "COLLECT_BY", direction: OUT)
+  sentBy: MetaPlayer @relation(name: "SENT_BY", direction: OUT)
+  shot: Shot @relation(name: "ASSISTANCE", direction: OUT)
+}
+
+#  12. :Offside
+
+type Offside {
+  offsideId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_OFFSIDE", direction: IN)
+  causedBy: MetaPlayer @relation(name: "CAUSED_BY", direction: OUT)
+  checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
+}
+
+# 13. :Goal
+
+type Goal {
+  goalId: ID! @id
+  type: String
+  subType: String
+  gameEvent: GameEvent @relation(name: "CREATE_GOAL", direction: IN)
+  scoredBy: MetaPlayer @relation(name: "SCORED_BY", direction: OUT)
+  allowedBy: MetaPlayer @relation(name: "ALLOWED_BY", direction: OUT)
+  shot: Shot @relation(name: "CREATED_BY", direction: OUT)
+  checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
+  canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
+}
+
+# 14. :Shot
+
+type Shot {
+  shotId: ID! @id
+  type: String
+  subType: String
+  target: String
+  style: String
+  gameEvent: GameEvent @relation(name: "CREATE_SHOT", direction: IN)
+  firedBy: Player @relation(name: "FIRED_BY", direction: OUT)
+  facedTo: Player @relation(name: "FACED_TO", direction: OUT)
+  blockedBy: Player @relation(name: "BLOCKED_BY", direction: OUT)
+  pass: Pass @relation(name: "ASSISTANCE", direction: IN)
+  goal: Goal @relation(name: "CREATED_BY", direction: IN)
+  penaltyShot: PenaltyShot @relation(name: "CREATED_BY", direction: OUT)
+  save: Save @relation(name: "CREATE_SAVE", direction: OUT)
+}
+
+# 15. :PenaltyShot
+
+type PenaltyShot {
+  penaltyShotId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_PENALTY_SHOT", direction: IN)
+  penalty: Penalty @relation(name: "CREATED_BY", direction: OUT)
+  facedAgainst: Player @relation(name: "FACED_AGAINST", direction: OUT)
+  executedBy: Player @relation(name: "EXECUTED_BY", direction: OUT)
+  shot: Shot @relation(name: "CREATED_BY", direction: IN)
+  checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
+  canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
+  createdBy: Revision @relation(name: "CREATED_BY", direction: OUT)
+}
+
+# 16. :Revision
+
+union CheckedRevisions = Offside | Goal | PenaltyShot
+union CanceledRevisions = Timeout | PenaltyShot | Goal
+
+type Revision {
+  revisionId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_REVISION", direction: IN)
+  canceled: [CanceledRevisions] @relation(name: "CANCELED_BY", direction: IN)
+  checked: [CheckedRevisions] @relation(name: "CHECKED_BY", direction: IN)
+}
+
+# 17. :Timeout
+
+type Timeout {
+  timeoutId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_TIMEOUT", direction: IN)
+  canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
+}
+
+# 18. :Penalty
+
+type Penalty {
+  penaltyId: ID! @id
+  type: String
+  subType: String
+  duration: Int
+  gameEvent: GameEvent @relation(name: "CREATE_PENALTY", direction: IN)
+  penalized: Player @relation(name: "PENALIZED", direction: OUT)
+  penaltyShot: PenaltyShot @relation(name: "CREATED_BY", direction: IN)
+  suspension: Suspension @relation(name: "CREATE_SUSPENSION", direction: OUT)
+}
+
+# 19. :IntervalOnIce
+
+type IntervalOnIce {
+  intervalOnIceId: ID! @id
+  endTime: DateTime
+  duration: Int
+  gameEvent: GameEvent @relation(name: "CREATE_INTERVAL_ON_ICE", direction: IN)
+  spentBy: Player @relation(name: "SPENT_BY", direction: OUT)
+}
+
+# 20. :Fight
+
+type Fight {
+  fightId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_FIGHT", direction: IN)
+  players: [Player] @relation(name: "PARTICIPATE_IN", direction: OUT)
+}
+
+# 21. :FaceOff
+
+type FaceOff {
+  faceOffId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_FACEOFF", direction: IN)
+  lostBy: Player @relation(name: "LOST_BY", direction: OUT)
+  wonBy: Player @relation(name: "WON_BY", direction: OUT)
+}
+
+# 22. :Icing
+type Icing {
+  icingId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_ICING", direction: IN)
+  causedBy: Player @relation(name: "CAUSED_BY", direction: OUT)
+}
+
+# 23. :TakeOver
+
+type TakeOver {
+  takeOverId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_TAKEOVER", direction: IN)
+  lostBy: MetaPlayer @relation(name: "LOST_BY", direction: OUT)
+  richedBy: MetaPlayer @relation(name: "RICHED_BY", direction: OUT)
+}
+
+# 24. :Hit
+
+type Hit {
+  hitId: ID! @id
+  gameEvent: GameEvent @relation(name: "CREATE_HIT", direction: IN)
+  giveBy: MetaPlayer @relation(name: "GIVE_BY", direction: OUT)
+}
+
+# 25. :Injury
+
+type Injury {
+  injuryId: ID! @id
+  description: String
+  startDate: Date
+  endDate: Date
+  type: String
+  gameEvent: GameEvent @relation(name: "CREATE_INJURY", direction: IN)
+  availabilityStatus: AvailabilityStatus
+    @relation(name: "SUFFERED_AN", direction: OUT)
+}
+
+#urbis: zde mám pocit že se hodí dát property injury type: Covid;Illnes;Upperbody;Lowerbody apd..
+#vlad : VYMYSLET
+# a opět zda je injury valid nebo již recovered? jakože už skončilo a opět ovlivní Availatility status
+
+# 26. :Suspension
+
+type Suspension {
+  suspensionId: ID! @id
+  description: String
+  startDate: Date
+  endDate: Date
+  availabilityStatus: AvailabilityStatus
+    @relation(name: "HAS_AN_IMPACT", direction: OUT)
+  penalty: Penalty @relation(name: "CREATE_SUSPENSION", direction: IN)
+}
+
+#vlad : VYMYSLET
+#urbis: zde musíme nějak vyřešit že Suspension start date is: Suspension end date is: a pokud je suspension již ukončená ovlivní to zase Availability status.. chápeš?
+
+# :AvailabilityStatus
+
+type AvailabilityStatus {
+  availabilityStatusId: ID! @id
+  metaPlayer: MetaPlayer @relation(name: "GAME_READY_FOR", direction: OUT)
+  injuries: Injury @relation(name: "SUFFERED_AN", direction: IN)
+  suspensions: Suspension @relation(name: "HAS_AN_IMPACT", direction: IN)
+}
+
+# :Transfer
+type Transfer {
+  transferId: ID! @id
+  date: Date
+  teamFrom: Team @relation(name: "FROM_TEAM", direction: IN)
+  teamTo: Team @relation(name: "TO_TEAM", direction: OUT)
+  metaPlayer: MetaPlayer @relation(name: "TRANSFER_FOR_PLAYER", direction: OUT)
+}
+
+# :Discussion
+
+type Discussion {
+  discussionId: ID! @id
+  comments: [Comment] @relation(name: "CONTAINS", direction: OUT)
+  game: Game @relation(name: "HAS_DISCUSSION", direction: IN)
+  competition: Competition @relation(name: "HAS_DISCUSSION", direction: IN)
+  media: Media @relation(name: "HAS_DISCUSSION", direction: IN)
+  staff: Staff @relation(name: "HAS_DISCUSSION", direction: IN)
+  association: Association @relation(name: "HAS_DISCUSSION", direction: IN)
+  group: Group @relation(name: "HAS_DISCUSSION", direction: IN)
+  phase: Phase @relation(name: "HAS_DISCUSSION", direction: IN)
+  award: Award @relation(name: "HAS_DISCUSSION", direction: IN)
+  sponsor: Sponsor @relation(name: "HAS_DISCUSSION", direction: IN)
+  metaPlayer: MetaPlayer @relation(name: "HAS_DISCUSSION", direction: IN)
+  team: Team @relation(name: "HAS_DISCUSSION", direction: IN)
+  file: File @relation(name: "HAS_DISCUSSION", direction: IN)
+}
+
+# :Comment
+
+type Comment {
+  commentId: ID! @id
+  previousComment: Comment @relation(name: "PREVIOUS_COMMENT", direction: OUT)
+  nextComment: Comment @relation(name: "PREVIOUS_COMMENT", direction: IN)
+  replyTo: Comment @relation(name: "REPLY_TO", direction: OUT)
+  repliedTo: [Comment] @relation(name: "REPLY_TO", direction: IN)
+  discussion: Discussion @relation(name: "CONTAINS", direction: IN)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  author: Person @relation(name: "WRITE_A_COMMENT", direction: IN)
+}
+
+# :Association
+type Association {
+  associationId: ID! @id
+  name: String
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  manager: Staff @relation(name: "HAS_MANAGER", direction: OUT)
+  payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
+  competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
+}
+
+# :Sponsor
+
+type Sponsor {
+  sponsorId: ID! @id
+  name: String
+  web: String
+  description: String
+  players: [Player] @relation(name: "SPONSORED_BY", direction: IN)
+  teams: [Team] @relation(name: "SPONSORED_BY", direction: IN)
+  staff: [Staff] @relation(name: "SPONSORED_BY", direction: IN)
+  awards: [Award] @relation(name: "SPONSORED_BY", direction: IN)
+  competitions: [Competition] @relation(name: "SPONSORED_BY", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+}
+
+# :Venue
+
+type Venue {
+  venueId: ID! @id
+  name: String
+  web: String
+  description: String
+  disabled: Boolean
+  competitions: [Competition] @relation(name: "TAKES_PLAYS_ON", direction: IN)
+  games: [Game] @relation(name: "TAKES_PLAYS_ON", direction: IN)
+  address: Address @relation(name: "LOCATED_AT", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+}
+
+# 34. :Address
+
+type Address {
+  addressId: ID! @id
+  addressLine1: String
+  addressLine2: String
+  addressLine3: String
+  city: String
+  countyProvince: String
+  zip: String
+  country: String
+  other: String
+  latitude: Float
+  longitude: Float
+  addressType: String
+  venue: Venue @relation(name: "LOCATED_AT", direction: IN)
+  events: [Event] @relation(name: "TAKES_PLACE_AT", direction: IN)
+}
+
+# 35. :Competition
+
+type Competition {
+  competitionId: ID! @id
+  name: String!
+  isActive: Boolean
+  association: Association @relation(name: "OWNED_BY", direction: OUT)
+  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
+  venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  phases: [Phase] @relation(name: "DIVIDED", direction: OUT)
+  groups: [Group] @relation(name: "DIVIDED", direction: OUT)
+  season: Season @relation(name: "BELONGS_TO", direction: OUT)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
+  referees: [Staff] @relation(name: "HAS_REFEREE", direction: OUT)
+  leagueOfficials: [Staff]
+    @relation(name: "HAS_LEAGUE_OFFICIAL", direction: OUT)
+  timePickers: [Staff] @relation(name: "HAS_TIMEKEEPER", direction: OUT)
+  teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+}
+
+# :Event
+
+union EventOrganizer = Competition | Team | Staff
+
+type Event {
+  eventId: ID! @id
+  name: String
+  description: String
+  date: Date
+  time: Time
+  address: Address @relation(name: "TAKES_PLACE_AT", direction: OUT)
+  organizer: EventOrganizer @relation(name: "ORGANIZE_AN", direction: IN)
+  game: Game @relation(name: "TRANSFORM_TO", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  invitation: Invitation @relation(name: "CREATE_INVITATION", direction: OUT)
+  invitationList: InvitationList
+    @relation(name: "CREATE_INVITATION_LIST", direction: OUT)
+}
+
+# :Season
+
+type Season {
+  seasonId: ID! @id
+  name: String
+  startDate: Date
+  endDate: Date
+  competition: Competition @relation(name: "BELONGS_TO", direction: IN)
+  teamWears: [Wear] @relation(name: "WEAR_FOR", direction: IN)
+}
+
+# :Group
+type Group {
+  groupId: ID! @id
+  name: String
+  competition: Competition @relation(name: "DIVIDED", direction: IN)
+  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  games: [Game] @relation(name: "PARTICIPATE_IN", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
+}
+
+# :Phase
+
+enum phaseStatus {
+  NOTSTARTED
+  RUNNING
+  FINISHED
+  POSTPONED
+}
+
+type Phase {
+  phaseId: ID! @id
+  name: String
+  startDate: Date
+  endDate: Date
+  competition: Competition @relation(name: "DIVIDED", direction: IN)
+  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  games: [Game] @relation(name: "COMPLETE_IN", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
+  status: phaseStatus
+}
+
+# :Payment
+
+type Payment {
+  paymentId: ID! @id
+  date: DateTime
+  initiator: Staff @relation(name: "INITIATES_PAYMENT", direction: IN)
+  receiver: Association @relation(name: "RECEIVES_PAYMENT", direction: OUT)
+  game: Game @relation(name: "PAYMENT_FOR_GAME", direction: OUT)
+}
+
+#urbis: zde jsem stále zamotaný podle mě těch vztahů tady bude více.. ale nedokáži to vymyslet zatím odkládám
+
+# :Award
+
+type Award {
+  awardId: ID! @id
+  name: String
+  description: String
+  phases: [Phase] @relation(name: "BELONGS_TO", direction: OUT)
+  groups: [Group] @relation(name: "BELONGS_TO", direction: OUT)
+  competitions: [Competition] @relation(name: "BELONGS_TO", direction: OUT)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  games: [Game] @relation(name: "HAS_AN_AWARD", direction: IN)
+  staff: [Staff] @relation(name: "WIN_AN_AWARD", direction: IN)
+  teams: [Team] @relation(name: "WIN_AN_AWARD", direction: IN)
+  stars: [Star] @relation(name: "WIN_AN_AWARD", direction: IN)
+  players: [Player] @relation(name: "WIN_AN_AWARD", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+}
+
+# :Media
+
+type Media {
+  mediaId: ID! @id
+  association: Association @relation(name: "HAS_MEDIA", direction: IN)
+  phase: Phase @relation(name: "HAS_MEDIA", direction: IN)
+  group: Group @relation(name: "HAS_MEDIA", direction: IN)
+  sponsor: Sponsor @relation(name: "HAS_MEDIA", direction: IN)
+  award: Award @relation(name: "HAS_MEDIA", direction: IN)
+  player: Player @relation(name: "HAS_MEDIA", direction: IN)
+  team: Team @relation(name: "HAS_MEDIA", direction: IN)
+  comment: Comment @relation(name: "HAS_MEDIA", direction: IN)
+  staff: Staff @relation(name: "HAS_MEDIA", direction: IN)
+  game: Game @relation(name: "HAS_MEDIA", direction: IN)
+  competition: Competition @relation(name: "HAS_MEDIA", direction: IN)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  event: Event @relation(name: "HAS_MEDIA", direction: IN)
+  wear: WearItem @relation(name: "HAS_MEDIA", direction: IN)
+  venue: Venue @relation(name: "HAS_MEDIA", direction: IN)
+  invitation: Invitation @relation(name: "HAS_MEDIA", direction: IN)
+  photos: [File] @relation(name: "PHOTO", direction: OUT)
+  videos: [File] @relation(name: "VIDEO", direction: OUT)
+  audios: [File] @relation(name: "AUDIO", direction: OUT)
+}
+
+# :File
+
+type File {
+  fileId: ID! @id
+  name: String
+  description: String
+  type: String #isLogo, isCover, isProfilePicture, isGameCoveredge
+  url: String
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  mediaPhoto: Media @relation(name: "PHOTO", direction: IN)
+  mediaVideo: Media @relation(name: "VIDEO", direction: IN)
+  mediaAudio: Media @relation(name: "AUDIO", direction: IN)
+}
+
+# :Invitation
+
+type Invitation {
+  invitationId: ID! @id
+  name: String
+  description: String
+  event: Event @relation(name: "CREATE_INVITATION", direction: IN)
+  sentBy: Staff @relation(name: "SENT_BY", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
+}
+
+type InvitationList {
+  invitationListId: ID! @id
+  event: Event @relation(name: "CREATE_INVITATION_LIST", direction: IN)
+  invitation: Invitation @relation(name: "HAS_LIST", direction: IN)
+  acceptedBy: [Staff] @relation(name: "ACCEPTED_BY", direction: OUT)
+  rejectedBy: [Staff] @relation(name: "REJECTED_BY", direction: OUT)
+  maybeBy: [Staff] @relation(name: "MAYBE_BY", direction: OUT)
+  attendedBy: [Staff] @relation(name: "ATTENDED_BY", direction: IN)
+}
+
+# :Achievement
+
+type Achievement {
+  achievementId: ID! @id
+  name: String
+  description: String
+  rule: String
+  players: [Player] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
+  staff: [Staff] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
+  teams: [Team] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
+}
+
+# :Rules
+
+type Rules {
+  rulesId: ID! @id
+  name: String
+  createdDate: DateTime
+  associations: [Association] @relation(name: "GUIDED_BY", direction: IN)
+  phases: [Phase] @relation(name: "GUIDED_BY", direction: IN)
+  groups: [Group] @relation(name: "GUIDED_BY", direction: IN)
+  games: [Game] @relation(name: "GUIDED_BY", direction: IN)
+  competitions: [Competition] @relation(name: "GUIDED_BY", direction: IN)
+  penaltyShotStatuses: [PenaltyShotStatus]
+    @relation(name: "SET_UP", direction: OUT)
+  periods: [Period] @relation(name: "SET_UP", direction: OUT)
+  shotSubTypes: [ShotSubType] @relation(name: "SET_UP", direction: OUT)
+  shotTargets: [ShotTarget] @relation(name: "SET_UP", direction: OUT)
+  shotStyles: [ShotStyle] @relation(name: "SET_UP", direction: OUT)
+  shotTypes: [ShotType] @relation(name: "SET_UP", direction: OUT)
+  goalTypes: [GoalType] @relation(name: "SET_UP", direction: OUT)
+  goalSubTypes: [GoalSubType] @relation(name: "SET_UP", direction: OUT)
+  penaltySubTypes: [PenaltySubType] @relation(name: "SET_UP", direction: OUT)
+  penaltyTypes: [PenaltyType] @relation(name: "SET_UP", direction: OUT)
+  gameEventLocations: [GameEventLocation]
+    @relation(name: "SET_UP", direction: OUT)
+  positionTypes: [PositionType] @relation(name: "SET_UP", direction: OUT)
+  injuryTypes: [InjuryType] @relation(name: "SET_UP", direction: OUT)
+  resultTypes: [ResultType] @relation(name: "SET_UP", direction: OUT)
+  resultPoints: [ResultPoint] @relation(name: "SET_UP", direction: OUT)
+}
+
+# :PenaltyShotStatus
+
+type PenaltyShotStatus {
+  penaltyShotStatusId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :Period
+
+type Period {
+  periodId: ID! @id
+  name: String
+  duration: Int
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :ShotSubType
+
+type ShotSubType {
+  shotSubTypeId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :ShotTarget
+
+type ShotTarget {
+  shotTargetId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :ShotStyle
+
+type ShotStyle {
+  shotStyleId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :ShotType
+
+type ShotType {
+  shotTypeId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :GoalType
+
+type GoalType {
+  goalTypeId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :GoalSubType
+
+type GoalSubType {
+  goalSubTypeId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :PenaltySubType
+
+type PenaltySubType {
+  penaltySubTypeId: ID! @id
+  name: String
+  code: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :PenaltyType
+
+type PenaltyType {
+  PenaltyTypeId: ID! @id
+  name: String
+  code: String
+  duration: Int
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :GameEventLocation
+
+type GameEventLocation {
+  gameEventLocationId: ID! @id
+  name: String
+  fieldX: String
+  fieldY: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :PositionType
+
+type PositionType {
+  positionTypeId: ID! @id
+  name: String
+  description: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+# :Wear
+type Wear {
+  wearId: ID! @id
+  name: String
+  description: String
+  items: [WearItem] @relation(name: "HAS_WEAR_ITEM", direction: OUT)
+  team: Team @relation(name: "HAS_WEAR", direction: IN)
+  seasons: [Season] @relation(name: "WEAR_FOR", direction: OUT)
+}
+
+# A pozor jsou týmy které mohou mít 3 série dresů - a samozřejmě vyvíjí se v čase, tedy nabízí se nám spíše to že JerseyNo (nebo ještě lépe vyrobíme entitu Wear (merch nebo prostě oblečení) ta bude mít vztah na Tým, Asociaci, Competition apd.. a jeden z proprieties bude Wear: JerseyNo a to bude mít vztah na Media) tím zajistíme že jich můžeme mít "nekonečně mnoho" dresů pro tým a ke každému Wear ještě dodáme vztah na "season" abychom označili v jaké sezoně jaké dresy (a jiné klubové oblečení) ten tým má / toto trochu bude pomáhat do budoucna i s e-shopem prodejem týmového oblečení (ale to do budoucna)  - viz příloha screenshot (existuje prostě 10k dresů za historii týmu)
+
+# WearItem
+type WearItem {
+  wearItemId: ID! @id
+  name: String
+  type: String
+  wear: Wear @relation(name: "HAS_WEAR_ITEM", direction: IN)
+  jerseyNo: JerseyNo @relation(name: "FOR_JERSEY", direction: IN)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+}
+
+# :Position
+
+type Position {
+  positionId: ID! @id
+  name: String
+  description: String
+  players: [Player] @relation(name: "HAS_POSITION", direction: IN)
+  team: Team @relation(name: "USE_POSITION", direction: IN)
+}
+
+# :JerseyNo
+
+type JerseyNo {
+  jerseyNoId: ID! @id
+  number: Int
+  player: Player @relation(name: "HAS_JERSEY", direction: IN)
+  team: Team @relation(name: "USE_JERSEY", direction: IN)
+  wearItem: WearItem @relation(name: "FOR_JERSEY", direction: IN)
+}
+
+# :FinalResult
+
+type FinalResult {
+  finalResultId: ID! @id
+  game: Game @relation(name: "COMPOSE_RESULT", direction: IN)
+  # TODO: fields
+}
+
+type InjuryType {
+  injuryTypeId: ID! @id
+  name: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+type ResultType {
+  resultTypeId: ID! @id
+  name: String
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+type ResultPoint {
+  resultPointId: ID! @id
+  name: String
+  points: Int
+  rule: Rules @relation(name: "SET_UP", direction: IN)
+}
+
+#urbis: NOVÉ ENTITY
+
+# Position - má vztah na Rules - vytovříme seznam pozic kterými si pak řídí jednotlivé Competitions, Games, apd..
+# Position má pak vztah na hráče
+
+# JerseyNo - číslo hráče na dresu - to je něco co musíme mít jako ke každému týmu je dostupných 0-99 JerseyNo a tato entita buď má vztah na hráče nebo nemá pokud nemá je toto číslo hráče volné = "not_Assigned" pokud je obsazené tak je "taken_by" Player
+
+# Wear nebo Merch (bude možná lepší pojmenovat Merch)
+
+# - tím zajistíme možnost zakládat různé ať již dresy, nebo jiné produkty které mají vztah na Tým nebo Asociaci nebo na Organizaci, Competition a samozřejmě vztah na Media (protože se ktomu vztahuje nějaký obrázek) a vztah na Season
+
+# nahrazuje property v týmu JerseyNo Dark a JerseyLight ta bude nahrazena touto entitou a může jich být více
+
+# NOTIFICATION
+
+# - musíme ji zadata ať ten systém posílá informace lidem / týmům
+
+# například Invitation
+
+# změna Availabitility statusu apd..
+# toto je velmi podstatné :)
+
+# A myslím že je nutné zavést něco jako entita "final_result"
+# - protože například na dotaz ukaž mi výsledky týmu by si musel dnes vznést dotaz
+# najdí tým - všechny jeho games v games hledej game event typu goal fired a game event typu goal allowed
+# no a to při 100 zápasech bude těžký dotaz.. ideální by bylo po konci utkání vygenerovat Entitu
+# FINAL RESULTS - a tam se ti vypočítá kolik dal tým golů, kolik dal střel, kolik penalty apd.. a to by se uložilo do Final results jako hodnoty v entitě protože pak většina dotazů bude moct být výrazně rychlejších.. co si o tom myslíš?
+
+# - zde si myslím že budou další RULES které budeme muset vytvořit jako RESULT_TYPE (hodnoty: WIN,LOST,TIE)
+#vlad TODO: entita RESULT_TYPE
+#vlad TODO: entita RESULT_POINTS
+#vlad TODO: entita final_result
+
+# RESULT_POINTS (tam bude moct být vazba na WIN nebo LOST TIE  a dodá body zda získá 3body, 2body, 1bod, 0bodů)
+
+# - STORY
+
+# - jedná se op přípravu na generované texty - nevím zda to je entita, ale řekněme že každá entita může k sobě mít nějaký text který se na základě vzniku této entity vytovoří
+# například Entita GameEvent Gola má k sobě informace - Player GoalType Timestamp apd.. a tedy by měl někde vzniknout text "story" který bude znít například takto: "V čase 14:27 vstřelil gól po tvrdé střele hráč z týmu Barcelona Lionel Messi"
+
+# - nebo entita Star by měla vygenerovat text (story): "V zápase ID 20003 získal titul Hvězda utkání hráč Martin Novák z týmu Real Madrid"
