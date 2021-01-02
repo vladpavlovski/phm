@@ -39,7 +39,11 @@ const generateMutations = (records) => {
           $playerLastName: String
           $teamId: ID!
           $teamName: String
+          $teamFullName: String
           $teamNick: String
+          $teamShortcut: String
+          $teamPrimaryColor: String
+          $teamSecondaryColor: String
           $playerBirthdayYear: Int
           $playerBirthdayMonth: Int
           $playerBirthdayDay: Int
@@ -95,7 +99,15 @@ const generateMutations = (records) => {
               playerId
             }
           }
-          team: MergeTeam(teamId: $teamId, name: $teamName, nick: $teamNick) {
+          team: MergeTeam(
+            teamId: $teamId
+            name: $teamName
+            fullName: $teamFullName
+            shortcut: $teamShortcut
+            primaryColor: $teamPrimaryColor
+            secondaryColor: $teamSecondaryColor
+            nick: $teamNick
+          ) {
             teamId
           }
           playerTeam: MergePlayerTeams(
