@@ -18,8 +18,7 @@ enum ActivityStatus {
 }
 
 interface Person {
-  firstName: String!
-  lastName: String!
+  name: String!
   birthday: Date
   userName: String @unique
   phone: String @unique
@@ -38,8 +37,7 @@ interface Person {
 
 type Player implements Person {
   playerId: ID! @id
-  firstName: String!
-  lastName: String!
+  name: String!
   birthday: Date
   userName: String @unique
   phone: String @unique
@@ -100,12 +98,11 @@ type MetaPlayer {
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
 }
 
-# staff types: :Person :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
+# staff types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
 
 type Staff implements Person {
   staffId: ID! @id
-  firstName: String!
-  lastName: String!
+  name: String!
   birthday: Date
   userName: String @unique
   phone: String @unique
@@ -118,7 +115,6 @@ type Staff implements Person {
   city: String
   createdAt: DateTime
   updatedAt: DateTime
-  type: String
   account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
   managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
   teamManager: [Team] @relation(name: "HAS_MANAGER", direction: IN)
@@ -158,12 +154,71 @@ type Staff implements Person {
     @relation(name: "ATTENDED_BY", direction: IN)
 }
 
+type TeamManager {
+  teamManagerId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type Manager {
+  managerId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type Coach {
+  coachId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type CoachAssistant {
+  coachAssistant: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type Medic {
+  medicId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type Supporter {
+  supporterId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type Referee {
+  refereeId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type TimePicker {
+  timePickerId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type GameOfficial {
+  gameOfficialId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
+type LeagueOfficial {
+  leagueOfficialId: ID! @id
+  name: String
+  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+}
+
 # :Account
 
 type Account {
   accountId: ID! @id
-  firstName: String!
-  lastName: String!
+  name: String!
   userName: String
   phone: String
   email: String
@@ -680,13 +735,13 @@ type Phase {
   name: String
   startDate: Date
   endDate: Date
+  status: phaseStatus
   competition: Competition @relation(name: "DIVIDED", direction: IN)
   rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   games: [Game] @relation(name: "COMPLETE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
-  status: phaseStatus
 }
 
 # :Payment
