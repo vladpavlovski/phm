@@ -23,10 +23,10 @@ const schema = makeAugmentedSchema({
   typeDefs,
   config: {
     query: {
-      exclude: ['RatingCount'],
+      exclude: [],
     },
     mutation: {
-      exclude: ['RatingCount'],
+      exclude: [],
     },
   },
 })
