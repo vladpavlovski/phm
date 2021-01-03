@@ -1,24 +1,23 @@
 const fs = require('fs')
 const { gql } = require('@apollo/client')
-// const { data } = require('./seedData')
 const parse = require('csv-parse/lib/sync')
 
 export const getSeedMutations = () => {
-  const fileContent = fs.readFileSync(__dirname + '/fake_data.csv')
-  const records = parse(fileContent, { columns: true, delimiter: ';' })
-  const mutations = generateMutations(records)
+  const playersTeamsContent = fs.readFileSync(__dirname + '/players_teams.csv')
+  const playersTeams = parse(playersTeamsContent, {
+    columns: true,
+    delimiter: ';',
+  })
+  const mutations = generateMutations({ playersTeams })
 
   return mutations
 }
 
 const generateMutations = (records) => {
   // console.log('records:', records)
-  return records.map((rec) => {
+  return records.playersTeams.map((rec) => {
     Object.keys(rec).map((k) => {
-      if (k === 'playerName') {
-        rec['playerFirstName'] = rec[k].split(' ')[0]
-        rec['playerLastName'] = rec[k].split(' ')[1]
-      } else if (k === 'playerInternalId') {
+      if (k === 'playerInternalId') {
         rec[k] = parseInt(rec[k])
       } else if (k === 'playerBirthday') {
         const dateParts = rec[k].split('-')
@@ -26,6 +25,13 @@ const generateMutations = (records) => {
         rec['playerBirthdayMonth'] = parseInt(dateParts[1])
         rec['playerBirthdayDay'] = parseInt(dateParts[2])
       } else if (k === 'jerseyNoNumber') {
+        rec[k] = parseInt(rec[k])
+      } else if (k === 'teamManagerBirthday') {
+        const dateParts = rec[k].split('-')
+        rec['teamManagerBirthdayYear'] = parseInt(dateParts[0])
+        rec['teamManagerBirthdayMonth'] = parseInt(dateParts[1])
+        rec['teamManagerBirthdayDay'] = parseInt(dateParts[2])
+      } else if (k === 'teamManagerInternalId') {
         rec[k] = parseInt(rec[k])
       }
     })
@@ -35,15 +41,7 @@ const generateMutations = (records) => {
         mutation createInit(
           $playerId: ID!
           $playerInternalId: Int
-          $playerFirstName: String
-          $playerLastName: String
-          $teamId: ID!
-          $teamName: String
-          $teamFullName: String
-          $teamNick: String
-          $teamShortcut: String
-          $teamPrimaryColor: String
-          $teamSecondaryColor: String
+          $playerName: String
           $playerBirthdayYear: Int
           $playerBirthdayMonth: Int
           $playerBirthdayDay: Int
@@ -54,6 +52,21 @@ const generateMutations = (records) => {
           $playerHeight: String
           $playerWeight: String
           $playerGender: String
+          $teamId: ID!
+          $teamName: String
+          $teamFullName: String
+          $teamNick: String
+          $teamShortcut: String
+          $teamPrimaryColor: String
+          $teamSecondaryColor: String
+          $teamManagerId: ID!
+          $teamManagerName: String
+          $teamManagerGender: String
+          $teamManagerInternalId: Int
+          $teamManagerIsActive: ActivityStatus
+          $teamManagerBirthdayYear: Int
+          $teamManagerBirthdayMonth: Int
+          $teamManagerBirthdayDay: Int
           $positionId: ID!
           $positionName: String
           $positionDescription: String
@@ -66,8 +79,7 @@ const generateMutations = (records) => {
         ) {
           player: MergePlayer(
             playerId: $playerId
-            firstName: $playerFirstName
-            lastName: $playerLastName
+            name: $playerName
             internalId: $playerInternalId
             birthday: {
               year: $playerBirthdayYear
@@ -109,6 +121,28 @@ const generateMutations = (records) => {
             nick: $teamNick
           ) {
             teamId
+          }
+          teamManager: MergeStaff(
+            staffId: $teamManagerId
+            name: $teamManagerName
+            gender: $teamManagerGender
+            internalId: $teamManagerInternalId
+            isActive: $teamManagerIsActive
+            birthday: {
+              year: $teamManagerBirthdayYear
+              month: $teamManagerBirthdayMonth
+              day: $teamManagerBirthdayDay
+            }
+          ) {
+            staffId
+          }
+          staffTeamManager: MergeStaffTeamManager(
+            from: { teamId: $teamId }
+            to: { staffId: $teamManagerId }
+          ) {
+            from {
+              teamId
+            }
           }
           playerTeam: MergePlayerTeams(
             from: { playerId: $playerId }
