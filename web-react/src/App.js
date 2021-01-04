@@ -5,6 +5,7 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
 import UserList from './components/UserList'
 import { GlobalStyle, muiTheme } from './styles/global'
 import { ThemeProvider } from '@material-ui/core/styles'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import clsx from 'clsx'
 import { makeStyles } from '@material-ui/core/styles'
 import {
@@ -148,93 +149,95 @@ export default function App() {
     <Router>
       <ThemeProvider theme={muiTheme}>
         <GlobalStyle />
-        <div className={classes.root}>
-          <CssBaseline />
-          <AppBar
-            position="absolute"
-            className={clsx(classes.appBar, open && classes.appBarShift)}
-          >
-            <Toolbar className={classes.toolbar}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                className={clsx(
-                  classes.menuButton,
-                  open && classes.menuButtonHidden
-                )}
-              >
-                <MenuIcon />
-              </IconButton>
-              <img
-                className={classes.appBarImage}
-                src="img/grandstack.png"
-                alt="GRANDstack logo"
-              />
-              <Typography
-                component="h1"
-                variant="h6"
-                color="inherit"
-                noWrap
-                className={classes.title}
-              >
-                Welcome To GRANDstack App
-              </Typography>
-            </Toolbar>
-          </AppBar>
-          <Drawer
-            variant="permanent"
-            classes={{
-              paper: clsx(
-                classes.drawerPaper,
-                !open && classes.drawerPaperClose
-              ),
-            }}
-            open={open}
-          >
-            <div className={classes.toolbarIcon}>
-              <IconButton onClick={handleDrawerClose}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <Divider />
-            <List>
-              <Link to="/" className={classes.navLink}>
-                <ListItem button>
-                  <ListItemIcon>
-                    <DashboardIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Dashboard" />
-                </ListItem>
-              </Link>
+        <ErrorBoundary>
+          <div className={classes.root}>
+            <CssBaseline />
+            <AppBar
+              position="absolute"
+              className={clsx(classes.appBar, open && classes.appBarShift)}
+            >
+              <Toolbar className={classes.toolbar}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={handleDrawerOpen}
+                  className={clsx(
+                    classes.menuButton,
+                    open && classes.menuButtonHidden
+                  )}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <img
+                  className={classes.appBarImage}
+                  src="img/grandstack.png"
+                  alt="GRANDstack logo"
+                />
+                <Typography
+                  component="h1"
+                  variant="h6"
+                  color="inherit"
+                  noWrap
+                  className={classes.title}
+                >
+                  Welcome To GRANDstack App
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <Drawer
+              variant="permanent"
+              classes={{
+                paper: clsx(
+                  classes.drawerPaper,
+                  !open && classes.drawerPaperClose
+                ),
+              }}
+              open={open}
+            >
+              <div className={classes.toolbarIcon}>
+                <IconButton onClick={handleDrawerClose}>
+                  <ChevronLeftIcon />
+                </IconButton>
+              </div>
+              <Divider />
+              <List>
+                <Link to="/" className={classes.navLink}>
+                  <ListItem button>
+                    <ListItemIcon>
+                      <DashboardIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Dashboard" />
+                  </ListItem>
+                </Link>
 
-              <Link to="/users" className={classes.navLink}>
-                <ListItem button>
-                  <ListItemIcon>
-                    <PeopleIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Users" />
-                </ListItem>
-              </Link>
-            </List>
-            <Divider />
-          </Drawer>
-          <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
-              <Switch>
-                <Route exact path="/" component={Dashboard} />
-                <Route exact path="/businesses" component={UserList} />
-                <Route exact path="/users" component={UserList} />
-              </Switch>
+                <Link to="/users" className={classes.navLink}>
+                  <ListItem button>
+                    <ListItemIcon>
+                      <PeopleIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Users" />
+                  </ListItem>
+                </Link>
+              </List>
+              <Divider />
+            </Drawer>
+            <main className={classes.content}>
+              <div className={classes.appBarSpacer} />
+              <Container maxWidth="lg" className={classes.container}>
+                <Switch>
+                  <Route exact path="/" component={Dashboard} />
+                  <Route exact path="/businesses" component={UserList} />
+                  <Route exact path="/users" component={UserList} />
+                </Switch>
 
-              <Box pt={4}>
-                <Copyright />
-              </Box>
-            </Container>
-          </main>
-        </div>
+                <Box pt={4}>
+                  <Copyright />
+                </Box>
+              </Container>
+            </main>
+          </div>
+        </ErrorBoundary>
       </ThemeProvider>
     </Router>
   )
