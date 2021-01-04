@@ -659,7 +659,7 @@ type Address {
 type Competition {
   competitionId: ID! @id
   name: String!
-  isActive: Boolean
+  isActive: String
   association: Association @relation(name: "OWNED_BY", direction: OUT)
   rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
@@ -723,19 +723,19 @@ type Group {
 
 # :Phase
 
-enum phaseStatus {
-  NOTSTARTED
-  RUNNING
-  FINISHED
-  POSTPONED
-}
+# enum phaseStatus {
+#   NOTSTARTED
+#   RUNNING
+#   FINISHED
+#   POSTPONED
+# }
 
 type Phase {
   phaseId: ID! @id
   name: String
   startDate: Date
   endDate: Date
-  status: phaseStatus
+  status: String
   competition: Competition @relation(name: "DIVIDED", direction: IN)
   rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
