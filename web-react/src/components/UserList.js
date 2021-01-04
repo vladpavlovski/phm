@@ -15,7 +15,7 @@ import {
 
 import Title from './Title'
 
-const styles = (theme) => ({
+const styles = theme => ({
   root: {
     maxWidth: 700,
     marginTop: theme.spacing(3),
@@ -71,7 +71,7 @@ function UserList(props) {
     },
   })
 
-  const handleSortRequest = (property) => {
+  const handleSortRequest = property => {
     const newOrderBy = property
     let newOrder = 'desc'
 
@@ -83,10 +83,10 @@ function UserList(props) {
     setOrderBy(newOrderBy)
   }
 
-  const handleFilterChange = (filterName) => (event) => {
+  const handleFilterChange = filterName => event => {
     const val = event.target.value
 
-    setFilterState((oldFilterState) => ({
+    setFilterState(oldFilterState => ({
       ...oldFilterState,
       [filterName]: val,
     }))
@@ -159,7 +159,7 @@ function UserList(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.User.map((n) => {
+            {data.User.map(n => {
               return (
                 <TableRow key={n.id}>
                   <TableCell component="th" scope="row">

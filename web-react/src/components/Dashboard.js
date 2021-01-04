@@ -4,13 +4,12 @@ import { Grid, Paper } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import clsx from 'clsx'
 
-import RatingsChart from './RatingsChart'
 import UserCount from './UserCount'
 import RecentReviews from './RecentReviews'
 export default function Dashboard() {
   const theme = useTheme()
 
-  const useStyles = makeStyles((theme) => ({
+  const useStyles = makeStyles(theme => ({
     root: {
       display: 'flex',
     },
@@ -32,9 +31,7 @@ export default function Dashboard() {
       <Grid container spacing={4}>
         {/* Ratings Chart */}
         <Grid item xs={12} md={8} lg={7}>
-          <Paper className={fixedHeightPaper}>
-            <RatingsChart />
-          </Paper>
+          <Paper className={fixedHeightPaper}></Paper>
         </Grid>
         {/* User Count */}
         <Grid item xs={12} md={4} lg={5}>
