@@ -9,6 +9,6 @@ const jobs = [
   },
 ]
 
-concurrently(jobs, concurrentOpts).catch((e) => {
+concurrently(jobs, concurrentOpts).catch(e => {
   console.error(e.message)
 })

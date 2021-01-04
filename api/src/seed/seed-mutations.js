@@ -13,9 +13,9 @@ export const getSeedMutations = async () => {
   return mutations
 }
 
-const generateMutations = (records) => {
-  return records.map((rec) => {
-    Object.keys(rec).map((k) => {
+const generateMutations = records => {
+  return records.map(rec => {
+    Object.keys(rec).map(k => {
       if (k === 'latitude' || k === 'longitude' || k === 'reviewStars') {
         rec[k] = parseFloat(rec[k])
       } else if (k === 'reviewDate') {

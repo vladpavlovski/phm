@@ -52,7 +52,7 @@ const driver = neo4j.driver(
  * creating constraints or ensuring indexes are online
  *
  */
-const init = async (driver) => {
+const init = async driver => {
   await initializeDatabase(driver)
 }
 

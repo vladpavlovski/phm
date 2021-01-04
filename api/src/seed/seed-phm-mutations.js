@@ -22,9 +22,9 @@ export const getSeedMutations = () => {
   return mutations
 }
 
-const generateMutations = (records) => {
-  const playersTeams = records.playersTeams.map((rec) => {
-    Object.keys(rec).map((k) => {
+const generateMutations = records => {
+  const playersTeams = records.playersTeams.map(rec => {
+    Object.keys(rec).map(k => {
       if (k === 'playerInternalId') {
         rec[k] = parseInt(rec[k])
       } else if (k === 'playerBirthday') {
@@ -229,8 +229,8 @@ const generateMutations = (records) => {
     }
   })
 
-  const associations = records.associations.map((rec) => {
-    Object.keys(rec).map((k) => {
+  const associations = records.associations.map(rec => {
+    Object.keys(rec).map(k => {
       if (k === 'associationManagerInternalId') {
         rec[k] = parseInt(rec[k])
       } else if (k === 'associationManagerBirthday') {

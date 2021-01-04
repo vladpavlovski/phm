@@ -30,7 +30,7 @@ const runMutations = () => {
           mutation,
           variables,
         })
-        .catch((e) => {
+        .catch(e => {
           throw new Error(e)
         })
     })
@@ -41,4 +41,4 @@ runMutations()
   .then(() => {
     console.log('Database seeded!')
   })
-  .catch((e) => console.error(e))
+  .catch(e => console.error(e))

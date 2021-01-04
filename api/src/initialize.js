@@ -1,4 +1,4 @@
-export const initializeDatabase = (driver) => {
+export const initializeDatabase = driver => {
   const initCypher = `CALL apoc.schema.assert({}, {
     Player: ["playerId"],
     MetaPlayer: ["metaPlayerId"],
@@ -69,15 +69,15 @@ export const initializeDatabase = (driver) => {
     ResultPoint: ["resultPointId"]
   })`
 
-  const executeQuery = (driver) => {
+  const executeQuery = driver => {
     const session = driver.session()
     return session
-      .writeTransaction((tx) => tx.run(initCypher))
+      .writeTransaction(tx => tx.run(initCypher))
       .then()
       .finally(() => session.close())
   }
 
-  executeQuery(driver).catch((error) => {
+  executeQuery(driver).catch(error => {
     console.error('Database initialization failed to complete\n', error.message)
   })
 }
