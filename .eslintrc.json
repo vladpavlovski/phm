@@ -23,6 +23,7 @@
   "plugins": ["react", "prettier", "react-hooks"],
   "rules": {
     "prettier/prettier": "error",
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    "react/display-name": 0
   }
 }
