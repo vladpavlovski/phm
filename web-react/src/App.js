@@ -5,8 +5,8 @@ import { ThemeProvider } from '@material-ui/core/styles'
 import Load from './utils/load'
 import { GlobalStyle, muiTheme } from './styles/global'
 
-import UserList from './components/UserList'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import * as ROUTES from './routes'
 
 import Dashboard from './components/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
@@ -20,8 +20,7 @@ const App = () => {
           <Layout>
             <Switch>
               <Route exact path="/" component={Dashboard} />
-              <Route exact path="/businesses" component={UserList} />
-              <Route exact path="/users" component={UserList} />
+              <Route exact path={ROUTES.DASHBOARD} component={Dashboard} />
             </Switch>
           </Layout>
         </ErrorBoundary>
