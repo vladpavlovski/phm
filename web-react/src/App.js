@@ -8,7 +8,7 @@ import { GlobalStyle, muiTheme } from './styles/global'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import * as ROUTES from './routes'
 
-import Dashboard from './components/Dashboard'
+import Dashboard from './admin/pages/Dashboard/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
 
 const App = () => {
