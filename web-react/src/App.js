@@ -10,6 +10,7 @@ import * as ROUTES from './routes'
 
 import Dashboard from './admin/pages/Dashboard/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
+const PlayersView = Load(() => import('./admin/pages/Player/view'))
 
 const App = () => {
   return (
@@ -20,7 +21,16 @@ const App = () => {
           <Layout>
             <Switch>
               <Route exact path="/" component={Dashboard} />
-              <Route exact path={ROUTES.DASHBOARD} component={Dashboard} />
+              <Route
+                exact
+                path={ROUTES.ADMIN_DASHBOARD}
+                component={Dashboard}
+              />
+              <Route
+                path={ROUTES.ADMIN_PLAYERS}
+                exact
+                component={PlayersView}
+              />
             </Switch>
           </Layout>
         </ErrorBoundary>

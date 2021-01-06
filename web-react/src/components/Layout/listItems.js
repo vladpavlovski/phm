@@ -12,8 +12,8 @@ import {
 } from '@material-ui/core'
 import {
   Dashboard,
-
-  // , GridOn, Group, Mood, DoneAll
+  Mood,
+  // , GridOn, Group, , DoneAll
 } from '@material-ui/icons'
 
 const ListItemLink = props => {
@@ -41,15 +41,20 @@ const MainListItems = () => (
       <ListItemLink
         icon={<Dashboard />}
         primary="Dashboard"
-        to={ROUTES.DASHBOARD}
+        to={ROUTES.ADMIN_DASHBOARD}
       />
     </List>
     <Divider />
     <List>
       <ListSubheader inset>PHM Tables</ListSubheader>
+      <ListItemLink
+        icon={<Mood />}
+        primary="Players"
+        to={ROUTES.ADMIN_PLAYERS}
+      />
       {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
       <ListItemLink icon={<Group />} primary="Teams" to={ROUTES.TEAMS} />
-      <ListItemLink icon={<Mood />} primary="Players" to={ROUTES.PLAYERS} />
+      
       <ListItemLink
         icon={<DoneAll />}
         primary="Player Merge"
