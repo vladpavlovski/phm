@@ -6,16 +6,14 @@ import { DataTable } from '../../../../components/DataTable'
 import { getAdminPlayerRoute } from '../../../../routes'
 
 import { Button } from '@material-ui/core'
+import { Error } from '../../../../components/Error'
+import { Loader } from '../../../../components/Loader'
 
-export const GET_ALL_PLAYERS = gql`
+export const GET_PLAYERS = gql`
   query getPlayers {
     Player {
       playerId
       name
-      birthday {
-        formatted
-      }
-      gender
       positions {
         positionId
         name
@@ -30,7 +28,7 @@ export const GET_ALL_PLAYERS = gql`
 
 const PlayersTable = () => {
   const history = useHistory()
-  const { loading, error, data } = useQuery(GET_ALL_PLAYERS)
+  const { loading, error, data } = useQuery(GET_PLAYERS)
 
   const options = useMemo(
     () => ({
@@ -132,8 +130,8 @@ const PlayersTable = () => {
     [data]
   )
 
-  if (loading) return 'Loading...'
-  if (error) return `Error! ${error.message}`
+  if (loading) return <Loader />
+  if (error) return <Error message={error.message} />
 
   return (
     <DataTable
