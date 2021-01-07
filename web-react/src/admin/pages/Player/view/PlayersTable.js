@@ -1,11 +1,11 @@
 import React, { Fragment, useMemo } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { useHistory, Link } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 import { DataTable } from '../../../../components/DataTable'
 import { getAdminPlayerRoute } from '../../../../routes'
+import { LinkButton } from '../../../../components/LinkButton'
 
-import { Button } from '@material-ui/core'
 import { Error } from '../../../../components/Error'
 import { Loader } from '../../../../components/Loader'
 
@@ -110,18 +110,7 @@ const PlayersTable = () => {
           customBodyRenderLite: dataIndex => {
             const { playerId } = data.Player[dataIndex]
             return (
-              <Button
-                size="small"
-                variant="contained"
-                color="primary"
-                component={Link}
-                to={getAdminPlayerRoute(playerId)}
-                onClick={e => {
-                  e.stopPropagation()
-                }}
-              >
-                Edit
-              </Button>
+              <LinkButton to={getAdminPlayerRoute(playerId)}>Edit</LinkButton>
             )
           },
         },
