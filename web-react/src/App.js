@@ -11,6 +11,7 @@ import * as ROUTES from './routes'
 import Dashboard from './admin/pages/Dashboard/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
 const PlayersView = Load(() => import('./admin/pages/Player/view'))
+const NotFound = Load(() => import('./pages/NotFound'))
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
                 exact
                 component={PlayersView}
               />
+              <Route path="*" exact component={NotFound} />
             </Switch>
           </Layout>
         </ErrorBoundary>
