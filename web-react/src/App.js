@@ -12,6 +12,7 @@ import Dashboard from './admin/pages/Dashboard/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
 const PlayersView = Load(() => import('./admin/pages/Player/view'))
 const NotFound = Load(() => import('./pages/NotFound'))
+const NetworkError = Load(() => import('./pages/NetworkError'))
 
 const App = () => {
   return (
@@ -31,6 +32,11 @@ const App = () => {
                 path={ROUTES.ADMIN_PLAYERS}
                 exact
                 component={PlayersView}
+              />
+              <Route
+                path={ROUTES.NETWORK_ERROR}
+                exact
+                component={NetworkError}
               />
               <Route path="*" exact component={NotFound} />
             </Switch>

@@ -1,7 +1,4 @@
 import { ApolloClient, HttpLink, InMemoryCache, concat } from '@apollo/client'
-//https://harsh-patel.medium.com/handle-and-inspect-network-errors-in-your-graphql-client-side-ae5e4fafc08
-//https://hasura.io/blog/handling-graphql-hasura-errors-with-react/
-
 import { onError } from '@apollo/client/link/error'
 
 const httpLink = new HttpLink({
@@ -19,7 +16,9 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
       )
     })
 
-  if (networkError) console.error(`[Network error]: ${networkError}`)
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`)
+  }
 })
 
 const client = new ApolloClient({
