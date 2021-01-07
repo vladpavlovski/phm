@@ -5,6 +5,7 @@ import { ThemeProvider } from '@material-ui/core/styles'
 import Load from './utils/load'
 import { GlobalStyle, muiTheme } from './styles/global'
 
+import { LayoutProvider } from './context/layout/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import * as ROUTES from './routes'
 
@@ -20,27 +21,29 @@ const App = () => {
       <ThemeProvider theme={muiTheme}>
         <GlobalStyle />
         <ErrorBoundary>
-          <Layout>
-            <Switch>
-              <Route exact path="/" component={Dashboard} />
-              <Route
-                exact
-                path={ROUTES.ADMIN_DASHBOARD}
-                component={Dashboard}
-              />
-              <Route
-                path={ROUTES.ADMIN_PLAYERS}
-                exact
-                component={PlayersView}
-              />
-              <Route
-                path={ROUTES.NETWORK_ERROR}
-                exact
-                component={NetworkError}
-              />
-              <Route path="*" exact component={NotFound} />
-            </Switch>
-          </Layout>
+          <LayoutProvider>
+            <Layout>
+              <Switch>
+                <Route exact path="/" component={Dashboard} />
+                <Route
+                  exact
+                  path={ROUTES.ADMIN_DASHBOARD}
+                  component={Dashboard}
+                />
+                <Route
+                  path={ROUTES.ADMIN_PLAYERS}
+                  exact
+                  component={PlayersView}
+                />
+                <Route
+                  path={ROUTES.NETWORK_ERROR}
+                  exact
+                  component={NetworkError}
+                />
+                <Route path="*" exact component={NotFound} />
+              </Switch>
+            </Layout>
+          </LayoutProvider>
         </ErrorBoundary>
       </ThemeProvider>
     </Router>

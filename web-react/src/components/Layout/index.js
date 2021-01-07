@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import clsx from 'clsx'
 
 import {
@@ -13,6 +13,8 @@ import {
   Container,
   // Badge,
 } from '@material-ui/core'
+
+import LayoutContext from '../../context/layout'
 import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 
@@ -26,7 +28,7 @@ const Layout = props => {
   const { children } = props
   const classes = useStyles()
   const [open, setOpen] = useState(true)
-
+  const { barTitle } = useContext(LayoutContext)
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -56,7 +58,7 @@ const Layout = props => {
             noWrap
             className={classes.title}
           >
-            Dashboard
+            {barTitle}
           </Typography>
           {/* <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">

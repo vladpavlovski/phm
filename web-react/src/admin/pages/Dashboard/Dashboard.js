@@ -1,13 +1,24 @@
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useTheme } from '@material-ui/core/styles'
 import { Grid, Paper } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import clsx from 'clsx'
 
+import LayoutContext from '../../../context/layout'
+
 import UserCount from './UserCount'
-import RecentReviews from './RecentReviews'
+
 export default function Dashboard() {
   const theme = useTheme()
+
+  const { setBarTitle } = useContext(LayoutContext)
+
+  useEffect(() => {
+    setBarTitle('Dashboard')
+    return () => {
+      setBarTitle('')
+    }
+  }, [])
 
   const useStyles = makeStyles(theme => ({
     root: {
@@ -41,9 +52,7 @@ export default function Dashboard() {
         </Grid>
         {/* Recent Reviews */}
         <Grid item xs={12}>
-          <Paper className={classes.paper}>
-            <RecentReviews />
-          </Paper>
+          <Paper className={classes.paper}></Paper>
         </Grid>
       </Grid>
     </React.Fragment>
