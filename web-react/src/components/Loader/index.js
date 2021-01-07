@@ -1,17 +1,19 @@
 import React from 'react'
 import { default as LoaderLib } from 'react-loader-spinner'
-import { LoaderWrapper } from './styled'
+import { LoaderContainer, LoaderWrapper } from './styled'
 
 const Loader = props => (
-  <LoaderWrapper>
-    <LoaderLib {...props} />
-    {!props.noText && (
-      <>
-        <p>Tahám výsledky z centrály...</p>
-        <p>Prosím vydrž...</p>
-      </>
-    )}
-  </LoaderWrapper>
+  <LoaderContainer>
+    <LoaderWrapper>
+      <LoaderLib {...props} />
+      {!props.noText && (
+        <>
+          <p>Tahám výsledky z centrály...</p>
+          <p>Prosím vydrž...</p>
+        </>
+      )}
+    </LoaderWrapper>
+  </LoaderContainer>
 )
 
 Loader.propTypes = {}
@@ -19,9 +21,9 @@ Loader.propTypes = {}
 Loader.defaultProps = {
   type: 'Rings',
   color: '#323C46',
-  height: 250,
-  width: 250,
-  noText: false,
+  height: 100,
+  width: 100,
+  noText: true,
 }
 
 export { Loader }
