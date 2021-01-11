@@ -1,8 +1,8 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-
+import TextField from '@material-ui/core/TextField'
 import dayjs from 'dayjs'
-import { KeyboardDatePicker } from '@material-ui/pickers'
+import DatePicker from '@material-ui/lab/DatePicker'
 
 const RHFDatepicker = props => {
   const {
@@ -12,31 +12,31 @@ const RHFDatepicker = props => {
     defaultValue,
     label,
     variant,
-    inputVariant,
     error,
     helperText,
-    fullWidth,
-    inputProps,
   } = props
   return (
     <Controller
-      as={
-        <KeyboardDatePicker
+      name={name}
+      control={control}
+      render={({ onChange, onBlur, value, name, ref }) => (
+        <DatePicker
+          renderInput={params => (
+            <TextField {...params} margin="normal" variant={variant} />
+          )}
+          inputRef={ref}
+          onChange={onChange}
+          onBlur={onBlur}
+          value={value}
+          name={name}
           id={id}
           disableFuture
-          autoOk
-          variant={variant}
-          inputVariant={inputVariant}
           openTo="year"
-          format="DD/MM/YYYY"
+          // inputFormat="YYYY-MM-DD"
           label={label}
           views={['year', 'month', 'date']}
         />
-      }
-      fullWidth={fullWidth}
-      inputProps={inputProps}
-      name={name}
-      control={control}
+      )}
       defaultValue={defaultValue ? dayjs(defaultValue) : null}
       error={error}
       helperText={helperText}
