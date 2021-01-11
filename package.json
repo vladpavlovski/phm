@@ -32,5 +32,8 @@
       "prettier --write",
       "eslint --fix"
     ]
+  },
+  "dependencies": {
+    "@material-ui/lab": "^5.0.0-alpha.22"
   }
 }

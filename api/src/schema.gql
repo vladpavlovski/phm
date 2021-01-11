@@ -152,6 +152,7 @@ type Staff implements Person {
   maybeInvitations: [InvitationList] @relation(name: "MAYBE_BY", direction: IN)
   attendedInvitations: [InvitationList]
     @relation(name: "ATTENDED_BY", direction: IN)
+  venueManager: Venue @relation(name: "HAS_MANAGER", direction: IN)
 }
 
 type TeamManager {
@@ -595,6 +596,11 @@ type Comment {
 type Association {
   associationId: ID! @id
   name: String
+  nick: String
+  short: String
+  status: String
+  foundDate: Date
+  legalName: String
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   manager: Staff @relation(name: "HAS_MANAGER", direction: OUT)
@@ -610,8 +616,12 @@ type Association {
 type Sponsor {
   sponsorId: ID! @id
   name: String
+  nick: String
+  short: String
+  claim: String
   web: String
   description: String
+  legalName: String
   players: [Player] @relation(name: "SPONSORED_BY", direction: IN)
   teams: [Team] @relation(name: "SPONSORED_BY", direction: IN)
   staff: [Staff] @relation(name: "SPONSORED_BY", direction: IN)
@@ -626,13 +636,19 @@ type Sponsor {
 type Venue {
   venueId: ID! @id
   name: String
+  nick: String
+  short: String
   web: String
   description: String
+  location: String
+  foundDate: Date
+  capacity: Int
   disabled: Boolean
   competitions: [Competition] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   games: [Game] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   address: Address @relation(name: "LOCATED_AT", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
 }
 
 # 34. :Address
@@ -658,8 +674,11 @@ type Address {
 
 type Competition {
   competitionId: ID! @id
-  name: String!
-  isActive: String
+  name: String
+  nick: String
+  short: String
+  foundDate: Date
+  status: String
   association: Association @relation(name: "OWNED_BY", direction: OUT)
   rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
