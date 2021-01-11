@@ -12,7 +12,7 @@ export const ADMIN_DASHBOARD = '/admin/dashboard'
 // export const TEAMS = '/teams'
 // export const TEAM = '/team/:teamId'
 export const ADMIN_PLAYERS = '/admin/players'
-export const PLAYER = '/admin/player/:playerId'
+export const ADMIN_PLAYER = '/admin/player/:playerId'
 // export const PLAYER_MERGE = '/playerMerge'
 
 // export const getArticleRoute = gameId => generatePath(ARTICLE, { gameId })
@@ -20,4 +20,4 @@ export const PLAYER = '/admin/player/:playerId'
 //   generatePath(ARTICLE_GENERATED, { gameId })
 // export const getTeamRoute = teamId => generatePath(TEAM, { teamId })
 export const getAdminPlayerRoute = playerId =>
-  generatePath(PLAYER, { playerId })
+  generatePath(ADMIN_PLAYER, { playerId })

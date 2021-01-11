@@ -5,10 +5,11 @@
   "license": "MIT",
   "dependencies": {
     "@apollo/client": "^3.3.6",
-    "@material-ui/core": "^4.11.2",
-    "@material-ui/icons": "^4.11.2",
-    "@material-ui/lab": "^4.0.0-alpha.57",
-    "@material-ui/pickers": "^3.2.10",
+    "@emotion/react": "^11.1.4",
+    "@emotion/styled": "^11.0.0",
+    "@material-ui/core": "^5.0.0-alpha.22",
+    "@material-ui/icons": "^5.0.0-alpha.22",
+    "@material-ui/lab": "^5.0.0-alpha.22",
     "classnames": "^2.2.6",
     "dayjs": "^1.10.2",
     "graphql": "^15.4.0",
@@ -22,7 +23,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.1",
     "sanitize.css": "^12.0.1",
-    "styled-components": "^5.2.1"
+    "styled-components": "^5.2.1",
+    "yup": "^0.32.8"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -7,7 +7,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
+  // ListSubheader,
   Divider,
 } from '@material-ui/core'
 import {
@@ -46,7 +46,7 @@ const MainListItems = () => (
     </List>
     <Divider />
     <List>
-      <ListSubheader inset>PHM Tables</ListSubheader>
+      {/* <ListSubheader inset>PHM Tables</ListSubheader> */}
       <ListItemLink
         icon={<Mood />}
         primary="Players"
