@@ -304,7 +304,7 @@ type Game {
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   payment: Payment @relation(name: "PAYMENT_FOR_GAME", direction: IN)
   event: Event @relation(name: "TRANSFORM_TO", direction: IN)
-  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   finalResult: FinalResult @relation(name: "COMPOSE_RESULT", direction: OUT)
 }
@@ -607,7 +607,7 @@ type Association {
   payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
   competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
@@ -629,6 +629,8 @@ type Sponsor {
   competitions: [Competition] @relation(name: "SPONSORED_BY", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  phases: [Phase] @relation(name: "SPONSORED_BY", direction: IN)
+  groups: [Group] @relation(name: "SPONSORED_BY", direction: IN)
 }
 
 # :Venue
@@ -649,6 +651,9 @@ type Venue {
   address: Address @relation(name: "LOCATED_AT", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
+  seasons: [Season] @relation(name: "TAKES_PLAYS_ON", direction: IN)
+  phases: [Phase] @relation(name: "TAKES_PLAYS_ON", direction: IN)
+  groups: [Group] @relation(name: "TAKES_PLAYS_ON", direction: IN)
 }
 
 # 34. :Address
@@ -680,7 +685,7 @@ type Competition {
   foundDate: Date
   status: String
   association: Association @relation(name: "OWNED_BY", direction: OUT)
-  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "DIVIDED", direction: OUT)
@@ -722,10 +727,15 @@ type Event {
 type Season {
   seasonId: ID! @id
   name: String
+  nick: String
+  short: String
   startDate: Date
   endDate: Date
   competition: Competition @relation(name: "BELONGS_TO", direction: IN)
   teamWears: [Wear] @relation(name: "WEAR_FOR", direction: IN)
+  venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  phases: [Phase] @relation(name: "BELONGS_TO", direction: IN)
+  groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
 }
 
 # :Group
@@ -733,11 +743,14 @@ type Group {
   groupId: ID! @id
   name: String
   competition: Competition @relation(name: "DIVIDED", direction: IN)
-  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   games: [Game] @relation(name: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  season: Season @relation(name: "BELONGS_TO", direction: OUT)
+  venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
 }
 
 # :Phase
@@ -752,15 +765,20 @@ type Group {
 type Phase {
   phaseId: ID! @id
   name: String
+  nick: String
+  short: String
   startDate: Date
   endDate: Date
   status: String
   competition: Competition @relation(name: "DIVIDED", direction: IN)
-  rules: Rules @relation(name: "GUIDED_BY", direction: OUT)
+  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   games: [Game] @relation(name: "COMPLETE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  season: Season @relation(name: "BELONGS_TO", direction: OUT)
+  venues: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
 }
 
 # :Payment
@@ -867,10 +885,10 @@ type Achievement {
   teams: [Team] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
 }
 
-# :Rules
+# :RulePack
 
-type Rules {
-  rulesId: ID! @id
+type RulePack {
+  rulePackId: ID! @id
   name: String
   createdDate: DateTime
   associations: [Association] @relation(name: "GUIDED_BY", direction: IN)
@@ -903,7 +921,7 @@ type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :Period
@@ -912,7 +930,7 @@ type Period {
   periodId: ID! @id
   name: String
   duration: Int
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :ShotSubType
@@ -921,7 +939,7 @@ type ShotSubType {
   shotSubTypeId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :ShotTarget
@@ -930,7 +948,7 @@ type ShotTarget {
   shotTargetId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :ShotStyle
@@ -939,7 +957,7 @@ type ShotStyle {
   shotStyleId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :ShotType
@@ -948,7 +966,7 @@ type ShotType {
   shotTypeId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :GoalType
@@ -957,7 +975,7 @@ type GoalType {
   goalTypeId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :GoalSubType
@@ -966,7 +984,7 @@ type GoalSubType {
   goalSubTypeId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :PenaltySubType
@@ -975,7 +993,7 @@ type PenaltySubType {
   penaltySubTypeId: ID! @id
   name: String
   code: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :PenaltyType
@@ -985,7 +1003,7 @@ type PenaltyType {
   name: String
   code: String
   duration: Int
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :GameEventLocation
@@ -995,7 +1013,7 @@ type GameEventLocation {
   name: String
   fieldX: String
   fieldY: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :PositionType
@@ -1004,7 +1022,7 @@ type PositionType {
   positionTypeId: ID! @id
   name: String
   description: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 # :Wear
@@ -1060,25 +1078,25 @@ type FinalResult {
 type InjuryType {
   injuryTypeId: ID! @id
   name: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 type ResultType {
   resultTypeId: ID! @id
   name: String
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 type ResultPoint {
   resultPointId: ID! @id
   name: String
   points: Int
-  rule: Rules @relation(name: "SET_UP", direction: IN)
+  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 #urbis: NOVÉ ENTITY
 
-# Position - má vztah na Rules - vytovříme seznam pozic kterými si pak řídí jednotlivé Competitions, Games, apd..
+# Position - má vztah na RulePack - vytovříme seznam pozic kterými si pak řídí jednotlivé Competitions, Games, apd..
 # Position má pak vztah na hráče
 
 # JerseyNo - číslo hráče na dresu - to je něco co musíme mít jako ke každému týmu je dostupných 0-99 JerseyNo a tato entita buď má vztah na hráče nebo nemá pokud nemá je toto číslo hráče volné = "not_Assigned" pokud je obsazené tak je "taken_by" Player
@@ -1104,7 +1122,7 @@ type ResultPoint {
 # no a to při 100 zápasech bude těžký dotaz.. ideální by bylo po konci utkání vygenerovat Entitu
 # FINAL RESULTS - a tam se ti vypočítá kolik dal tým golů, kolik dal střel, kolik penalty apd.. a to by se uložilo do Final results jako hodnoty v entitě protože pak většina dotazů bude moct být výrazně rychlejších.. co si o tom myslíš?
 
-# - zde si myslím že budou další RULES které budeme muset vytvořit jako RESULT_TYPE (hodnoty: WIN,LOST,TIE)
+# - zde si myslím že budou další RulePack které budeme muset vytvořit jako RESULT_TYPE (hodnoty: WIN,LOST,TIE)
 #vlad TODO: entita RESULT_TYPE
 #vlad TODO: entita RESULT_POINTS
 #vlad TODO: entita final_result

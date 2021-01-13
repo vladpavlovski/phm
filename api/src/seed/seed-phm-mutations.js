@@ -40,11 +40,39 @@ export const getSeedMutations = () => {
     columns: true,
     delimiter: ',',
   })
+
+  const competitionsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Competitions.csv'
+  )
+  const competitions = parse(competitionsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
+  const seasonsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Seasons.csv'
+  )
+  const seasons = parse(seasonsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
+  const phasesContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Phases.csv'
+  )
+  const phases = parse(phasesContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     // playersTeams,
-    associations,
     sponsors,
     venues,
+    associations,
+    competitions,
+    seasons,
+    phases,
   })
 
   return mutations
@@ -155,7 +183,6 @@ const generateMutations = records => {
         rec['associationFoundDateYear'] = parseInt(dateParts[2])
       }
     })
-    console.log(rec)
     return {
       mutation: gql`
         mutation createAssociations(
@@ -189,6 +216,251 @@ const generateMutations = records => {
       variables: rec,
     }
   })
+
+  const competitions = records.competitions.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'competitionFoundDate') {
+        const dateParts = rec[k].split('.')
+        rec['competitionFoundDateDay'] = parseInt(dateParts[0])
+        rec['competitionFoundDateMonth'] = parseInt(dateParts[1])
+        rec['competitionFoundDateYear'] = parseInt(dateParts[2])
+      }
+    })
+    return {
+      mutation: gql`
+        mutation createCompetitions(
+          $competitionId: ID!
+          $competitionName: String
+          $competitionNick: String
+          $competitionShort: String
+          $competitionStatus: String
+          $competitionFoundDateDay: Int
+          $competitionFoundDateMonth: Int
+          $competitionFoundDateYear: Int
+          $associationId: ID!
+          $sponsorId: ID!
+        ) {
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+            nick: $competitionNick
+            short: $competitionShort
+            status: $competitionStatus
+            foundDate: {
+              day: $competitionFoundDateDay
+              month: $competitionFoundDateMonth
+              year: $competitionFoundDateYear
+            }
+          ) {
+            competitionId
+          }
+          competitionAssociation: MergeCompetitionAssociation(
+            from: { competitionId: $competitionId }
+            to: { associationId: $associationId }
+          ) {
+            from {
+              competitionId
+            }
+          }
+          competitionSponsor: MergeCompetitionSponsors(
+            from: { competitionId: $competitionId }
+            to: { sponsorId: $sponsorId }
+          ) {
+            from {
+              competitionId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
+  const seasons = records.seasons.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'seasonStartDate') {
+        const dateParts = rec[k].split('.')
+        rec['seasonStartDateDay'] = parseInt(dateParts[0])
+        rec['seasonStartDateMonth'] = parseInt(dateParts[1])
+        rec['seasonStartDateYear'] = parseInt(dateParts[2])
+      } else if (k === 'seasonEndDate') {
+        const dateParts = rec[k].split('.')
+        rec['seasonEndDateDay'] = parseInt(dateParts[0])
+        rec['seasonEndDateMonth'] = parseInt(dateParts[1])
+        rec['seasonEndDateYear'] = parseInt(dateParts[2])
+      }
+    })
+    // console.log('season: ', rec)
+    return {
+      mutation: gql`
+        mutation createSeasons(
+          $seasonId: ID!
+          $seasonName: String
+          $seasonNick: String
+          $seasonShort: String
+          $seasonStartDateDay: Int
+          $seasonStartDateMonth: Int
+          $seasonStartDateYear: Int
+          $seasonEndDateDay: Int
+          $seasonEndDateMonth: Int
+          $seasonEndDateYear: Int
+          $competitionId: ID!
+          $competitionName: String
+          $venueId: ID!
+          $venueName: String
+        ) {
+          season: MergeSeason(
+            seasonId: $seasonId
+            name: $seasonName
+            nick: $seasonNick
+            short: $seasonShort
+            startDate: {
+              day: $seasonStartDateDay
+              month: $seasonStartDateMonth
+              year: $seasonStartDateYear
+            }
+            endDate: {
+              day: $seasonEndDateDay
+              month: $seasonEndDateMonth
+              year: $seasonEndDateYear
+            }
+          ) {
+            seasonId
+          }
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+          ) {
+            competitionId
+          }
+          seasonCompetition: MergeSeasonCompetition(
+            from: { competitionId: $competitionId }
+            to: { seasonId: $seasonId }
+          ) {
+            from {
+              competitionId
+            }
+          }
+          venue: MergeVenue(venueId: $venueId, name: $venueName) {
+            venueId
+          }
+          seasonVenue: MergeSeasonVenue(
+            from: { seasonId: $seasonId }
+            to: { venueId: $venueId }
+          ) {
+            from {
+              seasonId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
+  const phases = records.phases.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'phaseStartDate') {
+        const dateParts = rec[k].split('.')
+        rec['phaseStartDateDay'] = parseInt(dateParts[0])
+        rec['phaseStartDateMonth'] = parseInt(dateParts[1])
+        rec['phaseStartDateYear'] = parseInt(dateParts[2])
+      } else if (k === 'phaseEndDate') {
+        const dateParts = rec[k].split('.')
+        rec['phaseEndDateDay'] = parseInt(dateParts[0])
+        rec['phaseEndDateMonth'] = parseInt(dateParts[1])
+        rec['phaseEndDateYear'] = parseInt(dateParts[2])
+      }
+    })
+    console.log(rec)
+    // TODO: check phases import
+    return {
+      mutation: gql`
+        mutation createPhases(
+          $phaseId: ID!
+          $phaseName: String
+          $phaseNick: String
+          $phaseShort: String
+          $phaseStatus: String
+          $phaseStartDateDay: Int
+          $phaseStartDateMonth: Int
+          $phaseStartDateYear: Int
+          $phaseEndDateDay: Int
+          $phaseEndDateMonth: Int
+          $phaseEndDateYear: Int
+          $competitionId: ID!
+          $competitionName: String
+          $sponsorId: ID!
+          $sponsorName: String
+          $seasonId: ID!
+          $venueId: ID!
+        ) {
+          phase: MergePhase(
+            phaseId: $phaseId
+            name: $phaseName
+            nick: $phaseNick
+            short: $phaseShort
+            status: $phaseStatus
+            startDate: {
+              day: $phaseStartDateDay
+              month: $phaseStartDateMonth
+              year: $phaseStartDateYear
+            }
+            endDate: {
+              day: $phaseEndDateDay
+              month: $phaseEndDateMonth
+              year: $phaseEndDateYear
+            }
+          ) {
+            phaseId
+          }
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+          ) {
+            competitionId
+          }
+          phaseCompetition: MergePhaseCompetition(
+            from: { competitionId: $competitionId }
+            to: { phaseId: $phaseId }
+          ) {
+            from {
+              competitionId
+            }
+          }
+          sponsor: MergeSponsor(sponsorId: $sponsorId, name: $sponsorName) {
+            sponsorId
+          }
+          phaseSponsor: MergePhaseSponsors(
+            from: { phaseId: $phaseId }
+            to: { sponsorId: $sponsorId }
+          ) {
+            from {
+              phaseId
+            }
+          }
+          phaseSeason: MergePhaseSeason(
+            from: { phaseId: $phaseId }
+            to: { seasonId: $seasonId }
+          ) {
+            from {
+              phaseId
+            }
+          }
+          phaseVenue: MergePhaseVenues(
+            from: { phaseId: $phaseId }
+            to: { venueId: $venueId }
+          ) {
+            from {
+              phaseId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
   // const playersTeams = records.playersTeams.map(rec => {
   //   Object.keys(rec).map(k => {
   //     if (k === 'playerInternalId') {
@@ -600,7 +872,13 @@ const generateMutations = records => {
   //   }
   // })
 
-  const result = sponsors.concat(venues, associations) // playersTeams.concat(associations)
+  const result = sponsors.concat(
+    venues,
+    associations,
+    competitions,
+    seasons,
+    phases
+  )
 
   return result
 }
