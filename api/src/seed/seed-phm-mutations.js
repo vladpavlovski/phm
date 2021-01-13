@@ -3,21 +3,6 @@ const { gql } = require('@apollo/client')
 const parse = require('csv-parse/lib/sync')
 
 export const getSeedMutations = () => {
-  // const playersTeamsContent = fs.readFileSync(
-  //   __dirname + '/fake_data_phm/players_teams-Table 1.csv'
-  // )
-  // const associationsContent = fs.readFileSync(
-  //   __dirname + '/fake_data_phm/associations-Table 1.csv'
-  // )
-  // const playersTeams = parse(playersTeamsContent, {
-  //   columns: true,
-  //   delimiter: ';',
-  // })
-  // const associations = parse(associationsContent, {
-  //   columns: true,
-  //   delimiter: ';',
-  // })
-
   const sponsorsContent = fs.readFileSync(
     __dirname + '/fake_data_phm/PHM NEW DB import - Sponsors.csv'
   )
@@ -65,14 +50,31 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const groupsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Groups.csv'
+  )
+  const groups = parse(groupsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
+  const awardsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Awards.csv'
+  )
+  const awards = parse(awardsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
-    // playersTeams,
     sponsors,
     venues,
     associations,
     competitions,
     seasons,
     phases,
+    groups,
+    awards,
   })
 
   return mutations
@@ -372,8 +374,7 @@ const generateMutations = records => {
         rec['phaseEndDateYear'] = parseInt(dateParts[2])
       }
     })
-    console.log(rec)
-    // TODO: check phases import
+    // console.log(rec)
     return {
       mutation: gql`
         mutation createPhases(
@@ -453,6 +454,166 @@ const generateMutations = records => {
           ) {
             from {
               phaseId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
+  const groups = records.groups.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'groupTeamsLimit') {
+        rec[k] = parseInt(rec[k])
+      }
+    })
+    return {
+      mutation: gql`
+        mutation createGroups(
+          $groupId: ID!
+          $groupName: String
+          $groupNick: String
+          $groupShort: String
+          $groupTeamsLimit: Int
+          $phaseId: ID!
+          $competitionId: ID!
+          $competitionName: String
+          $sponsorId: ID!
+          $sponsorName: String
+          $seasonId: ID!
+          $venueId: ID!
+        ) {
+          group: MergeGroup(
+            groupId: $groupId
+            name: $groupName
+            nick: $groupNick
+            short: $groupShort
+            teamsLimit: $groupTeamsLimit
+          ) {
+            groupId
+          }
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+          ) {
+            competitionId
+          }
+          groupCompetition: MergeGroupCompetition(
+            from: { competitionId: $competitionId }
+            to: { groupId: $groupId }
+          ) {
+            from {
+              competitionId
+            }
+          }
+          sponsor: MergeSponsor(sponsorId: $sponsorId, name: $sponsorName) {
+            sponsorId
+          }
+          groupSponsor: MergeGroupSponsors(
+            from: { groupId: $groupId }
+            to: { sponsorId: $sponsorId }
+          ) {
+            from {
+              groupId
+            }
+          }
+          groupSeason: MergeGroupSeason(
+            from: { groupId: $groupId }
+            to: { seasonId: $seasonId }
+          ) {
+            from {
+              groupId
+            }
+          }
+          groupVenue: MergeGroupVenue(
+            from: { groupId: $groupId }
+            to: { venueId: $venueId }
+          ) {
+            from {
+              groupId
+            }
+          }
+          groupPhase: MergeGroupPhase(
+            from: { groupId: $groupId }
+            to: { phaseId: $phaseId }
+          ) {
+            from {
+              groupId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
+  const awards = records.awards.map(rec => {
+    return {
+      mutation: gql`
+        mutation createAwards(
+          $awardId: ID!
+          $awardName: String
+          $awardNick: String
+          $awardShort: String
+          $awardDescription: String
+          $awardType: String
+          $phaseId: ID!
+          $competitionId: ID!
+          $competitionName: String
+          $sponsorId: ID!
+          $sponsorName: String
+          $groupId: ID!
+        ) {
+          award: MergeAward(
+            awardId: $awardId
+            name: $awardName
+            nick: $awardNick
+            short: $awardShort
+            description: $awardDescription
+            type: $awardType
+          ) {
+            awardId
+          }
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+          ) {
+            competitionId
+          }
+          awardCompetition: MergeAwardCompetitions(
+            from: { awardId: $awardId }
+            to: { competitionId: $competitionId }
+          ) {
+            from {
+              awardId
+            }
+          }
+          sponsor: MergeSponsor(sponsorId: $sponsorId, name: $sponsorName) {
+            sponsorId
+          }
+          awardSponsor: MergeAwardSponsors(
+            from: { awardId: $awardId }
+            to: { sponsorId: $sponsorId }
+          ) {
+            from {
+              awardId
+            }
+          }
+          awardPhase: MergeAwardPhases(
+            from: { awardId: $awardId }
+            to: { phaseId: $phaseId }
+          ) {
+            from {
+              awardId
+            }
+          }
+          awardGroup: MergeAwardGroups(
+            from: { awardId: $awardId }
+            to: { groupId: $groupId }
+          ) {
+            from {
+              awardId
             }
           }
         }
@@ -667,217 +828,14 @@ const generateMutations = records => {
   //   }
   // })
 
-  // const associations = records.associations.map(rec => {
-  //   Object.keys(rec).map(k => {
-  //     if (k === 'associationManagerInternalId') {
-  //       rec[k] = parseInt(rec[k])
-  //     } else if (k === 'associationManagerBirthday') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['associationManagerBirthdayDay'] = parseInt(dateParts[0])
-  //       rec['associationManagerBirthdayMonth'] = parseInt(dateParts[1])
-  //       rec['associationManagerBirthdayYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'competitionPhaseStartDate') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['competitionPhaseStartDateDay'] = parseInt(dateParts[0])
-  //       rec['competitionPhaseStartDateMonth'] = parseInt(dateParts[1])
-  //       rec['competitionPhaseStartDateYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'competitionPhaseEndDate') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['competitionPhaseEndDateDay'] = parseInt(dateParts[0])
-  //       rec['competitionPhaseEndDateMonth'] = parseInt(dateParts[1])
-  //       rec['competitionPhaseEndDateYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'competitionSeasonStartDate') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['competitionSeasonStartDateDay'] = parseInt(dateParts[0])
-  //       rec['competitionSeasonStartDateMonth'] = parseInt(dateParts[1])
-  //       rec['competitionSeasonStartDateYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'competitionSeasonEndDate') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['competitionSeasonEndDateDay'] = parseInt(dateParts[0])
-  //       rec['competitionSeasonEndDateMonth'] = parseInt(dateParts[1])
-  //       rec['competitionSeasonEndDateYear'] = parseInt(dateParts[2])
-  //     }
-  //   })
-  //   console.log('rec: ', rec)
-
-  //   return {
-  //     mutation: gql`
-  //       mutation createAssociations(
-  //         $associationId: ID!
-  //         $associationName: String
-  //         $associationManagerId: ID!
-  //         $associationManagerInternalId: Int
-  //         $associationManagerName: String
-  //         $associationManagerBirthdayDay: Int
-  //         $associationManagerBirthdayMonth: Int
-  //         $associationManagerBirthdayYear: Int
-  //         $competitionId: ID!
-  //         $competitionName: String
-  //         $competitionIsActive: String
-  //         $competitionManagerId: ID!
-  //         $competitionManagerName: String
-  //         $competitionPhaseId: ID!
-  //         $competitionPhaseName: String
-  //         $competitionPhaseStartDateDay: Int
-  //         $competitionPhaseStartDateMonth: Int
-  //         $competitionPhaseStartDateYear: Int
-  //         $competitionPhaseEndDateDay: Int
-  //         $competitionPhaseEndDateMonth: Int
-  //         $competitionPhaseEndDateYear: Int
-  //         $competitionPhaseStatus: String
-  //         $competitionGroupId: ID!
-  //         $competitionGroupName: String
-  //         $competitionSeasonId: ID!
-  //         $competitionSeasonName: String
-  //         $competitionSeasonStartDateDay: Int
-  //         $competitionSeasonStartDateMonth: Int
-  //         $competitionSeasonStartDateYear: Int
-  //         $competitionSeasonEndDateDay: Int
-  //         $competitionSeasonEndDateMonth: Int
-  //         $competitionSeasonEndDateYear: Int
-  //         $competitionVenueId: ID!
-  //         $competitionVenueName: String
-  //         $competitionVenueWeb: String
-  //         $competitionVenueDescription: String
-  //       ) {
-  //         association: MergeAssociation(
-  //           associationId: $associationId
-  //           name: $associationName
-  //         ) {
-  //           associationId
-  //         }
-  //         associationManager: MergeStaff(
-  //           staffId: $associationManagerId
-  //           name: $associationManagerName
-  //           internalId: $associationManagerInternalId
-  //           birthday: {
-  //             year: $associationManagerBirthdayYear
-  //             month: $associationManagerBirthdayMonth
-  //             day: $associationManagerBirthdayDay
-  //           }
-  //         ) {
-  //           staffId
-  //         }
-  //         associationAssociationManager: MergeAssociationManager(
-  //           from: { associationId: $associationId }
-  //           to: { staffId: $associationManagerId }
-  //         ) {
-  //           from {
-  //             associationId
-  //           }
-  //         }
-  //         competition: MergeCompetition(
-  //           competitionId: $competitionId
-  //           name: $competitionName
-  //           isActive: $competitionIsActive
-  //         ) {
-  //           competitionId
-  //         }
-  //         competitionManager: MergeStaff(
-  //           staffId: $competitionManagerId
-  //           name: $competitionManagerName
-  //         ) {
-  //           staffId
-  //         }
-  //         competitionCompetitionManager: MergeCompetitionManagers(
-  //           from: { competitionId: $competitionId }
-  //           to: { staffId: $competitionManagerId }
-  //         ) {
-  //           from {
-  //             competitionId
-  //           }
-  //         }
-  //         competitionAssociation: MergeCompetitionAssociation(
-  //           from: { competitionId: $competitionId }
-  //           to: { associationId: $associationId }
-  //         ) {
-  //           from {
-  //             competitionId
-  //           }
-  //         }
-  //         competitionPhase: MergePhase(
-  //           phaseId: $competitionPhaseId
-  //           name: $competitionPhaseName
-  //           startDate: {
-  //             year: $competitionPhaseStartDateYear
-  //             month: $competitionPhaseStartDateMonth
-  //             day: $competitionPhaseStartDateDay
-  //           }
-  //           endDate: {
-  //             year: $competitionPhaseEndDateYear
-  //             month: $competitionPhaseEndDateMonth
-  //             day: $competitionPhaseEndDateDay
-  //           }
-  //           status: $competitionPhaseStatus
-  //         ) {
-  //           phaseId
-  //         }
-  //         competitionCompetitionPhase: MergePhaseCompetition(
-  //           from: { competitionId: $competitionId }
-  //           to: { phaseId: $competitionPhaseId }
-  //         ) {
-  //           from {
-  //             competitionId
-  //           }
-  //         }
-  //         competitionGroup: MergeGroup(
-  //           groupId: $competitionGroupId
-  //           name: $competitionGroupName
-  //         ) {
-  //           groupId
-  //         }
-  //         competitionCompetitionGroup: MergeGroupCompetition(
-  //           from: { competitionId: $competitionId }
-  //           to: { groupId: $competitionGroupId }
-  //         ) {
-  //           from {
-  //             competitionId
-  //           }
-  //         }
-  //         competitionSeason: MergeSeason(
-  //           seasonId: $competitionSeasonId
-  //           name: $competitionSeasonName
-  //           startDate: {
-  //             year: $competitionSeasonStartDateYear
-  //             month: $competitionSeasonStartDateMonth
-  //             day: $competitionSeasonStartDateDay
-  //           }
-  //           endDate: {
-  //             year: $competitionSeasonEndDateYear
-  //             month: $competitionSeasonEndDateMonth
-  //             day: $competitionSeasonEndDateDay
-  //           }
-  //         ) {
-  //           seasonId
-  //         }
-  //         competitionCompetitionSeason: MergeSeasonCompetition(
-  //           from: { competitionId: $competitionId }
-  //           to: { seasonId: $competitionSeasonId }
-  //         ) {
-  //           from {
-  //             competitionId
-  //           }
-  //         }
-  //         competitionVenue: MergeVenue(
-  //           venueId: $competitionVenueId
-  //           name: $competitionVenueName
-  //           web: $competitionVenueWeb
-  //           description: $competitionVenueDescription
-  //         ) {
-  //           venueId
-  //         }
-  //       }
-  //     `,
-  //     variables: rec,
-  //   }
-  // })
-
   const result = sponsors.concat(
     venues,
     associations,
     competitions,
     seasons,
-    phases
+    phases,
+    groups,
+    awards
   )
 
   return result

@@ -654,6 +654,7 @@ type Venue {
   seasons: [Season] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   phases: [Phase] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   groups: [Group] @relation(name: "TAKES_PLAYS_ON", direction: IN)
+  awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
 }
 
 # 34. :Address
@@ -736,12 +737,16 @@ type Season {
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "BELONGS_TO", direction: IN)
   groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
+  awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
 }
 
 # :Group
 type Group {
   groupId: ID! @id
   name: String
+  nick: String
+  short: String
+  teamsLimit: Int
   competition: Competition @relation(name: "DIVIDED", direction: IN)
   rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
@@ -751,6 +756,7 @@ type Group {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   season: Season @relation(name: "BELONGS_TO", direction: OUT)
   venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  phase: Phase @relation(name: "BELONGS_TO", direction: OUT)
 }
 
 # :Phase
@@ -779,6 +785,7 @@ type Phase {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   season: Season @relation(name: "BELONGS_TO", direction: OUT)
   venues: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
 }
 
 # :Payment
@@ -798,7 +805,11 @@ type Payment {
 type Award {
   awardId: ID! @id
   name: String
+  nick: String
+  short: String
   description: String
+  type: String
+  foundDate: Date
   phases: [Phase] @relation(name: "BELONGS_TO", direction: OUT)
   groups: [Group] @relation(name: "BELONGS_TO", direction: OUT)
   competitions: [Competition] @relation(name: "BELONGS_TO", direction: OUT)
@@ -810,6 +821,8 @@ type Award {
   stars: [Star] @relation(name: "WIN_AN_AWARD", direction: IN)
   players: [Player] @relation(name: "WIN_AN_AWARD", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  venue: Venue @relation(name: "HAS_AN_AWARD", direction: IN)
+  seasons: [Season] @relation(name: "HAS_AN_AWARD", direction: IN)
 }
 
 # :Media
