@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { gql, useQuery } from '@apollo/client'
 import { useForm, Controller } from 'react-hook-form'
 import 'react-imported-component/macro'
+import { equals } from 'rambda'
 import {
   Container,
   Grid,
@@ -13,11 +14,11 @@ import {
   // Chip,
   // Avatar,
 } from '@material-ui/core'
-// import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
+import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFSwitch } from '../../../components/RHFSwitch'
 import { ReactHookFormSelect } from '../../../components/RHFSelect'
-// import { countries, countryToFlag } from '../../../utils/constants/countries'
+import { countriesNames } from '../../../utils/constants/countries'
 import { Title } from '../../../components/Title'
 import { useStyles } from './styled'
 // import Load from '../../../utils/load'
@@ -55,11 +56,15 @@ const GET_PLAYER = gql`
       teams {
         teamId
         name
-        fullName
       }
+    }
+    Team {
+      teamId
+      name
     }
   }
 `
+
 // const CREATE_PLAYER = gql`
 //   mutation createPlayer($input: PlayerInput!) {
 //     createPlayer(input: $input) {
@@ -110,7 +115,7 @@ const Player = () => {
   const classes = useStyles()
   const { playerId } = useParams()
   const [isSubmitting, setSubmitting] = useState(false)
-  // error,
+
   const { loading, data: playerDataArray, error: playerError } = useQuery(
     GET_PLAYER,
     {
@@ -118,13 +123,27 @@ const Player = () => {
       skip: playerId === 'new',
     }
   )
-  // const { loading: teamsLoading, data: teamsData } = useQuery(GET_ALL_TEAMS)
+
   // const [updatePlayer] = useMutation(UPDATE_PLAYER)
   // const [createPlayer, { data: newPlayerData }] = useMutation(CREATE_PLAYER)
-  console.log('playerData:', playerDataArray)
-  const { handleSubmit, control, errors } = useForm({
+  console.log('playerDataArray: ', playerDataArray)
+  const playerData = useMemo(
+    () => playerDataArray && playerDataArray.Player[0],
+    [playerDataArray]
+  )
+  console.log('playerData:', playerData)
+  const { handleSubmit, control, errors, setValue } = useForm({
     validationSchema: schema,
+    defaultValues: {
+      country: '',
+      teams: [],
+    },
   })
+
+  useEffect(() => {
+    setValue('country', playerData ? playerData.country : '')
+    setValue('teams', playerData ? playerData.teams : [])
+  }, [playerData])
 
   // useEffect(() => {
   //   if (newPlayerData && newPlayerData.createPlayer) {
@@ -167,10 +186,7 @@ const Player = () => {
     },
     [playerId]
   )
-  const playerData = useMemo(
-    () => playerDataArray && playerDataArray.Player[0],
-    [playerDataArray]
-  )
+
   if (loading) return <Loader />
   if (playerError) return <Error message={playerError.message} />
   return (
@@ -207,6 +223,7 @@ const Player = () => {
                     control={control}
                     name="name"
                     required
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -222,6 +239,7 @@ const Player = () => {
                   <Controller
                     as={TextField}
                     control={control}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -241,9 +259,6 @@ const Player = () => {
                     name="birthday"
                     label="Birthday"
                     id="birthday"
-                    // inputProps={{
-                    //   autoComplete: 'off',
-                    // }}
                     defaultValue={playerData.birthday.formatted || null}
                     error={errors && !!errors.birthday}
                     helperText={
@@ -282,79 +297,44 @@ const Player = () => {
                     color="primary"
                     defaultValue={playerData.isActive || false}
                   />
-                  {/* <RHFAutocomplete
-                        multiple
-                        fullWidth
-                        inputProps={{
-                          autoComplete: 'off',
-                        }}
-                        id="team-select"
-                        options={teamsData.teams}
-                        control={control}
-                        name="teams"
-                        label="Teams"
-                        optionPropertyToCompare="id"
-                        optionPropertyToShow="name"
-                        defaultValue={
-                          (playerData && playerData.Player && playerData.Player.teams) || ''
-                        }
-                        renderOption={option => (
-                          <>
-                            <img
-                              style={{
-                                width: '3rem',
-                                height: '3rem',
-                                marginRight: '1rem',
-                              }}
-                              src={option.logoRound}
-                              alt={option['name']}
-                            />
-                            {option['name']}
-                          </>
-                        )}
-                        renderTags={(value, getTagProps) =>
-                          value.map((option, index) => (
-                            <Chip
-                              key={option.name}
-                              avatar={
-                                <Avatar
-                                  alt={option.name}
-                                  src={option.logoRound}
-                                />
-                              }
-                              variant="outlined"
-                              label={option.name}
-                              {...getTagProps({ index })}
-                            />
-                          ))
-                        }
-                      /> */}
-                  {/* <RHFAutocomplete
-                        id="country-select"
-                        options={countries}
-                        control={control}
-                        inputProps={{
-                          autoComplete: 'off',
-                        }}
-                        name="country"
-                        label="Country"
-                        fullWidth
-                        optionPropertyToCompare="label"
-                        optionPropertyToShow="label"
-                        defaultValue={
-                          (playerData && playerData.Player && playerData.Player.country) || ''
-                        }
-                        renderOption={option => (
-                          <>
-                            <span>{countryToFlag(option.code)}</span>
-                            {option.label} ({option.code})
-                          </>
-                        )}
-                      /> */}
+                  <RHFAutocomplete
+                    multiple
+                    id="teams"
+                    options={playerDataArray.Team}
+                    getOptionLabel={option => option.name}
+                    getOptionSelected={(option, value) => equals(option, value)}
+                    control={control}
+                    name="teams"
+                    label="Teams"
+                    // renderTags={(value, getTagProps) =>
+                    //   value.map((option, index) => (
+                    //     <Chip
+                    //       key={option.name}
+                    //       avatar={
+                    //         <Avatar
+                    //           alt={option.name}
+                    //           src={option.logoRound}
+                    //         />
+                    //       }
+                    //       variant="outlined"
+                    //       label={option.name}
+                    //       {...getTagProps({ index })}
+                    //     />
+                    //   ))
+                    // }
+                  />
+                  <RHFAutocomplete
+                    id="country"
+                    options={countriesNames}
+                    control={control}
+                    name="country"
+                    label="Country"
+                  />
 
                   <Controller
                     as={TextField}
                     control={control}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -369,6 +349,7 @@ const Player = () => {
 
                   <Controller
                     as={TextField}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -386,7 +367,6 @@ const Player = () => {
                     name="stick"
                     label="Stick"
                     id="stick"
-                    fullWidth
                     control={control}
                     defaultValue={playerData.stick || ''}
                     error={!!errors.stick}
@@ -410,6 +390,7 @@ const Player = () => {
 
                   <Controller
                     as={TextField}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -425,6 +406,7 @@ const Player = () => {
 
                   <Controller
                     as={TextField}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}
@@ -440,6 +422,7 @@ const Player = () => {
 
                   <Controller
                     as={TextField}
+                    variant="standard"
                     inputProps={{
                       autoComplete: 'off',
                     }}

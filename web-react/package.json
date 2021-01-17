@@ -14,6 +14,7 @@
     "dayjs": "^1.10.2",
     "graphql": "^15.4.0",
     "mui-datatables": "^3.7.4",
+    "rambda": "^6.5.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-hook-form": "^6.14.0",

@@ -65,7 +65,7 @@ export const countries = [
   { label: 'Croatia', code: 'HR' },
   { label: 'Cuba', code: 'CU' },
   { label: 'Cyprus', code: 'CY' },
-  { label: 'Czech Republic', code: 'CZ' },
+  { label: 'Czechia', code: 'CZ' },
   { label: 'Denmark', code: 'DK' },
   { label: 'Djibouti', code: 'DJ' },
   { label: 'Dominica', code: 'DM' },
@@ -252,4 +252,7 @@ export const countries = [
   { label: 'Yemen', code: 'YE' },
   { label: 'Zambia', code: 'ZM' },
   { label: 'Zimbabwe', code: 'ZW' },
+  { label: '', code: '' },
 ]
+
+export const countriesNames = countries.map(c => c.label)
