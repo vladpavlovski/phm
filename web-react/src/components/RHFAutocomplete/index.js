@@ -1,102 +1,36 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { Controller } from 'react-hook-form'
-import { default as AutocompleteLib } from '@material-ui/lab/Autocomplete'
-import { TextField } from '@material-ui/core'
-
-const getOpObj = (option, propName, data) => {
-  if (option && !option[propName])
-    option = data.find(op => op[propName] === option)
-  return option
-}
-
-const Autocomplete = props => {
-  const {
-    options,
-    id,
-    optionPropertyToCompare,
-    optionPropertyToShow,
-    defaultValue,
-    value,
-    label,
-    variant,
-    renderOption,
-    multiple,
-    fullWidth,
-    renderTags,
-    onChange,
-  } = props
-
-  return (
-    <AutocompleteLib
-      id={id}
-      openOnFocus
-      value={value}
-      fullWidth={fullWidth}
-      multiple={multiple}
-      options={options}
-      autoHighlight
-      filterSelectedOptions
-      onChange={onChange}
-      getOptionLabel={option => {
-        const optionObj = getOpObj(option, optionPropertyToCompare, options)
-        return (optionObj && optionObj[optionPropertyToShow]) || ''
-      }}
-      getOptionSelected={(option, value) => {
-        const optionObj = getOpObj(value, optionPropertyToCompare, options)
-        return (
-          (option &&
-            optionObj &&
-            option[optionPropertyToCompare] ===
-              optionObj[optionPropertyToCompare]) ||
-          ''
-        )
-      }}
-      renderOption={renderOption}
-      renderInput={params => (
-        <TextField
-          {...params}
-          label={label}
-          variant={variant}
-          fullWidth={fullWidth}
-          value={multiple ? defaultValue : null}
-          inputProps={{
-            ...params.inputProps,
-            autoComplete: 'disabled', // disable autocomplete and autofill
-          }}
-        />
-      )}
-      renderTags={renderTags}
-    />
-  )
-}
+import { TextField, Autocomplete } from '@material-ui/core'
 
 const RHFAutocomplete = props => {
-  const {
-    options,
-    control,
-    name,
-    optionPropertyToCompare,
-    defaultValue,
-    multiple,
-  } = props
-
-  const onChange = useCallback(
-    ([, obj]) =>
-      obj &&
-      getOpObj(obj, optionPropertyToCompare, options) &&
-      getOpObj(obj, optionPropertyToCompare, options)[optionPropertyToCompare],
-    [optionPropertyToCompare, options]
-  )
-
-  const onChangeMultiple = useCallback(([, obj]) => obj.map(o => o), [])
+  const { control, name, label, ...restProps } = props
 
   return (
     <Controller
-      as={<Autocomplete {...props} />}
-      onChange={!multiple ? onChange : onChangeMultiple}
+      render={props => (
+        <Autocomplete
+          {...props}
+          {...restProps}
+          name={name}
+          onChange={(_, data) => props.onChange(data)}
+          renderInput={params => (
+            <TextField
+              {...params}
+              label={label}
+              variant="standard"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              inputProps={{
+                ...params.inputProps,
+                autoComplete: 'new-password', // disable autocomplete and autofill
+              }}
+            />
+          )}
+        />
+      )}
       name={name}
       control={control}
-      defaultValue={defaultValue || []}
     />
   )
 }
