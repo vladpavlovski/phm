@@ -1076,6 +1076,8 @@ type WearItem {
 type Position {
   positionId: ID! @id
   name: String
+  nick: String
+  short: String
   description: String
   players: [Player] @relation(name: "HAS_POSITION", direction: IN)
   team: Team @relation(name: "USE_POSITION", direction: IN)

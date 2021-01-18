@@ -74,6 +74,14 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const positionsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Positions.csv'
+  )
+  const positions = parse(positionsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     sponsors,
     venues,
@@ -84,6 +92,7 @@ export const getSeedMutations = () => {
     groups,
     awards,
     teams,
+    positions,
   })
 
   return mutations
@@ -728,6 +737,29 @@ const generateMutations = records => {
     }
   })
 
+  const positions = records.positions.map(rec => {
+    return {
+      mutation: gql`
+        mutation createPositions(
+          $positionId: ID!
+          $positionName: String
+          $positionNick: String
+          $positionShort: String
+        ) {
+          position: MergePosition(
+            positionId: $positionId
+            name: $positionName
+            nick: $positionNick
+            short: $positionShort
+          ) {
+            positionId
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
   // const playersTeams = records.playersTeams.map(rec => {
   //   Object.keys(rec).map(k => {
   //     if (k === 'playerInternalId') {
@@ -942,7 +974,8 @@ const generateMutations = records => {
     phases,
     groups,
     awards,
-    teams
+    teams,
+    positions
   )
 
   return result
