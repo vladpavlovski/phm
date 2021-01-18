@@ -90,6 +90,14 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const playersContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Players - Bio.csv'
+  )
+  const players = parse(playersContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     sponsors,
     venues,
@@ -102,6 +110,7 @@ export const getSeedMutations = () => {
     teams,
     positions,
     jerseyNos,
+    players,
   })
 
   return mutations
@@ -810,18 +819,104 @@ const generateMutations = records => {
     }
   })
 
-  const result = sponsors.concat(
-    venues,
-    associations,
-    competitions,
-    seasons,
-    phases,
-    groups,
-    awards,
-    teams,
-    positions,
-    jerseyNos
-  )
+  const players = records.players.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'playerBirthday') {
+        const dateParts = rec[k] !== '' ? rec[k].split('/') : ['1', '1', '1900']
+        rec['playerBirthdayMonth'] = parseInt(dateParts[0])
+        rec['playerBirthdayDay'] = parseInt(dateParts[1])
+        rec['playerBirthdayYear'] = parseInt(dateParts[2])
+      }
+    })
+    return {
+      mutation: gql`
+        mutation createPlayers(
+          $playerId: ID!
+          $playerName: String
+          $playerExternalId: String
+          $playerAvatarUrl: String
+          $playerGender: String
+          $playerStatus: String
+          $playerBirthdayDay: Int
+          $playerBirthdayMonth: Int
+          $playerBirthdayYear: Int
+          $playerBirthCountry: String
+          $playerBirthCity: String
+          $playerPositionId: ID!
+          $playerStick: String
+          $playerHeight: String
+          $playerWeight: String
+          $playerJerseyNoId: ID!
+          $teamName: String
+          $teamId: ID!
+        ) {
+          player: MergePlayer(
+            playerId: $playerId
+            name: $playerName
+            externalId: $playerExternalId
+            avatarUrl: $playerAvatarUrl
+            gender: $playerGender
+            activityStatus: $playerStatus
+            countryBirth: $playerBirthCountry
+            cityBirth: $playerBirthCity
+            stick: $playerStick
+            height: $playerHeight
+            weight: $playerWeight
+            birthday: {
+              day: $playerBirthdayDay
+              month: $playerBirthdayMonth
+              year: $playerBirthdayYear
+            }
+          ) {
+            playerId
+          }
+          team: MergeTeam(teamId: $teamId, name: $teamName) {
+            teamId
+          }
+          playerTeam: MergePlayerTeams(
+            from: { playerId: $playerId }
+            to: { teamId: $teamId }
+          ) {
+            from {
+              playerId
+            }
+          }
+          playerPosition: MergePlayerPositions(
+            from: { playerId: $playerId }
+            to: { positionId: $playerPositionId }
+          ) {
+            from {
+              playerId
+            }
+          }
+          playerJerseyNo: MergePlayerJerseys(
+            from: { playerId: $playerId }
+            to: { jerseyNoId: $playerJerseyNoId }
+          ) {
+            from {
+              playerId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
+  const result = [
+    ...sponsors,
+    ...venues,
+    ...associations,
+    ...competitions,
+    ...seasons,
+    ...phases,
+    ...groups,
+    ...awards,
+    ...teams,
+    ...positions,
+    ...jerseyNos,
+    ...players,
+  ]
 
   return result
 }
