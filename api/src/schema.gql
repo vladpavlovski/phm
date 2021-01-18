@@ -1087,6 +1087,7 @@ type Position {
 
 type JerseyNo {
   jerseyNoId: ID! @id
+  name: String
   number: Int
   player: Player @relation(name: "HAS_JERSEY", direction: IN)
   team: Team @relation(name: "USE_JERSEY", direction: IN)

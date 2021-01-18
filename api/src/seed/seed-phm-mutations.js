@@ -82,6 +82,14 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const jerseyNosContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - JerseyNo.csv'
+  )
+  const jerseyNos = parse(jerseyNosContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     sponsors,
     venues,
@@ -93,6 +101,7 @@ export const getSeedMutations = () => {
     awards,
     teams,
     positions,
+    jerseyNos,
   })
 
   return mutations
@@ -760,211 +769,46 @@ const generateMutations = records => {
     }
   })
 
-  // const playersTeams = records.playersTeams.map(rec => {
-  //   Object.keys(rec).map(k => {
-  //     if (k === 'playerInternalId') {
-  //       rec[k] = parseInt(rec[k])
-  //     } else if (k === 'playerBirthday') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['playerBirthdayDay'] = parseInt(dateParts[0])
-  //       rec['playerBirthdayMonth'] = parseInt(dateParts[1])
-  //       rec['playerBirthdayYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'jerseyNoNumber') {
-  //       rec[k] = parseInt(rec[k])
-  //     } else if (k === 'teamManagerBirthday') {
-  //       const dateParts = rec[k].split('-')
-  //       rec['teamManagerBirthdayDay'] = parseInt(dateParts[0])
-  //       rec['teamManagerBirthdayMonth'] = parseInt(dateParts[1])
-  //       rec['teamManagerBirthdayYear'] = parseInt(dateParts[2])
-  //     } else if (k === 'teamManagerInternalId') {
-  //       rec[k] = parseInt(rec[k])
-  //     }
-  //   })
-  //   console.log('rec: ', rec)
-  //   return {
-  //     mutation: gql`
-  //       mutation createInit(
-  //         $playerId: ID!
-  //         $playerInternalId: Int
-  //         $playerName: String
-  //         $playerBirthdayYear: Int
-  //         $playerBirthdayMonth: Int
-  //         $playerBirthdayDay: Int
-  //         $playerIsActive: ActivityStatus
-  //         $playerCountry: String
-  //         $playerCity: String
-  //         $playerStick: String
-  //         $playerHeight: String
-  //         $playerWeight: String
-  //         $playerGender: String
-  //         $teamId: ID!
-  //         $teamName: String
-  //         $teamFullName: String
-  //         $teamNick: String
-  //         $teamShortcut: String
-  //         $teamPrimaryColor: String
-  //         $teamSecondaryColor: String
-  //         $teamManagerId: ID!
-  //         $teamManagerName: String
-  //         $teamManagerGender: String
-  //         $teamManagerInternalId: Int
-  //         $teamManagerIsActive: ActivityStatus
-  //         $teamManagerBirthdayYear: Int
-  //         $teamManagerBirthdayMonth: Int
-  //         $teamManagerBirthdayDay: Int
-  //         $positionId: ID!
-  //         $positionName: String
-  //         $positionDescription: String
-  //         $jerseyNoId: ID!
-  //         $jerseyNoNumber: Int
-  //         $wearItemId: ID!
-  //         $wearItemName: String
-  //         $wearId: ID!
-  //         $wearName: String
-  //       ) {
-  //         player: MergePlayer(
-  //           playerId: $playerId
-  //           name: $playerName
-  //           internalId: $playerInternalId
-  //           birthday: {
-  //             year: $playerBirthdayYear
-  //             month: $playerBirthdayMonth
-  //             day: $playerBirthdayDay
-  //           }
-  //           isActive: $playerIsActive
-  //           country: $playerCountry
-  //           city: $playerCity
-  //           stick: $playerStick
-  //           height: $playerHeight
-  //           weight: $playerWeight
-  //           gender: $playerGender
-  //         ) {
-  //           playerId
-  //         }
-  //         position: MergePosition(
-  //           positionId: $positionId
-  //           name: $positionName
-  //           description: $positionDescription
-  //         ) {
-  //           positionId
-  //         }
-  //         playerPosition: MergePositionPlayers(
-  //           from: { playerId: $playerId }
-  //           to: { positionId: $positionId }
-  //         ) {
-  //           from {
-  //             playerId
-  //           }
-  //         }
-  //         team: MergeTeam(
-  //           teamId: $teamId
-  //           name: $teamName
-  //           fullName: $teamFullName
-  //           shortcut: $teamShortcut
-  //           primaryColor: $teamPrimaryColor
-  //           secondaryColor: $teamSecondaryColor
-  //           nick: $teamNick
-  //         ) {
-  //           teamId
-  //         }
-  //         teamManager: MergeStaff(
-  //           staffId: $teamManagerId
-  //           name: $teamManagerName
-  //           gender: $teamManagerGender
-  //           internalId: $teamManagerInternalId
-  //           isActive: $teamManagerIsActive
-  //           birthday: {
-  //             year: $teamManagerBirthdayYear
-  //             month: $teamManagerBirthdayMonth
-  //             day: $teamManagerBirthdayDay
-  //           }
-  //         ) {
-  //           staffId
-  //         }
-  //         staffTeamManager: MergeStaffTeamManager(
-  //           from: { teamId: $teamId }
-  //           to: { staffId: $teamManagerId }
-  //         ) {
-  //           from {
-  //             teamId
-  //           }
-  //         }
-  //         playerTeam: MergePlayerTeams(
-  //           from: { playerId: $playerId }
-  //           to: { teamId: $teamId }
-  //         ) {
-  //           from {
-  //             playerId
-  //           }
-  //         }
-  //         teamPosition: MergePositionTeam(
-  //           from: { teamId: $teamId }
-  //           to: { positionId: $positionId }
-  //         ) {
-  //           from {
-  //             teamId
-  //           }
-  //         }
-  //         jerseyNo: MergeJerseyNo(
-  //           jerseyNoId: $jerseyNoId
-  //           number: $jerseyNoNumber
-  //         ) {
-  //           jerseyNoId
-  //         }
-  //         playerJerseyNo: MergeJerseyNoPlayer(
-  //           from: { playerId: $playerId }
-  //           to: { jerseyNoId: $jerseyNoId }
-  //         ) {
-  //           from {
-  //             playerId
-  //           }
-  //         }
-  //         teamJerseyNo: MergeJerseyNoTeam(
-  //           from: { teamId: $teamId }
-  //           to: { jerseyNoId: $jerseyNoId }
-  //         ) {
-  //           from {
-  //             teamId
-  //           }
-  //         }
-  //         wearItem: MergeWearItem(
-  //           wearItemId: $wearItemId
-  //           name: $wearItemName
-  //         ) {
-  //           wearItemId
-  //         }
-  //         wearJerseyNo: MergeWearItemJerseyNo(
-  //           from: { jerseyNoId: $jerseyNoId }
-  //           to: { wearItemId: $wearItemId }
-  //         ) {
-  //           from {
-  //             jerseyNoId
-  //           }
-  //         }
-  //         wear: MergeWear(wearId: $wearId, name: $wearName) {
-  //           wearId
-  //         }
-  //         wearWearItem: MergeWearItemWear(
-  //           from: { wearId: $wearId }
-  //           to: { wearItemId: $wearItemId }
-  //         ) {
-  //           from {
-  //             wearId
-  //           }
-  //         }
-  //         wearTeam: MergeWearTeam(
-  //           from: { teamId: $teamId }
-  //           to: { wearId: $wearId }
-  //         ) {
-  //           from {
-  //             teamId
-  //           }
-  //         }
-  //       }
-  //     `,
-  //     variables: rec,
-  //   }
-  // })
+  // Jersey have to split by 2200 records max in file
+  const jerseyNos = records.jerseyNos.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === 'jerseyNoNumber') {
+        rec[k] = parseInt(rec[k])
+      }
+    })
+
+    return {
+      mutation: gql`
+        mutation createJerseyNos(
+          $jerseyNoId: ID!
+          $jerseyNoName: String
+          $jerseyNoNumber: Int
+          $jerseyNoTeamName: String
+          $jerseyNoTeamId: ID!
+        ) {
+          jerseyNo: MergeJerseyNo(
+            jerseyNoId: $jerseyNoId
+            name: $jerseyNoName
+            number: $jerseyNoNumber
+          ) {
+            jerseyNoId
+          }
+          team: MergeTeam(teamId: $jerseyNoTeamId, name: $jerseyNoTeamName) {
+            teamId
+          }
+          jerseyNoTeam: MergeJerseyNoTeam(
+            from: { teamId: $jerseyNoTeamId }
+            to: { jerseyNoId: $jerseyNoId }
+          ) {
+            from {
+              teamId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
 
   const result = sponsors.concat(
     venues,
@@ -975,7 +819,8 @@ const generateMutations = records => {
     groups,
     awards,
     teams,
-    positions
+    positions,
+    jerseyNos
   )
 
   return result
