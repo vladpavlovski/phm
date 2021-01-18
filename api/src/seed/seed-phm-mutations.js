@@ -66,6 +66,14 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const teamsContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Teams.csv'
+  )
+  const teams = parse(teamsContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     sponsors,
     venues,
@@ -75,6 +83,7 @@ export const getSeedMutations = () => {
     phases,
     groups,
     awards,
+    teams,
   })
 
   return mutations
@@ -622,6 +631,103 @@ const generateMutations = records => {
     }
   })
 
+  const teams = records.teams.map(rec => {
+    return {
+      mutation: gql`
+        mutation createTeams(
+          $teamId: ID!
+          $teamName: String
+          $teamNick: String
+          $teamShort: String
+          $teamStatus: String
+          $teamExternalId: String
+          $teamLogoUrl: String
+          $competitionId: ID!
+          $competitionName: String
+          $sponsorId: ID!
+          $sponsorName: String
+          $phaseId: ID!
+          $phaseName: String
+          $groupId: ID!
+          $groupName: String
+          $seasonId: ID!
+          $seasonName: String
+        ) {
+          team: MergeTeam(
+            teamId: $teamId
+            name: $teamName
+            nick: $teamNick
+            short: $teamShort
+            status: $teamStatus
+            externalId: $teamExternalId
+            logoUrl: $teamLogoUrl
+          ) {
+            teamId
+          }
+          competition: MergeCompetition(
+            competitionId: $competitionId
+            name: $competitionName
+          ) {
+            competitionId
+          }
+          teamCompetition: MergeTeamCompetitions(
+            from: { teamId: $teamId }
+            to: { competitionId: $competitionId }
+          ) {
+            from {
+              teamId
+            }
+          }
+          sponsor: MergeSponsor(sponsorId: $sponsorId, name: $sponsorName) {
+            sponsorId
+          }
+          teamSponsor: MergeTeamSponsors(
+            from: { teamId: $teamId }
+            to: { sponsorId: $sponsorId }
+          ) {
+            from {
+              teamId
+            }
+          }
+          phase: MergePhase(phaseId: $phaseId, name: $phaseName) {
+            phaseId
+          }
+          teamPhase: MergeTeamPhases(
+            from: { teamId: $teamId }
+            to: { phaseId: $phaseId }
+          ) {
+            from {
+              teamId
+            }
+          }
+          group: MergeGroup(groupId: $groupId, name: $groupName) {
+            groupId
+          }
+          teamGroup: MergeTeamGroups(
+            from: { teamId: $teamId }
+            to: { groupId: $groupId }
+          ) {
+            from {
+              teamId
+            }
+          }
+          season: MergeSeason(seasonId: $seasonId, name: $seasonName) {
+            seasonId
+          }
+          teamSeason: MergeTeamSeasons(
+            from: { teamId: $teamId }
+            to: { seasonId: $seasonId }
+          ) {
+            from {
+              teamId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
   // const playersTeams = records.playersTeams.map(rec => {
   //   Object.keys(rec).map(k => {
   //     if (k === 'playerInternalId') {
@@ -835,7 +941,8 @@ const generateMutations = records => {
     seasons,
     phases,
     groups,
-    awards
+    awards,
+    teams
   )
 
   return result

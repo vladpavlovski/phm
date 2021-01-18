@@ -25,8 +25,8 @@ interface Person {
   gender: String
   height: String
   weight: String
-  internalId: Int
-  isActive: ActivityStatus
+  internalId: String
+  activityStatus: String
   country: String
   city: String
   createdAt: DateTime
@@ -45,8 +45,8 @@ type Player implements Person {
   stick: String
   height: String
   weight: String
-  internalId: Int
-  isActive: ActivityStatus
+  internalId: String
+  activityStatus: String
   country: String
   city: String
   createdAt: DateTime
@@ -109,8 +109,8 @@ type Staff implements Person {
   gender: String
   height: String
   weight: String
-  internalId: Int
-  isActive: ActivityStatus
+  internalId: String
+  activityStatus: String
   country: String
   city: String
   createdAt: DateTime
@@ -234,12 +234,15 @@ type Team {
   name: String!
   fullName: String
   nick: String
-  shortcut: String
+  short: String
+  status: String
+  externalId: String
+  logoUrl: String
   primaryColor: String
   secondaryColor: String
+  tertiaryColor: String
+  foundDate: Date
   disabled: Boolean
-  createdAt: DateTime
-  updateAt: DateTime
   manager: Staff @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
   lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
   lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
@@ -262,6 +265,9 @@ type Team {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   wear: Wear @relation(name: "HAS_WEAR", direction: OUT)
+  groups: [Group] @relation(name: "PARTICIPATE_IN", direction: OUT)
+  phases: [Phase] @relation(name: "PARTICIPATE_IN", direction: OUT)
+  seasons: [Season] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
 # :Lineup
@@ -363,15 +369,15 @@ type Star {
 
 type Pass {
   passId: ID! @id
-  gameEvent: GameEvent @relation(name: "CREATE_PASS", direction: IN)
   locationStart: String
   locationEnd: String
+  gameEvent: GameEvent @relation(name: "CREATE_PASS", direction: IN)
   collectBy: MetaPlayer @relation(name: "COLLECT_BY", direction: OUT)
   sentBy: MetaPlayer @relation(name: "SENT_BY", direction: OUT)
   shot: Shot @relation(name: "ASSISTANCE", direction: OUT)
 }
 
-#  12. :Offside
+#  :Offside
 
 type Offside {
   offsideId: ID! @id
@@ -380,7 +386,7 @@ type Offside {
   checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
 }
 
-# 13. :Goal
+# :Goal
 
 type Goal {
   goalId: ID! @id
@@ -394,7 +400,7 @@ type Goal {
   canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
 }
 
-# 14. :Shot
+# :Shot
 
 type Shot {
   shotId: ID! @id
@@ -412,7 +418,7 @@ type Shot {
   save: Save @relation(name: "CREATE_SAVE", direction: OUT)
 }
 
-# 15. :PenaltyShot
+# :PenaltyShot
 
 type PenaltyShot {
   penaltyShotId: ID! @id
@@ -426,7 +432,7 @@ type PenaltyShot {
   createdBy: Revision @relation(name: "CREATED_BY", direction: OUT)
 }
 
-# 16. :Revision
+# :Revision
 
 union CheckedRevisions = Offside | Goal | PenaltyShot
 union CanceledRevisions = Timeout | PenaltyShot | Goal
@@ -438,7 +444,7 @@ type Revision {
   checked: [CheckedRevisions] @relation(name: "CHECKED_BY", direction: IN)
 }
 
-# 17. :Timeout
+# :Timeout
 
 type Timeout {
   timeoutId: ID! @id
@@ -446,7 +452,7 @@ type Timeout {
   canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
 }
 
-# 18. :Penalty
+# :Penalty
 
 type Penalty {
   penaltyId: ID! @id
@@ -459,7 +465,7 @@ type Penalty {
   suspension: Suspension @relation(name: "CREATE_SUSPENSION", direction: OUT)
 }
 
-# 19. :IntervalOnIce
+# :IntervalOnIce
 
 type IntervalOnIce {
   intervalOnIceId: ID! @id
@@ -469,7 +475,7 @@ type IntervalOnIce {
   spentBy: Player @relation(name: "SPENT_BY", direction: OUT)
 }
 
-# 20. :Fight
+# :Fight
 
 type Fight {
   fightId: ID! @id
@@ -477,7 +483,7 @@ type Fight {
   players: [Player] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
-# 21. :FaceOff
+# :FaceOff
 
 type FaceOff {
   faceOffId: ID! @id
@@ -486,14 +492,14 @@ type FaceOff {
   wonBy: Player @relation(name: "WON_BY", direction: OUT)
 }
 
-# 22. :Icing
+# :Icing
 type Icing {
   icingId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_ICING", direction: IN)
   causedBy: Player @relation(name: "CAUSED_BY", direction: OUT)
 }
 
-# 23. :TakeOver
+# :TakeOver
 
 type TakeOver {
   takeOverId: ID! @id
@@ -502,7 +508,7 @@ type TakeOver {
   richedBy: MetaPlayer @relation(name: "RICHED_BY", direction: OUT)
 }
 
-# 24. :Hit
+# :Hit
 
 type Hit {
   hitId: ID! @id
@@ -510,7 +516,7 @@ type Hit {
   giveBy: MetaPlayer @relation(name: "GIVE_BY", direction: OUT)
 }
 
-# 25. :Injury
+# :Injury
 
 type Injury {
   injuryId: ID! @id
@@ -527,7 +533,7 @@ type Injury {
 #vlad : VYMYSLET
 # a opět zda je injury valid nebo již recovered? jakože už skončilo a opět ovlivní Availatility status
 
-# 26. :Suspension
+# :Suspension
 
 type Suspension {
   suspensionId: ID! @id
@@ -583,6 +589,8 @@ type Discussion {
 
 type Comment {
   commentId: ID! @id
+  text: String
+  dateTime: DateTime
   previousComment: Comment @relation(name: "PREVIOUS_COMMENT", direction: OUT)
   nextComment: Comment @relation(name: "PREVIOUS_COMMENT", direction: IN)
   replyTo: Comment @relation(name: "REPLY_TO", direction: OUT)
@@ -738,6 +746,7 @@ type Season {
   phases: [Phase] @relation(name: "BELONGS_TO", direction: IN)
   groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
   awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
+  teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
 # :Group
@@ -757,6 +766,7 @@ type Group {
   season: Season @relation(name: "BELONGS_TO", direction: OUT)
   venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phase: Phase @relation(name: "BELONGS_TO", direction: OUT)
+  teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
 # :Phase
@@ -786,13 +796,14 @@ type Phase {
   season: Season @relation(name: "BELONGS_TO", direction: OUT)
   venues: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
+  teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
 # :Payment
 
 type Payment {
   paymentId: ID! @id
-  date: DateTime
+  dateTime: DateTime
   initiator: Staff @relation(name: "INITIATES_PAYMENT", direction: IN)
   receiver: Association @relation(name: "RECEIVES_PAYMENT", direction: OUT)
   game: Game @relation(name: "PAYMENT_FOR_GAME", direction: OUT)
@@ -903,7 +914,7 @@ type Achievement {
 type RulePack {
   rulePackId: ID! @id
   name: String
-  createdDate: DateTime
+  createdAt: DateTime
   associations: [Association] @relation(name: "GUIDED_BY", direction: IN)
   phases: [Phase] @relation(name: "GUIDED_BY", direction: IN)
   groups: [Group] @relation(name: "GUIDED_BY", direction: IN)
