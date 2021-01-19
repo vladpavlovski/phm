@@ -65,6 +65,7 @@ type Player implements Person {
   comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  metaHistories: [MetaHistory] @relation(name: "META_FOR", direction: IN)
 }
 
 # :MetaPlayer
@@ -99,6 +100,28 @@ type MetaPlayer {
   richedTakeOvers: [TakeOver] @relation(name: "RICHED_BY", direction: IN)
   hits: [Hit] @relation(name: "GIVE_BY", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+}
+
+# :MetaHistory
+
+type MetaHistory {
+  metaHistoryId: ID! @id
+  name: String
+  rating: Float
+  lineups: Int
+  scoredGoals: Int
+  assists: Int
+  points: Int
+  penalties: Int
+  stars: Int
+  allowedGoals: Int
+  percentage: Float
+  facedShots: Int
+  shutOuts: Int
+  average: Float
+  player: Player @relation(name: "META_FOR", direction: OUT)
+  season: Season @relation(name: "PARTICIPATE_IN", direction: OUT)
+  competition: Competition @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
 # staff types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
@@ -713,6 +736,7 @@ type Competition {
   timePickers: [Staff] @relation(name: "HAS_TIMEKEEPER", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
 # :Event
@@ -750,6 +774,7 @@ type Season {
   groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
   awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
+  metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
 # :Group

@@ -98,6 +98,15 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
+  const metaHistoryContent = fs.readFileSync(
+    __dirname +
+      '/fake_data_phm/PHM NEW DB import - Players - Meta for import.csv'
+  )
+  const metaHistories = parse(metaHistoryContent, {
+    columns: true,
+    delimiter: ',',
+  })
+
   const mutations = generateMutations({
     sponsors,
     venues,
@@ -111,6 +120,7 @@ export const getSeedMutations = () => {
     positions,
     jerseyNos,
     players,
+    metaHistories,
   })
 
   return mutations
@@ -903,6 +913,108 @@ const generateMutations = records => {
     }
   })
 
+  const metaHistories = records.metaHistories.map(rec => {
+    Object.keys(rec).map(k => {
+      if (k === '') {
+        rec[k] = null
+      } else if (
+        k === 'metaLineups' ||
+        k === 'metaScoredGoals' ||
+        k === 'metaAssists' ||
+        k === 'metaPoints' ||
+        k === 'metaPenalties' ||
+        k === 'metaStars' ||
+        k === 'metaAllowedGoals' ||
+        k === 'metaFacedShots' ||
+        k === 'metaShutOuts'
+      ) {
+        rec[k] = parseInt(rec[k])
+      } else if (
+        k === 'metaRating' ||
+        k === 'metaPercentage' ||
+        k === 'metaAverage'
+      ) {
+        rec[k] = parseFloat(rec[k])
+      }
+      rec['metaHistoryName'] =
+        'History' +
+        '-' +
+        rec['teamName'] +
+        '-' +
+        rec['playerName'] +
+        '-' +
+        rec['seasonName']
+    })
+
+    return {
+      mutation: gql`
+        mutation createJerseyNos(
+          $metaHistoryId: ID!
+          $metaRating: Float
+          $metaLineups: Int
+          $metaScoredGoals: Int
+          $metaAssists: Int
+          $metaPoints: Int
+          $metaPenalties: Int
+          $metaStars: Int
+          $metaAllowedGoals: Int
+          $metaPercentage: Float
+          $metaFacedShots: Int
+          $metaShutOuts: Int
+          $metaAverage: Float
+          $metaHistoryName: String
+          $playerId: ID!
+          $seasonId: ID!
+          $competitionId: ID!
+        ) {
+          metaHistory: MergeMetaHistory(
+            metaHistoryId: $metaHistoryId
+            name: $metaHistoryName
+            rating: $metaRating
+            lineups: $metaLineups
+            scoredGoals: $metaScoredGoals
+            assists: $metaAssists
+            points: $metaPoints
+            penalties: $metaPenalties
+            stars: $metaStars
+            allowedGoals: $metaAllowedGoals
+            percentage: $metaPercentage
+            facedShots: $metaFacedShots
+            shutOuts: $metaShutOuts
+            average: $metaAverage
+          ) {
+            metaHistoryId
+          }
+          metaHistoryPlayer: MergeMetaHistoryPlayer(
+            from: { metaHistoryId: $metaHistoryId }
+            to: { playerId: $playerId }
+          ) {
+            from {
+              metaHistoryId
+            }
+          }
+          metaHistorySeason: MergeMetaHistorySeason(
+            from: { metaHistoryId: $metaHistoryId }
+            to: { seasonId: $seasonId }
+          ) {
+            from {
+              metaHistoryId
+            }
+          }
+          metaHistoryCompetition: MergeMetaHistoryCompetition(
+            from: { metaHistoryId: $metaHistoryId }
+            to: { competitionId: $competitionId }
+          ) {
+            from {
+              metaHistoryId
+            }
+          }
+        }
+      `,
+      variables: rec,
+    }
+  })
+
   const result = [
     ...sponsors,
     ...venues,
@@ -916,6 +1028,7 @@ const generateMutations = records => {
     ...positions,
     ...jerseyNos,
     ...players,
+    ...metaHistories,
   ]
 
   return result
