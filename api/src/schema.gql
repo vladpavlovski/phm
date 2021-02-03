@@ -54,6 +54,7 @@ type Player implements Person {
   avatarUrl: String
   createdAt: DateTime
   updatedAt: DateTime
+
   account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
   meta: MetaPlayer @relation(name: "META_FOR", direction: IN)
   teams: [Team] @relation(name: "PLAY_IN", direction: OUT)
@@ -66,6 +67,15 @@ type Player implements Person {
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "META_FOR", direction: IN)
+}
+
+type Query {
+  playersCount: Int
+    @cypher(
+      statement: """
+      MATCH (p:Player) RETURN count(p)
+      """
+    )
 }
 
 # :MetaPlayer

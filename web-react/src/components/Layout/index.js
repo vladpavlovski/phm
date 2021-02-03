@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react'
 import clsx from 'clsx'
 
 import {
-  CssBaseline,
   Drawer,
   AppBar,
   Toolbar,
@@ -10,8 +9,6 @@ import {
   Divider,
   IconButton,
   Box,
-  Container,
-  // Badge,
 } from '@material-ui/core'
 
 import LayoutContext from '../../context/layout'
@@ -31,9 +28,9 @@ const Layout = props => {
   const { barTitle } = useContext(LayoutContext)
   return (
     <div className={classes.root}>
-      <CssBaseline />
       <AppBar
         position="absolute"
+        color="primary"
         className={clsx(classes.appBar, open && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
@@ -93,12 +90,12 @@ const Layout = props => {
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
+        <>
           {children}
           <Box pt={4}>
             <Copyright />
           </Box>
-        </Container>
+        </>
       </main>
     </div>
   )

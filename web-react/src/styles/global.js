@@ -1,4 +1,3 @@
-import 'sanitize.css'
 import { createGlobalStyle } from 'styled-components'
 import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles'
 
@@ -19,8 +18,11 @@ const GlobalStyle = createGlobalStyle`
 `
 
 export const muiTheme = createMuiTheme({
-  typography: {
-    htmlFontSize: 10,
+  popupIndicator: {
+    padding: '2px',
+  },
+  clearIndicator: {
+    padding: '2px',
   },
 })
 

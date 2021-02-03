@@ -1,11 +1,12 @@
 import React from 'react'
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles'
+import CssBaseline from '@material-ui/core/CssBaseline'
 
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'
-import { GlobalStyle, muiTheme } from './styles/global'
+import { muiTheme } from './styles/global'
 
 import { LayoutProvider } from './context/layout/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -21,11 +22,11 @@ const AdminPlayer = Load(() => import('./admin/pages/Player'))
 
 const App = () => {
   return (
-    <Router>
-      <ThemeProvider theme={muiTheme}>
-        <LocalizationProvider dateAdapter={AdapterDayJs}>
-          <GlobalStyle />
-          <ErrorBoundary>
+    <ThemeProvider theme={muiTheme}>
+      <LocalizationProvider dateAdapter={AdapterDayJs}>
+        <CssBaseline />
+        <ErrorBoundary>
+          <Router>
             <LayoutProvider>
               <Layout>
                 <Switch>
@@ -54,10 +55,10 @@ const App = () => {
                 </Switch>
               </Layout>
             </LayoutProvider>
-          </ErrorBoundary>
-        </LocalizationProvider>
-      </ThemeProvider>
-    </Router>
+          </Router>
+        </ErrorBoundary>
+      </LocalizationProvider>
+    </ThemeProvider>
   )
 }
 

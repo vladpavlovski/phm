@@ -23,11 +23,6 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  paper: {
-    backgroundColor: theme.palette.background.default,
-    margin: 0,
-    height: `calc(100vh - 64px)`,
-  },
   button: {
     margin: theme.spacing(2),
     fontSize: 40,

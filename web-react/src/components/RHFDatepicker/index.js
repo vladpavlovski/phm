@@ -14,6 +14,11 @@ const RHFDatepicker = props => {
     variant,
     error,
     helperText,
+    fullWidth,
+    openTo,
+    disableFuture,
+    views,
+    inputFormat,
   } = props
   return (
     <Controller
@@ -22,7 +27,12 @@ const RHFDatepicker = props => {
       render={({ onChange, onBlur, value, name, ref }) => (
         <DatePicker
           renderInput={params => (
-            <TextField {...params} margin="normal" variant={variant} />
+            <TextField
+              {...params}
+              // margin="normal"
+              fullWidth={fullWidth}
+              variant={variant}
+            />
           )}
           inputRef={ref}
           onChange={onChange}
@@ -30,11 +40,11 @@ const RHFDatepicker = props => {
           value={value}
           name={name}
           id={id}
-          disableFuture
-          openTo="year"
-          // inputFormat="YYYY-MM-DD"
+          disableFuture={disableFuture}
+          openTo={openTo}
+          inputFormat={inputFormat}
           label={label}
-          views={['year', 'month', 'date']}
+          views={views}
         />
       )}
       defaultValue={defaultValue ? dayjs(defaultValue) : null}
@@ -47,6 +57,9 @@ const RHFDatepicker = props => {
 RHFDatepicker.defaultProps = {
   defaultValue: null,
   fullWidth: false,
+  openTo: 'year',
+  disableFuture: false,
+  views: ['year', 'month', 'date'],
 }
 
 export { RHFDatepicker }

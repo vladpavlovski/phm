@@ -7,14 +7,6 @@ const useStyles = makeStyles(theme => ({
   },
   paper: {
     padding: theme.spacing(2),
-    // display: 'flex',
-    // overflow: 'auto',
-    // flexDirection: 'row',
-
-    '& .MuiTextField-root': {
-      margin: theme.spacing(1),
-      marginLeft: 0,
-    },
   },
 }))
 
