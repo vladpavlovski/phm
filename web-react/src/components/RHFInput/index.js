@@ -3,8 +3,7 @@ import { Controller } from 'react-hook-form'
 import TextField from '@material-ui/core/TextField'
 
 const RHFInput = props => {
-  const { control, name, defaultValue, ...restProps } = props
-
+  const { control, name, defaultValue, error, ...restProps } = props
   return (
     <Controller
       defaultValue={defaultValue || ''}
@@ -14,6 +13,8 @@ const RHFInput = props => {
         <TextField
           {...props}
           {...restProps}
+          error={!!error}
+          helperText={!!error && error.message}
           inputProps={{
             autoComplete: 'new-password',
           }}
@@ -24,10 +25,11 @@ const RHFInput = props => {
 }
 
 RHFInput.defaultProps = {
-  defaultValue: null,
+  defaultValue: '',
   multiple: false,
   fullWidth: false,
   variant: 'standard',
+  error: false,
 }
 
 export { RHFInput }
