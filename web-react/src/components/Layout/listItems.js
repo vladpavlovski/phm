@@ -13,7 +13,8 @@ import {
 import {
   Dashboard,
   Mood,
-  // , GridOn, Group, , DoneAll
+  Group,
+  // , GridOn, , , DoneAll
 } from '@material-ui/icons'
 
 const ListItemLink = props => {
@@ -47,13 +48,14 @@ const MainListItems = () => (
     <Divider />
     <List>
       {/* <ListSubheader inset>PHM Tables</ListSubheader> */}
+      <ListItemLink icon={<Group />} primary="Teams" to={ROUTES.ADMIN_TEAMS} />
       <ListItemLink
         icon={<Mood />}
         primary="Players"
         to={ROUTES.ADMIN_PLAYERS}
       />
       {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
-      <ListItemLink icon={<Group />} primary="Teams" to={ROUTES.TEAMS} />
+      
       
       <ListItemLink
         icon={<DoneAll />}
