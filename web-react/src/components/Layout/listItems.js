@@ -14,6 +14,7 @@ import {
   Dashboard,
   Mood,
   Group,
+  SportsHockey,
   // , GridOn, , , DoneAll
 } from '@material-ui/icons'
 
@@ -54,9 +55,13 @@ const MainListItems = () => (
         primary="Players"
         to={ROUTES.ADMIN_PLAYERS}
       />
+      <ListItemLink
+        icon={<SportsHockey />}
+        primary="Associations"
+        to={ROUTES.ADMIN_ASSOCIATIONS}
+      />
+
       {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
-      
-      
       <ListItemLink
         icon={<DoneAll />}
         primary="Player Merge"

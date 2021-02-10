@@ -21,6 +21,10 @@ const AdminPlayersView = Load(() => import('./admin/pages/Player/view'))
 const AdminPlayer = Load(() => import('./admin/pages/Player'))
 const AdminTeamsView = Load(() => import('./admin/pages/Team/view'))
 const AdminTeam = Load(() => import('./admin/pages/Team'))
+const AdminAssociationsView = Load(() =>
+  import('./admin/pages/Association/view')
+)
+const AdminAssociation = Load(() => import('./admin/pages/Association'))
 
 const App = () => {
   return (
@@ -54,6 +58,18 @@ const App = () => {
                     component={AdminTeamsView}
                   />
                   <Route path={ROUTES.ADMIN_TEAM} exact component={AdminTeam} />
+                  <Route
+                    path={ROUTES.ADMIN_ASSOCIATIONS}
+                    exact
+                    component={AdminAssociationsView}
+                  />
+                  <Route
+                    path={ROUTES.ADMIN_ASSOCIATION}
+                    exact
+                    component={AdminAssociation}
+                  />
+
+                  {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                   <Route
                     path={ROUTES.NETWORK_ERROR}
                     exact

@@ -14,7 +14,8 @@ export const ADMIN_PLAYERS = '/admin/players'
 export const ADMIN_PLAYER = '/admin/player/:playerId'
 export const ADMIN_TEAMS = '/admin/teams'
 export const ADMIN_TEAM = '/admin/team/:teamId'
-// export const PLAYER_MERGE = '/playerMerge'
+export const ADMIN_ASSOCIATIONS = '/admin/associations'
+export const ADMIN_ASSOCIATION = '/admin/associations/:associationId'
 
 // export const getArticleRoute = gameId => generatePath(ARTICLE, { gameId })
 // export const getArticleGeneratedRoute = gameId =>
@@ -23,3 +24,5 @@ export const ADMIN_TEAM = '/admin/team/:teamId'
 export const getAdminPlayerRoute = playerId =>
   generatePath(ADMIN_PLAYER, { playerId })
 export const getAdminTeamRoute = teamId => generatePath(ADMIN_TEAM, { teamId })
+export const getAdminAssociationRoute = associationId =>
+  generatePath(ADMIN_ASSOCIATION, { associationId })

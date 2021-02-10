@@ -65,6 +65,9 @@ const cache = new InMemoryCache({
     Team: {
       keyFields: ['teamId'],
     },
+    Association: {
+      keyFields: ['associationId'],
+    },
     // Query: {
     //   fields: {
     //     Player: {
