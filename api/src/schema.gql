@@ -76,6 +76,12 @@ type Query {
       MATCH (p:Player) RETURN count(p)
       """
     )
+  teamsCount: Int
+    @cypher(
+      statement: """
+      MATCH (t:Team) RETURN count(t)
+      """
+    )
 }
 
 # :MetaPlayer
@@ -280,14 +286,14 @@ type Team {
   foundDate: Date
   disabled: Boolean
   manager: Staff @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
-  lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
-  lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
   players: [Player] @relation(name: "PLAY_IN", direction: IN)
   coaches: [Staff] @relation(name: "HAS_COACH", direction: OUT)
   coachAssistants: [Staff]
     @relation(name: "HAS_COACH_ASSISTANT", direction: OUT)
   medics: [Staff] @relation(name: "HAS_MEDIC", direction: OUT)
   supporters: [Staff] @relation(name: "HAS_SUPPORTER", direction: OUT)
+  lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
+  lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
