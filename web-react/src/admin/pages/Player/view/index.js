@@ -4,7 +4,7 @@ import { Grid } from '@material-ui/core'
 
 import Load from '../../../../utils/load'
 import LayoutContext from '../../../../context/layout'
-const PlayersTable = Load(() => import('./PlayersTable'))
+const PlayersTable = Load(() => import('./Table'))
 
 const Players = () => {
   const { setBarTitle } = useContext(LayoutContext)

@@ -16,8 +16,12 @@ import {
   Paper,
   TextField,
 } from '@material-ui/core'
+import Toolbar from '@material-ui/core/Toolbar'
+import EditIcon from '@material-ui/icons/Edit'
+import AddIcon from '@material-ui/icons/Add'
+
 import debounce from 'lodash.debounce'
-import { useStyles } from '../styled'
+import { useStyles } from '../../commonComponents/styled'
 import { getAdminPlayerRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
@@ -143,10 +147,22 @@ const PlayersTable = () => {
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Paper className={classes.root}>
-            <Title>Players</Title>
+            <Toolbar className={classes.toolbarForm}>
+              <div>
+                <Title>{'Players'}</Title>
+              </div>
+              <div>
+                <LinkButton
+                  startIcon={<AddIcon />}
+                  to={getAdminPlayerRoute('new')}
+                >
+                  Create
+                </LinkButton>
+              </div>
+            </Toolbar>
             <TextField
               id="search"
-              label="Name Contains"
+              label="Name"
               className={classes.textField}
               value={filterStateForView.name_contains}
               onChange={handleFilterChange('name_contains')}
@@ -228,6 +244,7 @@ const PlayersTable = () => {
                               </TableCell>
                               <TableCell>
                                 <LinkButton
+                                  startIcon={<EditIcon />}
                                   to={getAdminPlayerRoute(n.playerId)}
                                 >
                                   Edit
