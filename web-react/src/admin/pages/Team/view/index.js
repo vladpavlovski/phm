@@ -6,7 +6,7 @@ import Load from '../../../../utils/load'
 import LayoutContext from '../../../../context/layout'
 const Table = Load(() => import('./Table'))
 
-const Teams = () => {
+const View = () => {
   const { setBarTitle } = useContext(LayoutContext)
 
   useEffect(() => {
@@ -24,4 +24,4 @@ const Teams = () => {
   )
 }
 
-export { Teams as default }
+export { View as default }

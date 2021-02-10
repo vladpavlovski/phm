@@ -278,17 +278,6 @@ const Team = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={teamData.status}
-                        control={control}
-                        name="status"
-                        label="Status"
-                        fullWidth
-                        variant="standard"
-                        error={errors.status}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
                         defaultValue={teamData.externalId}
                         control={control}
                         name="externalId"
