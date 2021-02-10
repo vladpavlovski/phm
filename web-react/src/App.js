@@ -19,6 +19,8 @@ const NetworkError = Load(() => import('./pages/NetworkError'))
 
 const AdminPlayersView = Load(() => import('./admin/pages/Player/view'))
 const AdminPlayer = Load(() => import('./admin/pages/Player'))
+const AdminTeamsView = Load(() => import('./admin/pages/Team/view'))
+const AdminTeam = Load(() => import('./admin/pages/Team'))
 
 const App = () => {
   return (
@@ -46,6 +48,12 @@ const App = () => {
                     exact
                     component={AdminPlayer}
                   />
+                  <Route
+                    path={ROUTES.ADMIN_TEAMS}
+                    exact
+                    component={AdminTeamsView}
+                  />
+                  <Route path={ROUTES.ADMIN_TEAM} exact component={AdminTeam} />
                   <Route
                     path={ROUTES.NETWORK_ERROR}
                     exact
