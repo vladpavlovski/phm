@@ -219,6 +219,7 @@ const TeamsTable = () => {
                                   className={classes.teamLogoView}
                                   src={n.logoUrl}
                                   alt={n.name}
+                                  loading="lazy"
                                 />
                               </TableCell>
                               <TableCell>{n.name}</TableCell>
