@@ -25,6 +25,10 @@ const AdminAssociationsView = Load(() =>
   import('./admin/pages/Association/view')
 )
 const AdminAssociation = Load(() => import('./admin/pages/Association'))
+const AdminCompetitionsView = Load(() =>
+  import('./admin/pages/Competition/view')
+)
+const AdminCompetition = Load(() => import('./admin/pages/Competition'))
 
 const App = () => {
   return (
@@ -67,6 +71,16 @@ const App = () => {
                     path={ROUTES.ADMIN_ASSOCIATION}
                     exact
                     component={AdminAssociation}
+                  />
+                  <Route
+                    path={ROUTES.ADMIN_COMPETITIONS}
+                    exact
+                    component={AdminCompetitionsView}
+                  />
+                  <Route
+                    path={ROUTES.ADMIN_COMPETITION}
+                    exact
+                    component={AdminCompetition}
                   />
 
                   {/* {NEW ROUTES ADD BEFORE THIS ROW} */}

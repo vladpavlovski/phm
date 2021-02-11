@@ -88,6 +88,12 @@ type Query {
       MATCH (a:Association) RETURN count(a)
       """
     )
+  competitionsCount: Int
+    @cypher(
+      statement: """
+      MATCH (c:Competition) RETURN count(c)
+      """
+    )
 }
 
 # :MetaPlayer
