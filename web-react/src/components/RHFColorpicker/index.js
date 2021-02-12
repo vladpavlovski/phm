@@ -8,7 +8,7 @@ const RHFColorpicker = props => {
   const { control, name, error, convert, defaultValue, ...restProps } = props
 
   const [showPicker, setShowPicker] = useState(false)
-  const [internalValue, setInternalValue] = useState(defaultValue)
+  const [internalValue, setInternalValue] = useState(defaultValue || '')
   return (
     <Controller
       defaultValue={defaultValue || ''}
