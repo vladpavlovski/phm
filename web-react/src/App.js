@@ -8,6 +8,7 @@ import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'
 import { muiTheme } from './styles/global'
 
+import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import * as ROUTES from './routes'
@@ -37,62 +38,68 @@ const App = () => {
         <CssBaseline />
         <ErrorBoundary>
           <Router>
-            <LayoutProvider>
-              <Layout>
-                <Switch>
-                  <Route exact path="/" component={Dashboard} />
-                  <Route
-                    exact
-                    path={ROUTES.ADMIN_DASHBOARD}
-                    component={Dashboard}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_PLAYERS}
-                    exact
-                    component={AdminPlayersView}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_PLAYER}
-                    exact
-                    component={AdminPlayer}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_TEAMS}
-                    exact
-                    component={AdminTeamsView}
-                  />
-                  <Route path={ROUTES.ADMIN_TEAM} exact component={AdminTeam} />
-                  <Route
-                    path={ROUTES.ADMIN_ASSOCIATIONS}
-                    exact
-                    component={AdminAssociationsView}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_ASSOCIATION}
-                    exact
-                    component={AdminAssociation}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_COMPETITIONS}
-                    exact
-                    component={AdminCompetitionsView}
-                  />
-                  <Route
-                    path={ROUTES.ADMIN_COMPETITION}
-                    exact
-                    component={AdminCompetition}
-                  />
+            <SnackbarProvider maxSnack={5}>
+              <LayoutProvider>
+                <Layout>
+                  <Switch>
+                    <Route exact path="/" component={Dashboard} />
+                    <Route
+                      exact
+                      path={ROUTES.ADMIN_DASHBOARD}
+                      component={Dashboard}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_PLAYERS}
+                      exact
+                      component={AdminPlayersView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_PLAYER}
+                      exact
+                      component={AdminPlayer}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_TEAMS}
+                      exact
+                      component={AdminTeamsView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_TEAM}
+                      exact
+                      component={AdminTeam}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_ASSOCIATIONS}
+                      exact
+                      component={AdminAssociationsView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_ASSOCIATION}
+                      exact
+                      component={AdminAssociation}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_COMPETITIONS}
+                      exact
+                      component={AdminCompetitionsView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_COMPETITION}
+                      exact
+                      component={AdminCompetition}
+                    />
 
-                  {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
-                  <Route
-                    path={ROUTES.NETWORK_ERROR}
-                    exact
-                    component={NetworkError}
-                  />
-                  <Route path="*" exact component={NotFound} />
-                </Switch>
-              </Layout>
-            </LayoutProvider>
+                    {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
+                    <Route
+                      path={ROUTES.NETWORK_ERROR}
+                      exact
+                      component={NetworkError}
+                    />
+                    <Route path="*" exact component={NotFound} />
+                  </Switch>
+                </Layout>
+              </LayoutProvider>
+            </SnackbarProvider>
           </Router>
         </ErrorBoundary>
       </LocalizationProvider>
