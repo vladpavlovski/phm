@@ -21,7 +21,7 @@ const ButtonDelete = props => {
     <>
       <LoadingButton
         type="button"
-        variant="contained"
+        variant="outlined"
         color="secondary"
         onClick={() => {
           setOpenDialog(true)
