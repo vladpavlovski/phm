@@ -94,6 +94,24 @@ type Query {
       MATCH (c:Competition) RETURN count(c)
       """
     )
+  sponsorsCount: Int
+    @cypher(
+      statement: """
+      MATCH (s:Sponsor) RETURN count(s)
+      """
+    )
+  seasonsCount: Int
+    @cypher(
+      statement: """
+      MATCH (s:Season) RETURN count(s)
+      """
+    )
+  venuesCount: Int
+    @cypher(
+      statement: """
+      MATCH (v:Venue) RETURN count(v)
+      """
+    )
 }
 
 # :MetaPlayer
@@ -707,7 +725,6 @@ type Venue {
   location: String
   foundDate: Date
   capacity: Int
-  disabled: Boolean
   competitions: [Competition] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   games: [Game] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   address: Address @relation(name: "LOCATED_AT", direction: OUT)

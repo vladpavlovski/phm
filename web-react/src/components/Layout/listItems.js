@@ -44,7 +44,6 @@ const ListItemLink = props => {
 }
 
 const MainListItems = () => {
-  // const classes = useStyles()
   const [generalOpen, setGeneralOpen] = useState(false)
 
   return (
@@ -91,13 +90,26 @@ const MainListItems = () => {
               icon={<SportsHockey />}
               primary="Associations"
               to={ROUTES.ADMIN_ASSOCIATIONS}
-              // className={classes.nested}
             />
             <ListItemLink
               icon={<SportsHockey />}
               primary="Competitions"
               to={ROUTES.ADMIN_COMPETITIONS}
-              // className={classes.nested}
+            />
+            <ListItemLink
+              icon={<SportsHockey />}
+              primary="Sponsors"
+              to={ROUTES.ADMIN_SPONSORS}
+            />
+            <ListItemLink
+              icon={<SportsHockey />}
+              primary="Seasons"
+              to={ROUTES.ADMIN_SEASONS}
+            />
+            <ListItemLink
+              icon={<SportsHockey />}
+              primary="Venues"
+              to={ROUTES.ADMIN_VENUES}
             />
           </List>
         </Collapse>

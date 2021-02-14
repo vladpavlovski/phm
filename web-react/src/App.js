@@ -31,6 +31,13 @@ const AdminCompetitionsView = Load(() =>
 )
 const AdminCompetition = Load(() => import('./admin/pages/Competition'))
 
+const AdminSponsor = Load(() => import('./admin/pages/Sponsor'))
+const AdminSponsorsView = Load(() => import('./admin/pages/Sponsor/view'))
+const AdminSeason = Load(() => import('./admin/pages/Season'))
+const AdminSeasonsView = Load(() => import('./admin/pages/Season/view'))
+const AdminVenue = Load(() => import('./admin/pages/Venue'))
+const AdminVenuesView = Load(() => import('./admin/pages/Venue/view'))
+
 const App = () => {
   return (
     <ThemeProvider theme={muiTheme}>
@@ -89,6 +96,37 @@ const App = () => {
                       component={AdminCompetition}
                     />
 
+                    <Route
+                      path={ROUTES.ADMIN_SPONSORS}
+                      exact
+                      component={AdminSponsorsView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_SPONSOR}
+                      exact
+                      component={AdminSponsor}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_VENUES}
+                      exact
+                      component={AdminVenuesView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_VENUE}
+                      exact
+                      component={AdminVenue}
+                    />
+
+                    <Route
+                      path={ROUTES.ADMIN_SEASONS}
+                      exact
+                      component={AdminSeasonsView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_SEASON}
+                      exact
+                      component={AdminSeason}
+                    />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route
                       path={ROUTES.NETWORK_ERROR}

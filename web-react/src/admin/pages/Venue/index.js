@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack'
 
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
+
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -16,137 +16,130 @@ import Toolbar from '@material-ui/core/Toolbar'
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
-import { RHFColorpicker } from '../../../components/RHFColorpicker'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist } from '../../../utils'
+import { dateExist, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_TEAMS, getAdminTeamRoute } from '../../../routes'
+import { ADMIN_VENUES, getAdminVenueRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations/Relations'
 
-const READ_TEAM = gql`
-  query getTeam($teamId: ID!) {
-    team: Team(teamId: $teamId) {
-      teamId
+const READ_VENUE = gql`
+  query getVenue($venueId: ID!) {
+    venue: Venue(venueId: $venueId) {
+      venueId
       name
-      fullName
       nick
       short
-      status
-      externalId
-      logoUrl
-      primaryColor
-      secondaryColor
-      tertiaryColor
+      web
+      description
+      location
+      capacity
       foundDate {
         formatted
       }
-      jerseys {
-        jerseyNoId
-        number
-      }
-      players {
-        playerId
-        name
+      address {
+        addressId
+        addressLine1
+        addressLine2
+        addressLine3
+        city
+        countyProvince
+        zip
+        country
+        other
       }
     }
   }
 `
 
-const MERGE_TEAM = gql`
-  mutation mergeTeam(
-    $teamId: ID!
+const MERGE_VENUE = gql`
+  mutation mergeVenue(
+    $venueId: ID!
     $name: String
-    $fullName: String
     $nick: String
     $short: String
-    $status: String
-    $externalId: String
-    $logoUrl: String
-    $primaryColor: String
-    $secondaryColor: String
-    $tertiaryColor: String
+    $web: String
+    $description: String
+    $location: String
+    $capacity: Int
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
   ) {
-    mergeTeam: MergeTeam(
-      teamId: $teamId
+    mergeVenue: MergeVenue(
+      venueId: $venueId
       name: $name
-      fullName: $fullName
       nick: $nick
       short: $short
-      status: $status
-      externalId: $externalId
-      logoUrl: $logoUrl
-      primaryColor: $primaryColor
-      secondaryColor: $secondaryColor
-      tertiaryColor: $tertiaryColor
+      web: $web
+      description: $description
+      location: $location
+      capacity: $capacity
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
         year: $foundDateYear
       }
     ) {
-      teamId
+      venueId
     }
   }
 `
 
-const DELETE_TEAM = gql`
-  mutation deleteTeam($teamId: ID!) {
-    deleteTeam: DeleteTeam(teamId: $teamId) {
-      teamId
+const DELETE_VENUE = gql`
+  mutation deleteVenue($venueId: ID!) {
+    deleteVenue: DeleteVenue(venueId: $venueId) {
+      venueId
     }
   }
 `
 
-const Team = () => {
+const Venue = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { teamId } = useParams()
+  const { venueId } = useParams()
   const { enqueueSnackbar } = useSnackbar()
 
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_TEAM, {
+  } = useQuery(READ_VENUE, {
     fetchPolicy: 'network-only',
-    variables: { teamId },
-    skip: teamId === 'new',
+    variables: { venueId },
+    skip: venueId === 'new',
   })
 
   const [
-    mergeTeam,
+    mergeVenue,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_TEAM, {
+  ] = useMutation(MERGE_VENUE, {
     onCompleted: data => {
-      if (teamId === 'new') {
-        const newId = data.mergeTeam.teamId
-        history.replace(getAdminTeamRoute(newId))
+      if (venueId === 'new') {
+        const newId = data.mergeVenue.venueId
+        history.replace(getAdminVenueRoute(newId))
       }
-      enqueueSnackbar('Team saved!', { variant: 'success' })
+      enqueueSnackbar('Venue saved!', { variant: 'success' })
     },
   })
 
   const [
-    deleteTeam,
+    deleteVenue,
     { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_TEAM, {
+  ] = useMutation(DELETE_VENUE, {
     onCompleted: () => {
-      history.push(ADMIN_TEAMS)
-      enqueueSnackbar('Team was deleted!')
+      history.push(ADMIN_VENUES)
+      enqueueSnackbar('Venue was deleted!')
     },
   })
 
-  const teamData = useMemo(() => (queryData && queryData.team[0]) || {}, [
+  const venueData = useMemo(() => (queryData && queryData.venue[0]) || {}, [
     queryData,
   ])
 
@@ -157,24 +150,25 @@ const Team = () => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { foundDate, ...rest } = dataToCheck
+        const { foundDate, capacity, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          teamId: teamId === 'new' ? uuidv4() : teamId,
+          venueId: checkId(venueId),
+          capacity: capacity ? parseInt(capacity) : 0,
           foundDateDay: dayjs(foundDate).date(),
           foundDateMonth: dayjs(foundDate).month() + 1,
           foundDateYear: dayjs(foundDate).year(),
         }
 
-        mergeTeam({
+        mergeVenue({
           variables: dataToSubmit,
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [teamId]
+    [venueId]
   )
 
   return (
@@ -185,7 +179,7 @@ const Team = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(teamData || teamId === 'new') &&
+      {(venueData || venueId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -201,17 +195,17 @@ const Team = () => {
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>
-                        <Title>{'Team'}</Title>
+                        <Title>{'Venue'}</Title>
                       </div>
                       <div>
                         {formState.isDirty && (
                           <ButtonSave loading={mutationLoadingMerge} />
                         )}
-                        {teamId !== 'new' && (
+                        {venueId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
                             onClick={() => {
-                              deleteTeam({ variables: { teamId } })
+                              deleteVenue({ variables: { venueId } })
                             }}
                           />
                         )}
@@ -221,7 +215,7 @@ const Team = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.name}
+                          defaultValue={venueData.name}
                           control={control}
                           name="name"
                           label="Name"
@@ -233,18 +227,7 @@ const Team = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.fullName}
-                          control={control}
-                          name="fullName"
-                          label="Full name"
-                          fullWidth
-                          variant="standard"
-                          error={errors.fullName}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={teamData.nick}
+                          defaultValue={venueData.nick}
                           control={control}
                           name="nick"
                           label="Nick"
@@ -255,7 +238,7 @@ const Team = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.short}
+                          defaultValue={venueData.short}
                           control={control}
                           name="short"
                           label="Short"
@@ -266,71 +249,46 @@ const Team = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.status}
+                          defaultValue={venueData.web}
                           control={control}
-                          name="status"
-                          label="Status"
+                          name="web"
+                          label="Web"
                           fullWidth
                           variant="standard"
-                          error={errors.status}
+                          error={errors.web}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.externalId}
+                          defaultValue={venueData.description}
                           control={control}
-                          name="externalId"
-                          label="External Id"
+                          name="description"
+                          label="Description"
                           fullWidth
                           variant="standard"
-                          error={errors.externalId}
+                          error={errors.description}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.logoUrl}
+                          defaultValue={venueData.location}
                           control={control}
-                          name="logoUrl"
-                          label="Logo URL"
+                          name="location"
+                          label="Location"
                           fullWidth
                           variant="standard"
-                          error={errors.logoUrl}
+                          error={errors.location}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        logo
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFColorpicker
-                          name="primaryColor"
-                          label="Primary Color"
+                        <RHFInput
+                          defaultValue={venueData.capacity}
+                          control={control}
+                          name="capacity"
+                          label="Capacity"
                           fullWidth
                           variant="standard"
-                          control={control}
-                          defaultValue={teamData.primaryColor}
-                          error={errors.primaryColor}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFColorpicker
-                          name="secondaryColor"
-                          label="Secondary Color"
-                          fullWidth
-                          variant="standard"
-                          control={control}
-                          defaultValue={teamData.secondaryColor}
-                          error={errors.secondaryColor}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFColorpicker
-                          name="tertiaryColor"
-                          label="Tertiary Color"
-                          fullWidth
-                          variant="standard"
-                          control={control}
-                          defaultValue={teamData.tertiaryColor}
-                          error={errors.tertiaryColor}
+                          error={errors.capacity}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -346,9 +304,9 @@ const Team = () => {
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
                           defaultValue={
-                            teamData.foundDate &&
-                            dateExist(teamData.foundDate.formatted)
-                              ? teamData.foundDate.formatted
+                            venueData.foundDate &&
+                            dateExist(venueData.foundDate.formatted)
+                              ? venueData.foundDate.formatted
                               : null
                           }
                           error={errors.foundDate}
@@ -359,11 +317,11 @@ const Team = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations teamId={teamId} />
+            <Relations venueId={venueId} />
           </>
         )}
     </Container>
   )
 }
 
-export { Team as default }
+export { Venue as default }
