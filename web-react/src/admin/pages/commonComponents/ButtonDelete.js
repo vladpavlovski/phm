@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
+import clsx from 'clsx'
+
 import LoadingButton from '@material-ui/lab/LoadingButton'
 import DeleteForever from '@material-ui/icons/DeleteForever'
 import Button from '@material-ui/core/Button'
@@ -9,8 +11,11 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 
+import { useStyles } from './styled'
+
 const ButtonDelete = props => {
   const { onClick, className, loading } = props
+  const classes = useStyles()
 
   const [openDialog, setOpenDialog] = useState(false)
 
@@ -26,7 +31,7 @@ const ButtonDelete = props => {
         onClick={() => {
           setOpenDialog(true)
         }}
-        className={className}
+        className={clsx(className, classes.submit)}
         startIcon={<DeleteForever />}
         pending={loading}
         pendingPosition="start"
@@ -52,7 +57,7 @@ const ButtonDelete = props => {
           <Button
             onClick={() => {
               handleClose()
-              onClick()
+              onClick && onClick()
             }}
           >
             Sure, delete it!
@@ -61,6 +66,12 @@ const ButtonDelete = props => {
       </Dialog>
     </>
   )
+}
+
+ButtonDelete.defaultProps = {
+  loading: false,
+  className: '',
+  onClick: null,
 }
 
 ButtonDelete.propTypes = {
