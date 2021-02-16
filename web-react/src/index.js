@@ -7,18 +7,20 @@ import App from './App'
 import registerServiceWorker from './registerServiceWorker'
 import { client } from './graphql'
 
-Bugfender.init({
-  appKey: process.env.REACT_APP_BUGFENDER_KEY,
-  // apiURL: 'https://api.bugfender.com',
-  // baseURL: 'https://dashboard.bugfender.com',
-  // overrideConsoleMethods: true,
-  // printToConsole: true,
-  // registerErrorHandler: true,
-  // logBrowserEvents: true,
-  // logUIEvents: true,
-  // version: '',
-  // build: '',
-})
+if (process.env.REACT_APP_STAGE !== 'development') {
+  Bugfender.init({
+    appKey: process.env.REACT_APP_BUGFENDER_KEY,
+    // apiURL: 'https://api.bugfender.com',
+    // baseURL: 'https://dashboard.bugfender.com',
+    // overrideConsoleMethods: true,
+    // printToConsole: true,
+    // registerErrorHandler: true,
+    // logBrowserEvents: true,
+    // logUIEvents: true,
+    // version: '',
+    // build: '',
+  })
+}
 
 const Main = () => (
   <ApolloProvider client={client}>
