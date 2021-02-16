@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 
 import { Membership } from './components/Membership'
+import { Players } from './components/Players'
 
 const Relations = props => {
   const { teamId } = props
@@ -46,23 +47,7 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="players-content"
-          id="players-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Players
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Basic info about players
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Players Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Players teamId={teamId} />
 
       <Accordion>
         <AccordionSummary
