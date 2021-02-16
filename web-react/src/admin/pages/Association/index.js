@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 // useWatch
-
+import { Helmet } from 'react-helmet'
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
@@ -124,7 +124,7 @@ const Association = () => {
     [queryData]
   )
 
-  const { handleSubmit, control, errors } = useForm({
+  const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -169,6 +169,9 @@ const Association = () => {
             noValidate
             autoComplete="off"
           >
+            <Helmet>
+              <title>{associationData.name || 'Association'}</title>
+            </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Paper className={classes.paper}>
@@ -177,14 +180,12 @@ const Association = () => {
                       <Title>{'Association'}</Title>
                     </div>
                     <div>
-                      <ButtonSave
-                        loading={mutationLoadingMerge}
-                        className={classes.submit}
-                      />
+                      {formState.isDirty && (
+                        <ButtonSave loading={mutationLoadingMerge} />
+                      )}
                       {associationId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
-                          className={classes.submit}
                           onClick={() => {
                             deleteAssociation({ variables: { associationId } })
                           }}

@@ -1,10 +1,9 @@
 import React, { useContext, useEffect } from 'react'
 import 'react-imported-component/macro'
 import { Grid } from '@material-ui/core'
-
-import Load from '../../../../utils/load'
+import { Helmet } from 'react-helmet'
 import LayoutContext from '../../../../context/layout'
-const PlayersTable = Load(() => import('./Table'))
+import Table from './Table'
 
 const Players = () => {
   const { setBarTitle } = useContext(LayoutContext)
@@ -17,8 +16,11 @@ const Players = () => {
   }, [])
   return (
     <Grid container spacing={3}>
+      <Helmet>
+        <title>Players</title>
+      </Helmet>
       <Grid item xs={12}>
-        <PlayersTable />
+        <Table />
       </Grid>
     </Grid>
   )

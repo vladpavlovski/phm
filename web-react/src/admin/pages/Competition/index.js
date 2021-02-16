@@ -4,7 +4,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
-
+import { Helmet } from 'react-helmet'
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
@@ -120,7 +120,7 @@ const Competition = () => {
     [queryData]
   )
 
-  const { handleSubmit, control, errors } = useForm({
+  const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -165,6 +165,9 @@ const Competition = () => {
             noValidate
             autoComplete="off"
           >
+            <Helmet>
+              <title>{competitionData.name || 'Competition'}</title>
+            </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Paper className={classes.paper}>
@@ -173,14 +176,12 @@ const Competition = () => {
                       <Title>{'Competition'}</Title>
                     </div>
                     <div>
-                      <ButtonSave
-                        loading={mutationLoadingMerge}
-                        className={classes.submit}
-                      />
+                      {formState.isDirty && (
+                        <ButtonSave loading={mutationLoadingMerge} />
+                      )}
                       {competitionId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
-                          className={classes.submit}
                           onClick={() => {
                             deleteCompetition({ variables: { competitionId } })
                           }}

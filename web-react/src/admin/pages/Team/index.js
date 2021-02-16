@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { useSnackbar } from 'notistack'
+import { Helmet } from 'react-helmet'
 
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -196,6 +197,9 @@ const Team = () => {
               noValidate
               autoComplete="off"
             >
+              <Helmet>
+                <title>{teamData.name || 'Team'}</title>
+              </Helmet>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={12} lg={12}>
                   <Paper className={classes.paper}>

@@ -1,10 +1,10 @@
 import React, { useContext, useEffect } from 'react'
 import 'react-imported-component/macro'
 import { Grid } from '@material-ui/core'
+import { Helmet } from 'react-helmet'
 
-import Load from '../../../../utils/load'
 import LayoutContext from '../../../../context/layout'
-const Table = Load(() => import('./Table'))
+import Table from './Table'
 
 const View = () => {
   const { setBarTitle } = useContext(LayoutContext)
@@ -16,11 +16,16 @@ const View = () => {
     }
   }, [])
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Table />
+    <>
+      <Helmet>
+        <title>Associations</title>
+      </Helmet>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Table />
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   )
 }
 

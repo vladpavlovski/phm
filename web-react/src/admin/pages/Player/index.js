@@ -3,6 +3,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm, useWatch } from 'react-hook-form'
+import { Helmet } from 'react-helmet'
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
@@ -274,7 +275,7 @@ const Player = () => {
 
   // console.log('playerData:', playerData)
 
-  const { handleSubmit, control, errors, setValue } = useForm({
+  const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       country: '',
@@ -344,20 +345,21 @@ const Player = () => {
             noValidate
             autoComplete="off"
           >
+            <Helmet>
+              <title>{playerData.name || 'Player'}</title>
+            </Helmet>
             <Paper className={classes.paper}>
               <Toolbar disableGutters className={classes.toolbarForm}>
                 <div>
                   <Title>{'Player'}</Title>
                 </div>
                 <div>
-                  <ButtonSave
-                    loading={mutationLoading}
-                    className={classes.submit}
-                  />
+                  {formState.isDirty && (
+                    <ButtonSave loading={mutationLoading} />
+                  )}
                   {playerId !== 'new' && (
                     <ButtonDelete
                       loading={loadingDelete}
-                      className={classes.submit}
                       onClick={() => {
                         deletePlayer({ variables: { playerId } })
                       }}
