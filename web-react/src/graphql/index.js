@@ -58,31 +58,33 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
 // }
 
 const cache = new InMemoryCache({
-  typePolicies: {
-    Player: {
-      keyFields: ['playerId'],
-    },
-    Team: {
-      keyFields: ['teamId'],
-    },
-    Association: {
-      keyFields: ['associationId'],
-    },
-    // Query: {
-    //   fields: {
-    //     Player: {
-    //       read: cacheRead,
-    //       keyArgs: ['playerId'],
-    //       merge: cacheMerge,
-    //     },
-    //     Team: {
-    //       read: cacheRead,
-    //       keyArgs: ['teamId'],
-    //       merge: cacheMerge,
-    //     },
-    //   },
-    // },
-  },
+  // typePolicies: {
+  //   Player: {
+  //     keyFields: ['playerId'],
+  //   },
+  //   Team: {
+  //     keyFields: ['teamId'],
+  //     read: cacheRead,
+  //     merge: cacheMerge,
+  //   },
+  //   Association: {
+  //     keyFields: ['associationId'],
+  //   },
+  //   // Query: {
+  //   //   fields: {
+  //   //     Player: {
+  //   //       read: cacheRead,
+  //   //       keyArgs: ['playerId'],
+  //   //       merge: cacheMerge,
+  //   //     },
+  //   //     Team: {
+  //   //       read: cacheRead,
+  //   //       keyArgs: ['teamId'],
+  //   //       merge: cacheMerge,
+  //   //     },
+  //   //   },
+  //   // },
+  // },
 })
 
 const client = new ApolloClient({
