@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 
 import { Membership } from './components/Membership'
 import { Players } from './components/Players'
+import { Positions } from './components/Positions'
 
 const Relations = props => {
   const { teamId } = props
@@ -48,7 +49,8 @@ const Relations = props => {
       </Accordion>
 
       <Players teamId={teamId} />
-
+      {/* // TODO: positions should be remade. THIS IS ONLY FOR PREVIEW */}
+      <Positions teamId={teamId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
