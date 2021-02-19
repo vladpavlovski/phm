@@ -10,7 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 
 import { Membership } from './components/Membership'
 import { Players } from './components/Players'
-import { Positions } from './components/Positions'
+import { Sponsors } from './components/Sponsors'
 
 const Relations = props => {
   const { teamId } = props
@@ -49,8 +49,20 @@ const Relations = props => {
       </Accordion>
 
       <Players teamId={teamId} />
-      {/* // TODO: positions should be remade. THIS IS ONLY FOR PREVIEW */}
-      <Positions teamId={teamId} />
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="transfers-content"
+          id="transfers-header"
+        >
+          <Typography className={classes.accordionFormTitle}>
+            Positions
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>Positions Table</Typography>
+        </AccordionDetails>
+      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -66,20 +78,7 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsors-content"
-          id="sponsors-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Sponsors
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>sponsors Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Sponsors teamId={teamId} />
 
       <Accordion>
         <AccordionSummary
