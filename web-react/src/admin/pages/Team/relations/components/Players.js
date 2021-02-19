@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
@@ -38,8 +38,9 @@ import { useStyles } from '../../../commonComponents/styled'
 import { arrayToStringList } from '../../../../../utils'
 
 const READ_PLAYERS = gql`
-  query getPlayers($teamId: ID) {
+  query getTeam($teamId: ID) {
     team: Team(teamId: $teamId) {
+      _id
       teamId
       name
       players {
@@ -131,39 +132,49 @@ const Players = props => {
     MERGE_TEAM_PLAYER,
     {
       update(cache, { data: { teamPlayer } }) {
-        const queryResult = cache.readQuery({
-          query: READ_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-        const existingPlayers = queryResult.team[0].players
-        const newPlayer = teamPlayer.from
-
-        const updatedResult = {
-          team: [
-            {
-              players: [newPlayer, ...existingPlayers],
+        try {
+          const queryResult = cache.readQuery({
+            query: READ_PLAYERS,
+            variables: {
+              teamId,
             },
-          ],
+          })
+          const existingPlayers = queryResult.team[0].players
+          const newPlayer = teamPlayer.from
+          const updatedResult = {
+            team: [
+              {
+                ...queryResult.team[0],
+                players: [newPlayer, ...existingPlayers],
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: READ_PLAYERS,
+            data: updatedResult,
+            variables: {
+              teamId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: READ_PLAYERS,
-          data: updatedResult,
-        })
       },
       onCompleted: () => {
         handleCloseAddPlayer()
         setAddedPlayer(null)
         enqueueSnackbar('Player added to team!', { variant: 'success' })
       },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
+        console.error(error)
+      },
     }
   )
+  const team = queryData && queryData.team && queryData.team[0]
 
-  const team = useMemo(() => queryData && queryData.team && queryData.team[0], [
-    queryData,
-  ])
-  // console.log('team:', team)
   const openAccordion = useCallback(() => {
     if (!queryData) {
       getData({ variables: { teamId } })
@@ -234,13 +245,14 @@ const Players = props => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {team.players.map(player => (
-                    <PlayerRow
-                      key={player.playerId}
-                      player={player}
-                      teamId={teamId}
-                    />
-                  ))}
+                  {team &&
+                    team.players.map(player => (
+                      <PlayerRow
+                        key={player.playerId}
+                        player={player}
+                        teamId={teamId}
+                      />
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -335,27 +347,35 @@ const PlayerRow = props => {
 
   const [removeTeamPlayer, { loading }] = useMutation(REMOVE_TEAM_PLAYER, {
     update(cache, { data: { teamPlayer } }) {
-      const queryResult = cache.readQuery({
-        query: READ_PLAYERS,
-        variables: {
-          teamId,
-        },
-      })
-      const updatedPlayers = queryResult.team[0].players.filter(
-        p => p.playerId !== teamPlayer.from.playerId
-      )
-
-      const updatedResult = {
-        team: [
-          {
-            players: updatedPlayers,
+      try {
+        const queryResult = cache.readQuery({
+          query: READ_PLAYERS,
+          variables: {
+            teamId,
           },
-        ],
+        })
+        const updatedPlayers = queryResult.team[0].players.filter(
+          p => p.playerId !== teamPlayer.from.playerId
+        )
+
+        const updatedResult = {
+          team: [
+            {
+              ...queryResult.team[0],
+              players: updatedPlayers,
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: READ_PLAYERS,
+          data: updatedResult,
+          variables: {
+            teamId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
       }
-      cache.writeQuery({
-        query: READ_PLAYERS,
-        data: updatedResult,
-      })
     },
     onCompleted: () => {
       enqueueSnackbar('Player removed from team', {
@@ -366,6 +386,7 @@ const PlayerRow = props => {
       enqueueSnackbar(`Error happened :( ${error}`, {
         variant: 'error',
       })
+      console.error(error)
     },
   })
 
