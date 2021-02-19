@@ -23,6 +23,34 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
   }
 })
 
+// const mergeArrayByField = fieldName => (
+//   existing,
+//   incoming,
+//   { readField, mergeObjects }
+// ) => {
+//   const merged = existing ? existing.slice(0) : []
+//   const authorNameToIndex = Object.create(null)
+//   if (existing) {
+//     existing.forEach((author, index) => {
+//       authorNameToIndex[readField(fieldName, author)] = index
+//     })
+//   }
+//   incoming.forEach(author => {
+//     const name = readField(fieldName, author)
+//     const index = authorNameToIndex[name]
+//     if (typeof index === 'number') {
+//       // Merge the new author data with the existing author data.
+//       merged[index] = mergeObjects(merged[index], author)
+//     } else {
+//       // First time we've seen this author in this array.
+//       authorNameToIndex[name] = merged.length
+//       merged.push(author)
+//     }
+//   })
+//   console.log('merged: ', merged)
+//   return merged
+// }
+
 // const cacheRead = (existing, { args: { filter, offset = 0, first } }) => {
 //   // A read function should always return undefined if existing is
 //   // undefined. Returning undefined signals that the field is
@@ -58,33 +86,35 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
 // }
 
 const cache = new InMemoryCache({
-  // typePolicies: {
-  //   Player: {
-  //     keyFields: ['playerId'],
-  //   },
-  //   Team: {
-  //     keyFields: ['teamId'],
-  //     read: cacheRead,
-  //     merge: cacheMerge,
-  //   },
-  //   Association: {
-  //     keyFields: ['associationId'],
-  //   },
-  //   // Query: {
-  //   //   fields: {
-  //   //     Player: {
-  //   //       read: cacheRead,
-  //   //       keyArgs: ['playerId'],
-  //   //       merge: cacheMerge,
-  //   //     },
-  //   //     Team: {
-  //   //       read: cacheRead,
-  //   //       keyArgs: ['teamId'],
-  //   //       merge: cacheMerge,
-  //   //     },
-  //   //   },
-  //   // },
-  // },
+  typePolicies: {
+    // Player: {
+    //   keyFields: ['playerId'],
+    // },
+    // Team: {
+    //   fields: {
+    //     players: {
+    //       merge: false,
+    //     },
+    //   },
+    // },
+    // Association: {
+    //   keyFields: ['associationId'],
+    // },
+    // Query: {
+    //   fields: {
+    //     Player: {
+    //       read: cacheRead,
+    //       keyArgs: ['playerId'],
+    //       merge: cacheMerge,
+    //     },
+    //     Team: {
+    //       read: cacheRead,
+    //       keyArgs: ['teamId'],
+    //       merge: cacheMerge,
+    //     },
+    //   },
+    // },
+  },
 })
 
 const client = new ApolloClient({
