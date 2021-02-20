@@ -5,7 +5,7 @@ import { Grid } from '@material-ui/core'
 import LayoutContext from '../../../../context/layout'
 import { Helmet } from 'react-helmet'
 
-import Table from './Table'
+import XGrid from './XGrid'
 
 const View = () => {
   const { setBarTitle } = useContext(LayoutContext)
@@ -22,7 +22,7 @@ const View = () => {
         <title>Teams</title>
       </Helmet>
       <Grid item xs={12}>
-        <Table />
+        <XGrid />
       </Grid>
     </Grid>
   )
