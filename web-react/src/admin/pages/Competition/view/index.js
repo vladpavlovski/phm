@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react'
 import 'react-imported-component/macro'
 import { Grid } from '@material-ui/core'
 import { Helmet } from 'react-helmet'
-import Table from './Table'
+import XGrid from './XGrid'
 
 import LayoutContext from '../../../../context/layout'
 
@@ -21,7 +21,7 @@ const View = () => {
         <title>Competitions</title>
       </Helmet>
       <Grid item xs={12}>
-        <Table />
+        <XGrid />
       </Grid>
     </Grid>
   )
