@@ -27,6 +27,11 @@ const useStyles = makeStyles(theme => ({
     flexShrink: 0,
   },
   accordionFormDescription: { color: theme.palette.grey[500] },
+  xGridWrapper: {
+    width: '100%',
+    marginTop: theme.spacing(4),
+    background: theme.palette.background.paper,
+  },
 }))
 
 export { useStyles }
