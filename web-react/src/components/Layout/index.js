@@ -92,7 +92,7 @@ const Layout = props => {
         <div className={classes.appBarSpacer} />
         <>
           {children}
-          <Box pt={4}>
+          <Box pt={0}>
             <Copyright />
           </Box>
         </>
