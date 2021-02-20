@@ -37,7 +37,7 @@ const XGridTable = () => {
 
   const { error, loading, data } = useQuery(GET_PLAYERS, {
     notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
   })
 
   // console.log('data:', data)

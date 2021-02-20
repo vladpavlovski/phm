@@ -29,7 +29,7 @@ const XGridTable = () => {
 
   const { error, loading, data } = useQuery(READ_ASSOCIATIONS, {
     notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
   })
 
   // console.log('data:', data)
