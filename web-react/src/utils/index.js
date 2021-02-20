@@ -28,3 +28,47 @@ export const arrayToStringList = (data, keyId, keyValue = 'name') =>
       ))}
     </span>
   )
+
+export const setIdFromEntityId = (array, idField) =>
+  array.map(item => ({ ...item, id: item[idField] }))
+
+// const setArrayToString = (array, arrayOfFields) => {
+//   let newArray = [...array]
+//   arrayOfFields.forEach(fieldName => {
+//     newArray = newArray.map(item => {
+//       const { [fieldName]: data, ...restItem } = item
+//       let value = ''
+
+//       data.forEach((item, i) => {
+//         value = `${item.name}${i !== data.length - 1 ? ', ' : ''}`
+//       })
+
+//       return { ...restItem, [fieldName]: value }
+//     })
+//   })
+
+//   return newArray
+// }
+
+// export const prepareArrayForXGrid = (
+//   array,
+//   params = { addId: '', arrayToString: [] }
+// ) => {
+//   /*
+//     params description:
+//     addId: add id prop based on entityId. default: ''
+//     arrayToString: array of field names which should be looks like string. default: []
+// */
+//   let newArray = setIdFromEntityId(array, params.addId)
+//   newArray = setArrayToString(newArray, params.arrayToString)
+
+//   return newArray
+// }
+
+export const getXGridValueFromArray = (array, fieldName) => {
+  let value = ''
+  array.forEach((item, i) => {
+    value = `${item[fieldName]}${i !== array.length - 1 ? ', ' : ''}`
+  })
+  return value
+}
