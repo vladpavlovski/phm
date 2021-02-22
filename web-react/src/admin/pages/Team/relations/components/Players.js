@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
@@ -8,13 +8,7 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import EditIcon from '@material-ui/icons/Edit'
+import AccountBox from '@material-ui/icons/AccountBox'
 import AddIcon from '@material-ui/icons/Add'
 import CreateIcon from '@material-ui/icons/Create'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -22,12 +16,12 @@ import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
-import LoadingButton from '@material-ui/lab/LoadingButton'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Checkbox from '@material-ui/core/Checkbox'
+
+import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminPlayerRoute } from '../../../../../routes'
@@ -35,9 +29,9 @@ import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { arrayToStringList } from '../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
 
-const READ_PLAYERS = gql`
+const GET_PLAYERS = gql`
   query getTeam($teamId: ID) {
     team: Team(teamId: $teamId) {
       _id
@@ -68,6 +62,7 @@ const REMOVE_TEAM_PLAYER = gql`
     ) {
       from {
         playerId
+        name
       }
     }
   }
@@ -78,6 +73,12 @@ export const GET_ALL_PLAYERS = gql`
     players: Player {
       playerId
       name
+      teams {
+        name
+      }
+      positions {
+        name
+      }
     }
   }
 `
@@ -110,14 +111,20 @@ const Players = props => {
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
-  const [addedPlayer, setAddedPlayer] = useState(null)
+  // const [addedPlayer, setAddedPlayer] = useState(null)
+  // const [teamMember, setTeamMember] = useState(null)
+
   const handleCloseAddPlayer = useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(READ_PLAYERS)
+  ] = useLazyQuery(GET_PLAYERS, {
+    fetchPolicy: 'cache-and-network',
+  })
+
+  const team = queryData && queryData.team && queryData.team[0]
 
   const [
     getAllPlayers,
@@ -126,31 +133,44 @@ const Players = props => {
       error: queryAllPlayersError,
       data: queryAllPlayersData,
     },
-  ] = useLazyQuery(GET_ALL_PLAYERS)
+  ] = useLazyQuery(GET_ALL_PLAYERS, {
+    fetchPolicy: 'cache-and-network',
+    // onCompleted: data => {
+    //   const newTeamMemberState = data.players.reduce(
+    //     (acc, p) => ({ ...acc, [p.playerId]: false }),
+    //     {}
+    //   )
 
-  const [mergeTeamPlayer, { loading: mutationLoadingMerge }] = useMutation(
-    MERGE_TEAM_PLAYER,
+    //   console.log(newTeamMemberState)
+    //   setTeamMember(newTeamMemberState)
+    // },
+  })
+
+  const [removeTeamPlayer, { loading: mutationLoadingRemove }] = useMutation(
+    REMOVE_TEAM_PLAYER,
     {
       update(cache, { data: { teamPlayer } }) {
         try {
           const queryResult = cache.readQuery({
-            query: READ_PLAYERS,
+            query: GET_PLAYERS,
             variables: {
               teamId,
             },
           })
-          const existingPlayers = queryResult.team[0].players
-          const newPlayer = teamPlayer.from
+          const updatedPlayers = queryResult.team[0].players.filter(
+            p => p.playerId !== teamPlayer.from.playerId
+          )
+
           const updatedResult = {
             team: [
               {
                 ...queryResult.team[0],
-                players: [newPlayer, ...existingPlayers],
+                players: updatedPlayers,
               },
             ],
           }
           cache.writeQuery({
-            query: READ_PLAYERS,
+            query: GET_PLAYERS,
             data: updatedResult,
             variables: {
               teamId,
@@ -160,10 +180,13 @@ const Players = props => {
           console.error(error)
         }
       },
-      onCompleted: () => {
-        handleCloseAddPlayer()
-        setAddedPlayer(null)
-        enqueueSnackbar('Player added to team!', { variant: 'success' })
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.teamPlayer.from.name} removed from ${team.name}!`,
+          {
+            variant: 'info',
+          }
+        )
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -173,7 +196,49 @@ const Players = props => {
       },
     }
   )
-  const team = queryData && queryData.team && queryData.team[0]
+
+  const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
+    update(cache, { data: { teamPlayer } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_PLAYERS,
+          variables: {
+            teamId,
+          },
+        })
+        const existingPlayers = queryResult.team[0].players
+        const newPlayer = teamPlayer.from
+        const updatedResult = {
+          team: [
+            {
+              ...queryResult.team[0],
+              players: [newPlayer, ...existingPlayers],
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_PLAYERS,
+          data: updatedResult,
+          variables: {
+            teamId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: data => {
+      enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
@@ -188,14 +253,125 @@ const Players = props => {
     setOpenAddPlayer(true)
   }, [])
 
-  const addPlayerToTeam = useCallback(() => {
-    mergeTeamPlayer({
-      variables: {
-        teamId,
-        playerId: addedPlayer.playerId,
+  const teamPlayersColumns = useMemo(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
       },
-    })
-  }, [addedPlayer])
+
+      {
+        field: 'positions',
+        headerName: 'Positions',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.positions, 'name')
+        },
+      },
+      {
+        field: 'jerseys',
+        headerName: 'Jerseys',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.teams, 'name')
+        },
+      },
+      {
+        field: 'playerId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminPlayerRoute(params.value)}
+            >
+              Profile
+            </LinkButton>
+          )
+        },
+      },
+      {
+        field: 'removeButton',
+        headerName: 'Remove',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <ButtonDialog
+              text={'Remove'}
+              textLoading={'Removing...'}
+              loading={mutationLoadingRemove}
+              size="small"
+              startIcon={<LinkOffIcon />}
+              dialogTitle={'Do you really want to remove player from the team?'}
+              dialogDescription={
+                'The player will remain in the database. You can add him to any team later.'
+              }
+              dialogNegativeText={'No, keep the player'}
+              dialogPositiveText={'Yes, remove player'}
+              onDialogClosePositive={() => {
+                removeTeamPlayer({
+                  variables: {
+                    teamId,
+                    playerId: params.row.playerId,
+                  },
+                })
+              }}
+            />
+          )
+        },
+      },
+    ],
+    []
+  )
+
+  const allPlayersColumns = useMemo(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
+      },
+      {
+        field: 'teams',
+        headerName: 'Teams',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.teams, 'name')
+        },
+      },
+      {
+        field: 'positions',
+        headerName: 'Positions',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.positions, 'name')
+        },
+      },
+
+      {
+        field: 'playerId',
+        headerName: 'Member',
+        width: 150,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <ToggleNewPlayer
+              playerId={params.value}
+              teamId={teamId}
+              team={team}
+              mergeTeamPlayer={mergeTeamPlayer}
+              removeTeamPlayer={removeTeamPlayer}
+            />
+          )
+        },
+      },
+    ],
+    [team]
+  )
 
   return (
     <Accordion onChange={openAccordion}>
@@ -211,55 +387,44 @@ const Players = props => {
         {queryError && !queryLoading && <Error message={queryError.message} />}
         {queryData && (
           <>
-            <TableContainer>
-              <Toolbar disableGutters className={classes.toolbarForm}>
-                <div />
-                <div>
-                  <Button
-                    onClick={handleOpenAddPlayer}
-                    variant={'outlined'}
-                    size="small"
-                    className={classes.submit}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Player
-                  </Button>
-                  {/* TODO: MAKE Modal */}
+            <Toolbar disableGutters className={classes.toolbarForm}>
+              <div />
+              <div>
+                <Button
+                  onClick={handleOpenAddPlayer}
+                  variant={'outlined'}
+                  size="small"
+                  className={classes.submit}
+                  startIcon={<AddIcon />}
+                >
+                  Add Player
+                </Button>
+                {/* TODO: MAKE Modal */}
 
-                  <LinkButton
-                    startIcon={<CreateIcon />}
-                    to={getAdminPlayerRoute('new')}
-                  >
-                    Create
-                  </LinkButton>
-                </div>
-              </Toolbar>
-              <Table aria-label="collapsible table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell align="right">Position</TableCell>
-                    <TableCell align="right">Jersey</TableCell>
-                    <TableCell align="right">Edit</TableCell>
-                    <TableCell align="right">Unlink</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {team &&
-                    team.players.map(player => (
-                      <PlayerRow
-                        key={player.playerId}
-                        player={player}
-                        teamId={teamId}
-                      />
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                <LinkButton
+                  startIcon={<CreateIcon />}
+                  to={getAdminPlayerRoute('new')}
+                >
+                  Create
+                </LinkButton>
+              </div>
+            </Toolbar>
+            <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <XGrid
+                columns={teamPlayersColumns}
+                rows={setIdFromEntityId(team.players, 'playerId')}
+                loading={queryAllPlayersLoading}
+                components={{
+                  Toolbar: GridToolbar,
+                }}
+              />
+            </div>
           </>
         )}
       </AccordionDetails>
       <Dialog
+        fullWidth
+        maxWidth="md"
         open={openAddPlayer}
         onClose={handleCloseAddPlayer}
         aria-labelledby="alert-dialog-title"
@@ -277,41 +442,20 @@ const Players = props => {
                 team && team.name
               }`}</DialogTitle>
               <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                  {`Select player from list:`}
-                </DialogContentText>
-                <Autocomplete
-                  fullWidth
-                  id="players"
-                  value={addedPlayer}
-                  onChange={(_, value) => {
-                    setAddedPlayer(value)
-                  }}
-                  options={queryAllPlayersData.players || []}
-                  getOptionLabel={option => option.name}
-                  getOptionSelected={(option, value) =>
-                    option.playerId === value.playerId
-                  }
-                  renderOption={(props, object) => {
-                    return (
-                      <li {...props} key={`${object.playerId}_${object.name}`}>
-                        {object.name}
-                      </li>
-                    )
-                  }}
-                  name="players"
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label="Players"
-                      variant="standard"
-                      inputProps={{
-                        ...params.inputProps,
-                        autoComplete: 'new-password', // disable autocomplete and autofill
-                      }}
-                    />
-                  )}
-                />
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <XGrid
+                    columns={allPlayersColumns}
+                    rows={setIdFromEntityId(
+                      queryAllPlayersData.players,
+                      'playerId'
+                    )}
+                    disableSelectionOnClick
+                    loading={queryAllPlayersLoading}
+                    components={{
+                      Toolbar: GridToolbar,
+                    }}
+                  />
+                </div>
               </DialogContent>
             </>
           )}
@@ -321,120 +465,56 @@ const Players = props => {
               handleCloseAddPlayer()
             }}
           >
-            {'Cancel'}
+            {'Done'}
           </Button>
-
-          <LoadingButton
-            type="button"
-            variant="contained"
-            onClick={() => {
-              addPlayerToTeam()
-            }}
-            pending={mutationLoadingMerge}
-          >
-            {mutationLoadingMerge ? 'Adding...' : 'Add new player'}
-          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Accordion>
   )
 }
 
-const PlayerRow = props => {
-  const { player, teamId } = props
-
-  const { enqueueSnackbar } = useSnackbar()
-
-  const [removeTeamPlayer, { loading }] = useMutation(REMOVE_TEAM_PLAYER, {
-    update(cache, { data: { teamPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: READ_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-        const updatedPlayers = queryResult.team[0].players.filter(
-          p => p.playerId !== teamPlayer.from.playerId
-        )
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              players: updatedPlayers,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: READ_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Player removed from team', {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+const ToggleNewPlayer = props => {
+  const { playerId, teamId, team, removeTeamPlayer, mergeTeamPlayer } = props
+  const [isMember, setIsMember] = useState(
+    !!team.players.find(p => p.playerId === playerId)
+  )
 
   return (
-    <TableRow>
-      <TableCell component="th" scope="row">
-        {player.name}
-      </TableCell>
-      <TableCell align="right">
-        {arrayToStringList(player.positions, 'positionId', 'name')}
-      </TableCell>
-      <TableCell align="right">
-        {arrayToStringList(player.jerseys, 'jerseyNoId', 'number')}
-      </TableCell>
-      <TableCell align="right">
-        <LinkButton
-          startIcon={<EditIcon />}
-          variant={'outlined'}
-          to={getAdminPlayerRoute(player.playerId)}
-        >
-          Edit
-        </LinkButton>
-      </TableCell>
-      <TableCell align="right">
-        <ButtonDialog
-          text={'Unlink'}
-          textLoading={'Unlinking...'}
-          loading={loading}
-          size="small"
-          startIcon={<LinkOffIcon />}
-          dialogTitle={'Do you really want to unlink player from the team?'}
-          dialogDescription={
-            'The player will remain in the database. You can add him to the team later.'
-          }
-          dialogNegativeText={'No, keep the player'}
-          dialogPositiveText={'Yes, detach player'}
-          onDialogClosePositive={() => {
-            removeTeamPlayer({
-              variables: {
-                teamId,
-                playerId: player.playerId,
-              },
-            })
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={isMember}
+          onChange={() => {
+            isMember
+              ? removeTeamPlayer({
+                  variables: {
+                    teamId,
+                    playerId,
+                  },
+                })
+              : mergeTeamPlayer({
+                  variables: {
+                    teamId,
+                    playerId,
+                  },
+                })
+            setIsMember(!isMember)
           }}
+          name="competitionMember"
+          color="primary"
         />
-      </TableCell>
-    </TableRow>
+      }
+      label={isMember ? 'Member' : 'Not member'}
+    />
   )
+}
+
+ToggleNewPlayer.propTypes = {
+  playerId: PropTypes.string,
+  teamId: PropTypes.string,
+  team: PropTypes.object,
+  removeTeamPlayer: PropTypes.func,
+  mergeTeamPlayer: PropTypes.func,
 }
 
 Players.propTypes = {

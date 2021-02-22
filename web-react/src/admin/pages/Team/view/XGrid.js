@@ -33,14 +33,13 @@ const XGridTable = () => {
     fetchPolicy: 'cache-and-network',
   })
 
-  // console.log('data:', data)
-
   const columns = useMemo(
     () => [
       {
         field: 'logoUrl',
         headerName: 'Logo',
-        width: 200,
+        width: 70,
+        disableColumnMenu: true,
         renderCell: params => {
           return (
             <img

@@ -32,6 +32,9 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(4),
     background: theme.palette.background.paper,
   },
+  xGridDialog: {
+    width: '100%',
+  },
 }))
 
 export { useStyles }

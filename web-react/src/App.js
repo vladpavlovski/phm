@@ -6,7 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'
-import { muiTheme } from './styles/global'
+import { muiTheme, GlobalStyle } from './styles/global'
 
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
@@ -41,6 +41,7 @@ const AdminVenuesView = Load(() => import('./admin/pages/Venue/view'))
 const App = () => {
   return (
     <ThemeProvider theme={muiTheme}>
+      <GlobalStyle />
       <LocalizationProvider dateAdapter={AdapterDayJs}>
         <CssBaseline />
         <ErrorBoundary>
