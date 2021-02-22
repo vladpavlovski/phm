@@ -111,8 +111,6 @@ const Players = props => {
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
-  // const [addedPlayer, setAddedPlayer] = useState(null)
-  // const [teamMember, setTeamMember] = useState(null)
 
   const handleCloseAddPlayer = useCallback(() => {
     setOpenAddPlayer(false)
@@ -135,15 +133,6 @@ const Players = props => {
     },
   ] = useLazyQuery(GET_ALL_PLAYERS, {
     fetchPolicy: 'cache-and-network',
-    // onCompleted: data => {
-    //   const newTeamMemberState = data.players.reduce(
-    //     (acc, p) => ({ ...acc, [p.playerId]: false }),
-    //     {}
-    //   )
-
-    //   console.log(newTeamMemberState)
-    //   setTeamMember(newTeamMemberState)
-    // },
   })
 
   const [removeTeamPlayer, { loading: mutationLoadingRemove }] = useMutation(
