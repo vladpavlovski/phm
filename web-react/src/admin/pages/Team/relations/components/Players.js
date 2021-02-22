@@ -352,8 +352,8 @@ const Players = props => {
               playerId={params.value}
               teamId={teamId}
               team={team}
-              mergeTeamPlayer={mergeTeamPlayer}
-              removeTeamPlayer={removeTeamPlayer}
+              merge={mergeTeamPlayer}
+              remove={removeTeamPlayer}
             />
           )
         },
@@ -463,7 +463,7 @@ const Players = props => {
 }
 
 const ToggleNewPlayer = props => {
-  const { playerId, teamId, team, removeTeamPlayer, mergeTeamPlayer } = props
+  const { playerId, teamId, team, remove, merge } = props
   const [isMember, setIsMember] = useState(
     !!team.players.find(p => p.playerId === playerId)
   )
@@ -475,13 +475,13 @@ const ToggleNewPlayer = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? removeTeamPlayer({
+              ? remove({
                   variables: {
                     teamId,
                     playerId,
                   },
                 })
-              : mergeTeamPlayer({
+              : merge({
                   variables: {
                     teamId,
                     playerId,
@@ -489,7 +489,7 @@ const ToggleNewPlayer = props => {
                 })
             setIsMember(!isMember)
           }}
-          name="competitionMember"
+          name="teamMember"
           color="primary"
         />
       }

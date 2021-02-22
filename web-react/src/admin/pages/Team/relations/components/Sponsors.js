@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
@@ -8,13 +8,6 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import CreateIcon from '@material-ui/icons/Create'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -22,12 +15,13 @@ import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
-import LoadingButton from '@material-ui/lab/LoadingButton'
+import AccountBox from '@material-ui/icons/AccountBox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Checkbox from '@material-ui/core/Checkbox'
+
+import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminSponsorRoute } from '../../../../../routes'
@@ -35,7 +29,7 @@ import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-// import { arrayToStringList } from '../../../../../utils'
+import { getXGridValueFromArray, setIdFromEntityId } from '../../../../../utils'
 
 const READ_SPONSORS = gql`
   query getSponsors($teamId: ID) {
@@ -51,7 +45,7 @@ const READ_SPONSORS = gql`
   }
 `
 
-const REMOVE_TEAM_PLAYER = gql`
+const REMOVE_TEAM_SPONSOR = gql`
   mutation removeTeamSponsor($teamId: ID!, $sponsorId: ID!) {
     teamSponsor: RemoveTeamSponsors(
       from: { teamId: $teamId }
@@ -62,6 +56,7 @@ const REMOVE_TEAM_PLAYER = gql`
       }
       to {
         sponsorId
+        name
       }
     }
   }
@@ -76,7 +71,7 @@ export const GET_ALL_SPONSORS = gql`
   }
 `
 
-const MERGE_TEAM_PLAYER = gql`
+const MERGE_TEAM_SPONSOR = gql`
   mutation mergeTeamSponsor($teamId: ID!, $sponsorId: ID!) {
     teamSponsor: MergeTeamSponsors(
       from: { teamId: $teamId }
@@ -99,7 +94,7 @@ const Sponsors = props => {
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
-  const [addedSponsor, setAddedSponsor] = useState(null)
+
   const handleCloseAddSponsor = useCallback(() => {
     setOpenAddSponsor(false)
   }, [])
@@ -117,12 +112,57 @@ const Sponsors = props => {
     },
   ] = useLazyQuery(GET_ALL_SPONSORS)
 
-  const [mergeTeamSponsor, { loading: mutationLoadingMerge }] = useMutation(
-    MERGE_TEAM_PLAYER,
+  const [mergeTeamSponsor] = useMutation(MERGE_TEAM_SPONSOR, {
+    update(cache, { data: { teamSponsor } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: READ_SPONSORS,
+          variables: {
+            teamId,
+          },
+        })
+
+        const existingSponsors = queryResult.team[0].sponsors
+        const newSponsor = teamSponsor.to
+        const updatedResult = {
+          team: [
+            {
+              ...queryResult.team[0],
+              sponsors: [newSponsor, ...existingSponsors],
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: READ_SPONSORS,
+          data: updatedResult,
+          variables: {
+            teamId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: data => {
+      enqueueSnackbar(`${data.teamSponsor.to.name} is ${team.name} sponsor!`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const team = queryData && queryData.team && queryData.team[0]
+
+  const [removeTeamSponsor, { loading: mutationLoadingRemove }] = useMutation(
+    REMOVE_TEAM_SPONSOR,
     {
       update(cache, { data: { teamSponsor } }) {
         try {
-          // console.log('queryData: ', queryData)
           const queryResult = cache.readQuery({
             query: READ_SPONSORS,
             variables: {
@@ -130,16 +170,15 @@ const Sponsors = props => {
             },
           })
 
-          // console.log('queryResult: ', queryResult)
-          const existingSponsors = queryResult.team[0].sponsors
-          const newSponsor = teamSponsor.to
-          // console.log('existingSponsors: ', existingSponsors)
-          // console.log('newSponsor: ', newSponsor)
+          const updatedSponsors = queryResult.team[0].sponsors.filter(
+            p => p.sponsorId !== teamSponsor.to.sponsorId
+          )
+
           const updatedResult = {
             team: [
               {
                 ...queryResult.team[0],
-                sponsors: [newSponsor, ...existingSponsors],
+                sponsors: updatedSponsors,
               },
             ],
           }
@@ -154,22 +193,22 @@ const Sponsors = props => {
           console.error(error)
         }
       },
-      onCompleted: () => {
-        handleCloseAddSponsor()
-        setAddedSponsor(null)
-        enqueueSnackbar('Sponsor added to team!', { variant: 'success' })
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.teamSponsor.to.name} not sponsor ${team.name}`,
+          {
+            variant: 'info',
+          }
+        )
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
           variant: 'error',
         })
-        console.error(error)
       },
     }
   )
 
-  const team = queryData && queryData.team && queryData.team[0]
-  console.log('team:', team)
   const openAccordion = useCallback(() => {
     if (!queryData) {
       getData({ variables: { teamId } })
@@ -183,14 +222,106 @@ const Sponsors = props => {
     setOpenAddSponsor(true)
   }, [])
 
-  const addSponsorToTeam = useCallback(() => {
-    mergeTeamSponsor({
-      variables: {
-        teamId,
-        sponsorId: addedSponsor.sponsorId,
+  const teamSponsorsColumns = useMemo(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
       },
-    })
-  }, [addedSponsor])
+
+      {
+        field: 'description',
+        headerName: 'Description',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.positions, 'name')
+        },
+      },
+
+      {
+        field: 'sponsorId',
+        headerName: 'Profile',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminSponsorRoute(params.value)}
+            >
+              Profile
+            </LinkButton>
+          )
+        },
+      },
+      {
+        field: 'removeButton',
+        headerName: 'Remove',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <ButtonDialog
+              text={'Remove'}
+              textLoading={'Removing...'}
+              loading={mutationLoadingRemove}
+              size="small"
+              startIcon={<LinkOffIcon />}
+              dialogTitle={'Do you really want to remove player from the team?'}
+              dialogDescription={
+                'The player will remain in the database. You can add him to any team later.'
+              }
+              dialogNegativeText={'No, keep the player'}
+              dialogPositiveText={'Yes, remove player'}
+              onDialogClosePositive={() => {
+                removeTeamSponsor({
+                  variables: {
+                    teamId,
+                    sponsorId: params.row.sponsorId,
+                  },
+                })
+              }}
+            />
+          )
+        },
+      },
+    ],
+    []
+  )
+
+  const allSponsorsColumns = useMemo(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'description',
+        headerName: 'Description',
+        width: 200,
+      },
+      {
+        field: 'sponsorId',
+        headerName: 'Member',
+        width: 150,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <ToggleNewSponsor
+              sponsorId={params.value}
+              teamId={teamId}
+              team={team}
+              merge={mergeTeamSponsor}
+              remove={removeTeamSponsor}
+            />
+          )
+        },
+      },
+    ],
+    [team]
+  )
 
   return (
     <Accordion onChange={openAccordion}>
@@ -206,53 +337,44 @@ const Sponsors = props => {
         {queryError && !queryLoading && <Error message={queryError.message} />}
         {queryData && (
           <>
-            <TableContainer>
-              <Toolbar disableGutters className={classes.toolbarForm}>
-                <div />
-                <div>
-                  <Button
-                    onClick={handleOpenAddSponsor}
-                    variant={'outlined'}
-                    size="small"
-                    className={classes.submit}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Sponsor
-                  </Button>
-                  {/* TODO: MAKE Modal */}
+            <Toolbar disableGutters className={classes.toolbarForm}>
+              <div />
+              <div>
+                <Button
+                  onClick={handleOpenAddSponsor}
+                  variant={'outlined'}
+                  size="small"
+                  className={classes.submit}
+                  startIcon={<AddIcon />}
+                >
+                  Add Sponsor
+                </Button>
+                {/* TODO: MAKE Modal */}
 
-                  <LinkButton
-                    startIcon={<CreateIcon />}
-                    to={getAdminSponsorRoute('new')}
-                  >
-                    Create
-                  </LinkButton>
-                </div>
-              </Toolbar>
-              <Table aria-label="collapsible table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell align="right">Description</TableCell>
-                    <TableCell align="right">Edit</TableCell>
-                    <TableCell align="right">Unlink</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {team.sponsors.map(sponsor => (
-                    <SponsorRow
-                      key={sponsor.sponsorId}
-                      sponsor={sponsor}
-                      teamId={teamId}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                <LinkButton
+                  startIcon={<CreateIcon />}
+                  to={getAdminSponsorRoute('new')}
+                >
+                  Create
+                </LinkButton>
+              </div>
+            </Toolbar>
+            <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <XGrid
+                columns={teamSponsorsColumns}
+                rows={setIdFromEntityId(team.sponsors, 'sponsorId')}
+                loading={queryLoading}
+                components={{
+                  Toolbar: GridToolbar,
+                }}
+              />
+            </div>
           </>
         )}
       </AccordionDetails>
       <Dialog
+        fullWidth
+        maxWidth="md"
         open={openAddSponsor}
         onClose={handleCloseAddSponsor}
         aria-labelledby="alert-dialog-title"
@@ -270,41 +392,20 @@ const Sponsors = props => {
                 team && team.name
               }`}</DialogTitle>
               <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                  {`Select sponsor from list:`}
-                </DialogContentText>
-                <Autocomplete
-                  fullWidth
-                  id="sponsors"
-                  value={addedSponsor}
-                  onChange={(_, value) => {
-                    setAddedSponsor(value)
-                  }}
-                  options={queryAllSponsorsData.sponsors || []}
-                  getOptionLabel={option => option.name}
-                  getOptionSelected={(option, value) =>
-                    option.sponsorId === value.sponsorId
-                  }
-                  renderOption={(props, object) => {
-                    return (
-                      <li {...props} key={`${object.sponsorId}_${object.name}`}>
-                        {object.name}
-                      </li>
-                    )
-                  }}
-                  name="sponsors"
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label="Sponsors"
-                      variant="standard"
-                      inputProps={{
-                        ...params.inputProps,
-                        autoComplete: 'new-password', // disable autocomplete and autofill
-                      }}
-                    />
-                  )}
-                />
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <XGrid
+                    columns={allSponsorsColumns}
+                    rows={setIdFromEntityId(
+                      queryAllSponsorsData.sponsors,
+                      'sponsorId'
+                    )}
+                    disableSelectionOnClick
+                    loading={queryAllSponsorsLoading}
+                    components={{
+                      Toolbar: GridToolbar,
+                    }}
+                  />
+                </div>
               </DialogContent>
             </>
           )}
@@ -314,117 +415,56 @@ const Sponsors = props => {
               handleCloseAddSponsor()
             }}
           >
-            {'Cancel'}
+            {'Done'}
           </Button>
-
-          <LoadingButton
-            type="button"
-            variant="contained"
-            onClick={() => {
-              addSponsorToTeam()
-            }}
-            pending={mutationLoadingMerge}
-          >
-            {mutationLoadingMerge ? 'Adding...' : 'Add new sponsor'}
-          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Accordion>
   )
 }
 
-const SponsorRow = props => {
-  const { sponsor, teamId } = props
-
-  const { enqueueSnackbar } = useSnackbar()
-
-  const [removeTeamSponsor, { loading }] = useMutation(REMOVE_TEAM_PLAYER, {
-    update(cache, { data: { teamSponsor } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: READ_SPONSORS,
-          variables: {
-            teamId,
-          },
-        })
-        // console.log('queryResult', queryResult)
-        const updatedSponsors = queryResult.team[0].sponsors.filter(
-          p => p.sponsorId !== teamSponsor.to.sponsorId
-        )
-        // console.log('updatedSponsors: ', updatedSponsors)
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              sponsors: updatedSponsors,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: READ_SPONSORS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Sponsor removed from team', {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+const ToggleNewSponsor = props => {
+  const { sponsorId, teamId, team, remove, merge } = props
+  const [isMember, setIsMember] = useState(
+    !!team.sponsors.find(p => p.sponsorId === sponsorId)
+  )
 
   return (
-    <TableRow>
-      <TableCell component="th" scope="row">
-        {sponsor.name}
-      </TableCell>
-
-      <TableCell align="right">{sponsor.description}</TableCell>
-      <TableCell align="right">
-        <LinkButton
-          startIcon={<EditIcon />}
-          variant={'outlined'}
-          to={getAdminSponsorRoute(sponsor.sponsorId)}
-        >
-          Edit
-        </LinkButton>
-      </TableCell>
-      <TableCell align="right">
-        <ButtonDialog
-          text={'Unlink'}
-          textLoading={'Unlinking...'}
-          loading={loading}
-          size="small"
-          startIcon={<LinkOffIcon />}
-          dialogTitle={'Do you really want to unlink sponsor from the team?'}
-          dialogDescription={
-            'The sponsor will remain in the database. You can add him to the team later.'
-          }
-          dialogNegativeText={'No, keep the sponsor'}
-          dialogPositiveText={'Yes, detach sponsor'}
-          onDialogClosePositive={() => {
-            removeTeamSponsor({
-              variables: {
-                teamId,
-                sponsorId: sponsor.sponsorId,
-              },
-            })
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={isMember}
+          onChange={() => {
+            isMember
+              ? remove({
+                  variables: {
+                    teamId,
+                    sponsorId,
+                  },
+                })
+              : merge({
+                  variables: {
+                    teamId,
+                    sponsorId,
+                  },
+                })
+            setIsMember(!isMember)
           }}
+          name="sponsorMember"
+          color="primary"
         />
-      </TableCell>
-    </TableRow>
+      }
+      label={isMember ? 'Member' : 'Not member'}
+    />
   )
+}
+
+ToggleNewSponsor.propTypes = {
+  playerId: PropTypes.string,
+  teamId: PropTypes.string,
+  team: PropTypes.object,
+  remove: PropTypes.func,
+  merge: PropTypes.func,
 }
 
 Sponsors.propTypes = {
