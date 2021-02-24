@@ -770,7 +770,7 @@ type Competition {
   venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "DIVIDED", direction: OUT)
   groups: [Group] @relation(name: "DIVIDED", direction: OUT)
-  season: Season @relation(name: "BELONGS_TO", direction: OUT)
+  seasons: [Season] @relation(name: "BELONGS_TO", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
@@ -812,7 +812,7 @@ type Season {
   short: String
   startDate: Date
   endDate: Date
-  competition: Competition @relation(name: "BELONGS_TO", direction: IN)
+  competitions: [Competition] @relation(name: "BELONGS_TO", direction: IN)
   teamWears: [Wear] @relation(name: "WEAR_FOR", direction: IN)
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "BELONGS_TO", direction: IN)

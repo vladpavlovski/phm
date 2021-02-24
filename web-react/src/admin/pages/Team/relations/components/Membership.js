@@ -28,13 +28,7 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
 const READ_MEMBERSHIP = gql`
-  query getMembership(
-    $teamId: ID
-    $first: Int
-    $offset: Int
-    $orderBy: [_AssociationOrdering]
-    $filter: _AssociationFilter
-  ) {
+  query getMembership($teamId: ID) {
     team: Team(teamId: $teamId) {
       teamId
       name
@@ -56,7 +50,7 @@ const READ_MEMBERSHIP = gql`
           groupId
           name
         }
-        season {
+        seasons {
           seasonId
           name
         }
@@ -64,31 +58,17 @@ const READ_MEMBERSHIP = gql`
       phases {
         phaseId
         name
-        competition {
-          competitionId
-        }
       }
       groups {
         groupId
         name
-        competition {
-          competitionId
-        }
       }
       seasons {
         seasonId
         name
-        competition {
-          competitionId
-        }
       }
     }
-    associations: Association(
-      first: $first
-      offset: $offset
-      orderBy: $orderBy
-      filter: $filter
-    ) {
+    associations: Association {
       associationId
       name
       competitions {
@@ -102,7 +82,7 @@ const READ_MEMBERSHIP = gql`
           groupId
           name
         }
-        season {
+        seasons {
           seasonId
           name
         }
@@ -117,7 +97,10 @@ const MERGE_TEAM_ASSOCIATION = gql`
       to: { associationId: $associationId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -130,7 +113,10 @@ const REMOVE_TEAM_ASSOCIATION = gql`
       to: { associationId: $associationId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -143,7 +129,10 @@ const MERGE_TEAM_COMPETITION = gql`
       to: { competitionId: $competitionId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -155,7 +144,10 @@ const REMOVE_TEAM_COMPETITION = gql`
       to: { competitionId: $competitionId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -168,7 +160,10 @@ const MERGE_TEAM_PHASE = gql`
       to: { phaseId: $phaseId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -181,7 +176,10 @@ const REMOVE_TEAM_PHASE = gql`
       to: { phaseId: $phaseId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -194,7 +192,10 @@ const MERGE_TEAM_GROUP = gql`
       to: { groupId: $groupId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
@@ -207,24 +208,46 @@ const REMOVE_TEAM_GROUP = gql`
       to: { groupId: $groupId }
     ) {
       from {
-        teamId
+        name
+      }
+      to {
+        name
       }
     }
   }
 `
-// TODO: SEASONS!
-// const MERGE_TEAM_SEASON = gql`
-//   mutation mergeTeamSeason($teamId: ID!, $seasonId: ID!) {
-//     teamSeason: MergeTeamSeasons(
-//       from: { teamId: $teamId }
-//       to: { seasonId: $seasonId }
-//     ) {
-//       from {
-//         teamId
-//       }
-//     }
-//   }
-// `
+
+const MERGE_TEAM_SEASON = gql`
+  mutation mergeTeamSeason($teamId: ID!, $seasonId: ID!) {
+    teamSeason: MergeTeamSeasons(
+      from: { teamId: $teamId }
+      to: { seasonId: $seasonId }
+    ) {
+      from {
+        name
+      }
+      to {
+        name
+      }
+    }
+  }
+`
+
+const REMOVE_TEAM_SEASON = gql`
+  mutation removeTeamSeasons($teamId: ID!, $seasonId: ID!) {
+    teamSeason: RemoveTeamSeasons(
+      from: { teamId: $teamId }
+      to: { seasonId: $seasonId }
+    ) {
+      from {
+        name
+      }
+      to {
+        name
+      }
+    }
+  }
+`
 
 const Membership = props => {
   const { teamId } = props
@@ -297,19 +320,24 @@ const AssociationRow = props => {
   const { association, team } = props
   const { enqueueSnackbar } = useSnackbar()
 
-  const [associationMember, setAssociationMember] = useState(
+  const [isMember, setIsMember] = useState(
     !!team.associations.find(a => a.associationId === association.associationId)
   )
   const [associationOpen, setAssociationOpen] = useState(false)
 
   const [mergeTeamAssociation, { loading }] = useMutation(
-    associationMember ? REMOVE_TEAM_ASSOCIATION : MERGE_TEAM_ASSOCIATION,
+    isMember ? REMOVE_TEAM_ASSOCIATION : MERGE_TEAM_ASSOCIATION,
     {
-      onCompleted: () => {
-        enqueueSnackbar('Association membership successfully changed!', {
-          variant: 'success',
+      onCompleted: data => {
+        const { teamAssociation } = data
+        const phrase = isMember
+          ? `${teamAssociation.from.name} is not in ${teamAssociation.to.name} association`
+          : `${teamAssociation.from.name} participate in ${teamAssociation.to.name} association`
+
+        enqueueSnackbar(phrase, {
+          variant: isMember ? 'info' : 'success',
         })
-        setAssociationMember(!associationMember)
+        setIsMember(!isMember)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -341,7 +369,7 @@ const AssociationRow = props => {
           <FormControlLabel
             control={
               <Checkbox
-                checked={associationMember}
+                checked={isMember}
                 onChange={() => {
                   mergeTeamAssociation({
                     variables: {
@@ -350,17 +378,11 @@ const AssociationRow = props => {
                     },
                   })
                 }}
-                name="associationMember"
+                name="isMember"
                 color="primary"
               />
             }
-            label={
-              loading
-                ? 'thinking...'
-                : associationMember
-                ? 'Member'
-                : 'Not member'
-            }
+            label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
         <TableCell align="right">{association.competitions.length}</TableCell>
@@ -383,6 +405,7 @@ const AssociationRow = props => {
                     <TableCell align="left">Member</TableCell>
                     <TableCell align="right">Phases</TableCell>
                     <TableCell align="right">Groups</TableCell>
+                    <TableCell align="right">Seasons</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -407,19 +430,24 @@ const CompetitionRow = props => {
   const { competition, team } = props
   const { enqueueSnackbar } = useSnackbar()
 
-  const [competitionMember, setCompetitionMember] = useState(
+  const [isMember, setIsMember] = useState(
     !!team.competitions.find(c => c.competitionId === competition.competitionId)
   )
   const [competitionOpen, setCompetitionOpen] = useState(false)
 
   const [mergeTeamCompetition, { loading }] = useMutation(
-    competitionMember ? REMOVE_TEAM_COMPETITION : MERGE_TEAM_COMPETITION,
+    isMember ? REMOVE_TEAM_COMPETITION : MERGE_TEAM_COMPETITION,
     {
-      onCompleted: () => {
-        enqueueSnackbar('Competition membership successfully changed!', {
-          variant: 'success',
+      onCompleted: data => {
+        const { teamCompetition } = data
+        const phrase = isMember
+          ? `${teamCompetition.from.name} is not in ${teamCompetition.to.name} competition`
+          : `${teamCompetition.from.name} participate in ${teamCompetition.to.name} competition`
+
+        enqueueSnackbar(phrase, {
+          variant: isMember ? 'info' : 'success',
         })
-        setCompetitionMember(!competitionMember)
+        setIsMember(!isMember)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -451,7 +479,7 @@ const CompetitionRow = props => {
           <FormControlLabel
             control={
               <Checkbox
-                checked={competitionMember}
+                checked={isMember}
                 onChange={() => {
                   mergeTeamCompetition({
                     variables: {
@@ -460,21 +488,16 @@ const CompetitionRow = props => {
                     },
                   })
                 }}
-                name="competitionMember"
+                name="isMember"
                 color="primary"
               />
             }
-            label={
-              loading
-                ? 'thinking...'
-                : competitionMember
-                ? 'Member'
-                : 'Not member'
-            }
+            label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
         <TableCell align="right">{competition.phases.length}</TableCell>
         <TableCell align="right">{competition.groups.length}</TableCell>
+        <TableCell align="right">{competition.seasons.length}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
@@ -501,7 +524,7 @@ const CompetitionRow = props => {
               <Typography variant="h6" gutterBottom component="div">
                 Groups
               </Typography>
-              <Table aria-label="phases" style={{ background: '#f8f8fe' }}>
+              <Table aria-label="phases" style={{ background: '#fff' }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Name</TableCell>
@@ -511,6 +534,28 @@ const CompetitionRow = props => {
                 <TableBody>
                   {competition.groups.map(group => (
                     <GroupRow key={group.groupId} team={team} group={group} />
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+            <Box sx={{ margin: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Seasons
+              </Typography>
+              <Table aria-label="phases" style={{ background: '#f8f8fe' }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell align="left">Member</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {competition.seasons.map(season => (
+                    <SeasonRow
+                      key={season.seasonId}
+                      team={team}
+                      season={season}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -526,18 +571,22 @@ const PhaseRow = props => {
   const { team, phase } = props
   const { enqueueSnackbar } = useSnackbar()
 
-  const [phaseMember, setPhaseMember] = useState(
+  const [isMember, setIsMember] = useState(
     !!team.phases.find(p => p.phaseId === phase.phaseId)
   )
 
   const [mergeTeamPhase, { loading }] = useMutation(
-    phaseMember ? REMOVE_TEAM_PHASE : MERGE_TEAM_PHASE,
+    isMember ? REMOVE_TEAM_PHASE : MERGE_TEAM_PHASE,
     {
-      onCompleted: () => {
-        enqueueSnackbar('Phase membership successfully changed!', {
-          variant: 'success',
+      onCompleted: data => {
+        const { teamPhase } = data
+        const phrase = isMember
+          ? `${teamPhase.from.name} is not in ${teamPhase.to.name} phase`
+          : `${teamPhase.from.name} participate in ${teamPhase.to.name} phase`
+        enqueueSnackbar(phrase, {
+          variant: isMember ? 'info' : 'success',
         })
-        setPhaseMember(!phaseMember)
+        setIsMember(!isMember)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -556,7 +605,7 @@ const PhaseRow = props => {
         <FormControlLabel
           control={
             <Checkbox
-              checked={phaseMember}
+              checked={isMember}
               onChange={() => {
                 mergeTeamPhase({
                   variables: {
@@ -565,13 +614,11 @@ const PhaseRow = props => {
                   },
                 })
               }}
-              name="competitionMember"
+              name="isMember"
               color="primary"
             />
           }
-          label={
-            loading ? 'thinking...' : phaseMember ? 'Member' : 'Not member'
-          }
+          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
@@ -582,18 +629,22 @@ const GroupRow = props => {
   const { team, group } = props
   const { enqueueSnackbar } = useSnackbar()
 
-  const [groupMember, setGroupMember] = useState(
+  const [isMember, setIsMember] = useState(
     !!team.groups.find(g => g.groupId === group.groupId)
   )
 
   const [mergeTeamGroup, { loading }] = useMutation(
-    groupMember ? REMOVE_TEAM_GROUP : MERGE_TEAM_GROUP,
+    isMember ? REMOVE_TEAM_GROUP : MERGE_TEAM_GROUP,
     {
-      onCompleted: () => {
-        enqueueSnackbar('Phase membership successfully changed!', {
-          variant: 'success',
+      onCompleted: data => {
+        const { teamGroup } = data
+        const phrase = isMember
+          ? `${teamGroup.from.name} is not in ${teamGroup.to.name} group`
+          : `${teamGroup.from.name} participate in ${teamGroup.to.name} group`
+        enqueueSnackbar(phrase, {
+          variant: isMember ? 'info' : 'success',
         })
-        setGroupMember(!groupMember)
+        setIsMember(!isMember)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -612,7 +663,7 @@ const GroupRow = props => {
         <FormControlLabel
           control={
             <Checkbox
-              checked={groupMember}
+              checked={isMember}
               onChange={() => {
                 mergeTeamGroup({
                   variables: {
@@ -621,13 +672,69 @@ const GroupRow = props => {
                   },
                 })
               }}
-              name="competitionMember"
+              name="isMember"
               color="primary"
             />
           }
-          label={
-            loading ? 'thinking...' : groupMember ? 'Member' : 'Not member'
+          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+        />
+      </TableCell>
+    </TableRow>
+  )
+}
+
+const SeasonRow = props => {
+  const { team, season } = props
+  const { enqueueSnackbar } = useSnackbar()
+
+  const [isMember, setIsMember] = useState(
+    !!team.seasons.find(g => g.seasonId === season.seasonId)
+  )
+
+  const [mergeTeamGroup, { loading }] = useMutation(
+    isMember ? REMOVE_TEAM_SEASON : MERGE_TEAM_SEASON,
+    {
+      onCompleted: data => {
+        const { teamSeason } = data
+        const phrase = isMember
+          ? `${teamSeason.from.name} is not in ${teamSeason.to.name} season`
+          : `${teamSeason.from.name} participate in ${teamSeason.to.name} season`
+        enqueueSnackbar(phrase, {
+          variant: isMember ? 'info' : 'success',
+        })
+        setIsMember(!isMember)
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  return (
+    <TableRow>
+      <TableCell component="th" scope="row">
+        {season.name}
+      </TableCell>
+      <TableCell align="left">
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isMember}
+              onChange={() => {
+                mergeTeamGroup({
+                  variables: {
+                    teamId: team.teamId,
+                    seasonId: season.seasonId,
+                  },
+                })
+              }}
+              name="isMember"
+              color="primary"
+            />
           }
+          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
