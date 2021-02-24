@@ -72,3 +72,9 @@ export const getXGridValueFromArray = (array = [], fieldName) => {
   })
   return value
 }
+
+export const getXGridHeight = (node, windowSize) => {
+  const position = node && node.getBoundingClientRect()
+  const result = windowSize.height - (position ? position.bottom : 0) - 100
+  return result
+}

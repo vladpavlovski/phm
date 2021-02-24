@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -12,7 +12,7 @@ import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId } from '../../../../utils'
+import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const READ_ASSOCIATIONS = gql`
   query getAssociations {
@@ -68,11 +68,6 @@ const XGridTable = () => {
 
   const windowSize = useWindowSize()
   const toolbarRef = useRef()
-  const getXGridHeight = useCallback(() => {
-    const position = toolbarRef.current.getBoundingClientRect()
-    const result = windowSize.height - position.bottom - 100
-    return result
-  }, [windowSize])
 
   return (
     <Container maxWidth="lg" className={classes.container}>
@@ -97,7 +92,7 @@ const XGridTable = () => {
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div
-              style={{ height: getXGridHeight() }}
+              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
               <XGrid
