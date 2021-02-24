@@ -1,15 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { ApolloProvider } from '@apollo/client'
 import { Bugfender } from '@bugfender/sdk'
 
 import App from './App'
 import registerServiceWorker from './registerServiceWorker'
-import { client } from './graphql'
+import { AuthorizedApolloProvider } from './graphql'
+import { Auth0Provider } from '@auth0/auth0-react'
+import config from './config'
 
-if (process.env.REACT_APP_STAGE !== 'development') {
+if (config.environment !== 'development') {
   Bugfender.init({
-    appKey: process.env.REACT_APP_BUGFENDER_KEY,
+    appKey: config.bugfenderKey,
     // apiURL: 'https://api.bugfender.com',
     // baseURL: 'https://dashboard.bugfender.com',
     // overrideConsoleMethods: true,
@@ -23,9 +24,16 @@ if (process.env.REACT_APP_STAGE !== 'development') {
 }
 
 const Main = () => (
-  <ApolloProvider client={client}>
-    <App />
-  </ApolloProvider>
+  <Auth0Provider
+    domain={config.auth0Domain}
+    clientId={config.auth0ClientId}
+    redirectUri={window.location.origin}
+    audience={config.auth0Audience}
+  >
+    <AuthorizedApolloProvider>
+      <App />
+    </AuthorizedApolloProvider>
+  </Auth0Provider>
 )
 
 ReactDOM.render(<Main />, document.getElementById('root'))

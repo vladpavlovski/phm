@@ -5,11 +5,19 @@ import neo4j from 'neo4j-driver'
 import { makeAugmentedSchema } from 'neo4j-graphql-js'
 import dotenv from 'dotenv'
 import { initializeDatabase } from './initialize'
-
+import jwt from 'express-jwt'
 // set environment variables from .env
 dotenv.config()
 
 const app = express()
+
+app.use(
+  jwt({
+    secret: process.env.JWT_SECRET,
+    algorithms: ['RS256'],
+    credentialsRequired: false,
+  })
+)
 
 /*
  * Create an executable GraphQL schema object from GraphQL type definitions
@@ -27,6 +35,11 @@ const schema = makeAugmentedSchema({
     },
     mutation: {
       exclude: [],
+    },
+    auth: {
+      isAuthenticated: true,
+      hasRole: true,
+      // hasScope: true,
     },
   },
 })
@@ -73,7 +86,17 @@ init(driver)
  * generated resolvers to connect to the database.
  */
 const server = new ApolloServer({
-  context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
+  context: ({ req }) => {
+    // console.log('req:', req)
+    return {
+      driver,
+      req,
+      neo4jDatabase: process.env.NEO4J_DATABASE,
+      cypherParams: {
+        userAuthId: req && req.user && req.user.sub,
+      },
+    }
+  },
   schema: schema,
   introspection: true,
   playground: true,

@@ -1,27 +1,70 @@
-import { ApolloClient, HttpLink, InMemoryCache, concat } from '@apollo/client'
-// import { offsetLimitPagination } from '@apollo/client/utilities'
-
+import React from 'react'
+import {
+  ApolloProvider,
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  // concat,
+} from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
+import { useAuth0 } from '@auth0/auth0-react'
 import { onError } from '@apollo/client/link/error'
+import config from '../config'
+const cache = new InMemoryCache()
 
-const httpLink = new HttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_URI || '/graphql',
-})
+const AuthorizedApolloProvider = ({ children }) => {
+  const { getAccessTokenSilently } = useAuth0()
 
-const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
-  console.error(`[GraphQL error]: Operation: ${operation.operationName}`)
-  if (graphQLErrors)
-    graphQLErrors.map(({ message, locations }) => {
-      console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
-          locations
-        )}`
-      )
-    })
+  const httpLink = new HttpLink({
+    uri: config.graphqlUri || '/graphql',
+  })
 
-  if (networkError) {
-    console.error(`[Network error]: ${networkError}`)
-  }
-})
+  const errorLink = onError(
+    ({ graphQLErrors, networkError, operation, forward }) => {
+      console.error(`[GraphQL error]: Operation: ${operation.operationName}`)
+      if (graphQLErrors)
+        graphQLErrors.map(({ message, locations }) => {
+          console.error(
+            `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
+              locations
+            )}`
+          )
+        })
+      // TODO: solution for network errors
+      if (networkError) {
+        console.error(`[Network error]: ${networkError}`)
+      }
+      forward(operation)
+    }
+  )
+
+  const authLink = setContext(async (_, { headers }) => {
+    const token = await getAccessTokenSilently()
+
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : '',
+      },
+    }
+  })
+
+  const client = new ApolloClient({
+    link: authLink.concat(httpLink, errorLink),
+    cache,
+    connectToDevTools: config.environment === 'development',
+  })
+
+  // const apolloClient = new ApolloClient({
+  //   link: authLink.concat(httpLink),
+  //   cache: new InMemoryCache(),
+  //   connectToDevTools: true,
+  // })
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>
+}
+
+export { AuthorizedApolloProvider }
 
 // const mergeArrayByField = fieldName => (
 //   existing,
@@ -85,41 +128,32 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
 //   return merged
 // }
 
-const cache = new InMemoryCache({
-  typePolicies: {
-    // Player: {
-    //   keyFields: ['playerId'],
-    // },
-    // Team: {
-    //   fields: {
-    //     players: {
-    //       merge: false,
-    //     },
-    //   },
-    // },
-    // Association: {
-    //   keyFields: ['associationId'],
-    // },
-    // Query: {
-    //   fields: {
-    //     Player: {
-    //       read: cacheRead,
-    //       keyArgs: ['playerId'],
-    //       merge: cacheMerge,
-    //     },
-    //     Team: {
-    //       read: cacheRead,
-    //       keyArgs: ['teamId'],
-    //       merge: cacheMerge,
-    //     },
-    //   },
-    // },
-  },
-})
-
-const client = new ApolloClient({
-  link: concat(errorLink, httpLink),
-  cache,
-})
-
-export { client }
+// typePolicies: {
+// Player: {
+//   keyFields: ['playerId'],
+// },
+// Team: {
+//   fields: {
+//     players: {
+//       merge: false,
+//     },
+//   },
+// },
+// Association: {
+//   keyFields: ['associationId'],
+// },
+// Query: {
+//   fields: {
+//     Player: {
+//       read: cacheRead,
+//       keyArgs: ['playerId'],
+//       merge: cacheMerge,
+//     },
+//     Team: {
+//       read: cacheRead,
+//       keyArgs: ['teamId'],
+//       merge: cacheMerge,
+//     },
+//   },
+// },
+// },

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react'
 import clsx from 'clsx'
-
+import { useAuth0 } from '@auth0/auth0-react'
 import {
   Drawer,
   AppBar,
@@ -26,6 +26,7 @@ const Layout = props => {
   const classes = useStyles()
   const [open, setOpen] = useState(true)
   const { barTitle } = useContext(LayoutContext)
+  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0()
   return (
     <div className={classes.root}>
       <AppBar
@@ -62,6 +63,18 @@ const Layout = props => {
               <NotificationsIcon />
             </Badge>
           </IconButton> */}
+          {!isAuthenticated && (
+            <button onClick={() => loginWithRedirect()}>Log In</button>
+          )}
+          {isAuthenticated && (
+            <button
+              onClick={() => logout({ returnTo: window.location.origin })}
+            >
+              Log Out
+            </button>
+          )}
+          {isAuthenticated && console.log('user:', user)}
+          {isAuthenticated && user.name}
         </Toolbar>
       </AppBar>
       <Drawer
