@@ -73,7 +73,7 @@ const Layout = props => {
               Log Out
             </button>
           )}
-          {isAuthenticated && console.log('user:', user)}
+          {/* {isAuthenticated && console.log('user:', user)} */}
           {isAuthenticated && user.name}
         </Toolbar>
       </AppBar>

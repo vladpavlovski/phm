@@ -123,7 +123,11 @@ const MainListItems = () => {
           primary="Players"
           to={ROUTES.ADMIN_PLAYERS}
         />
-
+        <ListItemLink
+          icon={<SportsHockey />}
+          primary="Rule Packs"
+          to={ROUTES.ADMIN_RULEPACKS}
+        />
         {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
       <ListItemLink
         icon={<DoneAll />}

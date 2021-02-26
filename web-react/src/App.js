@@ -3,6 +3,10 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+import utc from 'dayjs/plugin/utc'
+
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'
@@ -37,6 +41,11 @@ const AdminSeason = Load(() => import('./admin/pages/Season'))
 const AdminSeasonsView = Load(() => import('./admin/pages/Season/view'))
 const AdminVenue = Load(() => import('./admin/pages/Venue'))
 const AdminVenuesView = Load(() => import('./admin/pages/Venue/view'))
+const AdminRulePack = Load(() => import('./admin/pages/RulePack'))
+const AdminRulePacksView = Load(() => import('./admin/pages/RulePack/view'))
+
+dayjs.extend(duration)
+dayjs.extend(utc)
 
 const App = () => {
   return (
@@ -127,6 +136,16 @@ const App = () => {
                       path={ROUTES.ADMIN_SEASON}
                       exact
                       component={AdminSeason}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_RULEPACKS}
+                      exact
+                      component={AdminRulePacksView}
+                    />
+                    <Route
+                      path={ROUTES.ADMIN_RULEPACK}
+                      exact
+                      component={AdminRulePack}
                     />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route

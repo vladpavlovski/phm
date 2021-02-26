@@ -1,6 +1,7 @@
 import React from 'react'
 import * as R from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
+import dayjs from 'dayjs'
 
 export const capitalize = R.converge(R.concat, [
   R.compose(R.toUpper, R.head),
@@ -77,4 +78,13 @@ export const getXGridHeight = (node, windowSize) => {
   const position = node && node.getBoundingClientRect()
   const result = windowSize.height - (position ? position.bottom : 0) - 100
   return result
+}
+
+export const showTimeAsMinutes = (minutes = 0) => {
+  // Transform integer minutes into time format 00:00
+
+  const time = dayjs().subtract(minutes, 'minute')
+  const duration = dayjs.duration(dayjs().diff(time))
+
+  return dayjs.utc(duration.asMilliseconds()).format('HH:mm')
 }

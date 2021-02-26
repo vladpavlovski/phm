@@ -1025,8 +1025,8 @@ type PenaltyShotStatus {
 
 type Period {
   periodId: ID! @id
-  name: String
-  duration: Int
+  name: String!
+  duration: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
