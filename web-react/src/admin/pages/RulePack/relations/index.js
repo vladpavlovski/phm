@@ -9,13 +9,15 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 
 import { Periods } from './components/Periods'
+import { PositionTypes } from './components/PositionTypes'
+
 const Relations = props => {
   const { rulePackId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="position-types-content"
@@ -28,7 +30,8 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>Position Type</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
+      <PositionTypes rulePackId={rulePackId} />
       <Periods rulePackId={rulePackId} />
 
       <Accordion>
