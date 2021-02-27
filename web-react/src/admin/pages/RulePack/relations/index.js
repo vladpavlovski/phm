@@ -11,6 +11,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Periods } from './components/Periods'
 import { PositionTypes } from './components/PositionTypes'
 import { ShotTypes } from './components/ShotTypes'
+import { ShotSubTypes } from './components/ShotSubTypes'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -21,21 +22,7 @@ const Relations = props => {
       <PositionTypes rulePackId={rulePackId} />
       <Periods rulePackId={rulePackId} />
       <ShotTypes rulePackId={rulePackId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="shot-subtypes-content"
-          id="shot-subtypes-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Shot SubTypes
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Shot SubTypes Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <ShotSubTypes rulePackId={rulePackId} />
 
       <Accordion>
         <AccordionSummary

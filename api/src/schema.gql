@@ -1034,8 +1034,8 @@ type Period {
 
 type ShotSubType {
   shotSubTypeId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1043,8 +1043,8 @@ type ShotSubType {
 
 type ShotTarget {
   shotTargetId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1061,8 +1061,8 @@ type ShotStyle {
 
 type ShotType {
   shotTypeId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1070,8 +1070,8 @@ type ShotType {
 
 type GoalType {
   goalTypeId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
