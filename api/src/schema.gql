@@ -1016,8 +1016,8 @@ type RulePack {
 
 type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1079,8 +1079,8 @@ type GoalType {
 
 type GoalSubType {
   goalSubTypeId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1088,8 +1088,8 @@ type GoalSubType {
 
 type PenaltySubType {
   penaltySubTypeId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1097,9 +1097,9 @@ type PenaltySubType {
 
 type PenaltyType {
   PenaltyTypeId: ID! @id
-  name: String
-  code: String
-  duration: Int
+  name: String!
+  code: String!
+  duration: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1107,9 +1107,9 @@ type PenaltyType {
 
 type GameEventLocation {
   gameEventLocationId: ID! @id
-  name: String
-  fieldX: String
-  fieldY: String
+  name: String!
+  fieldX: String!
+  fieldY: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1117,7 +1117,7 @@ type GameEventLocation {
 
 type PositionType {
   positionTypeId: ID! @id
-  name: String
+  name: String!
   description: String
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
@@ -1125,7 +1125,7 @@ type PositionType {
 # :Wear
 type Wear {
   wearId: ID! @id
-  name: String
+  name: String!
   description: String
   items: [WearItem] @relation(name: "HAS_WEAR_ITEM", direction: OUT)
   team: Team @relation(name: "HAS_WEAR", direction: IN)
@@ -1137,7 +1137,7 @@ type Wear {
 # WearItem
 type WearItem {
   wearItemId: ID! @id
-  name: String
+  name: String!
   type: String
   wear: Wear @relation(name: "HAS_WEAR_ITEM", direction: IN)
   jerseyNo: JerseyNo @relation(name: "FOR_JERSEY", direction: IN)
@@ -1148,7 +1148,7 @@ type WearItem {
 
 type Position {
   positionId: ID! @id
-  name: String
+  name: String!
   nick: String
   short: String
   description: String
@@ -1160,8 +1160,8 @@ type Position {
 
 type JerseyNo {
   jerseyNoId: ID! @id
-  name: String
-  number: Int
+  name: String!
+  number: Int!
   player: Player @relation(name: "HAS_JERSEY", direction: IN)
   team: Team @relation(name: "USE_JERSEY", direction: IN)
   wearItem: WearItem @relation(name: "FOR_JERSEY", direction: IN)
@@ -1177,20 +1177,20 @@ type FinalResult {
 
 type InjuryType {
   injuryTypeId: ID! @id
-  name: String
+  name: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 type ResultType {
   resultTypeId: ID! @id
-  name: String
+  name: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
 type ResultPoint {
   resultPointId: ID! @id
-  name: String
-  points: Int
+  name: String!
+  points: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
