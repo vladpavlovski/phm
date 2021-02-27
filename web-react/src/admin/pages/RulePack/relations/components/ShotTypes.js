@@ -371,7 +371,7 @@ const FormDialog = props => {
             rulePackId,
             name,
             code,
-            shotTypeId: data.shotTypeId || uuidv4(),
+            shotTypeId: data?.shotTypeId || uuidv4(),
           },
         })
       } catch (error) {
@@ -411,7 +411,7 @@ const FormDialog = props => {
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors?.name}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
@@ -423,7 +423,7 @@ const FormDialog = props => {
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.code}
+                      error={errors?.code}
                     />
                   </Grid>
                 </Grid>

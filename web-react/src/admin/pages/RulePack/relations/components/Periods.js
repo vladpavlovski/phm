@@ -372,7 +372,7 @@ const FormDialog = props => {
             rulePackId,
             name,
             duration: !isNaN(parseInt(duration)) && parseInt(duration),
-            periodId: data.periodId || uuidv4(),
+            periodId: data?.periodId || uuidv4(),
           },
         })
       } catch (error) {
@@ -412,7 +412,7 @@ const FormDialog = props => {
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors?.name}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
@@ -424,7 +424,7 @@ const FormDialog = props => {
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.duration}
+                      error={errors?.duration}
                     />
                   </Grid>
                 </Grid>
