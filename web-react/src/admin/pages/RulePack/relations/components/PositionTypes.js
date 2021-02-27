@@ -49,7 +49,7 @@ const GET_POSITION_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_PERIOD = gql`
+const MERGE_RULEPACK_POSITION_TYPE = gql`
   mutation mergeRulePackPositionType(
     $rulePackId: ID!
     $positionTypeId: ID!
@@ -80,7 +80,7 @@ const MERGE_RULEPACK_PERIOD = gql`
   }
 `
 
-const DELETE_PERIOD = gql`
+const DELETE_POSITION_TYPE = gql`
   mutation deletePositionType($positionTypeId: ID!) {
     deleted: DeletePositionType(positionTypeId: $positionTypeId) {
       positionTypeId
@@ -127,7 +127,7 @@ const PositionTypes = props => {
   }, [])
 
   const [deletePositionType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_PERIOD,
+    DELETE_POSITION_TYPE,
     {
       update(cache, { data: { deleted } }) {
         try {
@@ -308,7 +308,7 @@ const FormDialog = props => {
   const [
     mergeRulePackPositionType,
     { loading: loadingMergePositionType },
-  ] = useMutation(MERGE_RULEPACK_PERIOD, {
+  ] = useMutation(MERGE_RULEPACK_POSITION_TYPE, {
     update(cache, { data: { positionTypeRulePack } }) {
       try {
         const queryResult = cache.readQuery({
