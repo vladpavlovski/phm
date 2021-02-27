@@ -1052,8 +1052,8 @@ type ShotTarget {
 
 type ShotStyle {
   shotStyleId: ID! @id
-  name: String
-  code: String
+  name: String!
+  code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 

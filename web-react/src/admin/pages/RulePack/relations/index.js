@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 
 import { Periods } from './components/Periods'
 import { PositionTypes } from './components/PositionTypes'
+import { ShotTypes } from './components/ShotTypes'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -17,37 +18,10 @@ const Relations = props => {
 
   return (
     <div className={classes.accordionWrapper}>
-      {/* <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="position-types-content"
-          id="position-types-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Position Types
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Position Type</Typography>
-        </AccordionDetails>
-      </Accordion> */}
       <PositionTypes rulePackId={rulePackId} />
       <Periods rulePackId={rulePackId} />
+      <ShotTypes rulePackId={rulePackId} />
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="shot-types-content"
-          id="shot-types-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Shot Types
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Shot Type Table</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
