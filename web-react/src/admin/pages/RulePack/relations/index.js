@@ -20,6 +20,7 @@ import { PenaltyTypes } from './components/PenaltyTypes'
 import { PenaltySubTypes } from './components/PenaltySubTypes'
 import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
 import { InjuryTypes } from './components/InjuryTypes'
+import { ResultTypes } from './components/ResultTypes'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -39,21 +40,7 @@ const Relations = props => {
       <PenaltySubTypes rulePackId={rulePackId} />
       <PenaltyShotStatuses rulePackId={rulePackId} />
       <InjuryTypes rulePackId={rulePackId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="result-types-content"
-          id="result-types-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Result Types
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Result Types Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <ResultTypes rulePackId={rulePackId} />
 
       <Accordion>
         <AccordionSummary
