@@ -16,6 +16,7 @@ import { ShotTargets } from './components/ShotTargets'
 import { ShotStyles } from './components/ShotStyles'
 import { GoalTypes } from './components/GoalTypes'
 import { GoalSubTypes } from './components/GoalSubTypes'
+import { PenaltyTypes } from './components/PenaltyTypes'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -31,21 +32,7 @@ const Relations = props => {
       <ShotStyles rulePackId={rulePackId} />
       <GoalTypes rulePackId={rulePackId} />
       <GoalSubTypes rulePackId={rulePackId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="penalty-types-content"
-          id="penalty-types-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Penalty Types
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Penalty Types Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <PenaltyTypes rulePackId={rulePackId} />
 
       <Accordion>
         <AccordionSummary

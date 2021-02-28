@@ -1096,7 +1096,7 @@ type PenaltySubType {
 # :PenaltyType
 
 type PenaltyType {
-  PenaltyTypeId: ID! @id
+  penaltyTypeId: ID! @id
   name: String!
   code: String!
   duration: Int!
