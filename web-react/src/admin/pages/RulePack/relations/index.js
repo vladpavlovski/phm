@@ -21,6 +21,7 @@ import { PenaltySubTypes } from './components/PenaltySubTypes'
 import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
 import { InjuryTypes } from './components/InjuryTypes'
 import { ResultTypes } from './components/ResultTypes'
+import { ResultPoints } from './components/ResultPoints'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -41,21 +42,7 @@ const Relations = props => {
       <PenaltyShotStatuses rulePackId={rulePackId} />
       <InjuryTypes rulePackId={rulePackId} />
       <ResultTypes rulePackId={rulePackId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="result-points-content"
-          id="result-points-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Result Points
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Result Points Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <ResultPoints rulePackId={rulePackId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}

@@ -33,72 +33,67 @@ import { RHFInput } from '../../../../../components/RHFInput'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, showTimeAsMinutes } from '../../../../../utils'
+import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_PENALTY_TYPES = gql`
+const GET_RESULT_POINTS = gql`
   query getRulePack($rulePackId: ID) {
     rulePack: RulePack(rulePackId: $rulePackId) {
       rulePackId
       name
-      penaltyTypes {
-        penaltyTypeId
+      resultPoints {
+        resultPointId
         name
-        code
-        duration
+        points
       }
     }
   }
 `
 
-const MERGE_RULEPACK_PENALTY_TYPE = gql`
-  mutation mergeRulePackPenaltyType(
+const MERGE_RULEPACK_RESULT_POINT = gql`
+  mutation mergeRulePackResultPoint(
     $rulePackId: ID!
-    $penaltyTypeId: ID!
+    $resultPointId: ID!
     $name: String
-    $code: String
-    $duration: Int
+    $points: Int
   ) {
-    penaltyType: MergePenaltyType(
-      penaltyTypeId: $penaltyTypeId
+    resultPoint: MergeResultPoint(
+      resultPointId: $resultPointId
       name: $name
-      code: $code
-      duration: $duration
+      points: $points
     ) {
-      penaltyTypeId
+      resultPointId
       name
     }
-    penaltyTypeRulePack: MergePenaltyTypeRulePack(
+    resultPointRulePack: MergeResultPointRulePack(
       from: { rulePackId: $rulePackId }
-      to: { penaltyTypeId: $penaltyTypeId }
+      to: { resultPointId: $resultPointId }
     ) {
       from {
         name
       }
       to {
-        penaltyTypeId
+        resultPointId
         name
-        code
-        duration
+        points
       }
     }
   }
 `
 
-const DELETE_PENALTY_TYPE = gql`
-  mutation deletePenaltyType($penaltyTypeId: ID!) {
-    deleted: DeletePenaltyType(penaltyTypeId: $penaltyTypeId) {
-      penaltyTypeId
+const DELETE_RESULT_POINT = gql`
+  mutation deleteResultPoint($resultPointId: ID!) {
+    deleted: DeleteResultPoint(resultPointId: $resultPointId) {
+      resultPointId
     }
   }
 `
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  code: string().required('Code is required'),
-  duration: number().integer().positive().required('Duration is required'),
+  points: number().integer().positive().required('Points is required'),
 })
 
-const PenaltyTypes = props => {
+const ResultPoints = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
@@ -114,7 +109,7 @@ const PenaltyTypes = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PENALTY_TYPES, {
+  ] = useLazyQuery(GET_RESULT_POINTS, {
     fetchPolicy: 'cache-and-network',
   })
 
@@ -131,31 +126,31 @@ const PenaltyTypes = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deletePenaltyType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_PENALTY_TYPE,
+  const [deleteResultPoint, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_RESULT_POINT,
     {
       update(cache, { data: { deleted } }) {
         try {
           const queryResult = cache.readQuery({
-            query: GET_PENALTY_TYPES,
+            query: GET_RESULT_POINTS,
             variables: {
               rulePackId,
             },
           })
-          const updatedData = queryResult.rulePack[0].penaltyTypes.filter(
-            p => p.penaltyTypeId !== deleted.penaltyTypeId
+          const updatedData = queryResult.rulePack[0].resultPoints.filter(
+            p => p.resultPointId !== deleted.resultPointId
           )
 
           const updatedResult = {
             rulePack: [
               {
                 ...queryResult.rulePack[0],
-                penaltyTypes: updatedData,
+                resultPoints: updatedData,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_PENALTY_TYPES,
+            query: GET_RESULT_POINTS,
             data: updatedResult,
             variables: {
               rulePackId,
@@ -166,7 +161,7 @@ const PenaltyTypes = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`PenaltyType was deleted!`, {
+        enqueueSnackbar(`Result Point was deleted!`, {
           variant: 'info',
         })
       },
@@ -179,29 +174,20 @@ const PenaltyTypes = props => {
     }
   )
 
-  const rulePackPenaltyTypesColumns = useMemo(
+  const rulePackResultPointsColumns = useMemo(
     () => [
       {
         field: 'name',
         headerName: 'Name',
         width: 150,
       },
-
       {
-        field: 'code',
-        headerName: 'Code',
+        field: 'points',
+        headerName: 'Points',
         width: 100,
       },
       {
-        field: 'duration',
-        headerName: 'Duration',
-        width: 100,
-        valueFormatter: params => {
-          return showTimeAsMinutes(params.value)
-        },
-      },
-      {
-        field: 'penaltyTypeId',
+        field: 'resultPointId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -232,14 +218,14 @@ const PenaltyTypes = props => {
               loading={mutationLoadingRemove}
               size="small"
               startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this penalty type?'}
-              dialogDescription={'Penalty type will be completely delete'}
+              dialogTitle={'Do you really want to delete this result point?'}
+              dialogDescription={'Result point will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() =>
-                deletePenaltyType({
+                deleteResultPoint({
                   variables: {
-                    penaltyTypeId: params.row.penaltyTypeId,
+                    resultPointId: params.row.resultPointId,
                   },
                 })
               }
@@ -255,11 +241,11 @@ const PenaltyTypes = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="penalty-types-content"
-        id="penalty-types-header"
+        aria-controls="result-points-content"
+        id="result-points-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Penalty Types
+          Result Points
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -283,8 +269,8 @@ const PenaltyTypes = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={rulePackPenaltyTypesColumns}
-                rows={setIdFromEntityId(rulePack.penaltyTypes, 'penaltyTypeId')}
+                columns={rulePackResultPointsColumns}
+                rows={setIdFromEntityId(rulePack.resultPoints, 'resultPointId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -317,27 +303,27 @@ const FormDialog = props => {
   })
 
   const [
-    mergeRulePackPenaltyType,
-    { loading: loadingMergePenaltyType },
-  ] = useMutation(MERGE_RULEPACK_PENALTY_TYPE, {
-    update(cache, { data: { penaltyTypeRulePack } }) {
+    mergeRulePackResultPoint,
+    { loading: loadingMergeResultPoint },
+  ] = useMutation(MERGE_RULEPACK_RESULT_POINT, {
+    update(cache, { data: { resultPointRulePack } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_PENALTY_TYPES,
+          query: GET_RESULT_POINTS,
           variables: {
             rulePackId,
           },
         })
 
-        const existingData = queryResult.rulePack[0].penaltyTypes
-        const newItem = penaltyTypeRulePack.to
+        const existingData = queryResult.rulePack[0].resultPoints
+        const newItem = resultPointRulePack.to
         let updatedData = []
         if (
-          existingData.find(ed => ed.penaltyTypeId === newItem.penaltyTypeId)
+          existingData.find(ed => ed.resultPointId === newItem.resultPointId)
         ) {
           // replace if item exist in array
           updatedData = existingData.map(ed =>
-            ed.penaltyTypeId === newItem.penaltyTypeId ? newItem : ed
+            ed.resultPointId === newItem.resultPointId ? newItem : ed
           )
         } else {
           // add new item if item not in array
@@ -348,12 +334,12 @@ const FormDialog = props => {
           rulePack: [
             {
               ...queryResult.rulePack[0],
-              penaltyTypes: updatedData,
+              resultPoints: updatedData,
             },
           ],
         }
         cache.writeQuery({
-          query: GET_PENALTY_TYPES,
+          query: GET_RESULT_POINTS,
           data: updatedResult,
           variables: {
             rulePackId,
@@ -365,7 +351,7 @@ const FormDialog = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.penaltyTypeRulePack.to.name} added to ${rulePack.name}!`,
+        `${data.resultPointRulePack.to.name} added to ${rulePack.name}!`,
         {
           variant: 'success',
         }
@@ -383,15 +369,14 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code, duration } = dataToCheck
+        const { name, points } = dataToCheck
 
-        mergeRulePackPenaltyType({
+        mergeRulePackResultPoint({
           variables: {
             rulePackId,
             name,
-            code,
-            duration: parseInt(duration),
-            penaltyTypeId: data?.penaltyTypeId || uuidv4(),
+            points: parseInt(points),
+            resultPointId: data?.resultPointId || uuidv4(),
           },
         })
       } catch (error) {
@@ -416,7 +401,7 @@ const FormDialog = props => {
         noValidate
         autoComplete="off"
       >
-        <DialogTitle id="alert-dialog-title">{`Add new penalty type to ${rulePack?.name}`}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{`Add new result point to ${rulePack?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -437,25 +422,13 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.code || ''}
-                      name="code"
-                      label="Code"
+                      defaultValue={data?.points || ''}
+                      name="points"
+                      label="Points"
                       required
                       fullWidth
                       variant="standard"
-                      error={errors?.code}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.duration || ''}
-                      name="duration"
-                      label="Duration in minutes"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.duration}
+                      error={errors?.points}
                     />
                   </Grid>
                 </Grid>
@@ -472,8 +445,8 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" pending={loadingMergePenaltyType}>
-            {loadingMergePenaltyType ? 'Saving...' : 'Save'}
+          <LoadingButton type="submit" pending={loadingMergeResultPoint}>
+            {loadingMergeResultPoint ? 'Saving...' : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>
@@ -481,8 +454,8 @@ const FormDialog = props => {
   )
 }
 
-PenaltyTypes.propTypes = {
+ResultPoints.propTypes = {
   rulePackId: PropTypes.string,
 }
 
-export { PenaltyTypes }
+export { ResultPoints }
