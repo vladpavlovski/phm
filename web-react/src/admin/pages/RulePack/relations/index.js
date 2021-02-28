@@ -1,11 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-
 import { useStyles } from '../../commonComponents/styled'
 
 import { Periods } from './components/Periods'
@@ -22,6 +16,7 @@ import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
 import { InjuryTypes } from './components/InjuryTypes'
 import { ResultTypes } from './components/ResultTypes'
 import { ResultPoints } from './components/ResultPoints'
+import { GameEventLocations } from './components/GameEventLocations'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -43,20 +38,7 @@ const Relations = props => {
       <InjuryTypes rulePackId={rulePackId} />
       <ResultTypes rulePackId={rulePackId} />
       <ResultPoints rulePackId={rulePackId} />
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="game-event-location-content"
-          id="game-event-location-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Game Event Location
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Game Event Location Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <GameEventLocations rulePackId={rulePackId} />
     </div>
   )
 }
