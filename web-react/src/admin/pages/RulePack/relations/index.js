@@ -19,6 +19,7 @@ import { GoalSubTypes } from './components/GoalSubTypes'
 import { PenaltyTypes } from './components/PenaltyTypes'
 import { PenaltySubTypes } from './components/PenaltySubTypes'
 import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
+import { InjuryTypes } from './components/InjuryTypes'
 
 const Relations = props => {
   const { rulePackId } = props
@@ -37,36 +38,7 @@ const Relations = props => {
       <PenaltyTypes rulePackId={rulePackId} />
       <PenaltySubTypes rulePackId={rulePackId} />
       <PenaltyShotStatuses rulePackId={rulePackId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="game-event-location-content"
-          id="game-event-location-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Game Event Location
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Game Event Location Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="injury-types-content"
-          id="injury-types-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Injury Types
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Injury Types Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <InjuryTypes rulePackId={rulePackId} />
 
       <Accordion>
         <AccordionSummary
@@ -95,6 +67,20 @@ const Relations = props => {
         </AccordionSummary>
         <AccordionDetails>
           <Typography>Result Points Table</Typography>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="game-event-location-content"
+          id="game-event-location-header"
+        >
+          <Typography className={classes.accordionFormTitle}>
+            Game Event Location
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>Game Event Location Table</Typography>
         </AccordionDetails>
       </Accordion>
     </div>
