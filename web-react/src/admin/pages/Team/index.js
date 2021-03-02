@@ -49,7 +49,7 @@ const READ_TEAM = gql`
         formatted
       }
       jerseys {
-        jerseyNoId
+        jerseyId
         number
       }
       players {

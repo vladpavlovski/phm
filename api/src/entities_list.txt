@@ -58,7 +58,7 @@ REL [:TakingPartIn]
 :Wear
 :WearItem
 :Position
-:JerseyNo
+:Jersey
 :FinalResult
 :InjuryType
 :ResultType

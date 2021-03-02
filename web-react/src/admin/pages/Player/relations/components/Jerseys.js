@@ -8,9 +8,9 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AccountBox from '@material-ui/icons/AccountBox'
+
 import AddIcon from '@material-ui/icons/Add'
-import CreateIcon from '@material-ui/icons/Create'
+// import CreateIcon from '@material-ui/icons/Create'
 import Toolbar from '@material-ui/core/Toolbar'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
@@ -24,78 +24,53 @@ import Checkbox from '@material-ui/core/Checkbox'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPlayerRoute } from '../../../../../routes'
-import { LinkButton } from '../../../../../components/LinkButton'
+// import { getAdminJerseyRoute } from '../../../../../routes'
+// import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
+import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_PLAYERS = gql`
-  query getTeam($teamId: ID) {
-    team: Team(teamId: $teamId) {
-      _id
-      teamId
-      name
-      players {
-        playerId
-        name
-        positions {
-          positionId
-          name
-        }
-        jerseys {
-          jerseyId
-          name
-          number
-        }
-      }
-    }
-  }
-`
-
-const REMOVE_TEAM_PLAYER = gql`
-  mutation removeTeamPlayer($teamId: ID!, $playerId: ID!) {
-    teamPlayer: RemoveTeamPlayers(
-      from: { playerId: $playerId }
-      to: { teamId: $teamId }
-    ) {
-      from {
-        playerId
-        name
-      }
-    }
-  }
-`
-
-export const GET_ALL_PLAYERS = gql`
-  query getPlayers {
-    players: Player {
+const GET_JERSEYS = gql`
+  query getPlayerJerseys($playerId: ID) {
+    player: Player(playerId: $playerId) {
       playerId
       name
-      teams {
+      jerseys {
+        jerseyId
         name
-      }
-      positions {
-        name
+        number
       }
     }
   }
 `
 
-const MERGE_TEAM_PLAYER = gql`
-  mutation mergeTeamPlayer($teamId: ID!, $playerId: ID!) {
-    teamPlayer: MergeTeamPlayers(
+const REMOVE_JERSEY_PLAYER = gql`
+  mutation removeJerseyPlayer($playerId: ID!, $jerseyId: ID!) {
+    jerseyPlayer: RemoveJerseyPlayer(
       from: { playerId: $playerId }
-      to: { teamId: $teamId }
+      to: { jerseyId: $jerseyId }
     ) {
       from {
         playerId
         name
-        positions {
-          positionId
-          name
-        }
+      }
+      to {
+        jerseyId
+        name
+        number
+      }
+    }
+  }
+`
+
+export const GET_ALL_AVAILABLE_JERSEYS = gql`
+  query getJerseys($playerId: ID!) {
+    player: Player(playerId: $playerId) {
+      playerId
+      teams {
+        teamId
+        name
         jerseys {
           jerseyId
           name
@@ -106,8 +81,27 @@ const MERGE_TEAM_PLAYER = gql`
   }
 `
 
-const Players = props => {
-  const { teamId } = props
+const MERGE_JERSEY_PLAYER = gql`
+  mutation mergeJerseyPlayer($playerId: ID!, $jerseyId: ID!) {
+    jerseyPlayer: MergeJerseyPlayer(
+      from: { playerId: $playerId }
+      to: { jerseyId: $jerseyId }
+    ) {
+      from {
+        playerId
+        name
+      }
+      to {
+        jerseyId
+        name
+        number
+      }
+    }
+  }
+`
+
+const Jerseys = props => {
+  const { playerId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
@@ -118,51 +112,55 @@ const Players = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PLAYERS, {
+  ] = useLazyQuery(GET_JERSEYS, {
+    variables: { playerId },
     fetchPolicy: 'cache-and-network',
   })
 
-  const team = queryData && queryData.team && queryData.team[0]
+  const player = queryData?.player?.[0]
 
   const [
     getAllPlayers,
     {
-      loading: queryAllPlayersLoading,
-      error: queryAllPlayersError,
-      data: queryAllPlayersData,
+      loading: queryAllJerseysLoading,
+      error: queryAllJerseysError,
+      data: queryAllJerseysData,
     },
-  ] = useLazyQuery(GET_ALL_PLAYERS, {
+  ] = useLazyQuery(GET_ALL_AVAILABLE_JERSEYS, {
+    variables: { playerId },
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeTeamPlayer, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_TEAM_PLAYER,
+  const [removeJerseyPlayer, { loading: mutationLoadingRemove }] = useMutation(
+    REMOVE_JERSEY_PLAYER,
     {
-      update(cache, { data: { teamPlayer } }) {
+      update(cache, { data: { jerseyPlayer } }) {
         try {
           const queryResult = cache.readQuery({
-            query: GET_PLAYERS,
+            query: GET_JERSEYS,
             variables: {
-              teamId,
+              playerId,
             },
           })
-          const updatedPlayers = queryResult.team[0].players.filter(
-            p => p.playerId !== teamPlayer.from.playerId
+
+          const updatedData = queryResult?.player?.[0]?.jerseys.filter(
+            p => p.jerseyId !== jerseyPlayer.to.jerseyId
           )
 
           const updatedResult = {
-            team: [
+            player: [
               {
-                ...queryResult.team[0],
-                players: updatedPlayers,
+                ...queryResult?.player?.[0],
+                jerseys: updatedData,
               },
             ],
           }
+
           cache.writeQuery({
-            query: GET_PLAYERS,
+            query: GET_JERSEYS,
             data: updatedResult,
             variables: {
-              teamId,
+              playerId,
             },
           })
         } catch (error) {
@@ -171,7 +169,7 @@ const Players = props => {
       },
       onCompleted: data => {
         enqueueSnackbar(
-          `${data.teamPlayer.from.name} removed from ${team.name}!`,
+          `${data.jerseyPlayer.to.name} removed from ${player.name}!`,
           {
             variant: 'info',
           }
@@ -186,30 +184,32 @@ const Players = props => {
     }
   )
 
-  const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-    update(cache, { data: { teamPlayer } }) {
+  const [mergeJerseyPlayer] = useMutation(MERGE_JERSEY_PLAYER, {
+    update(cache, { data: { jerseyPlayer } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
+          query: GET_JERSEYS,
           variables: {
-            teamId,
+            playerId,
           },
         })
-        const existingPlayers = queryResult.team[0].players
-        const newPlayer = teamPlayer.from
+
+        const existingData = queryResult?.player?.[0]?.jerseys || []
+        const newItem = jerseyPlayer?.to
         const updatedResult = {
-          team: [
+          player: [
             {
-              ...queryResult.team[0],
-              players: [newPlayer, ...existingPlayers],
+              ...queryResult?.player?.[0],
+              jerseys: [newItem, ...existingData],
             },
           ],
         }
+
         cache.writeQuery({
-          query: GET_PLAYERS,
+          query: GET_JERSEYS,
           data: updatedResult,
           variables: {
-            teamId,
+            playerId,
           },
         })
       } catch (error) {
@@ -217,7 +217,7 @@ const Players = props => {
       }
     },
     onCompleted: data => {
-      enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
+      enqueueSnackbar(`${data.jerseyPlayer.to.name} added to ${player.name}!`, {
         variant: 'success',
       })
     },
@@ -231,56 +231,28 @@ const Players = props => {
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { teamId } })
+      getData()
     }
   }, [])
 
   const handleOpenAddPlayer = useCallback(() => {
-    if (!queryAllPlayersData) {
+    if (!queryAllJerseysData) {
       getAllPlayers()
     }
     setOpenAddPlayer(true)
   }, [])
 
-  const teamPlayersColumns = useMemo(
+  const playerJerseysColumns = useMemo(
     () => [
       {
         field: 'name',
         headerName: 'Name',
+        width: 250,
+      },
+      {
+        field: 'number',
+        headerName: 'Number',
         width: 150,
-      },
-
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-      {
-        field: 'jerseys',
-        headerName: 'Jerseys',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
-        },
-      },
-      {
-        field: 'playerId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<AccountBox />}
-              to={getAdminPlayerRoute(params.value)}
-            >
-              Profile
-            </LinkButton>
-          )
-        },
       },
       {
         field: 'removeButton',
@@ -295,17 +267,19 @@ const Players = props => {
               loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to remove player from the team?'}
-              dialogDescription={
-                'The player will remain in the database. You can add him to any team later.'
+              dialogTitle={
+                'Do you really want to remove jersey from the player?'
               }
-              dialogNegativeText={'No, keep the player'}
-              dialogPositiveText={'Yes, remove player'}
+              dialogDescription={
+                'Jersey will remain in the database. You can use it anytime later.'
+              }
+              dialogNegativeText={'No, keep jersey'}
+              dialogPositiveText={'Yes, remove jersey'}
               onDialogClosePositive={() => {
-                removeTeamPlayer({
+                removeJerseyPlayer({
                   variables: {
-                    teamId,
-                    playerId: params.row.playerId,
+                    playerId,
+                    jerseyId: params.row.jerseyId,
                   },
                 })
               }}
@@ -317,59 +291,47 @@ const Players = props => {
     []
   )
 
-  const allPlayersColumns = useMemo(
+  const allJerseysColumns = useMemo(
     () => [
       {
         field: 'name',
         headerName: 'Name',
+        width: 250,
+      },
+      {
+        field: 'number',
+        headerName: 'Number',
         width: 150,
       },
       {
-        field: 'teams',
-        headerName: 'Teams',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
-        },
-      },
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-
-      {
-        field: 'playerId',
-        headerName: 'Member',
+        field: 'jerseyId',
+        headerName: 'Assignment',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPlayer
-              playerId={params.value}
-              teamId={teamId}
-              team={team}
-              merge={mergeTeamPlayer}
-              remove={removeTeamPlayer}
+            <ToggleNewJersey
+              jerseyId={params.value}
+              playerId={playerId}
+              player={player}
+              merge={mergeJerseyPlayer}
+              remove={removeJerseyPlayer}
             />
           )
         },
       },
     ],
-    [team]
+    [player]
   )
 
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="players-content"
-        id="players-header"
+        aria-controls="jerseys-content"
+        id="jerseys-header"
       >
-        <Typography className={classes.accordionFormTitle}>Players</Typography>
+        <Typography className={classes.accordionFormTitle}>Jerseys</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && !queryError && <Loader />}
@@ -386,23 +348,15 @@ const Players = props => {
                   className={classes.submit}
                   startIcon={<AddIcon />}
                 >
-                  Add Player
+                  Assign Jersey
                 </Button>
-                {/* TODO: MAKE Modal */}
-
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminPlayerRoute('new')}
-                >
-                  Create
-                </LinkButton>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={teamPlayersColumns}
-                rows={setIdFromEntityId(team.players, 'playerId')}
-                loading={queryAllPlayersLoading}
+                columns={playerJerseysColumns}
+                rows={setIdFromEntityId(player.jerseys, 'jerseyId')}
+                loading={queryAllJerseysLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -419,27 +373,25 @@ const Players = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
-        {queryAllPlayersError && !queryAllPlayersLoading && (
-          <Error message={queryAllPlayersError.message} />
+        {queryAllJerseysLoading && !queryAllJerseysError && <Loader />}
+        {queryAllJerseysError && !queryAllJerseysLoading && (
+          <Error message={queryAllJerseysError.message} />
         )}
-        {queryAllPlayersData &&
-          !queryAllPlayersLoading &&
-          !queryAllPlayersError && (
+        {queryAllJerseysData &&
+          !queryAllJerseysLoading &&
+          !queryAllJerseysError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add new player to ${
-                team && team.name
-              }`}</DialogTitle>
+              <DialogTitle id="alert-dialog-title">{`Assign new jersey to${player?.name}`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
-                    columns={allPlayersColumns}
+                    columns={allJerseysColumns}
                     rows={setIdFromEntityId(
-                      queryAllPlayersData.players,
-                      'playerId'
+                      composeJerseys(queryAllJerseysData.player[0].teams),
+                      'jerseyId'
                     )}
                     disableSelectionOnClick
-                    loading={queryAllPlayersLoading}
+                    loading={queryAllJerseysLoading}
                     components={{
                       Toolbar: GridToolbar,
                     }}
@@ -462,10 +414,13 @@ const Players = props => {
   )
 }
 
-const ToggleNewPlayer = props => {
-  const { playerId, teamId, team, remove, merge } = props
+const composeJerseys = teams =>
+  teams.reduce((acc, team) => [...acc, ...team.jerseys], [])
+
+const ToggleNewJersey = props => {
+  const { playerId, jerseyId, player, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!team.players.find(p => p.playerId === playerId)
+    !!player.jerseys.find(p => p.jerseyId === jerseyId)
   )
 
   return (
@@ -477,37 +432,37 @@ const ToggleNewPlayer = props => {
             isMember
               ? remove({
                   variables: {
-                    teamId,
                     playerId,
+                    jerseyId,
                   },
                 })
               : merge({
                   variables: {
-                    teamId,
                     playerId,
+                    jerseyId,
                   },
                 })
             setIsMember(!isMember)
           }}
-          name="teamMember"
+          name="jerseyMember"
           color="primary"
         />
       }
-      label={isMember ? 'Member' : 'Not member'}
+      label={isMember ? 'Assigned' : 'Not assigned'}
     />
   )
 }
 
-ToggleNewPlayer.propTypes = {
+ToggleNewJersey.propTypes = {
   playerId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamPlayer: PropTypes.func,
-  mergeTeamPlayer: PropTypes.func,
+  jerseyId: PropTypes.string,
+  jersey: PropTypes.object,
+  removeJerseyPlayer: PropTypes.func,
+  mergeJerseyPlayer: PropTypes.func,
 }
 
-Players.propTypes = {
-  teamId: PropTypes.string,
+Jerseys.propTypes = {
+  playerId: PropTypes.string,
 }
 
-export { Players }
+export { Jerseys }

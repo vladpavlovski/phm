@@ -38,7 +38,7 @@ type Player {
   meta: MetaPlayer @relation(name: "META_FOR", direction: IN)
   teams: [Team] @relation(name: "PLAY_IN", direction: OUT)
   positions: [Position] @relation(name: "HAS_POSITION", direction: OUT)
-  jerseys: [JerseyNo] @relation(name: "HAS_JERSEY", direction: OUT)
+  jerseys: [Jersey] @relation(name: "HAS_JERSEY", direction: OUT)
   account: Account @relation(name: "HAS_ACCOUNT", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
@@ -183,7 +183,7 @@ type Team {
   positions: [Position] @relation(name: "USE_POSITION", direction: OUT)
   associations: [Association] @relation(name: "PARTICIPATE_IN", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
-  jerseys: [JerseyNo] @relation(name: "USE_JERSEY", direction: OUT)
+  jerseys: [Jersey] @relation(name: "USE_JERSEY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   wear: Wear @relation(name: "HAS_WEAR", direction: OUT)
@@ -204,7 +204,7 @@ type Lineup {
 type TakingPartIn @relation(name: "TAKING_PART_IN") {
   from: MetaPlayer
   to: Lineup
-  jerseyNo: Int
+  jersey: Int
 }
 
 # 8. :Game
@@ -923,7 +923,7 @@ type Wear {
   seasons: [Season] @relation(name: "WEAR_FOR", direction: OUT)
 }
 
-# A pozor jsou týmy které mohou mít 3 série dresů - a samozřejmě vyvíjí se v čase, tedy nabízí se nám spíše to že JerseyNo (nebo ještě lépe vyrobíme entitu Wear (merch nebo prostě oblečení) ta bude mít vztah na Tým, Asociaci, Competition apd.. a jeden z proprieties bude Wear: JerseyNo a to bude mít vztah na Media) tím zajistíme že jich můžeme mít "nekonečně mnoho" dresů pro tým a ke každému Wear ještě dodáme vztah na "season" abychom označili v jaké sezoně jaké dresy (a jiné klubové oblečení) ten tým má / toto trochu bude pomáhat do budoucna i s e-shopem prodejem týmového oblečení (ale to do budoucna)  - viz příloha screenshot (existuje prostě 10k dresů za historii týmu)
+# A pozor jsou týmy které mohou mít 3 série dresů - a samozřejmě vyvíjí se v čase, tedy nabízí se nám spíše to že Jersey (nebo ještě lépe vyrobíme entitu Wear (merch nebo prostě oblečení) ta bude mít vztah na Tým, Asociaci, Competition apd.. a jeden z proprieties bude Wear: Jersey a to bude mít vztah na Media) tím zajistíme že jich můžeme mít "nekonečně mnoho" dresů pro tým a ke každému Wear ještě dodáme vztah na "season" abychom označili v jaké sezoně jaké dresy (a jiné klubové oblečení) ten tým má / toto trochu bude pomáhat do budoucna i s e-shopem prodejem týmového oblečení (ale to do budoucna)  - viz příloha screenshot (existuje prostě 10k dresů za historii týmu)
 
 # 60. WearItem
 type WearItem {
@@ -931,7 +931,7 @@ type WearItem {
   name: String
   type: String
   wear: Wear @relation(name: "HAS_WEAR_ITEM", direction: IN)
-  jerseyNo: JerseyNo @relation(name: "FOR_JERSEY", direction: IN)
+  jersey: Jersey @relation(name: "FOR_JERSEY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
 }
 
@@ -945,9 +945,9 @@ type Position {
   team: Team @relation(name: "USE_POSITION", direction: IN)
 }
 
-# 62. :JerseyNo
+# 62. :Jersey
 
-type JerseyNo {
+type Jersey {
   jerseyId: ID!
   number: Int
   player: Player @relation(name: "HAS_JERSEY", direction: IN)
@@ -987,13 +987,13 @@ type ResultPoint {
 # Position - má vztah na Rules - vytovříme seznam pozic kterými si pak řídí jednotlivé Competitions, Games, apd..
 # Position má pak vztah na hráče
 
-# JerseyNo - číslo hráče na dresu - to je něco co musíme mít jako ke každému týmu je dostupných 0-99 JerseyNo a tato entita buď má vztah na hráče nebo nemá pokud nemá je toto číslo hráče volné = "not_Assigned" pokud je obsazené tak je "taken_by" Player
+# Jersey - číslo hráče na dresu - to je něco co musíme mít jako ke každému týmu je dostupných 0-99 Jersey a tato entita buď má vztah na hráče nebo nemá pokud nemá je toto číslo hráče volné = "not_Assigned" pokud je obsazené tak je "taken_by" Player
 
 # Wear nebo Merch (bude možná lepší pojmenovat Merch)
 
 # - tím zajistíme možnost zakládat různé ať již dresy, nebo jiné produkty které mají vztah na Tým nebo Asociaci nebo na Organizaci, Competition a samozřejmě vztah na Media (protože se ktomu vztahuje nějaký obrázek) a vztah na Season
 
-# nahrazuje property v týmu JerseyNo Dark a JerseyLight ta bude nahrazena touto entitou a může jich být více
+# nahrazuje property v týmu Jersey Dark a JerseyLight ta bude nahrazena touto entitou a může jich být více
 
 # NOTIFICATION
 

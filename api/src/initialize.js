@@ -62,7 +62,7 @@ export const initializeDatabase = driver => {
     Wear: ["wearId"],
     WearItem: ["wearItemId"],
     Position: ["positionId"],
-    JerseyNo: ["jerseyNoId"],
+    Jersey: ["jerseyId"],
     FinalResult: ["finalResultId"],
     InjuryType: ["injuryTypeId"],
     ResultType: ["resultTypeId"],

@@ -126,7 +126,7 @@ const Positions = props => {
     variables: { playerId },
     fetchPolicy: 'cache-and-network',
   })
-  console.log(queryAllPositionsData)
+
   const [
     removePositionPlayer,
     { loading: mutationLoadingRemove },

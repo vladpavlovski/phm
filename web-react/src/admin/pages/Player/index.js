@@ -57,7 +57,7 @@ const READ_PLAYER = gql`
       weight
       # startLeagueDate
       # jerseys {
-      #   jerseyNoId
+      #   jerseyId
       #   number
       # }
       gender
@@ -66,7 +66,7 @@ const READ_PLAYER = gql`
       #   name
       #   logoUrl
       #   jerseys(orderBy: number_asc) {
-      #     jerseyNoId
+      #     jerseyId
       #     name
       #     number
       #   }
@@ -85,7 +85,7 @@ const READ_PLAYER = gql`
     #     name
     #   }
     #   jerseys(orderBy: number_asc) {
-    #     jerseyNoId
+    #     jerseyId
     #     name
     #     number
     #   }
@@ -207,7 +207,7 @@ const MERGE_PLAYER_TEAM = gql`
 //               options={team.jerseys || []}
 //               getOptionLabel={option => option.name}
 //               getOptionSelected={(option, value) =>
-//                 option.jerseyNoId === value.jerseyNoId
+//                 option.jerseyId === value.jerseyId
 //               }
 //               control={control}
 //               name="jerseys"

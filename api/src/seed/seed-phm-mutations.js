@@ -82,10 +82,10 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
-  const jerseyNosContent = fs.readFileSync(
-    __dirname + '/fake_data_phm/PHM NEW DB import - JerseyNo.csv'
+  const jerseysContent = fs.readFileSync(
+    __dirname + '/fake_data_phm/PHM NEW DB import - Jersey.csv'
   )
-  const jerseyNos = parse(jerseyNosContent, {
+  const jerseys = parse(jerseysContent, {
     columns: true,
     delimiter: ',',
   })
@@ -118,7 +118,7 @@ export const getSeedMutations = () => {
     awards,
     teams,
     positions,
-    jerseyNos,
+    jerseys,
     players,
     metaHistories,
   })
@@ -789,35 +789,35 @@ const generateMutations = records => {
   })
 
   // Jersey have to split by 2200 records max in file
-  const jerseyNos = records.jerseyNos.map(rec => {
+  const jerseys = records.jerseys.map(rec => {
     Object.keys(rec).map(k => {
-      if (k === 'jerseyNoNumber') {
+      if (k === 'jerseyNumber') {
         rec[k] = parseInt(rec[k])
       }
     })
 
     return {
       mutation: gql`
-        mutation createJerseyNos(
-          $jerseyNoId: ID!
-          $jerseyNoName: String
-          $jerseyNoNumber: Int
-          $jerseyNoTeamName: String
-          $jerseyNoTeamId: ID!
+        mutation createJerseys(
+          $jerseyId: ID!
+          $jerseyName: String
+          $jerseyNumber: Int
+          $jerseyTeamName: String
+          $jerseyTeamId: ID!
         ) {
-          jerseyNo: MergeJerseyNo(
-            jerseyNoId: $jerseyNoId
-            name: $jerseyNoName
-            number: $jerseyNoNumber
+          jersey: MergeJersey(
+            jerseyId: $jerseyId
+            name: $jerseyName
+            number: $jerseyNumber
           ) {
-            jerseyNoId
+            jerseyId
           }
-          team: MergeTeam(teamId: $jerseyNoTeamId, name: $jerseyNoTeamName) {
+          team: MergeTeam(teamId: $jerseyTeamId, name: $jerseyTeamName) {
             teamId
           }
-          jerseyNoTeam: MergeJerseyNoTeam(
-            from: { teamId: $jerseyNoTeamId }
-            to: { jerseyNoId: $jerseyNoId }
+          jerseyTeam: MergeJerseyTeam(
+            from: { teamId: $jerseyTeamId }
+            to: { jerseyId: $jerseyId }
           ) {
             from {
               teamId
@@ -856,7 +856,7 @@ const generateMutations = records => {
           $playerStick: String
           $playerHeight: String
           $playerWeight: String
-          $playerJerseyNoId: ID!
+          $playerJerseyId: ID!
           $teamName: String
           $teamId: ID!
         ) {
@@ -899,9 +899,9 @@ const generateMutations = records => {
               playerId
             }
           }
-          playerJerseyNo: MergePlayerJerseys(
+          playerJersey: MergePlayerJerseys(
             from: { playerId: $playerId }
-            to: { jerseyNoId: $playerJerseyNoId }
+            to: { jerseyId: $playerJerseyId }
           ) {
             from {
               playerId
@@ -948,7 +948,7 @@ const generateMutations = records => {
 
     return {
       mutation: gql`
-        mutation createJerseyNos(
+        mutation createJerseys(
           $metaHistoryId: ID!
           $metaRating: Float
           $metaLineups: Int
@@ -1026,7 +1026,7 @@ const generateMutations = records => {
     ...awards,
     ...teams,
     ...positions,
-    ...jerseyNos,
+    ...jerseys,
     ...players,
     ...metaHistories,
   ]
