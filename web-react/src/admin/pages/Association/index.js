@@ -4,7 +4,6 @@ import { useParams, useHistory } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
-// useWatch
 import { Helmet } from 'react-helmet'
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -27,7 +26,7 @@ import { ADMIN_ASSOCIATIONS, getAdminAssociationRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-import { Relations } from './relations/Relations'
+import { Relations } from './relations'
 
 const READ_ASSOCIATION = gql`
   query getAssociation($associationId: ID!) {
@@ -277,7 +276,7 @@ const Association = () => {
                 </Paper>
               </Grid>
             </Grid>
-            <Relations />
+            <Relations associationId={associationId} />
           </form>
         )}
     </Container>

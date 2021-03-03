@@ -7,8 +7,9 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
-
-const Relations = () => {
+import { Sponsors } from './components/Sponsors'
+const Relations = props => {
+  const { associationId } = props
   const classes = useStyles()
 
   return (
@@ -30,23 +31,8 @@ const Relations = () => {
           <Typography>Manager info</Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsor-content"
-          id="sponsor-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Sponsors
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Sponsors info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Sponsors info</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Sponsors associationId={associationId} />
+
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
