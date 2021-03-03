@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 import { Sponsors } from './components/Sponsors'
 import { Teams } from './components/Teams'
+import { Competitions } from './components/Competitions'
 
 const Relations = props => {
   const { associationId } = props
@@ -35,21 +36,8 @@ const Relations = props => {
       </Accordion>
       <Sponsors associationId={associationId} />
       <Teams associationId={associationId} />
+      <Competitions associationId={associationId} />
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="competitions-content"
-          id="competitions-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Competitions
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>competitions Table</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
