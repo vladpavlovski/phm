@@ -1,5 +1,5 @@
 import React from 'react'
-// import PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
@@ -8,6 +8,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Sponsors } from './components/Sponsors'
+import { Teams } from './components/Teams'
+
 const Relations = props => {
   const { associationId } = props
   const classes = useStyles()
@@ -32,22 +34,8 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
       <Sponsors associationId={associationId} />
+      <Teams associationId={associationId} />
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="teams-content"
-          id="teams-header"
-        >
-          <Typography className={classes.accordionFormTitle}>Teams</Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Basic info about teams
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Teams Table</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -92,6 +80,8 @@ const Relations = props => {
   )
 }
 
-Relations.propTypes = {}
+Relations.propTypes = {
+  associationId: PropTypes.string,
+}
 
 export { Relations }
