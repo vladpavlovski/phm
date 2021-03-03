@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Sponsors } from './components/Sponsors'
 import { Teams } from './components/Teams'
 import { Competitions } from './components/Competitions'
+import { RulePacks } from './components/RulePacks'
 
 const Relations = props => {
   const { associationId } = props
@@ -37,21 +38,8 @@ const Relations = props => {
       <Sponsors associationId={associationId} />
       <Teams associationId={associationId} />
       <Competitions associationId={associationId} />
+      <RulePacks associationId={associationId} />
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="rulePack-content"
-          id="rulePack-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Rule Pack
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>rulePack Table</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}

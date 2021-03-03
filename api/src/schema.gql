@@ -687,7 +687,7 @@ type Association {
   payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
   competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
+  rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
