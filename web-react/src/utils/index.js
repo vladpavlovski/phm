@@ -88,3 +88,12 @@ export const showTimeAsMinutes = (minutes = 0) => {
 
   return dayjs.utc(duration.asMilliseconds()).format('HH:mm')
 }
+
+export const decomposeDate = (date, fieldName) => ({
+  [`${fieldName}Day`]: dayjs(date).date(),
+  [`${fieldName}Month`]: dayjs(date).month() + 1,
+  [`${fieldName}Year`]: dayjs(date).year(),
+})
+
+export const formatDate = date =>
+  date === '0000-01-01' ? ' ' : dayjs(date).format('LL')

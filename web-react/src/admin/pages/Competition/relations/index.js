@@ -1,5 +1,5 @@
 import React from 'react'
-// import PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
@@ -8,6 +8,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Association } from './components/Association'
+import { Phases } from './components/Phases'
 const Relations = props => {
   const { competitionId } = props
   const classes = useStyles()
@@ -31,40 +32,7 @@ const Relations = props => {
       </Accordion>
 
       <Association competitionId={competitionId} />
-
-      {/* <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsor-content"
-          id="Association-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Association
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Association info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Association info</Typography>
-        </AccordionDetails>
-      </Accordion> */}
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsor-content"
-          id="Association-header"
-        >
-          <Typography className={classes.accordionFormTitle}>phases</Typography>
-          <Typography className={classes.accordionFormDescription}>
-            phases info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>phases info</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Phases competitionId={competitionId} />
 
       <Accordion>
         <AccordionSummary
@@ -208,6 +176,8 @@ const Relations = props => {
   )
 }
 
-Relations.propTypes = {}
+Relations.propTypes = {
+  competitionId: PropTypes.string,
+}
 
 export { Relations }

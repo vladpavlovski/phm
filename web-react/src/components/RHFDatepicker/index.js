@@ -7,17 +7,12 @@ import DatePicker from '@material-ui/lab/DatePicker'
 const RHFDatepicker = props => {
   const {
     control,
-    id,
     name,
     defaultValue,
-    label,
     variant,
     error,
     fullWidth,
-    openTo,
-    disableFuture,
-    views,
-    inputFormat,
+    ...rest
   } = props
   return (
     <Controller
@@ -25,13 +20,14 @@ const RHFDatepicker = props => {
       control={control}
       render={({ onChange, onBlur, value, name, ref }) => (
         <DatePicker
+          {...rest}
           renderInput={params => (
             <TextField
               {...params}
               fullWidth={fullWidth}
               variant={variant}
               error={!!error}
-              helperText={!!error && error.message}
+              helperText={!!error && error?.message}
             />
           )}
           inputRef={ref}
@@ -39,12 +35,6 @@ const RHFDatepicker = props => {
           onBlur={onBlur}
           value={value}
           name={name}
-          id={id}
-          disableFuture={disableFuture}
-          openTo={openTo}
-          inputFormat={inputFormat}
-          label={label}
-          views={views}
         />
       )}
       defaultValue={defaultValue ? dayjs(defaultValue) : null}
