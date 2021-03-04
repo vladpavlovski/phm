@@ -7,13 +7,15 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
+import { Teams } from './components/Teams'
 
-const Relations = () => {
-  // const { sponsorId } = props
+const Relations = props => {
+  const { sponsorId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
+      <Teams sponsorId={sponsorId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -26,20 +28,6 @@ const Relations = () => {
         </AccordionSummary>
         <AccordionDetails>
           <Typography>Achievements & Awards Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="team-staff-content"
-          id="team-staff-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Team staff
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Team staff Table</Typography>
         </AccordionDetails>
       </Accordion>
 

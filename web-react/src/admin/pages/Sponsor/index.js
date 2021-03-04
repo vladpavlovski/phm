@@ -25,7 +25,7 @@ import { ADMIN_SPONSORS, getAdminSponsorRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-import { Relations } from './relations/Relations'
+import { Relations } from './relations'
 
 const READ_SPONSOR = gql`
   query getSponsor($sponsorId: ID!) {
