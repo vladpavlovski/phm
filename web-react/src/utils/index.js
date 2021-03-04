@@ -95,5 +95,8 @@ export const decomposeDate = (date, fieldName) => ({
   [`${fieldName}Year`]: dayjs(date).year(),
 })
 
+export const decomposeNumber = value =>
+  !isNaN(parseInt(value)) && parseInt(value)
+
 export const formatDate = date =>
   date === '0000-01-01' ? ' ' : dayjs(date).format('LL')

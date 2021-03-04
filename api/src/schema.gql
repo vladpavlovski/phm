@@ -825,10 +825,10 @@ type Season {
 # :Group
 type Group {
   groupId: ID! @id
-  name: String
+  name: String!
   nick: String
   short: String
-  teamsLimit: Int
+  teamsLimit: Int!
   competition: Competition @relation(name: "DIVIDED", direction: IN)
   rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
@@ -843,7 +843,7 @@ type Group {
 }
 
 # :Phase
-
+# TODO: make rule CompetitionPhaseStatuses
 # enum phaseStatus {
 #   NOTSTARTED
 #   RUNNING
@@ -853,7 +853,7 @@ type Group {
 
 type Phase {
   phaseId: ID! @id
-  name: String
+  name: String!
   nick: String
   short: String
   startDate: Date
