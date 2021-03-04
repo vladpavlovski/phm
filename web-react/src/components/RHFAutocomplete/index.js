@@ -7,8 +7,6 @@ const RHFAutocomplete = props => {
   return (
     <Controller
       render={props => {
-        // console.log('props: ', props)
-        // console.log('restProps: ', restProps)
         return (
           <Autocomplete
             {...props}

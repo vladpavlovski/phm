@@ -7,15 +7,11 @@ import { Helmet } from 'react-helmet'
 import 'react-imported-component/macro'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  Container,
-  Grid,
-  Paper,
-  MenuItem,
-  // Chip,
-  // Avatar,
-} from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
+import MenuItem from '@material-ui/core/MenuItem'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -48,48 +44,11 @@ const READ_PLAYER = gql`
       activityStatus
       country
       city
-      # positions {
-      #   positionId
-      #   name
-      # }
       stick
       height
       weight
-      # startLeagueDate
-      # jerseys {
-      #   jerseyId
-      #   number
-      # }
       gender
-      # teams {
-      #   teamId
-      #   name
-      #   logoUrl
-      #   jerseys(orderBy: number_asc) {
-      #     jerseyId
-      #     name
-      #     number
-      #   }
-      #   positions {
-      #     positionId
-      #     name
-      #   }
-      # }
     }
-    # Team {
-    #   teamId
-    #   name
-    #   logoUrl
-    #   positions {
-    #     positionId
-    #     name
-    #   }
-    #   jerseys(orderBy: number_asc) {
-    #     jerseyId
-    #     name
-    #     number
-    #   }
-    # }
   }
 `
 

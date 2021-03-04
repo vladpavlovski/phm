@@ -26,7 +26,7 @@ import { ADMIN_COMPETITIONS, getAdminCompetitionRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-import { Relations } from './relations/Relations'
+import { Relations } from './relations'
 
 const READ_COMPETITION = gql`
   query getCompetition($competitionId: ID!) {
@@ -262,7 +262,7 @@ const Competition = () => {
                 </Paper>
               </Grid>
             </Grid>
-            <Relations />
+            <Relations competitionId={competitionId} />
           </form>
         )}
     </Container>

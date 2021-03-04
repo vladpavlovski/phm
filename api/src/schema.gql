@@ -765,9 +765,9 @@ type Competition {
   foundDate: Date
   status: String
   association: Association @relation(name: "OWNED_BY", direction: OUT)
-  rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
+  rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
-  venue: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  venues: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "DIVIDED", direction: OUT)
   groups: [Group] @relation(name: "DIVIDED", direction: OUT)
   seasons: [Season] @relation(name: "BELONGS_TO", direction: OUT)
