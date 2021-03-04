@@ -8,6 +8,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Teams } from './components/Teams'
+import { Players } from './components/Players'
 
 const Relations = props => {
   const { sponsorId } = props
@@ -16,6 +17,7 @@ const Relations = props => {
   return (
     <div className={classes.accordionWrapper}>
       <Teams sponsorId={sponsorId} />
+      <Players sponsorId={sponsorId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -34,24 +36,6 @@ const Relations = props => {
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-          aria-controls="players-content"
-          id="players-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Players
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Basic info about players
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Players Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
           aria-controls="transfers-content"
           id="transfers-header"
         >
@@ -61,21 +45,6 @@ const Relations = props => {
         </AccordionSummary>
         <AccordionDetails>
           <Typography>Transfers Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsors-content"
-          id="sponsors-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Sponsors
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>sponsors Table</Typography>
         </AccordionDetails>
       </Accordion>
 
