@@ -13,6 +13,7 @@ import { Groups } from './components/Groups'
 import { Seasons } from './components/Seasons'
 import { Venues } from './components/Venues'
 import { Sponsors } from './components/Sponsors'
+import { Teams } from './components/Teams'
 
 const Relations = props => {
   const { competitionId } = props
@@ -42,6 +43,7 @@ const Relations = props => {
       <Seasons competitionId={competitionId} />
       <Venues competitionId={competitionId} />
       <Sponsors competitionId={competitionId} />
+      <Teams competitionId={competitionId} />
 
       <Accordion>
         <AccordionSummary
@@ -61,35 +63,6 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="teams-content"
-          id="teams-header"
-        >
-          <Typography className={classes.accordionFormTitle}>Teams</Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Basic info about teams
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Teams Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="rulePack-content"
-          id="rulePack-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            metaHistories
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>metaHistories Table</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
