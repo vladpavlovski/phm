@@ -11,6 +11,7 @@ import { Association } from './components/Association'
 import { Phases } from './components/Phases'
 import { Groups } from './components/Groups'
 import { Seasons } from './components/Seasons'
+import { Venues } from './components/Venues'
 
 const Relations = props => {
   const { competitionId } = props
@@ -38,6 +39,25 @@ const Relations = props => {
       <Phases competitionId={competitionId} />
       <Groups competitionId={competitionId} />
       <Seasons competitionId={competitionId} />
+      <Venues competitionId={competitionId} />
+
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="sponsor-content"
+          id="sponsor-header"
+        >
+          <Typography className={classes.accordionFormTitle}>
+            Sponsors
+          </Typography>
+          <Typography className={classes.accordionFormDescription}>
+            Sponsors info
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>Sponsors info</Typography>
+        </AccordionDetails>
+      </Accordion>
 
       <Accordion>
         <AccordionSummary
@@ -57,39 +77,6 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
 
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="rulePack-content"
-          id="rulePack-header"
-        >
-          <Typography className={classes.accordionFormTitle}>Venue</Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Venue info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Venue info</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsor-content"
-          id="sponsor-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Sponsors
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            Sponsors info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Sponsors info</Typography>
-        </AccordionDetails>
-      </Accordion>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
