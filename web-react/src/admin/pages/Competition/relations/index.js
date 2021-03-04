@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Association } from './components/Association'
 import { Phases } from './components/Phases'
 import { Groups } from './components/Groups'
+import { Seasons } from './components/Seasons'
 
 const Relations = props => {
   const { competitionId } = props
@@ -36,24 +37,7 @@ const Relations = props => {
       <Association competitionId={competitionId} />
       <Phases competitionId={competitionId} />
       <Groups competitionId={competitionId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsor-content"
-          id="Association-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            seasons
-          </Typography>
-          <Typography className={classes.accordionFormDescription}>
-            seasons info
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>seasons info</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Seasons competitionId={competitionId} />
 
       <Accordion>
         <AccordionSummary
@@ -119,18 +103,6 @@ const Relations = props => {
         </AccordionSummary>
         <AccordionDetails>
           <Typography>Teams Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="competitions-content"
-          id="competitions-header"
-        >
-          <Typography className={classes.accordionFormTitle}>teams</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>teams Table</Typography>
         </AccordionDetails>
       </Accordion>
       <Accordion>
