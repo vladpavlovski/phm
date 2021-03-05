@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
+import { Switch, Route, Router } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 
@@ -16,6 +16,7 @@ import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import * as ROUTES from './routes'
+import { PrivateRoute } from './components/PrivateRoute'
 
 import Dashboard from './admin/pages/Dashboard/Dashboard'
 const Layout = Load(() => import('./components/Layout'))
@@ -47,102 +48,102 @@ const AdminRulePacksView = Load(() => import('./admin/pages/RulePack/view'))
 dayjs.extend(duration)
 dayjs.extend(utc)
 
-const App = () => {
+const App = ({ history }) => {
   return (
     <ThemeProvider theme={muiTheme}>
       <GlobalStyle />
       <LocalizationProvider dateAdapter={AdapterDayJs}>
         <CssBaseline />
         <ErrorBoundary>
-          <Router>
+          <Router history={history}>
             <SnackbarProvider maxSnack={5}>
               <LayoutProvider>
                 <Layout>
                   <Switch>
-                    <Route exact path="/" component={Dashboard} />
-                    <Route
+                    <PrivateRoute exact path="/" component={Dashboard} />
+                    <PrivateRoute
                       exact
                       path={ROUTES.ADMIN_DASHBOARD}
                       component={Dashboard}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_PLAYERS}
                       exact
                       component={AdminPlayersView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_PLAYER}
                       exact
                       component={AdminPlayer}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_TEAMS}
                       exact
                       component={AdminTeamsView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_TEAM}
                       exact
                       component={AdminTeam}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_ASSOCIATIONS}
                       exact
                       component={AdminAssociationsView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_ASSOCIATION}
                       exact
                       component={AdminAssociation}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_COMPETITIONS}
                       exact
                       component={AdminCompetitionsView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_COMPETITION}
                       exact
                       component={AdminCompetition}
                     />
 
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_SPONSORS}
                       exact
                       component={AdminSponsorsView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_SPONSOR}
                       exact
                       component={AdminSponsor}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_VENUES}
                       exact
                       component={AdminVenuesView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_VENUE}
                       exact
                       component={AdminVenue}
                     />
 
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_SEASONS}
                       exact
                       component={AdminSeasonsView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_SEASON}
                       exact
                       component={AdminSeason}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_RULEPACKS}
                       exact
                       component={AdminRulePacksView}
                     />
-                    <Route
+                    <PrivateRoute
                       path={ROUTES.ADMIN_RULEPACK}
                       exact
                       component={AdminRulePack}

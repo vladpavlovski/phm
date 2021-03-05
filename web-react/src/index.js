@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Bugfender } from '@bugfender/sdk'
+import { createBrowserHistory } from 'history'
 
 import App from './App'
 import registerServiceWorker from './registerServiceWorker'
@@ -23,15 +24,23 @@ if (config.environment !== 'development') {
   })
 }
 
+const history = createBrowserHistory()
+
+const onRedirectCallback = appState => {
+  // Use the router's history module to replace the url
+  history.replace(appState?.returnTo || window.location.pathname)
+}
+
 const Main = () => (
   <Auth0Provider
     domain={config.auth0Domain}
     clientId={config.auth0ClientId}
     redirectUri={window.location.origin}
     audience={config.auth0Audience}
+    onRedirectCallback={onRedirectCallback}
   >
     <AuthorizedApolloProvider>
-      <App />
+      <App history={history} />
     </AuthorizedApolloProvider>
   </Auth0Provider>
 )
