@@ -28,6 +28,10 @@ export const ADMIN_RULEPACK = '/admin/rulePack/:rulePackId'
 export const ADMIN_RULEPACKS = '/admin/rulePacks'
 export const ADMIN_AWARD = '/admin/award/:awardId'
 export const ADMIN_AWARDS = '/admin/awards'
+export const ADMIN_PHASE = '/admin/phase/:phaseId'
+export const ADMIN_PHASES = '/admin/phases'
+export const ADMIN_GROUP = '/admin/group/:groupId'
+export const ADMIN_GROUPS = '/admin/groups'
 
 // export const getArticleRoute = gameId => generatePath(ARTICLE, { gameId })
 // export const getArticleGeneratedRoute = gameId =>
@@ -58,3 +62,9 @@ export const getAdminRulePackRoute = rulePackId =>
 
 export const getAdminAwardRoute = awardId =>
   generatePath(ADMIN_AWARD, { awardId })
+
+export const getAdminPhaseRoute = phaseId =>
+  generatePath(ADMIN_PHASE, { phaseId })
+
+export const getAdminGroupRoute = groupId =>
+  generatePath(ADMIN_GROUP, { groupId })
