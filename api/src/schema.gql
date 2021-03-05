@@ -828,7 +828,7 @@ type Group {
   name: String!
   nick: String
   short: String
-  teamsLimit: Int!
+  teamsLimit: Int
   competition: Competition @relation(name: "DIVIDED", direction: IN)
   rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)

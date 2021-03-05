@@ -24,30 +24,23 @@ import Checkbox from '@material-ui/core/Checkbox'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPhaseRoute } from '../../../../../routes'
+import { getAdminGroupRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from '../../../../../utils'
+import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_PHASES = gql`
+const GET_GROUPS = gql`
   query getSponsor($sponsorId: ID) {
     sponsor: Sponsor(sponsorId: $sponsorId) {
       _id
       sponsorId
       name
-      phases {
-        phaseId
+      groups {
+        groupId
         name
         nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
         competition {
           name
         }
@@ -56,23 +49,16 @@ const GET_PHASES = gql`
   }
 `
 
-const REMOVE_SPONSOR_PHASE = gql`
-  mutation removeSponsorPhase($sponsorId: ID!, $phaseId: ID!) {
-    sponsorPhase: RemoveSponsorPhases(
-      from: { phaseId: $phaseId }
+const REMOVE_SPONSOR_GROUP = gql`
+  mutation removeSponsorGroup($sponsorId: ID!, $groupId: ID!) {
+    sponsorGroup: RemoveSponsorGroups(
+      from: { groupId: $groupId }
       to: { sponsorId: $sponsorId }
     ) {
       from {
-        phaseId
+        groupId
         name
         nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
         competition {
           name
         }
@@ -81,19 +67,12 @@ const REMOVE_SPONSOR_PHASE = gql`
   }
 `
 
-export const GET_ALL_PHASES = gql`
-  query getPhases {
-    phases: Phase {
-      phaseId
+export const GET_ALL_GROUPS = gql`
+  query getGroups {
+    groups: Group {
+      groupId
       name
       nick
-      status
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
       competition {
         name
       }
@@ -101,23 +80,18 @@ export const GET_ALL_PHASES = gql`
   }
 `
 
-const MERGE_SPONSOR_PHASE = gql`
-  mutation mergeSponsorPhase($sponsorId: ID!, $phaseId: ID!) {
-    sponsorPhase: MergeSponsorPhases(
-      from: { phaseId: $phaseId }
+const MERGE_SPONSOR_GROUP = gql`
+  mutation mergeSponsorGroup($sponsorId: ID!, $groupId: ID!) {
+    sponsorGroup: MergeSponsorGroups(
+      from: { groupId: $groupId }
       to: { sponsorId: $sponsorId }
     ) {
       from {
-        phaseId
+        groupId
         name
         nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
+        short
+        teamsLimit
         competition {
           name
         }
@@ -126,60 +100,60 @@ const MERGE_SPONSOR_PHASE = gql`
   }
 `
 
-const Phases = props => {
+const Groups = props => {
   const { sponsorId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const [openAddPhase, setOpenAddPhase] = useState(false)
+  const [openAddGroup, setOpenAddGroup] = useState(false)
 
-  const handleCloseAddPhase = useCallback(() => {
-    setOpenAddPhase(false)
+  const handleCloseAddGroup = useCallback(() => {
+    setOpenAddGroup(false)
   }, [])
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PHASES, {
+  ] = useLazyQuery(GET_GROUPS, {
     fetchPolicy: 'cache-and-network',
   })
 
   const sponsor = queryData && queryData.sponsor && queryData.sponsor[0]
 
   const [
-    getAllPhases,
+    getAllGroups,
     {
-      loading: queryAllPhasesLoading,
-      error: queryAllPhasesError,
-      data: queryAllPhasesData,
+      loading: queryAllGroupsLoading,
+      error: queryAllGroupsError,
+      data: queryAllGroupsData,
     },
-  ] = useLazyQuery(GET_ALL_PHASES, {
+  ] = useLazyQuery(GET_ALL_GROUPS, {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeSponsorPhase, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_SPONSOR_PHASE,
+  const [removeSponsorGroup, { loading: mutationLoadingRemove }] = useMutation(
+    REMOVE_SPONSOR_GROUP,
     {
-      update(cache, { data: { sponsorPhase } }) {
+      update(cache, { data: { sponsorGroup } }) {
         try {
           const queryResult = cache.readQuery({
-            query: GET_PHASES,
+            query: GET_GROUPS,
             variables: {
               sponsorId,
             },
           })
-          const updatedPhases = queryResult.sponsor[0].phases.filter(
-            p => p.phaseId !== sponsorPhase.from.phaseId
+          const updatedGroups = queryResult.sponsor[0].groups.filter(
+            p => p.groupId !== sponsorGroup.from.groupId
           )
 
           const updatedResult = {
             sponsor: [
               {
                 ...queryResult.sponsor[0],
-                phases: updatedPhases,
+                groups: updatedGroups,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_PHASES,
+            query: GET_GROUPS,
             data: updatedResult,
             variables: {
               sponsorId,
@@ -191,7 +165,7 @@ const Phases = props => {
       },
       onCompleted: data => {
         enqueueSnackbar(
-          `${data.sponsorPhase.from.name} not sponsored by ${sponsor.name}!`,
+          `${data.sponsorGroup.from.name} not sponsored by ${sponsor.name}!`,
           {
             variant: 'info',
           }
@@ -206,27 +180,27 @@ const Phases = props => {
     }
   )
 
-  const [mergeSponsorPhase] = useMutation(MERGE_SPONSOR_PHASE, {
-    update(cache, { data: { sponsorPhase } }) {
+  const [mergeSponsorGroup] = useMutation(MERGE_SPONSOR_GROUP, {
+    update(cache, { data: { sponsorGroup } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_PHASES,
+          query: GET_GROUPS,
           variables: {
             sponsorId,
           },
         })
-        const existingPhases = queryResult.sponsor[0].phases
-        const newPhase = sponsorPhase.from
+        const existingGroups = queryResult.sponsor[0].groups
+        const newGroup = sponsorGroup.from
         const updatedResult = {
           sponsor: [
             {
               ...queryResult.sponsor[0],
-              phases: [newPhase, ...existingPhases],
+              groups: [newGroup, ...existingGroups],
             },
           ],
         }
         cache.writeQuery({
-          query: GET_PHASES,
+          query: GET_GROUPS,
           data: updatedResult,
           variables: {
             sponsorId,
@@ -238,7 +212,7 @@ const Phases = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.sponsorPhase.from.name} sponsored by ${sponsor.name}!`,
+        `${data.sponsorGroup.from.name} sponsored by ${sponsor.name}!`,
         {
           variant: 'success',
         }
@@ -258,14 +232,14 @@ const Phases = props => {
     }
   }, [])
 
-  const handleOpenAddPhase = useCallback(() => {
-    if (!queryAllPhasesData) {
-      getAllPhases()
+  const handleOpenAddGroup = useCallback(() => {
+    if (!queryAllGroupsData) {
+      getAllGroups()
     }
-    setOpenAddPhase(true)
+    setOpenAddGroup(true)
   }, [])
 
-  const sponsorPhasesColumns = useMemo(
+  const sponsorGroupsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -278,6 +252,7 @@ const Phases = props => {
         headerName: 'Nick',
         width: 150,
       },
+
       {
         field: 'competition',
         headerName: 'Competition',
@@ -286,27 +261,7 @@ const Phases = props => {
       },
 
       {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate.formatted,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate.formatted,
-        valueFormatter: params => formatDate(params.value),
-      },
-
-      {
-        field: 'phaseId',
+        field: 'groupId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -314,7 +269,7 @@ const Phases = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminPhaseRoute(params.value)}
+              to={getAdminGroupRoute(params.value)}
             >
               Profile
             </LinkButton>
@@ -335,16 +290,16 @@ const Phases = props => {
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach phase from the sponsor?'
+                'Do you really want to detach group from the sponsor?'
               }
               dialogNick={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep phase'}
-              dialogPositiveText={'Yes, detach phase'}
+              dialogNegativeText={'No, keep group'}
+              dialogPositiveText={'Yes, detach group'}
               onDialogClosePositive={() => {
-                removeSponsorPhase({
+                removeSponsorGroup({
                   variables: {
                     sponsorId,
-                    phaseId: params.row.phaseId,
+                    groupId: params.row.groupId,
                   },
                 })
               }}
@@ -356,7 +311,7 @@ const Phases = props => {
     []
   )
 
-  const allPhasesColumns = useMemo(
+  const allGroupsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -377,38 +332,18 @@ const Phases = props => {
       },
 
       {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate.formatted,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate.formatted,
-        valueFormatter: params => formatDate(params.value),
-      },
-
-      {
-        field: 'phaseId',
+        field: 'groupId',
         headerName: 'Sponsor',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPhase
-              phaseId={params.value}
+            <ToggleNewGroup
+              groupId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
-              merge={mergeSponsorPhase}
-              remove={removeSponsorPhase}
+              merge={mergeSponsorGroup}
+              remove={removeSponsorGroup}
             />
           )
         },
@@ -421,10 +356,10 @@ const Phases = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="phases-content"
-        id="phases-header"
+        aria-controls="groups-content"
+        id="groups-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && !queryError && <Loader />}
@@ -435,21 +370,21 @@ const Phases = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenAddPhase}
+                  onClick={handleOpenAddGroup}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<AddIcon />}
                 >
-                  Add Phase
+                  Add Group
                 </Button>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={sponsorPhasesColumns}
-                rows={setIdFromEntityId(sponsor.phases, 'phaseId')}
-                loading={queryAllPhasesLoading}
+                columns={sponsorGroupsColumns}
+                rows={setIdFromEntityId(sponsor.groups, 'groupId')}
+                loading={queryAllGroupsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -461,27 +396,27 @@ const Phases = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddPhase}
-        onClose={handleCloseAddPhase}
+        open={openAddGroup}
+        onClose={handleCloseAddGroup}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-nick"
       >
-        {queryAllPhasesLoading && !queryAllPhasesError && <Loader />}
-        {queryAllPhasesError && !queryAllPhasesLoading && (
-          <Error message={queryAllPhasesError.message} />
+        {queryAllGroupsLoading && !queryAllGroupsError && <Loader />}
+        {queryAllGroupsError && !queryAllGroupsLoading && (
+          <Error message={queryAllGroupsError.message} />
         )}
-        {queryAllPhasesData && !queryAllPhasesLoading && !queryAllPhasesError && (
+        {queryAllGroupsData && !queryAllGroupsLoading && !queryAllGroupsError && (
           <>
-            <DialogTitle id="alert-dialog-title">{`Add phase to ${
+            <DialogTitle id="alert-dialog-title">{`Add group to ${
               sponsor && sponsor.name
             }`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <XGrid
-                  columns={allPhasesColumns}
-                  rows={setIdFromEntityId(queryAllPhasesData.phases, 'phaseId')}
+                  columns={allGroupsColumns}
+                  rows={setIdFromEntityId(queryAllGroupsData.groups, 'groupId')}
                   disableSelectionOnClick
-                  loading={queryAllPhasesLoading}
+                  loading={queryAllGroupsLoading}
                   components={{
                     Toolbar: GridToolbar,
                   }}
@@ -493,7 +428,7 @@ const Phases = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddPhase()
+              handleCloseAddGroup()
             }}
           >
             {'Done'}
@@ -504,10 +439,10 @@ const Phases = props => {
   )
 }
 
-const ToggleNewPhase = props => {
-  const { phaseId, sponsorId, sponsor, remove, merge } = props
+const ToggleNewGroup = props => {
+  const { groupId, sponsorId, sponsor, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!sponsor.phases.find(p => p.phaseId === phaseId)
+    !!sponsor.groups.find(p => p.groupId === groupId)
   )
 
   return (
@@ -520,13 +455,13 @@ const ToggleNewPhase = props => {
               ? remove({
                   variables: {
                     sponsorId,
-                    phaseId,
+                    groupId,
                   },
                 })
               : merge({
                   variables: {
                     sponsorId,
-                    phaseId,
+                    groupId,
                   },
                 })
             setIsMember(!isMember)
@@ -540,16 +475,16 @@ const ToggleNewPhase = props => {
   )
 }
 
-ToggleNewPhase.propTypes = {
-  phaseId: PropTypes.string,
+ToggleNewGroup.propTypes = {
+  groupId: PropTypes.string,
   sponsorId: PropTypes.string,
   sponsor: PropTypes.object,
-  removeSponsorPhase: PropTypes.func,
-  mergeSponsorPhase: PropTypes.func,
+  removeSponsorGroup: PropTypes.func,
+  mergeSponsorGroup: PropTypes.func,
 }
 
-Phases.propTypes = {
+Groups.propTypes = {
   sponsorId: PropTypes.string,
 }
 
-export { Phases }
+export { Groups }
