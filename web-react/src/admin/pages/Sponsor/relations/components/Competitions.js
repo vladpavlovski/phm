@@ -24,169 +24,123 @@ import Checkbox from '@material-ui/core/Checkbox'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminAwardRoute } from '../../../../../routes'
+import { getAdminCompetitionRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_AWARDS = gql`
+const GET_COMPETITIONS = gql`
   query getSponsor($sponsorId: ID) {
     sponsor: Sponsor(sponsorId: $sponsorId) {
       _id
       sponsorId
       name
-      awards {
-        awardId
+      competitions {
+        competitionId
         name
-        description
+        nick
       }
     }
   }
 `
 
-const REMOVE_SPONSOR_AWARD = gql`
-  mutation removeSponsorAward($sponsorId: ID!, $awardId: ID!) {
-    sponsorAward: RemoveSponsorAwards(
-      from: { awardId: $awardId }
+const REMOVE_SPONSOR_COMPETITION = gql`
+  mutation removeSponsorCompetition($sponsorId: ID!, $competitionId: ID!) {
+    sponsorCompetition: RemoveSponsorCompetitions(
+      from: { competitionId: $competitionId }
       to: { sponsorId: $sponsorId }
     ) {
       from {
-        awardId
+        competitionId
         name
-        description
+        nick
       }
     }
   }
 `
 
-export const GET_ALL_AWARDS = gql`
-  query getAwards {
-    awards: Award {
-      awardId
+export const GET_ALL_COMPETITIONS = gql`
+  query getCompetitions {
+    competitions: Competition {
+      competitionId
       name
-      description
+      nick
     }
   }
 `
 
-const MERGE_SPONSOR_AWARD = gql`
-  mutation mergeSponsorAward($sponsorId: ID!, $awardId: ID!) {
-    sponsorAward: MergeSponsorAwards(
-      from: { awardId: $awardId }
+const MERGE_SPONSOR_COMPETITION = gql`
+  mutation mergeSponsorCompetition($sponsorId: ID!, $competitionId: ID!) {
+    sponsorCompetition: MergeSponsorCompetitions(
+      from: { competitionId: $competitionId }
       to: { sponsorId: $sponsorId }
     ) {
       from {
-        awardId
+        competitionId
         name
-        description
+        nick
       }
     }
   }
 `
 
-const Awards = props => {
+const Competitions = props => {
   const { sponsorId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const [openAddAward, setOpenAddAward] = useState(false)
+  const [openAddCompetition, setOpenAddCompetition] = useState(false)
 
-  const handleCloseAddAward = useCallback(() => {
-    setOpenAddAward(false)
+  const handleCloseAddCompetition = useCallback(() => {
+    setOpenAddCompetition(false)
   }, [])
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_AWARDS, {
+  ] = useLazyQuery(GET_COMPETITIONS, {
     fetchPolicy: 'cache-and-network',
   })
 
   const sponsor = queryData && queryData.sponsor && queryData.sponsor[0]
 
   const [
-    getAllAwards,
+    getAllCompetitions,
     {
-      loading: queryAllAwardsLoading,
-      error: queryAllAwardsError,
-      data: queryAllAwardsData,
+      loading: queryAllCompetitionsLoading,
+      error: queryAllCompetitionsError,
+      data: queryAllCompetitionsData,
     },
-  ] = useLazyQuery(GET_ALL_AWARDS, {
+  ] = useLazyQuery(GET_ALL_COMPETITIONS, {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeSponsorAward, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_SPONSOR_AWARD,
-    {
-      update(cache, { data: { sponsorAward } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_AWARDS,
-            variables: {
-              sponsorId,
-            },
-          })
-          const updatedAwards = queryResult.sponsor[0].awards.filter(
-            p => p.awardId !== sponsorAward.from.awardId
-          )
-
-          const updatedResult = {
-            sponsor: [
-              {
-                ...queryResult.sponsor[0],
-                awards: updatedAwards,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_AWARDS,
-            data: updatedResult,
-            variables: {
-              sponsorId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.sponsorAward.from.name} not sponsored by ${sponsor.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeSponsorAward] = useMutation(MERGE_SPONSOR_AWARD, {
-    update(cache, { data: { sponsorAward } }) {
+  const [
+    removeSponsorCompetition,
+    { loading: mutationLoadingRemove },
+  ] = useMutation(REMOVE_SPONSOR_COMPETITION, {
+    update(cache, { data: { sponsorCompetition } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_AWARDS,
+          query: GET_COMPETITIONS,
           variables: {
             sponsorId,
           },
         })
-        const existingAwards = queryResult.sponsor[0].awards
-        const newAward = sponsorAward.from
+        const updatedCompetitions = queryResult.sponsor[0].competitions.filter(
+          p => p.competitionId !== sponsorCompetition.from.competitionId
+        )
+
         const updatedResult = {
           sponsor: [
             {
               ...queryResult.sponsor[0],
-              awards: [newAward, ...existingAwards],
+              competitions: updatedCompetitions,
             },
           ],
         }
         cache.writeQuery({
-          query: GET_AWARDS,
+          query: GET_COMPETITIONS,
           data: updatedResult,
           variables: {
             sponsorId,
@@ -198,7 +152,53 @@ const Awards = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.sponsorAward.from.name} sponsored by ${sponsor.name}!`,
+        `${data.sponsorCompetition.from.name} not sponsored by ${sponsor.name}!`,
+        {
+          variant: 'info',
+        }
+      )
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const [mergeSponsorCompetition] = useMutation(MERGE_SPONSOR_COMPETITION, {
+    update(cache, { data: { sponsorCompetition } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_COMPETITIONS,
+          variables: {
+            sponsorId,
+          },
+        })
+        const existingCompetitions = queryResult.sponsor[0].competitions
+        const newCompetition = sponsorCompetition.from
+        const updatedResult = {
+          sponsor: [
+            {
+              ...queryResult.sponsor[0],
+              competitions: [newCompetition, ...existingCompetitions],
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_COMPETITIONS,
+          data: updatedResult,
+          variables: {
+            sponsorId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: data => {
+      enqueueSnackbar(
+        `${data.sponsorCompetition.from.name} sponsored by ${sponsor.name}!`,
         {
           variant: 'success',
         }
@@ -218,14 +218,14 @@ const Awards = props => {
     }
   }, [])
 
-  const handleOpenAddAward = useCallback(() => {
-    if (!queryAllAwardsData) {
-      getAllAwards()
+  const handleOpenAddCompetition = useCallback(() => {
+    if (!queryAllCompetitionsData) {
+      getAllCompetitions()
     }
-    setOpenAddAward(true)
+    setOpenAddCompetition(true)
   }, [])
 
-  const sponsorAwardsColumns = useMemo(
+  const sponsorCompetitionsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -234,13 +234,13 @@ const Awards = props => {
       },
 
       {
-        field: 'description',
-        headerName: 'Description',
+        field: 'nick',
+        headerName: 'Nick',
         width: 300,
       },
 
       {
-        field: 'awardId',
+        field: 'competitionId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -248,7 +248,7 @@ const Awards = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminAwardRoute(params.value)}
+              to={getAdminCompetitionRoute(params.value)}
             >
               Profile
             </LinkButton>
@@ -269,16 +269,16 @@ const Awards = props => {
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach award from the sponsor?'
+                'Do you really want to detach competition from the sponsor?'
               }
-              dialogDescription={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep award'}
-              dialogPositiveText={'Yes, detach award'}
+              dialogNick={'You can add him to sponsor later.'}
+              dialogNegativeText={'No, keep competition'}
+              dialogPositiveText={'Yes, detach competition'}
               onDialogClosePositive={() => {
-                removeSponsorAward({
+                removeSponsorCompetition({
                   variables: {
                     sponsorId,
-                    awardId: params.row.awardId,
+                    competitionId: params.row.competitionId,
                   },
                 })
               }}
@@ -290,7 +290,7 @@ const Awards = props => {
     []
   )
 
-  const allAwardsColumns = useMemo(
+  const allCompetitionsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -298,24 +298,24 @@ const Awards = props => {
         width: 150,
       },
       {
-        field: 'description',
-        headerName: 'Description',
+        field: 'nick',
+        headerName: 'Nick',
         width: 300,
       },
 
       {
-        field: 'awardId',
+        field: 'competitionId',
         headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewAward
-              awardId={params.value}
+            <ToggleNewCompetition
+              competitionId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
-              merge={mergeSponsorAward}
-              remove={removeSponsorAward}
+              merge={mergeSponsorCompetition}
+              remove={removeSponsorCompetition}
             />
           )
         },
@@ -328,10 +328,12 @@ const Awards = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="awards-content"
-        id="awards-header"
+        aria-controls="competitions-content"
+        id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>Awards</Typography>
+        <Typography className={classes.accordionFormTitle}>
+          Competitions
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && !queryError && <Loader />}
@@ -342,21 +344,21 @@ const Awards = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenAddAward}
+                  onClick={handleOpenAddCompetition}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<AddIcon />}
                 >
-                  Add Award
+                  Add Competition
                 </Button>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={sponsorAwardsColumns}
-                rows={setIdFromEntityId(sponsor.awards, 'awardId')}
-                loading={queryAllAwardsLoading}
+                columns={sponsorCompetitionsColumns}
+                rows={setIdFromEntityId(sponsor.competitions, 'competitionId')}
+                loading={queryAllCompetitionsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -368,39 +370,46 @@ const Awards = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddAward}
-        onClose={handleCloseAddAward}
+        open={openAddCompetition}
+        onClose={handleCloseAddCompetition}
         aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        aria-describedby="alert-dialog-nick"
       >
-        {queryAllAwardsLoading && !queryAllAwardsError && <Loader />}
-        {queryAllAwardsError && !queryAllAwardsLoading && (
-          <Error message={queryAllAwardsError.message} />
+        {queryAllCompetitionsLoading && !queryAllCompetitionsError && (
+          <Loader />
         )}
-        {queryAllAwardsData && !queryAllAwardsLoading && !queryAllAwardsError && (
-          <>
-            <DialogTitle id="alert-dialog-title">{`Add award to ${
-              sponsor && sponsor.name
-            }`}</DialogTitle>
-            <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <XGrid
-                  columns={allAwardsColumns}
-                  rows={setIdFromEntityId(queryAllAwardsData.awards, 'awardId')}
-                  disableSelectionOnClick
-                  loading={queryAllAwardsLoading}
-                  components={{
-                    Toolbar: GridToolbar,
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </>
+        {queryAllCompetitionsError && !queryAllCompetitionsLoading && (
+          <Error message={queryAllCompetitionsError.message} />
         )}
+        {queryAllCompetitionsData &&
+          !queryAllCompetitionsLoading &&
+          !queryAllCompetitionsError && (
+            <>
+              <DialogTitle id="alert-dialog-title">{`Add competition to ${
+                sponsor && sponsor.name
+              }`}</DialogTitle>
+              <DialogContent>
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <XGrid
+                    columns={allCompetitionsColumns}
+                    rows={setIdFromEntityId(
+                      queryAllCompetitionsData.competitions,
+                      'competitionId'
+                    )}
+                    disableSelectionOnClick
+                    loading={queryAllCompetitionsLoading}
+                    components={{
+                      Toolbar: GridToolbar,
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </>
+          )}
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddAward()
+              handleCloseAddCompetition()
             }}
           >
             {'Done'}
@@ -411,10 +420,10 @@ const Awards = props => {
   )
 }
 
-const ToggleNewAward = props => {
-  const { awardId, sponsorId, sponsor, remove, merge } = props
+const ToggleNewCompetition = props => {
+  const { competitionId, sponsorId, sponsor, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!sponsor.awards.find(p => p.awardId === awardId)
+    !!sponsor.competitions.find(p => p.competitionId === competitionId)
   )
 
   return (
@@ -427,13 +436,13 @@ const ToggleNewAward = props => {
               ? remove({
                   variables: {
                     sponsorId,
-                    awardId,
+                    competitionId,
                   },
                 })
               : merge({
                   variables: {
                     sponsorId,
-                    awardId,
+                    competitionId,
                   },
                 })
             setIsMember(!isMember)
@@ -447,16 +456,16 @@ const ToggleNewAward = props => {
   )
 }
 
-ToggleNewAward.propTypes = {
-  awardId: PropTypes.string,
+ToggleNewCompetition.propTypes = {
+  competitionId: PropTypes.string,
   sponsorId: PropTypes.string,
   sponsor: PropTypes.object,
-  removeSponsorAward: PropTypes.func,
-  mergeSponsorAward: PropTypes.func,
+  removeSponsorCompetition: PropTypes.func,
+  mergeSponsorCompetition: PropTypes.func,
 }
 
-Awards.propTypes = {
+Competitions.propTypes = {
   sponsorId: PropTypes.string,
 }
 
-export { Awards }
+export { Competitions }

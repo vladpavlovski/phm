@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Teams } from './components/Teams'
 import { Players } from './components/Players'
 import { Awards } from './components/Awards'
+import { Competitions } from './components/Competitions'
 
 const Relations = props => {
   const { sponsorId } = props
@@ -20,6 +21,7 @@ const Relations = props => {
       <Teams sponsorId={sponsorId} />
       <Players sponsorId={sponsorId} />
       <Awards sponsorId={sponsorId} />
+      <Competitions sponsorId={sponsorId} />
 
       <Accordion>
         <AccordionSummary
@@ -31,21 +33,6 @@ const Relations = props => {
         </AccordionSummary>
         <AccordionDetails>
           <Typography>staff Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="wear-content"
-          id="wear-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Competition
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Competition Table</Typography>
         </AccordionDetails>
       </Accordion>
 
