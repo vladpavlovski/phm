@@ -26,6 +26,8 @@ export const ADMIN_VENUES = '/admin/venues'
 export const ADMIN_VENUE = '/admin/venue/:venueId'
 export const ADMIN_RULEPACK = '/admin/rulePack/:rulePackId'
 export const ADMIN_RULEPACKS = '/admin/rulePacks'
+export const ADMIN_AWARD = '/admin/award/:awardId'
+export const ADMIN_AWARDS = '/admin/awards'
 
 // export const getArticleRoute = gameId => generatePath(ARTICLE, { gameId })
 // export const getArticleGeneratedRoute = gameId =>
@@ -53,3 +55,6 @@ export const getAdminVenueRoute = venueId =>
 
 export const getAdminRulePackRoute = rulePackId =>
   generatePath(ADMIN_RULEPACK, { rulePackId })
+
+export const getAdminAwardRoute = awardId =>
+  generatePath(ADMIN_AWARD, { awardId })

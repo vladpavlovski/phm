@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 import { Teams } from './components/Teams'
 import { Players } from './components/Players'
+import { Awards } from './components/Awards'
 
 const Relations = props => {
   const { sponsorId } = props
@@ -18,20 +19,7 @@ const Relations = props => {
     <div className={classes.accordionWrapper}>
       <Teams sponsorId={sponsorId} />
       <Players sponsorId={sponsorId} />
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="achievements-awards-content"
-          id="achievements-awards-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Achievements &amp; Awards
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Achievements & Awards Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Awards sponsorId={sponsorId} />
 
       <Accordion>
         <AccordionSummary
@@ -39,12 +27,10 @@ const Relations = props => {
           aria-controls="transfers-content"
           id="transfers-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Transfers
-          </Typography>
+          <Typography className={classes.accordionFormTitle}>staff</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>Transfers Table</Typography>
+          <Typography>staff Table</Typography>
         </AccordionDetails>
       </Accordion>
 
@@ -54,12 +40,41 @@ const Relations = props => {
           aria-controls="wear-content"
           id="wear-header"
         >
-          <Typography className={classes.accordionFormTitle}>Wear</Typography>
+          <Typography className={classes.accordionFormTitle}>
+            Competition
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>wear Table</Typography>
+          <Typography>Competition Table</Typography>
         </AccordionDetails>
       </Accordion>
+
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="media-content"
+          id="media-header"
+        >
+          <Typography className={classes.accordionFormTitle}>Phase</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>Phase Table</Typography>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="media-content"
+          id="media-header"
+        >
+          <Typography className={classes.accordionFormTitle}>Group</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>Group Table</Typography>
+        </AccordionDetails>
+      </Accordion>
+
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
