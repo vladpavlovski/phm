@@ -10,7 +10,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import AccountBox from '@material-ui/icons/AccountBox'
 import AddIcon from '@material-ui/icons/Add'
-import CreateIcon from '@material-ui/icons/Create'
+
 import Toolbar from '@material-ui/core/Toolbar'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
@@ -357,13 +357,6 @@ const Awards = props => {
                 >
                   Add Award
                 </Button>
-
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminAwardRoute('new')}
-                >
-                  Create
-                </LinkButton>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
