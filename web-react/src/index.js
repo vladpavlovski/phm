@@ -38,6 +38,7 @@ const Main = () => (
     redirectUri={window.location.origin}
     audience={config.auth0Audience}
     onRedirectCallback={onRedirectCallback}
+    useRefreshTokens={true}
   >
     <AuthorizedApolloProvider>
       <App history={history} />
