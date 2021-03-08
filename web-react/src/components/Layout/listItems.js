@@ -1,13 +1,13 @@
-import React, { useState, useMemo, forwardRef } from 'react'
+import React, { useMemo, forwardRef } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as ROUTES from '../../routes'
+import createPersistedState from 'use-persisted-state'
 
 import {
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  // ListSubheader,
   Divider,
 } from '@material-ui/core'
 
@@ -15,14 +15,9 @@ import Collapse from '@material-ui/core/Collapse'
 import ExpandLess from '@material-ui/icons/ExpandLess'
 import ExpandMore from '@material-ui/icons/ExpandMore'
 
-import {
-  Dashboard,
-  Mood,
-  Group,
-  SportsHockey,
-  // , GridOn, , , DoneAll
-} from '@material-ui/icons'
-// import { useStyles } from './styled'
+import { Dashboard, Mood, Group, SportsHockey } from '@material-ui/icons'
+
+const useGeneralMenuState = createPersistedState('generalMenu')
 
 const ListItemLink = props => {
   const { icon, primary, to, className } = props
@@ -44,7 +39,7 @@ const ListItemLink = props => {
 }
 
 const MainListItems = () => {
-  const [generalOpen, setGeneralOpen] = useState(false)
+  const [generalOpen, setGeneralOpen] = useGeneralMenuState(false)
 
   return (
     <>

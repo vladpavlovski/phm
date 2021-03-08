@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useContext } from 'react'
 import clsx from 'clsx'
 import { useAuth0 } from '@auth0/auth0-react'
 import {
@@ -10,23 +10,26 @@ import {
   IconButton,
   Box,
 } from '@material-ui/core'
+import createPersistedState from 'use-persisted-state'
 
-import LayoutContext from '../../context/layout'
 import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 
+import LayoutContext from '../../context/layout'
+import { Copyright } from '../../components/Copyright'
+import { useStyles } from './styled'
 import { MainListItems } from './listItems'
 
-import { Copyright } from '../../components/Copyright'
-
-import { useStyles } from './styled'
+const useLayoutSidebarState = createPersistedState('layoutSidebar')
 
 const Layout = props => {
   const { children } = props
   const classes = useStyles()
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useLayoutSidebarState(true)
   const { barTitle } = useContext(LayoutContext)
   const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0()
+
   return (
     <div className={classes.root}>
       <AppBar
@@ -90,10 +93,10 @@ const Layout = props => {
           </Typography>
           <IconButton
             onClick={() => {
-              setOpen(false)
+              setOpen(state => !state)
             }}
           >
-            <ChevronLeftIcon />
+            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </div>
         <Divider />
