@@ -9,6 +9,6 @@
   "dependencies": {
     "apollo-server-lambda": "^2.14.2",
     "neo4j-graphql-js": "^2.14.2",
-    "neo4j-driver": "^4.0.2"
+    "neo4j-driver": "^4.2.2"
   }
 }
