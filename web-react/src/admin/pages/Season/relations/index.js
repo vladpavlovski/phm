@@ -10,6 +10,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Competitions } from './components/Competitions'
 import { Teams } from './components/Teams'
 import { Phases } from './components/Phases'
+import { Groups } from './components/Groups'
 
 const Relations = props => {
   const { seasonId } = props
@@ -20,19 +21,7 @@ const Relations = props => {
       <Competitions seasonId={seasonId} />
       <Teams seasonId={seasonId} />
       <Phases seasonId={seasonId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="transfers-content"
-          id="transfers-header"
-        >
-          <Typography className={classes.accordionFormTitle}>groups</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>groups Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Groups seasonId={seasonId} />
 
       <Accordion>
         <AccordionSummary
