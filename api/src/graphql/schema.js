@@ -7,7 +7,7 @@ const {
 
 // Load type definitions
 // all:true = merge types with the same name
-const typeDefsFiles = path.join(__dirname, './types/*.gql')
+const typeDefsFiles = path.join(__dirname, './types/*.graphql')
 const typeDefs = mergeTypes(fileLoader(typeDefsFiles), { all: true })
 
 // Load resolvers

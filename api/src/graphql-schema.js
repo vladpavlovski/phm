@@ -9,6 +9,6 @@ import path from 'path'
 
 export const typeDefs = fs
   .readFileSync(
-    process.env.GRAPHQL_SCHEMA || path.join(__dirname, './schema.gql')
+    process.env.GRAPHQL_SCHEMA || path.join(__dirname, './schema.graphql')
   )
   .toString('utf-8')
