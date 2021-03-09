@@ -11,6 +11,7 @@ import { Competitions } from './components/Competitions'
 import { Teams } from './components/Teams'
 import { Phases } from './components/Phases'
 import { Groups } from './components/Groups'
+import { Venues } from './components/Venues'
 
 const Relations = props => {
   const { seasonId } = props
@@ -22,19 +23,7 @@ const Relations = props => {
       <Teams seasonId={seasonId} />
       <Phases seasonId={seasonId} />
       <Groups seasonId={seasonId} />
-
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="sponsors-content"
-          id="sponsors-header"
-        >
-          <Typography className={classes.accordionFormTitle}>venues</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>venues</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Venues seasonId={seasonId} />
 
       <Accordion>
         <AccordionSummary
