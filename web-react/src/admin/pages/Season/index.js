@@ -27,7 +27,7 @@ import { ADMIN_SEASONS, getAdminSeasonRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-import { Relations } from './relations/Relations'
+import { Relations } from './relations'
 
 const READ_SEASON = gql`
   query getSeason($seasonId: ID!) {

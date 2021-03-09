@@ -7,39 +7,26 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
+import { Competitions } from './components/Competitions'
 
-const Relations = () => {
-  // const { seasonId } = props
+const Relations = props => {
+  const { seasonId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="achievements-awards-content"
-          id="achievements-awards-header"
-        >
-          <Typography className={classes.accordionFormTitle}>
-            Achievements &amp; Awards
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Achievements & Awards Table</Typography>
-        </AccordionDetails>
-      </Accordion>
+      <Competitions seasonId={seasonId} />
+
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="team-staff-content"
           id="team-staff-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Team staff
-          </Typography>
+          <Typography className={classes.accordionFormTitle}>Teams</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>Team staff Table</Typography>
+          <Typography>Teams Table</Typography>
         </AccordionDetails>
       </Accordion>
 
@@ -49,11 +36,9 @@ const Relations = () => {
           aria-controls="players-content"
           id="players-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Players
-          </Typography>
+          <Typography className={classes.accordionFormTitle}>phases</Typography>
           <Typography className={classes.accordionFormDescription}>
-            Basic info about players
+            phases info
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -67,12 +52,10 @@ const Relations = () => {
           aria-controls="transfers-content"
           id="transfers-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Transfers
-          </Typography>
+          <Typography className={classes.accordionFormTitle}>groups</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>Transfers Table</Typography>
+          <Typography>groups Table</Typography>
         </AccordionDetails>
       </Accordion>
 
@@ -82,12 +65,10 @@ const Relations = () => {
           aria-controls="sponsors-content"
           id="sponsors-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Sponsors
-          </Typography>
+          <Typography className={classes.accordionFormTitle}>venues</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>sponsors Table</Typography>
+          <Typography>venues</Typography>
         </AccordionDetails>
       </Accordion>
 
@@ -97,22 +78,10 @@ const Relations = () => {
           aria-controls="wear-content"
           id="wear-header"
         >
-          <Typography className={classes.accordionFormTitle}>Wear</Typography>
+          <Typography className={classes.accordionFormTitle}>Award</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>wear Table</Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="media-content"
-          id="media-header"
-        >
-          <Typography className={classes.accordionFormTitle}>Media</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>media Table</Typography>
+          <Typography>Award Table</Typography>
         </AccordionDetails>
       </Accordion>
     </div>

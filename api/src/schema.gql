@@ -814,7 +814,7 @@ type Season {
   endDate: Date
   competitions: [Competition] @relation(name: "BELONGS_TO", direction: IN)
   teamWears: [Wear] @relation(name: "WEAR_FOR", direction: IN)
-  venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
+  venues: [Venue] @relation(name: "TAKES_PLAYS_ON", direction: OUT)
   phases: [Phase] @relation(name: "BELONGS_TO", direction: IN)
   groups: [Group] @relation(name: "BELONGS_TO", direction: IN)
   awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
