@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "neo4j-graphql-js": "^2.19.2",
     "apollo-server-lambda": "^2.21.0",
-    "neo4j-graphql-js": "^2.14.2",
     "neo4j-driver": "^4.0.2"
   }
 }
