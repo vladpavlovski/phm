@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react'
-import 'react-imported-component/macro'
+
 import { Grid } from '@material-ui/core'
 import { Helmet } from 'react-helmet'
 import LayoutContext from '../../../../context/layout'

@@ -6,7 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
-
+import 'react-imported-component/macro'
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'

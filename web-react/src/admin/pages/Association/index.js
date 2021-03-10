@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-import 'react-imported-component/macro'
+
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import { Container, Grid, Paper } from '@material-ui/core'
