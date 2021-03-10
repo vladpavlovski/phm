@@ -9,6 +9,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 import { Competitions } from './components/Competitions'
 import { Seasons } from './components/Seasons'
+import { Phases } from './components/Phases'
+import { Groups } from './components/Groups'
 
 const Relations = props => {
   const { venueId } = props
@@ -18,6 +20,8 @@ const Relations = props => {
     <div className={classes.accordionWrapper}>
       <Competitions venueId={venueId} />
       <Seasons venueId={venueId} />
+      <Phases venueId={venueId} />
+      <Groups venueId={venueId} />
 
       <Accordion>
         <AccordionSummary
