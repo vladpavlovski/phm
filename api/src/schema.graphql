@@ -66,6 +66,7 @@ type Player implements Human {
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "META_FOR", direction: IN)
+  lineups: [TakingPartIn]
 }
 
 type Query {
@@ -120,7 +121,6 @@ type MetaPlayer {
   player: Player @relation(name: "META_FOR", direction: OUT)
   availabilityStatus: AvailabilityStatus
     @relation(name: "GAME_READY_FOR", direction: IN)
-  lineups: [TakingPartIn]
   transfers: [Transfer] @relation(name: "TRANSFER_FOR_PLAYER", direction: IN)
   stars: [Star] @relation(name: "IS_STAR", direction: IN)
   collectedPasses: [Pass] @relation(name: "COLLECT_BY", direction: IN)
@@ -191,23 +191,10 @@ type Person implements Human {
   updatedAt: DateTime
   user: User @relation(name: "ACCOUNT_FOR", direction: IN)
   managers: [Person] @relation(name: "HAS_MANAGER", direction: OUT)
-  teamManager: [Team] @relation(name: "HAS_MANAGER", direction: IN)
-  teamCoach: [Team] @relation(name: "HAS_COACH", direction: IN)
-  teamCoachAssistant: [Team]
-    @relation(name: "HAS_COACH_ASSISTANT", direction: IN)
-  teamMedic: [Team] @relation(name: "HAS_MEDIC", direction: IN)
-  teamSupporter: [Team] @relation(name: "HAS_SUPPORTER", direction: IN)
-  gameOfficial: [Game] @relation(name: "HAS_GAME_OFFICIAL", direction: IN)
-  gameTimePicker: [Game] @relation(name: "HAS_TIMEPICKER", direction: IN)
-  gameReferee: [Game] @relation(name: "HAS_REFEREE", direction: IN)
-  competitionTimePicker: [Competition]
-    @relation(name: "HAS_TIMEPICKER", direction: IN)
-  competitionLeagueOfficial: [Competition]
-    @relation(name: "HAS_LEAGUE_OFFICIAL", direction: IN)
-  competitionReferee: [Competition]
-    @relation(name: "HAS_REFEREE", direction: IN)
-  competitionManager: [Competition]
-    @relation(name: "HAS_MANAGER", direction: IN)
+  teams: [Team] @relation(name: "HAS_TEAM_STAFF", direction: IN)
+  games: [Game] @relation(name: "HAS_GAME_STAFF", direction: IN)
+  competitions: [Competition]
+    @relation(name: "HAS_COMPETITION_STAFF", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   payments: [Payment] @relation(name: "INITIATES_PAYMENT", direction: OUT)
@@ -217,7 +204,7 @@ type Person implements Human {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
-  sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
+
   acceptedInvitations: [InvitationList]
     @relation(name: "ACCEPTED_BY", direction: IN)
   rejectedInvitations: [InvitationList]
@@ -245,6 +232,7 @@ type User {
   player: Player @relation(name: "ACCOUNT_FOR", direction: OUT)
   person: Person @relation(name: "ACCOUNT_FOR", direction: OUT)
   comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
+  sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
 }
 
 # :Team
@@ -263,15 +251,13 @@ type Team {
   tertiaryColor: String
   foundDate: Date
   disabled: Boolean
-  manager: Person @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
   players: [Player] @relation(name: "PLAY_IN", direction: IN)
-  coaches: [Person] @relation(name: "HAS_COACH", direction: OUT)
-  coachAssistants: [Person]
-    @relation(name: "HAS_COACH_ASSISTANT", direction: OUT)
-  medics: [Person] @relation(name: "HAS_MEDIC", direction: OUT)
-  supporters: [Person] @relation(name: "HAS_SUPPORTER", direction: OUT)
-  lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
-  lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
+
+  staff: [Person] @relation(name: "HAS_TEAM_STAFF", direction: OUT)
+
+  # lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
+  # lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
+  lineups: [Lineup] @relation(name: "DEFINE", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
@@ -290,11 +276,18 @@ type Team {
   seasons: [Season] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
+type Define @relation(name: "DEFINE") {
+  from: Team
+  to: Lineup
+  host: Boolean
+}
+
 # :Lineup
 type Lineup {
   lineupId: ID! @id
-  teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
-  teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
+  teams: [Team] @relation(name: "DEFINE", direction: IN)
+  # teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
+  # teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
   listGuest: [TakingPartIn]
   listHost: [TakingPartIn]
   game: Game @relation(name: "GENERATES", direction: OUT)
@@ -303,7 +296,7 @@ type Lineup {
 # TakingPartIn
 
 type TakingPartIn @relation(name: "TAKING_PART_IN") {
-  from: MetaPlayer
+  from: Player
   to: Lineup
   jersey: Int
 }
@@ -322,9 +315,7 @@ type Game {
   info: String
   description: String
   lineup: Lineup @relation(name: "GENERATES", direction: IN)
-  gameOfficial: Person @relation(name: "HAS_GAME_OFFICIAL", direction: OUT)
-  referee: Person @relation(name: "HAS_REFEREE", direction: OUT)
-  timePicker: Person @relation(name: "HAS_TIMEPICKER", direction: OUT)
+  staff: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
   phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
   group: Group @relation(name: "PARTICIPATE_IN", direction: OUT)
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
@@ -722,11 +713,7 @@ type Competition {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  managers: [Person] @relation(name: "HAS_MANAGER", direction: OUT)
-  referees: [Person] @relation(name: "HAS_REFEREE", direction: OUT)
-  leagueOfficials: [Person]
-    @relation(name: "HAS_LEAGUE_OFFICIAL", direction: OUT)
-  timePickers: [Person] @relation(name: "HAS_TIMEKEEPER", direction: OUT)
+  staff: [Person] @relation(name: "HAS_COMPETITION_STAFF", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
@@ -903,7 +890,7 @@ type Invitation {
   name: String
   description: String
   event: Event @relation(name: "CREATE_INVITATION", direction: IN)
-  sentBy: Person @relation(name: "SENT_BY", direction: OUT)
+  sentBy: User @relation(name: "SENT_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
 }
