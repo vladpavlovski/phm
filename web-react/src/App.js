@@ -44,6 +44,8 @@ const AdminVenue = Load(() => import('./admin/pages/Venue'))
 const AdminVenuesView = Load(() => import('./admin/pages/Venue/view'))
 const AdminRulePack = Load(() => import('./admin/pages/RulePack'))
 const AdminRulePacksView = Load(() => import('./admin/pages/RulePack/view'))
+const AdminPerson = Load(() => import('./admin/pages/Person'))
+const AdminPersonView = Load(() => import('./admin/pages/Person/view'))
 
 dayjs.extend(duration)
 dayjs.extend(utc)
@@ -147,6 +149,16 @@ const App = ({ history }) => {
                       path={ROUTES.ADMIN_RULEPACK}
                       exact
                       component={AdminRulePack}
+                    />
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_PERSONS}
+                      exact
+                      component={AdminPersonView}
+                    />
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_PERSON}
+                      exact
+                      component={AdminPerson}
                     />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route

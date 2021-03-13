@@ -17,7 +17,7 @@ enum ActivityStatus {
   RETIRED
 }
 
-interface Person {
+interface Human {
   name: String!
   birthday: Date
   userName: String @unique
@@ -35,7 +35,7 @@ interface Person {
 
 # :Player :Goalkeeper
 
-type Player implements Person {
+type Player implements Human {
   playerId: ID! @id
   name: String!
   birthday: Date
@@ -55,7 +55,7 @@ type Player implements Person {
   createdAt: DateTime
   updatedAt: DateTime
 
-  account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
+  user: User @relation(name: "ACCOUNT_FOR", direction: IN)
   meta: MetaPlayer @relation(name: "META_FOR", direction: IN)
   teams: [Team] @relation(name: "PLAY_IN", direction: OUT)
   positions: [Position] @relation(name: "HAS_POSITION", direction: OUT)
@@ -63,7 +63,6 @@ type Player implements Person {
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
-  comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "META_FOR", direction: IN)
@@ -170,10 +169,10 @@ type MetaHistory {
   competition: Competition @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
-# staff types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
+# person types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
 
-type Staff implements Person {
-  staffId: ID! @id
+type Person implements Human {
+  personId: ID! @id
   name: String!
   birthday: Date
   userName: String @unique
@@ -183,12 +182,15 @@ type Staff implements Person {
   weight: String
   externalId: String
   activityStatus: String
+  countryBirth: String
+  cityBirth: String
   country: String
   city: String
+  avatarUrl: String
   createdAt: DateTime
   updatedAt: DateTime
-  account: Account @relation(name: "ACCOUNT_FOR", direction: IN)
-  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
+  user: User @relation(name: "ACCOUNT_FOR", direction: IN)
+  managers: [Person] @relation(name: "HAS_MANAGER", direction: OUT)
   teamManager: [Team] @relation(name: "HAS_MANAGER", direction: IN)
   teamCoach: [Team] @relation(name: "HAS_COACH", direction: IN)
   teamCoachAssistant: [Team]
@@ -214,7 +216,6 @@ type Staff implements Person {
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
-  comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
   acceptedInvitations: [InvitationList]
@@ -227,76 +228,23 @@ type Staff implements Person {
   venueManager: Venue @relation(name: "HAS_MANAGER", direction: IN)
 }
 
-type TeamManager {
-  teamManagerId: ID! @id
+type Occupation {
+  occupationId: ID! @id
   name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
+  person: [Person] @relation(name: "TYPE_OF", direction: IN)
 }
 
-type Manager {
-  managerId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
+# :User
 
-type Coach {
-  coachId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type CoachAssistant {
-  coachAssistant: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type Medic {
-  medicId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type Supporter {
-  supporterId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type Referee {
-  refereeId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type TimePicker {
-  timePickerId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type GameOfficial {
-  gameOfficialId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-type LeagueOfficial {
-  leagueOfficialId: ID! @id
-  name: String
-  staff: [Staff] @relation(name: "TYPE_OF", direction: IN)
-}
-
-# :Account
-
-type Account {
-  accountId: ID! @id
+type User {
+  userId: ID! @id
   name: String!
   userName: String
   phone: String
   email: String
   player: Player @relation(name: "ACCOUNT_FOR", direction: OUT)
-  staff: Staff @relation(name: "ACCOUNT_FOR", direction: OUT)
+  person: Person @relation(name: "ACCOUNT_FOR", direction: OUT)
+  comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
 }
 
 # :Team
@@ -315,13 +263,13 @@ type Team {
   tertiaryColor: String
   foundDate: Date
   disabled: Boolean
-  manager: Staff @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
+  manager: Person @relation(name: "HAS_TEAM_MANAGER", direction: OUT)
   players: [Player] @relation(name: "PLAY_IN", direction: IN)
-  coaches: [Staff] @relation(name: "HAS_COACH", direction: OUT)
-  coachAssistants: [Staff]
+  coaches: [Person] @relation(name: "HAS_COACH", direction: OUT)
+  coachAssistants: [Person]
     @relation(name: "HAS_COACH_ASSISTANT", direction: OUT)
-  medics: [Staff] @relation(name: "HAS_MEDIC", direction: OUT)
-  supporters: [Staff] @relation(name: "HAS_SUPPORTER", direction: OUT)
+  medics: [Person] @relation(name: "HAS_MEDIC", direction: OUT)
+  supporters: [Person] @relation(name: "HAS_SUPPORTER", direction: OUT)
   lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
   lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
@@ -374,9 +322,9 @@ type Game {
   info: String
   description: String
   lineup: Lineup @relation(name: "GENERATES", direction: IN)
-  gameOfficial: Staff @relation(name: "HAS_GAME_OFFICIAL", direction: OUT)
-  referee: Staff @relation(name: "HAS_REFEREE", direction: OUT)
-  timePicker: Staff @relation(name: "HAS_TIMEPICKER", direction: OUT)
+  gameOfficial: Person @relation(name: "HAS_GAME_OFFICIAL", direction: OUT)
+  referee: Person @relation(name: "HAS_REFEREE", direction: OUT)
+  timePicker: Person @relation(name: "HAS_TIMEPICKER", direction: OUT)
   phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
   group: Group @relation(name: "PARTICIPATE_IN", direction: OUT)
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
@@ -646,7 +594,7 @@ type Discussion {
   game: Game @relation(name: "HAS_DISCUSSION", direction: IN)
   competition: Competition @relation(name: "HAS_DISCUSSION", direction: IN)
   media: Media @relation(name: "HAS_DISCUSSION", direction: IN)
-  staff: Staff @relation(name: "HAS_DISCUSSION", direction: IN)
+  person: Person @relation(name: "HAS_DISCUSSION", direction: IN)
   association: Association @relation(name: "HAS_DISCUSSION", direction: IN)
   group: Group @relation(name: "HAS_DISCUSSION", direction: IN)
   phase: Phase @relation(name: "HAS_DISCUSSION", direction: IN)
@@ -669,7 +617,7 @@ type Comment {
   repliedTo: [Comment] @relation(name: "REPLY_TO", direction: IN)
   discussion: Discussion @relation(name: "CONTAINS", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  author: Person @relation(name: "WRITE_A_COMMENT", direction: IN)
+  author: User @relation(name: "WRITE_A_COMMENT", direction: IN)
 }
 
 # :Association
@@ -683,7 +631,7 @@ type Association {
   legalName: String
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
-  manager: Staff @relation(name: "HAS_MANAGER", direction: OUT)
+  manager: Person @relation(name: "HAS_MANAGER", direction: OUT)
   payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
   competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
@@ -704,7 +652,7 @@ type Sponsor {
   legalName: String
   players: [Player] @relation(name: "SPONSORED_BY", direction: IN)
   teams: [Team] @relation(name: "SPONSORED_BY", direction: IN)
-  staff: [Staff] @relation(name: "SPONSORED_BY", direction: IN)
+  person: [Person] @relation(name: "SPONSORED_BY", direction: IN)
   awards: [Award] @relation(name: "SPONSORED_BY", direction: IN)
   competitions: [Competition] @relation(name: "SPONSORED_BY", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
@@ -729,7 +677,7 @@ type Venue {
   games: [Game] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   address: Address @relation(name: "LOCATED_AT", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
+  managers: [Person] @relation(name: "HAS_MANAGER", direction: OUT)
   seasons: [Season] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   phases: [Phase] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   groups: [Group] @relation(name: "TAKES_PLAYS_ON", direction: IN)
@@ -774,11 +722,11 @@ type Competition {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  managers: [Staff] @relation(name: "HAS_MANAGER", direction: OUT)
-  referees: [Staff] @relation(name: "HAS_REFEREE", direction: OUT)
-  leagueOfficials: [Staff]
+  managers: [Person] @relation(name: "HAS_MANAGER", direction: OUT)
+  referees: [Person] @relation(name: "HAS_REFEREE", direction: OUT)
+  leagueOfficials: [Person]
     @relation(name: "HAS_LEAGUE_OFFICIAL", direction: OUT)
-  timePickers: [Staff] @relation(name: "HAS_TIMEKEEPER", direction: OUT)
+  timePickers: [Person] @relation(name: "HAS_TIMEKEEPER", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
@@ -786,7 +734,7 @@ type Competition {
 
 # :Event
 
-union EventOrganizer = Competition | Team | Staff
+union EventOrganizer = Competition | Team | Person
 
 type Event {
   eventId: ID! @id
@@ -877,7 +825,7 @@ type Phase {
 type Payment {
   paymentId: ID! @id
   dateTime: DateTime
-  initiator: Staff @relation(name: "INITIATES_PAYMENT", direction: IN)
+  initiator: Person @relation(name: "INITIATES_PAYMENT", direction: IN)
   receiver: Association @relation(name: "RECEIVES_PAYMENT", direction: OUT)
   game: Game @relation(name: "PAYMENT_FOR_GAME", direction: OUT)
 }
@@ -900,7 +848,7 @@ type Award {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   games: [Game] @relation(name: "HAS_AN_AWARD", direction: IN)
-  staff: [Staff] @relation(name: "WIN_AN_AWARD", direction: IN)
+  person: [Person] @relation(name: "WIN_AN_AWARD", direction: IN)
   teams: [Team] @relation(name: "WIN_AN_AWARD", direction: IN)
   stars: [Star] @relation(name: "WIN_AN_AWARD", direction: IN)
   players: [Player] @relation(name: "WIN_AN_AWARD", direction: IN)
@@ -921,7 +869,7 @@ type Media {
   player: Player @relation(name: "HAS_MEDIA", direction: IN)
   team: Team @relation(name: "HAS_MEDIA", direction: IN)
   comment: Comment @relation(name: "HAS_MEDIA", direction: IN)
-  staff: Staff @relation(name: "HAS_MEDIA", direction: IN)
+  person: Person @relation(name: "HAS_MEDIA", direction: IN)
   game: Game @relation(name: "HAS_MEDIA", direction: IN)
   competition: Competition @relation(name: "HAS_MEDIA", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
@@ -955,7 +903,7 @@ type Invitation {
   name: String
   description: String
   event: Event @relation(name: "CREATE_INVITATION", direction: IN)
-  sentBy: Staff @relation(name: "SENT_BY", direction: OUT)
+  sentBy: Person @relation(name: "SENT_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
 }
@@ -964,10 +912,10 @@ type InvitationList {
   invitationListId: ID! @id
   event: Event @relation(name: "CREATE_INVITATION_LIST", direction: IN)
   invitation: Invitation @relation(name: "HAS_LIST", direction: IN)
-  acceptedBy: [Staff] @relation(name: "ACCEPTED_BY", direction: OUT)
-  rejectedBy: [Staff] @relation(name: "REJECTED_BY", direction: OUT)
-  maybeBy: [Staff] @relation(name: "MAYBE_BY", direction: OUT)
-  attendedBy: [Staff] @relation(name: "ATTENDED_BY", direction: IN)
+  acceptedBy: [Person] @relation(name: "ACCEPTED_BY", direction: OUT)
+  rejectedBy: [Person] @relation(name: "REJECTED_BY", direction: OUT)
+  maybeBy: [Person] @relation(name: "MAYBE_BY", direction: OUT)
+  attendedBy: [Person] @relation(name: "ATTENDED_BY", direction: IN)
 }
 
 # :Achievement
@@ -978,7 +926,7 @@ type Achievement {
   description: String
   rule: String
   players: [Player] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
-  staff: [Staff] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
+  person: [Person] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
   teams: [Team] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
 }
 

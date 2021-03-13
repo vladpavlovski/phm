@@ -13,8 +13,12 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Collapse from '@material-ui/core/Collapse'
 import ExpandLess from '@material-ui/icons/ExpandLess'
 import ExpandMore from '@material-ui/icons/ExpandMore'
+import Dashboard from '@material-ui/icons/Dashboard'
+import Mood from '@material-ui/icons/Mood'
+import Group from '@material-ui/icons/Group'
+import Groups from '@material-ui/icons/Groups'
+import SportsHockey from '@material-ui/icons/SportsHockey'
 
-import { Dashboard, Mood, Group, SportsHockey } from '@material-ui/icons'
 import { useStyles } from './styled'
 
 const useGeneralMenuState = createPersistedState('generalMenu')
@@ -213,6 +217,21 @@ const MainListItems = props => {
           }
           primary="Players"
           to={ROUTES.ADMIN_PLAYERS}
+        />
+        <ListItemLink
+          icon={
+            <Tooltip
+              arrow
+              title="Persons"
+              placement="right"
+              disableHoverListener={open}
+              TransitionComponent={Zoom}
+            >
+              <Groups />
+            </Tooltip>
+          }
+          primary="Persons"
+          to={ROUTES.ADMIN_PERSONS}
         />
         <ListItemLink
           icon={

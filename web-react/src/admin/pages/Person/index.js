@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-import 'react-imported-component/macro'
+
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -28,14 +28,14 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { ADMIN_PLAYERS, getAdminPlayerRoute } from '../../../routes'
+import { ADMIN_PERSONS, getAdminPersonRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-const READ_PLAYER = gql`
-  query getPlayer($playerId: ID!) {
-    Player(playerId: $playerId) {
-      playerId
+const READ_PERSON = gql`
+  query getPerson($personId: ID!) {
+    Person(personId: $personId) {
+      personId
       name
       birthday {
         formatted
@@ -44,7 +44,6 @@ const READ_PLAYER = gql`
       activityStatus
       country
       city
-      stick
       height
       weight
       gender
@@ -52,9 +51,9 @@ const READ_PLAYER = gql`
   }
 `
 
-const MERGE_PLAYER = gql`
-  mutation mergePlayer(
-    $playerId: ID!
+const MERGE_PERSON = gql`
+  mutation mergePerson(
+    $personId: ID!
     $name: String
     $birthdayDay: Int
     $birthdayMonth: Int
@@ -62,7 +61,6 @@ const MERGE_PLAYER = gql`
     $userName: String
     $phone: String
     $gender: String
-    $stick: String
     $height: String
     $weight: String
     $externalId: String
@@ -73,8 +71,8 @@ const MERGE_PLAYER = gql`
     $city: String
     $avatarUrl: String
   ) {
-    mergePlayer: MergePlayer(
-      playerId: $playerId
+    mergePerson: MergePerson(
+      personId: $personId
       name: $name
       birthday: {
         day: $birthdayDay
@@ -84,7 +82,6 @@ const MERGE_PLAYER = gql`
       userName: $userName
       phone: $phone
       gender: $gender
-      stick: $stick
       height: $height
       weight: $weight
       externalId: $externalId
@@ -95,55 +92,55 @@ const MERGE_PLAYER = gql`
       city: $city
       avatarUrl: $avatarUrl
     ) {
-      playerId
+      personId
     }
   }
 `
 
-const DELETE_PLAYER = gql`
-  mutation deletePlayer($playerId: ID!) {
-    deletePlayer: DeletePlayer(playerId: $playerId) {
-      playerId
+const DELETE_PERSON = gql`
+  mutation deletePerson($personId: ID!) {
+    deletePerson: DeletePerson(personId: $personId) {
+      personId
     }
   }
 `
 
-const Player = () => {
+const Person = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { playerId } = useParams()
+  const { personId } = useParams()
 
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_PLAYER, {
+  } = useQuery(READ_PERSON, {
     fetchPolicy: 'network-only',
-    variables: { playerId },
+    variables: { personId },
   })
 
   const [
-    mergePlayer,
+    mergePerson,
     { loading: mutationLoading, error: mutationError },
-  ] = useMutation(MERGE_PLAYER, {
+  ] = useMutation(MERGE_PERSON, {
     onCompleted: data => {
-      if (playerId === 'new') {
-        const newPlayerId = data.mergePlayer.playerId
-        history.replace(getAdminPlayerRoute(newPlayerId))
+      if (personId === 'new') {
+        const newPersonId = data.mergePerson.personId
+        history.replace(getAdminPersonRoute(newPersonId))
       }
     },
   })
 
-  const playerData = useMemo(() => (queryData && queryData.Player[0]) || {}, [
+  const personData = useMemo(() => (queryData && queryData.Person[0]) || {}, [
     queryData,
   ])
 
   const [
-    deletePlayer,
+    deletePerson,
     { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_PLAYER, {
+  ] = useMutation(DELETE_PERSON, {
     onCompleted: () => {
-      history.push(ADMIN_PLAYERS)
+      history.push(ADMIN_PERSONS)
     },
   })
 
@@ -155,10 +152,10 @@ const Player = () => {
   })
 
   useEffect(() => {
-    if (playerData) {
-      setValue('country', playerData.country)
+    if (personData) {
+      setValue('country', personData.country)
     }
-  }, [playerData])
+  }, [personData])
 
   const onSubmit = useCallback(
     dataToCheck => {
@@ -167,22 +164,21 @@ const Player = () => {
 
         const dataToSubmit = {
           ...rest,
-          playerId: playerId === 'new' ? uuidv4() : playerId,
+          personId: personId === 'new' ? uuidv4() : personId,
           birthdayDay: dayjs(birthday).date(),
           birthdayMonth: dayjs(birthday).month() + 1,
           birthdayYear: dayjs(birthday).year(),
           country: country || '',
         }
-        // console.log('dataToSubmit', dataToSubmit)
 
-        mergePlayer({
+        mergePerson({
           variables: dataToSubmit,
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [playerId]
+    [personId]
   )
 
   return (
@@ -193,7 +189,7 @@ const Player = () => {
       {mutationError && !mutationLoading && (
         <Error message={mutationError.message} />
       )}
-      {(playerData || playerId === 'new') &&
+      {(personData || personId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationError && (
@@ -205,22 +201,22 @@ const Player = () => {
               autoComplete="off"
             >
               <Helmet>
-                <title>{playerData.name || 'Player'}</title>
+                <title>{personData.name || 'Person'}</title>
               </Helmet>
               <Paper className={classes.paper}>
                 <Toolbar disableGutters className={classes.toolbarForm}>
                   <div>
-                    <Title>{'Player'}</Title>
+                    <Title>{'Person'}</Title>
                   </div>
                   <div>
                     {formState.isDirty && (
                       <ButtonSave loading={mutationLoading} />
                     )}
-                    {playerId !== 'new' && (
+                    {personId !== 'new' && (
                       <ButtonDelete
                         loading={loadingDelete}
                         onClick={() => {
-                          deletePlayer({ variables: { playerId } })
+                          deletePerson({ variables: { personId } })
                         }}
                       />
                     )}
@@ -230,7 +226,7 @@ const Player = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.name}
+                      defaultValue={personData.name}
                       control={control}
                       name="name"
                       label="Name"
@@ -242,7 +238,7 @@ const Player = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.externalId}
+                      defaultValue={personData.externalId}
                       control={control}
                       name="externalId"
                       label="External Id"
@@ -264,9 +260,9 @@ const Player = () => {
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'date']}
                       defaultValue={
-                        playerData.birthday &&
-                        dateExist(playerData.birthday.formatted)
-                          ? playerData.birthday.formatted
+                        personData.birthday &&
+                        dateExist(personData.birthday.formatted)
+                          ? personData.birthday.formatted
                           : null
                       }
                       error={errors.birthday}
@@ -274,7 +270,7 @@ const Player = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.activityStatus}
+                      defaultValue={personData.activityStatus}
                       control={control}
                       name="activityStatus"
                       label="Activity Status"
@@ -288,7 +284,7 @@ const Player = () => {
                     <RHFAutocomplete
                       fullWidth
                       options={countriesNames}
-                      defaultValue={playerData.country}
+                      defaultValue={personData.country}
                       // getOptionLabel={option => {
                       //   console.log(option)
                       //   return option
@@ -305,7 +301,7 @@ const Player = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.city}
+                      defaultValue={personData.city}
                       control={control}
                       name="city"
                       label="City"
@@ -316,17 +312,6 @@ const Player = () => {
                   </Grid>
 
                   <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.stick}
-                      control={control}
-                      name="stick"
-                      label="Stick"
-                      fullWidth
-                      variant="standard"
-                      error={errors.stick}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
                     <ReactHookFormSelect
                       fullWidth
                       name="gender"
@@ -334,8 +319,8 @@ const Player = () => {
                       id="gender"
                       control={control}
                       defaultValue={
-                        (playerData.gender &&
-                          playerData.gender.toLowerCase()) ||
+                        (personData.gender &&
+                          personData.gender.toLowerCase()) ||
                         ''
                       }
                       error={errors.gender}
@@ -347,7 +332,7 @@ const Player = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.height}
+                      defaultValue={personData.height}
                       control={control}
                       name="height"
                       label="Height"
@@ -358,7 +343,7 @@ const Player = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.weight}
+                      defaultValue={personData.weight}
                       control={control}
                       name="weight"
                       label="Weight"
@@ -370,11 +355,11 @@ const Player = () => {
                 </Grid>
               </Paper>
             </form>
-            <Relations playerId={playerId} />
+            <Relations personId={personId} />
           </>
         )}
     </Container>
   )
 }
 
-export { Player as default }
+export { Person as default }

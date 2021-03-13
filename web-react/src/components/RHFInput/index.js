@@ -16,7 +16,7 @@ const RHFInput = props => {
           error={!!error}
           helperText={!!error && error.message}
           inputProps={{
-            autoComplete: 'new-password',
+            autoComplete: 'off',
           }}
         />
       )}
