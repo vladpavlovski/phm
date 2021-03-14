@@ -226,6 +226,13 @@ type User {
   comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
   sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
+  settings: UserSettings @relation(name: "HAS_SETTINGS", direction: OUT)
+}
+
+type UserSettings {
+  userSettingsId: ID! @id
+  language: String
+  user: User @relation(name: "HAS_SETTINGS", direction: IN)
 }
 
 # :Team
