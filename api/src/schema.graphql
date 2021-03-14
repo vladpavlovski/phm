@@ -204,14 +204,7 @@ type Person implements Human {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
-
-  acceptedInvitations: [InvitationList]
-    @relation(name: "ACCEPTED_BY", direction: IN)
-  rejectedInvitations: [InvitationList]
-    @relation(name: "REJECTED_BY", direction: IN)
-  maybeInvitations: [InvitationList] @relation(name: "MAYBE_BY", direction: IN)
-  attendedInvitations: [InvitationList]
-    @relation(name: "ATTENDED_BY", direction: IN)
+  invitations: [RespondToInvitation]
   venueManager: Venue @relation(name: "HAS_MANAGER", direction: IN)
 }
 
@@ -895,14 +888,19 @@ type Invitation {
   invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
 }
 
+# :InvitationList
+
 type InvitationList {
   invitationListId: ID! @id
   event: Event @relation(name: "CREATE_INVITATION_LIST", direction: IN)
   invitation: Invitation @relation(name: "HAS_LIST", direction: IN)
-  acceptedBy: [Person] @relation(name: "ACCEPTED_BY", direction: OUT)
-  rejectedBy: [Person] @relation(name: "REJECTED_BY", direction: OUT)
-  maybeBy: [Person] @relation(name: "MAYBE_BY", direction: OUT)
-  attendedBy: [Person] @relation(name: "ATTENDED_BY", direction: IN)
+  users: [RespondToInvitation]
+}
+
+type RespondToInvitation @relation(name: "RESPOND_TO_INVITATION") {
+  from: User
+  to: InvitationList
+  status: String
 }
 
 # :Achievement
