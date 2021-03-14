@@ -203,7 +203,6 @@ type Person implements Human {
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
-  events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   invitations: [RespondToInvitation]
   venueManager: Venue @relation(name: "HAS_MANAGER", direction: IN)
 }
@@ -226,6 +225,7 @@ type User {
   person: Person @relation(name: "ACCOUNT_FOR", direction: OUT)
   comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
   sentInvitations: [Invitation] @relation(name: "SENT_BY", direction: IN)
+  events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
 }
 
 # :Team
@@ -713,7 +713,7 @@ type Competition {
 
 # :Event
 
-union EventOrganizer = Competition | Team | Person
+union EventOrganizer = Competition | Team | User
 
 type Event {
   eventId: ID! @id
