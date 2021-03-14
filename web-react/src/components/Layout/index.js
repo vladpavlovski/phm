@@ -12,7 +12,7 @@ import {
 } from '@material-ui/core'
 import createPersistedState from 'use-persisted-state'
 
-import MenuIcon from '@material-ui/icons/Menu'
+// import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 
@@ -38,7 +38,7 @@ const Layout = props => {
         className={clsx(classes.appBar, open && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
-          <IconButton
+          {/* <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
@@ -46,12 +46,12 @@ const Layout = props => {
               setOpen(true)
             }}
             className={clsx(
-              classes.menuButton,
-              open && classes.menuButtonHidden
+              classes.menuButton
+              // !open && classes.menuButtonHidden
             )}
           >
             <MenuIcon />
-          </IconButton>
+          </IconButton> */}
           <Typography
             component="h1"
             variant="h6"
@@ -100,7 +100,7 @@ const Layout = props => {
           </IconButton>
         </div>
         <Divider />
-        <MainListItems />
+        <MainListItems open={open} />
         {/*
         <List>{secondaryListItems}</List> */}
       </Drawer>

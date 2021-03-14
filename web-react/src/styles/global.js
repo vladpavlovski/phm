@@ -31,6 +31,16 @@ export const muiTheme = createMuiTheme({
   clearIndicator: {
     padding: '2px',
   },
+  overrides: {
+    MuiInputBase: {
+      input: {
+        '&:-webkit-autofill': {
+          transitionDelay: '9999s',
+          transitionProperty: 'background-color, color',
+        },
+      },
+    },
+  },
 })
 
 responsiveFontSizes(muiTheme)
