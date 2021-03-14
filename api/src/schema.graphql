@@ -577,7 +577,6 @@ type Discussion {
   comments: [Comment] @relation(name: "CONTAINS", direction: OUT)
   game: Game @relation(name: "HAS_DISCUSSION", direction: IN)
   competition: Competition @relation(name: "HAS_DISCUSSION", direction: IN)
-  media: Media @relation(name: "HAS_DISCUSSION", direction: IN)
   person: Person @relation(name: "HAS_DISCUSSION", direction: IN)
   association: Association @relation(name: "HAS_DISCUSSION", direction: IN)
   group: Group @relation(name: "HAS_DISCUSSION", direction: IN)
@@ -852,14 +851,11 @@ type Media {
   person: Person @relation(name: "HAS_MEDIA", direction: IN)
   game: Game @relation(name: "HAS_MEDIA", direction: IN)
   competition: Competition @relation(name: "HAS_MEDIA", direction: IN)
-  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   event: Event @relation(name: "HAS_MEDIA", direction: IN)
   wear: WearItem @relation(name: "HAS_MEDIA", direction: IN)
   venue: Venue @relation(name: "HAS_MEDIA", direction: IN)
   invitation: Invitation @relation(name: "HAS_MEDIA", direction: IN)
-  photos: [File] @relation(name: "PHOTO", direction: OUT)
-  videos: [File] @relation(name: "VIDEO", direction: OUT)
-  audios: [File] @relation(name: "AUDIO", direction: OUT)
+  files: [File] @relation(name: "HAS_FILE", direction: OUT)
 }
 
 # :File
@@ -871,9 +867,7 @@ type File {
   type: String #isLogo, isCover, isProfilePicture, isGameCoveredge
   url: String
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
-  mediaPhoto: Media @relation(name: "PHOTO", direction: IN)
-  mediaVideo: Media @relation(name: "VIDEO", direction: IN)
-  mediaAudio: Media @relation(name: "AUDIO", direction: IN)
+  media: Media @relation(name: "HAS_FILE", direction: IN)
 }
 
 # :Invitation
