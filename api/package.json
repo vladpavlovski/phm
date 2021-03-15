@@ -1,7 +1,7 @@
 {
-  "name": "prague-hockey-masters-api",
+  "name": "hockey-management-system-api",
   "version": "0.0.1",
-  "description": "API app for PHM",
+  "description": "API app for HMS",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
