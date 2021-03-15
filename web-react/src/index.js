@@ -22,6 +22,7 @@ if (config.environment !== 'development') {
     // version: '',
     // build: '',
   })
+  Bugfender.enableCrashReporting()
 }
 
 const history = createBrowserHistory()
