@@ -69,7 +69,7 @@ const MERGE_PERSON = gql`
     $cityBirth: String
     $country: String
     $city: String
-    $avatarUrl: String
+    $avatar: String
   ) {
     mergePerson: MergePerson(
       personId: $personId
@@ -90,7 +90,7 @@ const MERGE_PERSON = gql`
       cityBirth: $cityBirth
       country: $country
       city: $city
-      avatarUrl: $avatarUrl
+      avatar: $avatar
     ) {
       personId
     }

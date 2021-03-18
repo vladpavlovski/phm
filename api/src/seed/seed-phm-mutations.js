@@ -864,7 +864,7 @@ const generateMutations = records => {
             playerId: $playerId
             name: $playerName
             externalId: $playerExternalId
-            avatarUrl: $playerAvatarUrl
+            avatar: $playerAvatarUrl
             gender: $playerGender
             activityStatus: $playerStatus
             countryBirth: $playerBirthCountry

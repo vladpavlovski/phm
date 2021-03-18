@@ -35,6 +35,9 @@ const useStyles = makeStyles(theme => ({
   xGridDialog: {
     width: '100%',
   },
+  logo: {
+    width: '100%',
+  },
 }))
 
 export { useStyles }

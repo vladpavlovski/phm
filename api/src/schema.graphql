@@ -17,6 +17,15 @@ enum ActivityStatus {
   RETIRED
 }
 
+type S3Payload {
+  signedRequest: String!
+  url: String!
+}
+
+type Mutation {
+  signS3(filename: String!, filetype: String!): S3Payload!
+}
+
 interface Human {
   name: String!
   birthday: Date
@@ -51,7 +60,7 @@ type Player implements Human {
   cityBirth: String
   country: String
   city: String
-  avatarUrl: String
+  avatar: String
   createdAt: DateTime
   updatedAt: DateTime
 
@@ -186,7 +195,7 @@ type Person implements Human {
   cityBirth: String
   country: String
   city: String
-  avatarUrl: String
+  avatar: String
   createdAt: DateTime
   updatedAt: DateTime
   user: User @relation(name: "ACCOUNT_FOR", direction: IN)

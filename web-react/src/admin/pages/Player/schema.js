@@ -11,4 +11,5 @@ export const schema = object().shape({
   height: string(),
   weight: string(),
   gender: string(),
+  avatar: string(),
 })

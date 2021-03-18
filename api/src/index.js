@@ -6,6 +6,7 @@ import { makeAugmentedSchema } from 'neo4j-graphql-js'
 import dotenv from 'dotenv'
 import { initializeDatabase } from './initialize'
 import jwt from 'express-jwt'
+import { resolvers } from './resolvers'
 // set environment variables from .env
 dotenv.config()
 
@@ -29,12 +30,13 @@ app.use(
 
 const schema = makeAugmentedSchema({
   typeDefs,
+  resolvers,
   config: {
     query: {
-      exclude: [],
+      exclude: ['S3Payload'],
     },
     mutation: {
-      exclude: [],
+      exclude: ['S3Payload'],
     },
     auth: {
       isAuthenticated: true,
