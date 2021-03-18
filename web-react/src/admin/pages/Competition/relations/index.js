@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
-import { Association } from './components/Association'
+import { Organization } from './components/Organization'
 import { Phases } from './components/Phases'
 import { Groups } from './components/Groups'
 import { Seasons } from './components/Seasons'
@@ -37,7 +37,7 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion>
 
-      <Association competitionId={competitionId} />
+      <Organization competitionId={competitionId} />
       <Phases competitionId={competitionId} />
       <Groups competitionId={competitionId} />
       <Seasons competitionId={competitionId} />

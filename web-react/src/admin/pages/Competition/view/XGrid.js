@@ -15,7 +15,7 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const READ_COMPETITIONS = gql`
-  query getAssociations {
+  query getOrganizations {
     competitions: Competition {
       competitionId
       name

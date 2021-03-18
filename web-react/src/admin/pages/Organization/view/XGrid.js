@@ -6,7 +6,7 @@ import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminAssociationRoute } from '../../../../routes'
+import { getAdminOrganizationRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -14,10 +14,10 @@ import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
-const READ_ASSOCIATIONS = gql`
-  query getAssociations {
-    associations: Association {
-      associationId
+const READ_ORGANIZATIONS = gql`
+  query getOrganizations {
+    organizations: Organization {
+      organizationId
       name
       nick
     }
@@ -27,7 +27,7 @@ const READ_ASSOCIATIONS = gql`
 const XGridTable = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(READ_ASSOCIATIONS, {
+  const { error, loading, data } = useQuery(READ_ORGANIZATIONS, {
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
@@ -47,7 +47,7 @@ const XGridTable = () => {
         width: 150,
       },
       {
-        field: 'associationId',
+        field: 'organizationId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -55,7 +55,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminAssociationRoute(params.value)}
+              to={getAdminOrganizationRoute(params.value)}
             >
               Edit
             </LinkButton>
@@ -76,12 +76,12 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title>{'Associations'}</Title>
+                <Title>{'Organizations'}</Title>
               </div>
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminAssociationRoute('new')}
+                  to={getAdminOrganizationRoute('new')}
                 >
                   Create
                 </LinkButton>
@@ -97,7 +97,7 @@ const XGridTable = () => {
             >
               <XGrid
                 columns={columns}
-                rows={setIdFromEntityId(data.associations, 'associationId')}
+                rows={setIdFromEntityId(data.organizations, 'organizationId')}
                 loading={loading}
                 components={{
                   Toolbar: GridToolbar,

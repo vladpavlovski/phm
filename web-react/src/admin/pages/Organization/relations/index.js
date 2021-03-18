@@ -13,7 +13,7 @@ import { Competitions } from './components/Competitions'
 import { RulePacks } from './components/RulePacks'
 
 const Relations = props => {
-  const { associationId } = props
+  const { organizationId } = props
   const classes = useStyles()
 
   return (
@@ -35,10 +35,10 @@ const Relations = props => {
           <Typography>Manager info</Typography>
         </AccordionDetails>
       </Accordion>
-      <Sponsors associationId={associationId} />
-      <Teams associationId={associationId} />
-      <Competitions associationId={associationId} />
-      <RulePacks associationId={associationId} />
+      <Sponsors organizationId={organizationId} />
+      <Teams organizationId={organizationId} />
+      <Competitions organizationId={organizationId} />
+      <RulePacks organizationId={organizationId} />
 
       <Accordion>
         <AccordionSummary
@@ -57,7 +57,7 @@ const Relations = props => {
 }
 
 Relations.propTypes = {
-  associationId: PropTypes.string,
+  organizationId: PropTypes.string,
 }
 
 export { Relations }

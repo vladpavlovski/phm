@@ -111,7 +111,7 @@ const MainListItems = props => {
               icon={
                 <Tooltip
                   arrow
-                  title="Associations"
+                  title="Organizations"
                   placement="right"
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
@@ -119,8 +119,8 @@ const MainListItems = props => {
                   <SportsHockey />
                 </Tooltip>
               }
-              primary="Associations"
-              to={ROUTES.ADMIN_ASSOCIATIONS}
+              primary="Organizations"
+              to={ROUTES.ADMIN_ORGANIZATIONS}
             />
             <ListItemLink
               className={classes.menuSubListItem}

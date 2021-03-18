@@ -9,7 +9,7 @@
       "caption": ":Association",
       "labels": [],
       "properties": {
-        "associationId": "ID! @id",
+        "organizationId": "ID! @id",
         "name": "String",
         "nick": "String",
         "short": "String",
@@ -92,9 +92,7 @@
         "y": 711.4529997123655
       },
       "caption": ":Person",
-      "labels": [
-        ":EventOrganizer"
-      ],
+      "labels": [":EventOrganizer"],
       "properties": {
         "staffId": "ID! @id",
         "name": "String!",

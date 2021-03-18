@@ -15,88 +15,88 @@ import { useStyles } from '../../../commonComponents/styled'
 
 import { TextField, Autocomplete, Grid } from '@material-ui/core'
 
-const GET_ASSOCIATIONS = gql`
-  query getCompetitionAssociations($competitionId: ID) {
+const GET_ORGANIZATIONS = gql`
+  query getCompetitionOrganizations($competitionId: ID) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
       name
-      association {
-        associationId
+      organization {
+        organizationId
         name
       }
     }
-    associations: Association {
-      associationId
+    organizations: Organization {
+      organizationId
       name
     }
   }
 `
 
-const REMOVE_MERGE_COMPETITION_ASSOCIATION = gql`
-  mutation removeMergeCompetitionAssociation(
+const REMOVE_MERGE_COMPETITION_ORGANIZATION = gql`
+  mutation removeMergeCompetitionOrganization(
     $competitionId: ID!
-    $associationIdToRemove: ID!
-    $associationIdToMerge: ID!
+    $organizationIdToRemove: ID!
+    $organizationIdToMerge: ID!
   ) {
-    competitionAssociationRemove: RemoveCompetitionAssociation(
+    competitionOrganizationRemove: RemoveCompetitionOrganization(
       from: { competitionId: $competitionId }
-      to: { associationId: $associationIdToRemove }
+      to: { organizationId: $organizationIdToRemove }
     ) {
       from {
         competitionId
         name
       }
       to {
-        associationId
+        organizationId
         name
       }
     }
-    competitionAssociationMerge: MergeCompetitionAssociation(
+    competitionOrganizationMerge: MergeCompetitionOrganization(
       from: { competitionId: $competitionId }
-      to: { associationId: $associationIdToMerge }
+      to: { organizationId: $organizationIdToMerge }
     ) {
       from {
         competitionId
         name
       }
       to {
-        associationId
+        organizationId
         name
       }
     }
   }
 `
 
-const Association = props => {
+const Organization = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
 
-  const [selectedAssociation, setSelectedAssociation] = useState(null)
+  const [selectedOrganization, setSelectedOrganization] = useState(null)
 
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_ASSOCIATIONS, {
+  ] = useLazyQuery(GET_ORGANIZATIONS, {
     fetchPolicy: 'cache-and-network',
     onCompleted: data => {
-      setSelectedAssociation(data?.competition?.[0]?.association)
+      setSelectedOrganization(data?.competition?.[0]?.organization)
     },
   })
 
   const competition = queryData?.competition?.[0]
 
-  const [removeMergeAssociationCompetition] = useMutation(
-    REMOVE_MERGE_COMPETITION_ASSOCIATION,
+  const [removeMergeOrganizationCompetition] = useMutation(
+    REMOVE_MERGE_COMPETITION_ORGANIZATION,
     {
       onCompleted: data => {
         enqueueSnackbar(
-          `${competition.name} owned by ${data.competitionAssociationMerge.to.name}!`,
+          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
           {
             variant: 'success',
           }
         )
-        setSelectedAssociation(data.competitionAssociationMerge.to)
+        setSelectedOrganization(data.competitionOrganizationMerge.to)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -113,30 +113,30 @@ const Association = props => {
     }
   }, [])
 
-  const handleAssociationChange = useCallback(
+  const handleOrganizationChange = useCallback(
     data => {
-      if (selectedAssociation.associationId !== data.associationId) {
-        removeMergeAssociationCompetition({
+      if (selectedOrganization.organizationId !== data.organizationId) {
+        removeMergeOrganizationCompetition({
           variables: {
             competitionId,
-            associationIdToRemove: selectedAssociation.associationId,
-            associationIdToMerge: data.associationId,
+            organizationIdToRemove: selectedOrganization.organizationId,
+            organizationIdToMerge: data.organizationId,
           },
         })
       }
     },
-    [competitionId, selectedAssociation]
+    [competitionId, selectedOrganization]
   )
 
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="associations-content"
-        id="associations-header"
+        aria-controls="organizations-content"
+        id="organizations-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Association
+          Organization
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -147,19 +147,19 @@ const Association = props => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Autocomplete
-                  id="association-select"
-                  name="association"
-                  value={selectedAssociation}
+                  id="organization-select"
+                  name="organization"
+                  value={selectedOrganization}
                   getOptionLabel={option => option.name}
                   getOptionSelected={(option, value) =>
-                    option.associationId === value.associationId
+                    option.organizationId === value.organizationId
                   }
-                  options={queryData.associations}
+                  options={queryData.organizations}
                   onChange={(_, data) => {
-                    handleAssociationChange(data)
+                    handleOrganizationChange(data)
                   }}
                   renderOption={(props, option) => (
-                    <li {...props} key={option.associationId}>
+                    <li {...props} key={option.organizationId}>
                       {option.name}
                     </li>
                   )}
@@ -167,7 +167,7 @@ const Association = props => {
                     <TextField
                       {...params}
                       fullWidth
-                      // label="Association"
+                      // label="Organization"
                       variant="standard"
                       inputProps={{
                         ...params.inputProps,
@@ -185,8 +185,8 @@ const Association = props => {
   )
 }
 
-Association.propTypes = {
+Organization.propTypes = {
   competitionId: PropTypes.string,
 }
 
-export { Association }
+export { Organization }

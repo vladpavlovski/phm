@@ -1,4 +1,4 @@
-competitionId,competitionName,competitionNick,competitionShort,competitionManagerId,competitionManagerName,competitionManagerInternalId,competitionFoundDate,competitionStatus,associationName,associationId,sponsorName,sponsorId,venueName,venueId
+competitionId,competitionName,competitionNick,competitionShort,competitionManagerId,competitionManagerName,competitionManagerInternalId,competitionFoundDate,competitionStatus,organizationName,organizationId,sponsorName,sponsorId,venueName,venueId
 eb28fe84-b963-4058-9af2-ad86764210ed,Pražská liga ledního hokeje,PLLH,PLLH,,,,1.1.1983,Active,Pražská liga ledního hokeje,d0f6f7bc-8a93-433b-9cc0-e7f56ce6ae17,Bauer Hockey Czech,18d7a954-153e-442b-a90a-45128ca6251c,,
 c7c0bb15-5d29-415d-851e-5d777c6cc621,PHM Cup,PHM Cup,PHM,,,,10.5.2015,Active,Prague Hockey Masters,bb669217-41eb-4162-8040-a73f49a43570,Bauer Hockey Czech,18d7a954-153e-442b-a90a-45128ca6251c,,
 c7c0bb15-5d29-415d-851e-5d777c6cc621,PHM Cup,PHM Cup,PHM,,,,10.5.2015,Active,Prague Hockey Masters,bb669217-41eb-4162-8040-a73f49a43570,Kappa Czech republic,3bdb669a-021c-45ba-86e2-d23b81dfba31,,

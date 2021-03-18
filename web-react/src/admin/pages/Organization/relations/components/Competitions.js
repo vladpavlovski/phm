@@ -24,129 +24,135 @@ import Checkbox from '@material-ui/core/Checkbox'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminTeamRoute } from '../../../../../routes'
+import { getAdminCompetitionRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_TEAMS = gql`
-  query getAssociationTeams($associationId: ID) {
-    association: Association(associationId: $associationId) {
-      associationId
+const GET_COMPETITIONS = gql`
+  query getOrganizationCompetitions($organizationId: ID) {
+    organization: Organization(organizationId: $organizationId) {
+      organizationId
       name
-      teams {
-        teamId
+      competitions {
+        competitionId
         name
       }
     }
   }
 `
 
-const REMOVE_ASSOCIATION_TEAM = gql`
-  mutation removeAssociationTeam($associationId: ID!, $teamId: ID!) {
-    associationTeam: RemoveAssociationTeams(
-      from: { teamId: $teamId }
-      to: { associationId: $associationId }
+const REMOVE_ORGANIZATION_COMPETITION = gql`
+  mutation removeOrganizationCompetition(
+    $organizationId: ID!
+    $competitionId: ID!
+  ) {
+    organizationCompetition: RemoveOrganizationCompetitions(
+      from: { competitionId: $competitionId }
+      to: { organizationId: $organizationId }
     ) {
       from {
-        teamId
+        competitionId
         name
       }
       to {
-        associationId
+        organizationId
         name
       }
     }
   }
 `
 
-export const GET_ALL_TEAMS = gql`
-  query getTeams {
-    teams: Team {
-      teamId
+export const GET_ALL_COMPETITIONS = gql`
+  query getCompetitions {
+    competitions: Competition {
+      competitionId
       name
     }
   }
 `
 
-const MERGE_ASSOCIATION_TEAM = gql`
-  mutation mergeAssociationTeams($associationId: ID!, $teamId: ID!) {
-    associationTeam: MergeAssociationTeams(
-      from: { teamId: $teamId }
-      to: { associationId: $associationId }
+const MERGE_ORGANIZATION_COMPETITION = gql`
+  mutation mergeOrganizationCompetitions(
+    $organizationId: ID!
+    $competitionId: ID!
+  ) {
+    organizationCompetition: MergeOrganizationCompetitions(
+      from: { competitionId: $competitionId }
+      to: { organizationId: $organizationId }
     ) {
       from {
-        teamId
+        competitionId
         name
       }
       to {
-        associationId
+        organizationId
         name
       }
     }
   }
 `
 
-const Teams = props => {
-  const { associationId } = props
+const Competitions = props => {
+  const { organizationId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const [openAddAssociation, setOpenAddAssociation] = useState(false)
+  const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
-  const handleCloseAddAssociation = useCallback(() => {
-    setOpenAddAssociation(false)
+  const handleCloseAddOrganization = useCallback(() => {
+    setOpenAddOrganization(false)
   }, [])
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_TEAMS, {
+  ] = useLazyQuery(GET_COMPETITIONS, {
     fetchPolicy: 'cache-and-network',
   })
 
-  const association = queryData?.association?.[0]
+  const organization = queryData?.organization?.[0]
 
   const [
-    getAllAssociations,
+    getAllOrganizations,
     {
-      loading: queryAllAssociationsLoading,
-      error: queryAllAssociationsError,
-      data: queryAllAssociationsData,
+      loading: queryAllOrganizationsLoading,
+      error: queryAllOrganizationsError,
+      data: queryAllOrganizationsData,
     },
-  ] = useLazyQuery(GET_ALL_TEAMS, {
+  ] = useLazyQuery(GET_ALL_COMPETITIONS, {
     fetchPolicy: 'cache-and-network',
   })
 
   const [
-    removeTeamAssociation,
+    removeCompetitionOrganization,
     { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ASSOCIATION_TEAM, {
-    update(cache, { data: { associationTeam } }) {
+  ] = useMutation(REMOVE_ORGANIZATION_COMPETITION, {
+    update(cache, { data: { organizationCompetition } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_TEAMS,
+          query: GET_COMPETITIONS,
           variables: {
-            associationId,
+            organizationId,
           },
         })
-        const updatedData = queryResult?.association?.[0]?.teams.filter(
-          p => p.teamId !== associationTeam.from.teamId
+        const updatedData = queryResult?.organization?.[0]?.competitions.filter(
+          p => p.competitionId !== organizationCompetition.from.competitionId
         )
 
         const updatedResult = {
-          association: [
+          organization: [
             {
-              ...queryResult?.association?.[0],
-              teams: updatedData,
+              ...queryResult?.organization?.[0],
+              competitions: updatedData,
             },
           ],
         }
         cache.writeQuery({
-          query: GET_TEAMS,
+          query: GET_COMPETITIONS,
           data: updatedResult,
           variables: {
-            associationId,
+            organizationId,
           },
         })
       } catch (error) {
@@ -155,7 +161,7 @@ const Teams = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.associationTeam.from.name} not participate in ${association.name}!`,
+        `${data.organizationCompetition.from.name} not owned by ${organization.name}!`,
         {
           variant: 'info',
         }
@@ -169,66 +175,69 @@ const Teams = props => {
     },
   })
 
-  const [mergeTeamAssociation] = useMutation(MERGE_ASSOCIATION_TEAM, {
-    update(cache, { data: { associationTeam } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            associationId,
-          },
-        })
-        const existingData = queryResult?.association?.[0]?.teams
-        const newItem = associationTeam.from
-        const updatedResult = {
-          association: [
-            {
-              ...queryResult?.association?.[0],
-              teams: [newItem, ...existingData],
+  const [mergeCompetitionOrganization] = useMutation(
+    MERGE_ORGANIZATION_COMPETITION,
+    {
+      update(cache, { data: { organizationCompetition } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_COMPETITIONS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const existingData = queryResult?.organization?.[0]?.competitions
+          const newItem = organizationCompetition.from
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult?.organization?.[0],
+                competitions: [newItem, ...existingData],
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_COMPETITIONS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            associationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationCompetition.from.name} owned by ${organization.name}!`,
+          {
+            variant: 'success',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.associationTeam.from.name} participate in ${association.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { associationId } })
+      getData({ variables: { organizationId } })
     }
   }, [])
 
-  const handleOpenAddAssociation = useCallback(() => {
-    if (!queryAllAssociationsData) {
-      getAllAssociations()
+  const handleOpenAddOrganization = useCallback(() => {
+    if (!queryAllOrganizationsData) {
+      getAllOrganizations()
     }
-    setOpenAddAssociation(true)
+    setOpenAddOrganization(true)
   }, [])
 
-  const associationTeamsColumns = useMemo(
+  const organizationCompetitionsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -237,7 +246,7 @@ const Teams = props => {
       },
 
       {
-        field: 'teamId',
+        field: 'competitionId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -245,7 +254,7 @@ const Teams = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminTeamRoute(params.value)}
+              to={getAdminCompetitionRoute(params.value)}
             >
               Profile
             </LinkButton>
@@ -266,18 +275,18 @@ const Teams = props => {
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach team from association?'
+                'Do you really want to detach competition from organization?'
               }
               dialogDescription={
-                'Team will remain in the database. You can add him to any association later.'
+                'Competition will remain in the database. You can add him to any organization later.'
               }
-              dialogNegativeText={'No, keep team'}
-              dialogPositiveText={'Yes, detach team'}
+              dialogNegativeText={'No, keep competition'}
+              dialogPositiveText={'Yes, detach competition'}
               onDialogClosePositive={() => {
-                removeTeamAssociation({
+                removeCompetitionOrganization({
                   variables: {
-                    associationId,
-                    teamId: params.row.teamId,
+                    organizationId,
+                    competitionId: params.row.competitionId,
                   },
                 })
               }}
@@ -289,7 +298,7 @@ const Teams = props => {
     []
   )
 
-  const allTeamsColumns = useMemo(
+  const allCompetitionsColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -298,34 +307,36 @@ const Teams = props => {
       },
 
       {
-        field: 'teamId',
+        field: 'competitionId',
         headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewTeam
-              teamId={params.value}
-              associationId={associationId}
-              association={association}
-              merge={mergeTeamAssociation}
-              remove={removeTeamAssociation}
+            <ToggleNewCompetition
+              competitionId={params.value}
+              organizationId={organizationId}
+              organization={organization}
+              merge={mergeCompetitionOrganization}
+              remove={removeCompetitionOrganization}
             />
           )
         },
       },
     ],
-    [association]
+    [organization]
   )
 
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="teams-content"
-        id="teams-header"
+        aria-controls="competitions-content"
+        id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>Teams</Typography>
+        <Typography className={classes.accordionFormTitle}>
+          Competitions
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && !queryError && <Loader />}
@@ -336,21 +347,24 @@ const Teams = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenAddAssociation}
+                  onClick={handleOpenAddOrganization}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<AddIcon />}
                 >
-                  Add Team
+                  Add Competition
                 </Button>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={associationTeamsColumns}
-                rows={setIdFromEntityId(association.teams, 'teamId')}
-                loading={queryAllAssociationsLoading}
+                columns={organizationCompetitionsColumns}
+                rows={setIdFromEntityId(
+                  organization.competitions,
+                  'competitionId'
+                )}
+                loading={queryAllOrganizationsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -362,32 +376,32 @@ const Teams = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddAssociation}
-        onClose={handleCloseAddAssociation}
+        open={openAddOrganization}
+        onClose={handleCloseAddOrganization}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllAssociationsLoading && !queryAllAssociationsError && (
+        {queryAllOrganizationsLoading && !queryAllOrganizationsError && (
           <Loader />
         )}
-        {queryAllAssociationsError && !queryAllAssociationsLoading && (
-          <Error message={queryAllAssociationsError.message} />
+        {queryAllOrganizationsError && !queryAllOrganizationsLoading && (
+          <Error message={queryAllOrganizationsError.message} />
         )}
-        {queryAllAssociationsData &&
-          !queryAllAssociationsLoading &&
-          !queryAllAssociationsError && (
+        {queryAllOrganizationsData &&
+          !queryAllOrganizationsLoading &&
+          !queryAllOrganizationsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add ${association?.name} to new team`}</DialogTitle>
+              <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new competition`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
-                    columns={allTeamsColumns}
+                    columns={allCompetitionsColumns}
                     rows={setIdFromEntityId(
-                      queryAllAssociationsData.teams,
-                      'teamId'
+                      queryAllOrganizationsData.competitions,
+                      'competitionId'
                     )}
                     disableSelectionOnClick
-                    loading={queryAllAssociationsLoading}
+                    loading={queryAllOrganizationsLoading}
                     components={{
                       Toolbar: GridToolbar,
                     }}
@@ -399,7 +413,7 @@ const Teams = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddAssociation()
+              handleCloseAddOrganization()
             }}
           >
             {'Done'}
@@ -410,10 +424,10 @@ const Teams = props => {
   )
 }
 
-const ToggleNewTeam = props => {
-  const { associationId, teamId, association, remove, merge } = props
+const ToggleNewCompetition = props => {
+  const { organizationId, competitionId, organization, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!association.teams.find(p => p.teamId === teamId)
+    !!organization.competitions.find(p => p.competitionId === competitionId)
   )
 
   return (
@@ -425,19 +439,19 @@ const ToggleNewTeam = props => {
             isMember
               ? remove({
                   variables: {
-                    associationId,
-                    teamId,
+                    organizationId,
+                    competitionId,
                   },
                 })
               : merge({
                   variables: {
-                    associationId,
-                    teamId,
+                    organizationId,
+                    competitionId,
                   },
                 })
             setIsMember(!isMember)
           }}
-          name="teamMember"
+          name="competitionMember"
           color="primary"
         />
       }
@@ -446,17 +460,17 @@ const ToggleNewTeam = props => {
   )
 }
 
-ToggleNewTeam.propTypes = {
-  associationId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamAssociation: PropTypes.func,
-  mergeTeamAssociation: PropTypes.func,
+ToggleNewCompetition.propTypes = {
+  organizationId: PropTypes.string,
+  competitionId: PropTypes.string,
+  competition: PropTypes.object,
+  removeCompetitionOrganization: PropTypes.func,
+  mergeCompetitionOrganization: PropTypes.func,
   loading: PropTypes.bool,
 }
 
-Teams.propTypes = {
-  associationId: PropTypes.string,
+Competitions.propTypes = {
+  organizationId: PropTypes.string,
 }
 
-export { Teams }
+export { Competitions }

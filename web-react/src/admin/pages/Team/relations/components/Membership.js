@@ -32,15 +32,15 @@ const READ_MEMBERSHIP = gql`
     team: Team(teamId: $teamId) {
       teamId
       name
-      associations {
-        associationId
+      organizations {
+        organizationId
         name
       }
       competitions {
         competitionId
         name
-        association {
-          associationId
+        organization {
+          organizationId
         }
         phases {
           phaseId
@@ -68,8 +68,8 @@ const READ_MEMBERSHIP = gql`
         name
       }
     }
-    associations: Association {
-      associationId
+    organizations: Organization {
+      organizationId
       name
       competitions {
         competitionId
@@ -90,11 +90,11 @@ const READ_MEMBERSHIP = gql`
     }
   }
 `
-const MERGE_TEAM_ASSOCIATION = gql`
-  mutation mergeTeamAssociation($teamId: ID!, $associationId: ID!) {
-    teamAssociation: MergeTeamAssociations(
+const MERGE_TEAM_ORGANIZATION = gql`
+  mutation mergeTeamOrganization($teamId: ID!, $organizationId: ID!) {
+    teamOrganization: MergeTeamOrganizations(
       from: { teamId: $teamId }
-      to: { associationId: $associationId }
+      to: { organizationId: $organizationId }
     ) {
       from {
         name
@@ -106,11 +106,11 @@ const MERGE_TEAM_ASSOCIATION = gql`
   }
 `
 
-const REMOVE_TEAM_ASSOCIATION = gql`
-  mutation removeTeamAssociation($teamId: ID!, $associationId: ID!) {
-    teamAssociation: RemoveTeamAssociations(
+const REMOVE_TEAM_ORGANIZATION = gql`
+  mutation removeTeamOrganization($teamId: ID!, $organizationId: ID!) {
+    teamOrganization: RemoveTeamOrganizations(
       from: { teamId: $teamId }
-      to: { associationId: $associationId }
+      to: { organizationId: $organizationId }
     ) {
       from {
         name
@@ -287,7 +287,7 @@ const Membership = props => {
           <>
             <TableContainer>
               <Typography variant="h6" gutterBottom component="div">
-                Associations
+                Organizations
               </Typography>
               <Table aria-label="collapsible table">
                 <TableHead>
@@ -299,10 +299,10 @@ const Membership = props => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {queryData.associations.map(row => (
-                    <AssociationRow
-                      key={row.associationId}
-                      association={row}
+                  {queryData.organizations.map(row => (
+                    <OrganizationRow
+                      key={row.organizationId}
+                      organization={row}
                       team={team}
                     />
                   ))}
@@ -316,23 +316,25 @@ const Membership = props => {
   )
 }
 
-const AssociationRow = props => {
-  const { association, team } = props
+const OrganizationRow = props => {
+  const { organization, team } = props
   const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
-    !!team.associations.find(a => a.associationId === association.associationId)
+    !!team.organizations.find(
+      a => a.organizationId === organization.organizationId
+    )
   )
-  const [associationOpen, setAssociationOpen] = useState(false)
+  const [organizationOpen, setOrganizationOpen] = useState(false)
 
-  const [mergeTeamAssociation, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_ASSOCIATION : MERGE_TEAM_ASSOCIATION,
+  const [mergeTeamOrganization, { loading }] = useMutation(
+    isMember ? REMOVE_TEAM_ORGANIZATION : MERGE_TEAM_ORGANIZATION,
     {
       onCompleted: data => {
-        const { teamAssociation } = data
+        const { teamOrganization } = data
         const phrase = isMember
-          ? `${teamAssociation.from.name} is not in ${teamAssociation.to.name} association`
-          : `${teamAssociation.from.name} participate in ${teamAssociation.to.name} association`
+          ? `${teamOrganization.from.name} is not in ${teamOrganization.to.name} organization`
+          : `${teamOrganization.from.name} participate in ${teamOrganization.to.name} organization`
 
         enqueueSnackbar(phrase, {
           variant: isMember ? 'info' : 'success',
@@ -353,9 +355,9 @@ const AssociationRow = props => {
           <IconButton
             aria-label="expand row"
             size="small"
-            onClick={() => setAssociationOpen(!associationOpen)}
+            onClick={() => setOrganizationOpen(!organizationOpen)}
           >
-            {associationOpen ? (
+            {organizationOpen ? (
               <KeyboardArrowUpIcon />
             ) : (
               <KeyboardArrowDownIcon />
@@ -363,7 +365,7 @@ const AssociationRow = props => {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {association.name}
+          {organization.name}
         </TableCell>
         <TableCell align="left">
           <FormControlLabel
@@ -371,10 +373,10 @@ const AssociationRow = props => {
               <Checkbox
                 checked={isMember}
                 onChange={() => {
-                  mergeTeamAssociation({
+                  mergeTeamOrganization({
                     variables: {
                       teamId: team.teamId,
-                      associationId: association.associationId,
+                      organizationId: organization.organizationId,
                     },
                   })
                 }}
@@ -385,11 +387,11 @@ const AssociationRow = props => {
             label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
-        <TableCell align="right">{association.competitions.length}</TableCell>
+        <TableCell align="right">{organization.competitions.length}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
-          <Collapse in={associationOpen} timeout="auto" unmountOnExit>
+          <Collapse in={organizationOpen} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="div">
                 Competitions
@@ -409,7 +411,7 @@ const AssociationRow = props => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {association.competitions.map(competition => (
+                  {organization.competitions.map(competition => (
                     <CompetitionRow
                       key={competition.competitionId}
                       team={team}

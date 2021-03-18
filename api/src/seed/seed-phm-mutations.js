@@ -18,10 +18,10 @@ export const getSeedMutations = () => {
     delimiter: ',',
   })
 
-  const associationsContent = fs.readFileSync(
+  const organizationsContent = fs.readFileSync(
     __dirname + '/fake_data_phm/PHM NEW DB import - Association.csv'
   )
-  const associations = parse(associationsContent, {
+  const organizations = parse(organizationsContent, {
     columns: true,
     delimiter: ',',
   })
@@ -110,7 +110,7 @@ export const getSeedMutations = () => {
   const mutations = generateMutations({
     sponsors,
     venues,
-    associations,
+    organizations,
     competitions,
     seasons,
     phases,
@@ -222,42 +222,42 @@ const generateMutations = records => {
     }
   })
 
-  const associations = records.associations.map(rec => {
+  const organizations = records.organizations.map(rec => {
     Object.keys(rec).map(k => {
-      if (k === 'associationFoundDate') {
+      if (k === 'organizationFoundDate') {
         const dateParts = rec[k].split('.')
-        rec['associationFoundDateDay'] = parseInt(dateParts[0])
-        rec['associationFoundDateMonth'] = parseInt(dateParts[1])
-        rec['associationFoundDateYear'] = parseInt(dateParts[2])
+        rec['organizationFoundDateDay'] = parseInt(dateParts[0])
+        rec['organizationFoundDateMonth'] = parseInt(dateParts[1])
+        rec['organizationFoundDateYear'] = parseInt(dateParts[2])
       }
     })
     return {
       mutation: gql`
         mutation createAssociations(
-          $associationId: ID!
-          $associationName: String
-          $associationNick: String
-          $associationShort: String
-          $associationStatus: String
-          $associationLegalName: String
-          $associationFoundDateDay: Int
-          $associationFoundDateMonth: Int
-          $associationFoundDateYear: Int
+          $organizationId: ID!
+          $organizationName: String
+          $organizationNick: String
+          $organizationShort: String
+          $organizationStatus: String
+          $organizationLegalName: String
+          $organizationFoundDateDay: Int
+          $organizationFoundDateMonth: Int
+          $organizationFoundDateYear: Int
         ) {
-          association: MergeAssociation(
-            associationId: $associationId
-            name: $associationName
-            nick: $associationNick
-            short: $associationShort
-            status: $associationStatus
-            legalName: $associationLegalName
+          organization: MergeAssociation(
+            organizationId: $organizationId
+            name: $organizationName
+            nick: $organizationNick
+            short: $organizationShort
+            status: $organizationStatus
+            legalName: $organizationLegalName
             foundDate: {
-              day: $associationFoundDateDay
-              month: $associationFoundDateMonth
-              year: $associationFoundDateYear
+              day: $organizationFoundDateDay
+              month: $organizationFoundDateMonth
+              year: $organizationFoundDateYear
             }
           ) {
-            associationId
+            organizationId
           }
         }
       `,
@@ -285,7 +285,7 @@ const generateMutations = records => {
           $competitionFoundDateDay: Int
           $competitionFoundDateMonth: Int
           $competitionFoundDateYear: Int
-          $associationId: ID!
+          $organizationId: ID!
           $sponsorId: ID!
         ) {
           competition: MergeCompetition(
@@ -304,7 +304,7 @@ const generateMutations = records => {
           }
           competitionAssociation: MergeCompetitionAssociation(
             from: { competitionId: $competitionId }
-            to: { associationId: $associationId }
+            to: { organizationId: $organizationId }
           ) {
             from {
               competitionId
@@ -1018,7 +1018,7 @@ const generateMutations = records => {
   const result = [
     ...sponsors,
     ...venues,
-    ...associations,
+    ...organizations,
     ...competitions,
     ...seasons,
     ...phases,

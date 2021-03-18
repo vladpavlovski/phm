@@ -32,9 +32,9 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_RULEPACKS = gql`
-  query getAssociationRulePacks($associationId: ID) {
-    association: Association(associationId: $associationId) {
-      associationId
+  query getOrganizationRulePacks($organizationId: ID) {
+    organization: Organization(organizationId: $organizationId) {
+      organizationId
       name
       rulePacks {
         rulePackId
@@ -44,14 +44,14 @@ const GET_RULEPACKS = gql`
   }
 `
 
-const REMOVE_ASSOCIATION_RULEPACK = gql`
-  mutation removeAssociationRulePack($associationId: ID!, $rulePackId: ID!) {
-    associationRulePack: RemoveAssociationRulePacks(
-      from: { associationId: $associationId }
+const REMOVE_ORGANIZATION_RULEPACK = gql`
+  mutation removeOrganizationRulePack($organizationId: ID!, $rulePackId: ID!) {
+    organizationRulePack: RemoveOrganizationRulePacks(
+      from: { organizationId: $organizationId }
       to: { rulePackId: $rulePackId }
     ) {
       from {
-        associationId
+        organizationId
         name
       }
       to {
@@ -71,14 +71,14 @@ export const GET_ALL_RULEPACKS = gql`
   }
 `
 
-const MERGE_ASSOCIATION_RULEPACK = gql`
-  mutation mergeAssociationRulePacks($associationId: ID!, $rulePackId: ID!) {
-    associationRulePack: MergeAssociationRulePacks(
-      from: { associationId: $associationId }
+const MERGE_ORGANIZATION_RULEPACK = gql`
+  mutation mergeOrganizationRulePacks($organizationId: ID!, $rulePackId: ID!) {
+    organizationRulePack: MergeOrganizationRulePacks(
+      from: { organizationId: $organizationId }
       to: { rulePackId: $rulePackId }
     ) {
       from {
-        associationId
+        organizationId
         name
       }
       to {
@@ -90,13 +90,13 @@ const MERGE_ASSOCIATION_RULEPACK = gql`
 `
 
 const RulePacks = props => {
-  const { associationId } = props
+  const { organizationId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const [openAddAssociation, setOpenAddAssociation] = useState(false)
+  const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
-  const handleCloseAddAssociation = useCallback(() => {
-    setOpenAddAssociation(false)
+  const handleCloseAddOrganization = useCallback(() => {
+    setOpenAddOrganization(false)
   }, [])
   const [
     getData,
@@ -105,39 +105,39 @@ const RulePacks = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const association = queryData?.association?.[0]
+  const organization = queryData?.organization?.[0]
 
   const [
-    getAllAssociations,
+    getAllOrganizations,
     {
-      loading: queryAllAssociationsLoading,
-      error: queryAllAssociationsError,
-      data: queryAllAssociationsData,
+      loading: queryAllOrganizationsLoading,
+      error: queryAllOrganizationsError,
+      data: queryAllOrganizationsData,
     },
   ] = useLazyQuery(GET_ALL_RULEPACKS, {
     fetchPolicy: 'cache-and-network',
   })
 
   const [
-    removeRulePackAssociation,
+    removeRulePackOrganization,
     { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ASSOCIATION_RULEPACK, {
-    update(cache, { data: { associationRulePack } }) {
+  ] = useMutation(REMOVE_ORGANIZATION_RULEPACK, {
+    update(cache, { data: { organizationRulePack } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_RULEPACKS,
           variables: {
-            associationId,
+            organizationId,
           },
         })
-        const updatedData = queryResult?.association?.[0]?.rulePacks.filter(
-          p => p.rulePackId !== associationRulePack.to.rulePackId
+        const updatedData = queryResult?.organization?.[0]?.rulePacks.filter(
+          p => p.rulePackId !== organizationRulePack.to.rulePackId
         )
 
         const updatedResult = {
-          association: [
+          organization: [
             {
-              ...queryResult?.association?.[0],
+              ...queryResult?.organization?.[0],
               rulePacks: updatedData,
             },
           ],
@@ -146,7 +146,7 @@ const RulePacks = props => {
           query: GET_RULEPACKS,
           data: updatedResult,
           variables: {
-            associationId,
+            organizationId,
           },
         })
       } catch (error) {
@@ -155,7 +155,7 @@ const RulePacks = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${association.name} not guided by ${data.associationRulePack.to.name}!`,
+        `${organization.name} not guided by ${data.organizationRulePack.to.name}!`,
         {
           variant: 'info',
         }
@@ -169,21 +169,21 @@ const RulePacks = props => {
     },
   })
 
-  const [mergeRulePackAssociation] = useMutation(MERGE_ASSOCIATION_RULEPACK, {
-    update(cache, { data: { associationRulePack } }) {
+  const [mergeRulePackOrganization] = useMutation(MERGE_ORGANIZATION_RULEPACK, {
+    update(cache, { data: { organizationRulePack } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_RULEPACKS,
           variables: {
-            associationId,
+            organizationId,
           },
         })
-        const existingData = queryResult?.association?.[0]?.rulePacks
-        const newItem = associationRulePack.to
+        const existingData = queryResult?.organization?.[0]?.rulePacks
+        const newItem = organizationRulePack.to
         const updatedResult = {
-          association: [
+          organization: [
             {
-              ...queryResult?.association?.[0],
+              ...queryResult?.organization?.[0],
               rulePacks: [newItem, ...existingData],
             },
           ],
@@ -192,7 +192,7 @@ const RulePacks = props => {
           query: GET_RULEPACKS,
           data: updatedResult,
           variables: {
-            associationId,
+            organizationId,
           },
         })
       } catch (error) {
@@ -201,7 +201,7 @@ const RulePacks = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${association.name} guided by ${data.associationRulePack.to.name}!`,
+        `${organization.name} guided by ${data.organizationRulePack.to.name}!`,
         {
           variant: 'success',
         }
@@ -217,18 +217,18 @@ const RulePacks = props => {
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { associationId } })
+      getData({ variables: { organizationId } })
     }
   }, [])
 
-  const handleOpenAddAssociation = useCallback(() => {
-    if (!queryAllAssociationsData) {
-      getAllAssociations()
+  const handleOpenAddOrganization = useCallback(() => {
+    if (!queryAllOrganizationsData) {
+      getAllOrganizations()
     }
-    setOpenAddAssociation(true)
+    setOpenAddOrganization(true)
   }, [])
 
-  const associationRulePacksColumns = useMemo(
+  const organizationRulePacksColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -266,17 +266,17 @@ const RulePacks = props => {
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach rulePack from association?'
+                'Do you really want to detach rulePack from organization?'
               }
               dialogDescription={
-                'RulePack will remain in the database. You can add him to any association later.'
+                'RulePack will remain in the database. You can add him to any organization later.'
               }
               dialogNegativeText={'No, keep rulePack'}
               dialogPositiveText={'Yes, detach rulePack'}
               onDialogClosePositive={() => {
-                removeRulePackAssociation({
+                removeRulePackOrganization({
                   variables: {
-                    associationId,
+                    organizationId,
                     rulePackId: params.row.rulePackId,
                   },
                 })
@@ -306,16 +306,16 @@ const RulePacks = props => {
           return (
             <ToggleNewRulePack
               rulePackId={params.value}
-              associationId={associationId}
-              association={association}
-              merge={mergeRulePackAssociation}
-              remove={removeRulePackAssociation}
+              organizationId={organizationId}
+              organization={organization}
+              merge={mergeRulePackOrganization}
+              remove={removeRulePackOrganization}
             />
           )
         },
       },
     ],
-    [association]
+    [organization]
   )
 
   return (
@@ -338,7 +338,7 @@ const RulePacks = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenAddAssociation}
+                  onClick={handleOpenAddOrganization}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
@@ -350,9 +350,9 @@ const RulePacks = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={associationRulePacksColumns}
-                rows={setIdFromEntityId(association.rulePacks, 'rulePackId')}
-                loading={queryAllAssociationsLoading}
+                columns={organizationRulePacksColumns}
+                rows={setIdFromEntityId(organization.rulePacks, 'rulePackId')}
+                loading={queryAllOrganizationsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -364,32 +364,32 @@ const RulePacks = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddAssociation}
-        onClose={handleCloseAddAssociation}
+        open={openAddOrganization}
+        onClose={handleCloseAddOrganization}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllAssociationsLoading && !queryAllAssociationsError && (
+        {queryAllOrganizationsLoading && !queryAllOrganizationsError && (
           <Loader />
         )}
-        {queryAllAssociationsError && !queryAllAssociationsLoading && (
-          <Error message={queryAllAssociationsError.message} />
+        {queryAllOrganizationsError && !queryAllOrganizationsLoading && (
+          <Error message={queryAllOrganizationsError.message} />
         )}
-        {queryAllAssociationsData &&
-          !queryAllAssociationsLoading &&
-          !queryAllAssociationsError && (
+        {queryAllOrganizationsData &&
+          !queryAllOrganizationsLoading &&
+          !queryAllOrganizationsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add ${association?.name} to new rulePack`}</DialogTitle>
+              <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new rulePack`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
                     columns={allRulePacksColumns}
                     rows={setIdFromEntityId(
-                      queryAllAssociationsData.rulePacks,
+                      queryAllOrganizationsData.rulePacks,
                       'rulePackId'
                     )}
                     disableSelectionOnClick
-                    loading={queryAllAssociationsLoading}
+                    loading={queryAllOrganizationsLoading}
                     components={{
                       Toolbar: GridToolbar,
                     }}
@@ -401,7 +401,7 @@ const RulePacks = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddAssociation()
+              handleCloseAddOrganization()
             }}
           >
             {'Done'}
@@ -413,9 +413,9 @@ const RulePacks = props => {
 }
 
 const ToggleNewRulePack = props => {
-  const { associationId, rulePackId, association, remove, merge } = props
+  const { organizationId, rulePackId, organization, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!association.rulePacks.find(p => p.rulePackId === rulePackId)
+    !!organization.rulePacks.find(p => p.rulePackId === rulePackId)
   )
 
   return (
@@ -427,13 +427,13 @@ const ToggleNewRulePack = props => {
             isMember
               ? remove({
                   variables: {
-                    associationId,
+                    organizationId,
                     rulePackId,
                   },
                 })
               : merge({
                   variables: {
-                    associationId,
+                    organizationId,
                     rulePackId,
                   },
                 })
@@ -449,16 +449,16 @@ const ToggleNewRulePack = props => {
 }
 
 ToggleNewRulePack.propTypes = {
-  associationId: PropTypes.string,
+  organizationId: PropTypes.string,
   rulePackId: PropTypes.string,
   rulePack: PropTypes.object,
-  removeRulePackAssociation: PropTypes.func,
-  mergeRulePackAssociation: PropTypes.func,
+  removeRulePackOrganization: PropTypes.func,
+  mergeRulePackOrganization: PropTypes.func,
   loading: PropTypes.bool,
 }
 
 RulePacks.propTypes = {
-  associationId: PropTypes.string,
+  organizationId: PropTypes.string,
 }
 
 export { RulePacks }

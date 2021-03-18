@@ -27,10 +27,10 @@ const AdminPlayersView = Load(() => import('./admin/pages/Player/view'))
 const AdminPlayer = Load(() => import('./admin/pages/Player'))
 const AdminTeamsView = Load(() => import('./admin/pages/Team/view'))
 const AdminTeam = Load(() => import('./admin/pages/Team'))
-const AdminAssociationsView = Load(() =>
-  import('./admin/pages/Association/view')
+const AdminOrganizationsView = Load(() =>
+  import('./admin/pages/Organization/view')
 )
-const AdminAssociation = Load(() => import('./admin/pages/Association'))
+const AdminOrganization = Load(() => import('./admin/pages/Organization'))
 const AdminCompetitionsView = Load(() =>
   import('./admin/pages/Competition/view')
 )
@@ -89,14 +89,14 @@ const App = ({ history }) => {
                       component={AdminTeam}
                     />
                     <PrivateRoute
-                      path={ROUTES.ADMIN_ASSOCIATIONS}
+                      path={ROUTES.ADMIN_ORGANIZATIONS}
                       exact
-                      component={AdminAssociationsView}
+                      component={AdminOrganizationsView}
                     />
                     <PrivateRoute
-                      path={ROUTES.ADMIN_ASSOCIATION}
+                      path={ROUTES.ADMIN_ORGANIZATION}
                       exact
-                      component={AdminAssociation}
+                      component={AdminOrganization}
                     />
                     <PrivateRoute
                       path={ROUTES.ADMIN_COMPETITIONS}
