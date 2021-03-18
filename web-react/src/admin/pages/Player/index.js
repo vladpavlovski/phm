@@ -34,7 +34,7 @@ import { Relations } from './relations'
 import { ADMIN_PLAYERS, getAdminPlayerRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-import loadingGif from '../../../img/loading.gif'
+import placeholderAvatar from '../../../img/placeholder.jpg'
 
 const READ_PLAYER = gql`
   query getPlayer($playerId: ID!) {
@@ -243,7 +243,7 @@ const Player = () => {
                 <Grid item xs={12} md={4} lg={3}>
                   <Paper className={classes.paper}>
                     <Img
-                      placeholder={loadingGif}
+                      placeholder={placeholderAvatar}
                       src={playerData.avatar}
                       className={classes.logo}
                       alt={playerData.name}
