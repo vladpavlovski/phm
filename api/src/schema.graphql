@@ -675,6 +675,7 @@ type Venue {
   location: String
   foundDate: Date
   capacity: Int
+  logo: String
   competitions: [Competition] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   games: [Game] @relation(name: "TAKES_PLAYS_ON", direction: IN)
   address: Address @relation(name: "LOCATED_AT", direction: OUT)
