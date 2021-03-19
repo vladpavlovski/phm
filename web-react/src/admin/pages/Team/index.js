@@ -1,12 +1,12 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
-
+import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import { Container, Grid, Paper } from '@material-ui/core'
@@ -15,11 +15,11 @@ import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFColorpicker } from '../../../components/RHFColorpicker'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -27,7 +27,7 @@ import { schema } from './schema'
 import { ADMIN_TEAMS, getAdminTeamRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations/Relations'
 
 const GET_TEAM = gql`
@@ -40,7 +40,7 @@ const GET_TEAM = gql`
       short
       status
       externalId
-      logoUrl
+      logo
       primaryColor
       secondaryColor
       tertiaryColor
@@ -68,7 +68,7 @@ const MERGE_TEAM = gql`
     $short: String
     $status: String
     $externalId: String
-    $logoUrl: String
+    $logo: String
     $primaryColor: String
     $secondaryColor: String
     $tertiaryColor: String
@@ -84,7 +84,7 @@ const MERGE_TEAM = gql`
       short: $short
       status: $status
       externalId: $externalId
-      logoUrl: $logoUrl
+      logo: $logo
       primaryColor: $primaryColor
       secondaryColor: $secondaryColor
       tertiaryColor: $tertiaryColor
@@ -112,7 +112,7 @@ const Team = () => {
   const classes = useStyles()
   const { teamId } = useParams()
   const { enqueueSnackbar } = useSnackbar()
-
+  const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
@@ -146,11 +146,9 @@ const Team = () => {
     },
   })
 
-  const teamData = useMemo(() => (queryData && queryData.team[0]) || {}, [
-    queryData,
-  ])
+  const teamData = queryData?.team[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -162,9 +160,7 @@ const Team = () => {
         const dataToSubmit = {
           ...rest,
           teamId: teamId === 'new' ? uuidv4() : teamId,
-          foundDateDay: dayjs(foundDate).date(),
-          foundDateMonth: dayjs(foundDate).month() + 1,
-          foundDateYear: dayjs(foundDate).year(),
+          ...decomposeDate(foundDate, 'foundDate'),
         }
 
         mergeTeam({
@@ -175,6 +171,36 @@ const Team = () => {
       }
     },
     [teamId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_TEAM,
+        variables: {
+          teamId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_TEAM,
+        data: {
+          team: [
+            {
+              ...queryResult.team[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          teamId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, teamId]
   )
 
   return (
@@ -200,7 +226,36 @@ const Team = () => {
                 <title>{teamData.name || 'Team'}</title>
               </Helmet>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
+                <Grid item xs={12} md={4} lg={3}>
+                  <Paper className={classes.paper}>
+                    <Img
+                      placeholder={placeholderOrganization}
+                      src={teamData.logo}
+                      className={classes.logo}
+                      alt={teamData.name}
+                    />
+
+                    <RHFInput
+                      style={{ display: 'none' }}
+                      defaultValue={teamData.logo}
+                      control={control}
+                      name="logo"
+                      label="Logo URL"
+                      disabled
+                      fullWidth
+                      variant="standard"
+                      error={errors.logo}
+                    />
+
+                    <Uploader
+                      buttonText={'Change logo'}
+                      onSubmit={updateLogo}
+                      folderName="teams"
+                    />
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={12} lg={9}>
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>
@@ -291,13 +346,13 @@ const Team = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={teamData.logoUrl}
+                          defaultValue={teamData.logo}
                           control={control}
-                          name="logoUrl"
+                          name="logo"
                           label="Logo URL"
                           fullWidth
                           variant="standard"
-                          error={errors.logoUrl}
+                          error={errors.logo}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>

@@ -219,7 +219,7 @@ const Sponsor = () => {
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
-                      folderName="organizations"
+                      folderName="sponsors"
                     />
                   </Paper>
                 </Grid>

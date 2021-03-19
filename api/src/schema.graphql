@@ -254,7 +254,7 @@ type Team {
   short: String
   status: String
   externalId: String
-  logoUrl: String
+  logo: String
   primaryColor: String
   secondaryColor: String
   tertiaryColor: String

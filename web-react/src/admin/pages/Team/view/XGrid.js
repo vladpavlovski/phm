@@ -19,7 +19,7 @@ export const GET_TEAMS = gql`
     teams: Team {
       teamId
       name
-      logoUrl
+      logo
       nick
     }
   }
@@ -36,7 +36,7 @@ const XGridTable = () => {
   const columns = useMemo(
     () => [
       {
-        field: 'logoUrl',
+        field: 'logo',
         headerName: 'Logo',
         width: 70,
         disableColumnMenu: true,
