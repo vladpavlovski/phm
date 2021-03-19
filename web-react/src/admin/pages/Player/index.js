@@ -36,7 +36,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'
 
-const READ_PLAYER = gql`
+const GET_PLAYER = gql`
   query getPlayer($playerId: ID!) {
     player: Player(playerId: $playerId) {
       playerId
@@ -124,7 +124,7 @@ const Player = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_PLAYER, {
+  } = useQuery(GET_PLAYER, {
     fetchPolicy: 'network-only',
     variables: { playerId },
   })
@@ -192,14 +192,14 @@ const Player = () => {
       setValue('avatar', url, true)
 
       const queryResult = client.readQuery({
-        query: READ_PLAYER,
+        query: GET_PLAYER,
         variables: {
           playerId,
         },
       })
 
       client.writeQuery({
-        query: READ_PLAYER,
+        query: GET_PLAYER,
         data: {
           player: [
             {

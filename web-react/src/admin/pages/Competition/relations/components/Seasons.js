@@ -31,7 +31,7 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { formatDate, setIdFromEntityId } from '../../../../../utils'
 
-const READ_SEASONS = gql`
+const GET_SEASONS = gql`
   query getSeasons($competitionId: ID) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
@@ -120,7 +120,7 @@ const Seasons = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(READ_SEASONS)
+  ] = useLazyQuery(GET_SEASONS)
 
   const [
     getAllSeasons,
@@ -135,7 +135,7 @@ const Seasons = props => {
     update(cache, { data: { competitionSeason } }) {
       try {
         const queryResult = cache.readQuery({
-          query: READ_SEASONS,
+          query: GET_SEASONS,
           variables: {
             competitionId,
           },
@@ -152,7 +152,7 @@ const Seasons = props => {
           ],
         }
         cache.writeQuery({
-          query: READ_SEASONS,
+          query: GET_SEASONS,
           data: updatedResult,
           variables: {
             competitionId,
@@ -188,7 +188,7 @@ const Seasons = props => {
     update(cache, { data: { competitionSeason } }) {
       try {
         const queryResult = cache.readQuery({
-          query: READ_SEASONS,
+          query: GET_SEASONS,
           variables: {
             competitionId,
           },
@@ -207,7 +207,7 @@ const Seasons = props => {
           ],
         }
         cache.writeQuery({
-          query: READ_SEASONS,
+          query: GET_SEASONS,
           data: updatedResult,
           variables: {
             competitionId,

@@ -27,7 +27,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
 
-const READ_SPONSOR = gql`
+const GET_SPONSOR = gql`
   query getSponsor($sponsorId: ID!) {
     sponsor: Sponsor(sponsorId: $sponsorId) {
       sponsorId
@@ -86,7 +86,7 @@ const Sponsor = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_SPONSOR, {
+  } = useQuery(GET_SPONSOR, {
     fetchPolicy: 'network-only',
     variables: { sponsorId },
     skip: sponsorId === 'new',

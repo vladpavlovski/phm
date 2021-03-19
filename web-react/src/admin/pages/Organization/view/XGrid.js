@@ -14,7 +14,7 @@ import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
-const READ_ORGANIZATIONS = gql`
+const GET_ORGANIZATIONS = gql`
   query getOrganizations {
     organizations: Organization {
       organizationId
@@ -27,7 +27,7 @@ const READ_ORGANIZATIONS = gql`
 const XGridTable = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(READ_ORGANIZATIONS, {
+  const { error, loading, data } = useQuery(GET_ORGANIZATIONS, {
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

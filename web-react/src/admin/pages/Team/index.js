@@ -30,7 +30,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations/Relations'
 
-const READ_TEAM = gql`
+const GET_TEAM = gql`
   query getTeam($teamId: ID!) {
     team: Team(teamId: $teamId) {
       teamId
@@ -117,7 +117,7 @@ const Team = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_TEAM, {
+  } = useQuery(GET_TEAM, {
     fetchPolicy: 'network-only',
     variables: { teamId },
     skip: teamId === 'new',

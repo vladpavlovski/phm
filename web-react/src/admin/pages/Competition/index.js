@@ -28,7 +28,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
 
-const READ_COMPETITION = gql`
+const GET_COMPETITION = gql`
   query getCompetition($competitionId: ID!) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
@@ -88,7 +88,7 @@ const Competition = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_COMPETITION, {
+  } = useQuery(GET_COMPETITION, {
     fetchPolicy: 'network-only',
     variables: { competitionId },
     skip: competitionId === 'new',

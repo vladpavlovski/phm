@@ -14,7 +14,7 @@ import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
-const READ_COMPETITIONS = gql`
+const GET_COMPETITIONS = gql`
   query getOrganizations {
     competitions: Competition {
       competitionId
@@ -28,7 +28,7 @@ const READ_COMPETITIONS = gql`
 const XGridTable = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(READ_COMPETITIONS, {
+  const { error, loading, data } = useQuery(GET_COMPETITIONS, {
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

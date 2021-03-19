@@ -29,7 +29,7 @@ import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
-const READ_ORGANIZATION = gql`
+const GET_ORGANIZATION = gql`
   query getOrganization($organizationId: ID!) {
     organization: Organization(organizationId: $organizationId) {
       organizationId
@@ -96,7 +96,7 @@ const Organization = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_ORGANIZATION, {
+  } = useQuery(GET_ORGANIZATION, {
     fetchPolicy: 'network-only',
     variables: { organizationId },
     skip: organizationId === 'new',
@@ -155,14 +155,14 @@ const Organization = () => {
       setValue('logo', url, true)
 
       const queryResult = client.readQuery({
-        query: READ_ORGANIZATION,
+        query: GET_ORGANIZATION,
         variables: {
           organizationId,
         },
       })
 
       client.writeQuery({
-        query: READ_ORGANIZATION,
+        query: GET_ORGANIZATION,
         data: {
           organization: [
             {

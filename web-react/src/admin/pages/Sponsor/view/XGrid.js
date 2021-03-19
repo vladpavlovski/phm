@@ -14,7 +14,7 @@ import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
-const READ_SPONSORS = gql`
+const GET_SPONSORS = gql`
   query getSponsors {
     sponsors: Sponsor {
       sponsorId
@@ -29,7 +29,7 @@ const READ_SPONSORS = gql`
 const XGridTable = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(READ_SPONSORS, {
+  const { error, loading, data } = useQuery(GET_SPONSORS, {
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

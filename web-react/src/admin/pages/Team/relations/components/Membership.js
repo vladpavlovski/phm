@@ -27,7 +27,7 @@ import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
-const READ_MEMBERSHIP = gql`
+const GET_MEMBERSHIP = gql`
   query getMembership($teamId: ID) {
     team: Team(teamId: $teamId) {
       teamId
@@ -256,7 +256,7 @@ const Membership = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(READ_MEMBERSHIP)
+  ] = useLazyQuery(GET_MEMBERSHIP)
 
   const team = useMemo(() => queryData && queryData.team && queryData.team[0], [
     queryData,

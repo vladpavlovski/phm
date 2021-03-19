@@ -29,7 +29,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
 
-const READ_VENUE = gql`
+const GET_VENUE = gql`
   query getVenue($venueId: ID!) {
     venue: Venue(venueId: $venueId) {
       venueId
@@ -110,7 +110,7 @@ const Venue = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_VENUE, {
+  } = useQuery(GET_VENUE, {
     fetchPolicy: 'network-only',
     variables: { venueId },
     skip: venueId === 'new',
