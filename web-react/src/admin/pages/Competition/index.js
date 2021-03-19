@@ -1,11 +1,11 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { useSnackbar } from 'notistack'
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-
+import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import { Container, Grid, Paper } from '@material-ui/core'
@@ -14,10 +14,10 @@ import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -25,7 +25,7 @@ import { schema } from './schema'
 import { ADMIN_COMPETITIONS, getAdminCompetitionRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_COMPETITION = gql`
@@ -36,6 +36,7 @@ const GET_COMPETITION = gql`
       nick
       short
       status
+      logo
       foundDate {
         formatted
       }
@@ -53,6 +54,7 @@ const MERGE_COMPETITION = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $logo: String
   ) {
     mergeCompetition: MergeCompetition(
       competitionId: $competitionId
@@ -60,6 +62,7 @@ const MERGE_COMPETITION = gql`
       nick: $nick
       short: $short
       status: $status
+      logo: $logo
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -82,8 +85,9 @@ const DELETE_COMPETITION = gql`
 const Competition = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { enqueueSnackbar } = useSnackbar()
   const { competitionId } = useParams()
-
+  const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
@@ -103,6 +107,7 @@ const Competition = () => {
         const newId = data.mergeCompetition.competitionId
         history.replace(getAdminCompetitionRoute(newId))
       }
+      enqueueSnackbar('Competition saved!', { variant: 'success' })
     },
   })
 
@@ -112,15 +117,13 @@ const Competition = () => {
   ] = useMutation(DELETE_COMPETITION, {
     onCompleted: () => {
       history.push(ADMIN_COMPETITIONS)
+      enqueueSnackbar('Competition was deleted!')
     },
   })
 
-  const competitionData = useMemo(
-    () => (queryData && queryData.competition[0]) || {},
-    [queryData]
-  )
+  const competitionData = queryData?.competition[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -132,9 +135,7 @@ const Competition = () => {
         const dataToSubmit = {
           ...rest,
           competitionId: competitionId === 'new' ? uuidv4() : competitionId,
-          foundDateDay: dayjs(foundDate).date(),
-          foundDateMonth: dayjs(foundDate).month() + 1,
-          foundDateYear: dayjs(foundDate).year(),
+          ...decomposeDate(foundDate, 'foundDate'),
         }
 
         mergeCompetition({
@@ -145,6 +146,36 @@ const Competition = () => {
       }
     },
     [competitionId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_COMPETITION,
+        variables: {
+          competitionId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_COMPETITION,
+        data: {
+          competition: [
+            {
+              ...queryResult.competition[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          competitionId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, competitionId]
   )
 
   return (
@@ -169,7 +200,36 @@ const Competition = () => {
               <title>{competitionData.name || 'Competition'}</title>
             </Helmet>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
+              <Grid item xs={12} md={4} lg={3}>
+                <Paper className={classes.paper}>
+                  <Img
+                    placeholder={placeholderOrganization}
+                    src={competitionData.logo}
+                    className={classes.logo}
+                    alt={competitionData.name}
+                  />
+
+                  <RHFInput
+                    style={{ display: 'none' }}
+                    defaultValue={competitionData.logo}
+                    control={control}
+                    name="logo"
+                    label="Logo URL"
+                    disabled
+                    fullWidth
+                    variant="standard"
+                    error={errors.logo}
+                  />
+
+                  <Uploader
+                    buttonText={'Change logo'}
+                    onSubmit={updateLogo}
+                    folderName="competitions"
+                  />
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={12} lg={9}>
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
