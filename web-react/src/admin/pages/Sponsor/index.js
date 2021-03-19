@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
@@ -9,12 +9,12 @@ import { Helmet } from 'react-helmet'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 import { Container, Grid, Paper } from '@material-ui/core'
-
+import Img from 'react-cool-img'
 import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFInput } from '../../../components/RHFInput'
 import { checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
@@ -24,7 +24,7 @@ import { schema } from './schema'
 import { ADMIN_SPONSORS, getAdminSponsorRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_SPONSOR = gql`
@@ -38,6 +38,7 @@ const GET_SPONSOR = gql`
       claim
       web
       description
+      logo
     }
   }
 `
@@ -52,6 +53,7 @@ const MERGE_SPONSOR = gql`
     $claim: String
     $web: String
     $description: String
+    $logo: String
   ) {
     mergeSponsor: MergeSponsor(
       sponsorId: $sponsorId
@@ -62,6 +64,7 @@ const MERGE_SPONSOR = gql`
       claim: $claim
       web: $web
       description: $description
+      logo: $logo
     ) {
       sponsorId
     }
@@ -81,7 +84,7 @@ const Sponsor = () => {
   const classes = useStyles()
   const { sponsorId } = useParams()
   const { enqueueSnackbar } = useSnackbar()
-
+  const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
@@ -115,11 +118,9 @@ const Sponsor = () => {
     },
   })
 
-  const sponsorData = useMemo(() => (queryData && queryData.sponsor[0]) || {}, [
-    queryData,
-  ])
+  const sponsorData = queryData?.sponsor[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -139,6 +140,36 @@ const Sponsor = () => {
       }
     },
     [sponsorId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_SPONSOR,
+        variables: {
+          sponsorId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_SPONSOR,
+        data: {
+          sponsor: [
+            {
+              ...queryResult.sponsor[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          sponsorId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, sponsorId]
   )
 
   return (
@@ -164,7 +195,36 @@ const Sponsor = () => {
                 <title>{sponsorData.name || 'Sponsor'}</title>
               </Helmet>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
+                <Grid item xs={12} md={4} lg={3}>
+                  <Paper className={classes.paper}>
+                    <Img
+                      placeholder={placeholderOrganization}
+                      src={sponsorData.logo}
+                      className={classes.logo}
+                      alt={sponsorData.name}
+                    />
+
+                    <RHFInput
+                      style={{ display: 'none' }}
+                      defaultValue={sponsorData.logo}
+                      control={control}
+                      name="logo"
+                      label="Logo URL"
+                      disabled
+                      fullWidth
+                      variant="standard"
+                      error={errors.logo}
+                    />
+
+                    <Uploader
+                      buttonText={'Change logo'}
+                      onSubmit={updateLogo}
+                      folderName="organizations"
+                    />
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={12} lg={9}>
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>

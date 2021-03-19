@@ -651,6 +651,7 @@ type Sponsor {
   web: String
   description: String
   legalName: String
+  logo: String
   players: [Player] @relation(name: "SPONSORED_BY", direction: IN)
   teams: [Team] @relation(name: "SPONSORED_BY", direction: IN)
   person: [Person] @relation(name: "SPONSORED_BY", direction: IN)
@@ -713,6 +714,7 @@ type Competition {
   short: String
   foundDate: Date
   status: String
+  logo: String
   organization: Organization @relation(name: "OWNED_BY", direction: OUT)
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
