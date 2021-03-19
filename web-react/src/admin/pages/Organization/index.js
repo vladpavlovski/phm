@@ -1,23 +1,24 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
+import Img from 'react-cool-img'
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -25,7 +26,7 @@ import { schema } from './schema'
 import { ADMIN_ORGANIZATIONS, getAdminOrganizationRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const READ_ORGANIZATION = gql`
@@ -37,6 +38,7 @@ const READ_ORGANIZATION = gql`
       short
       status
       legalName
+      logo
       foundDate {
         formatted
       }
@@ -55,6 +57,7 @@ const MERGE_ORGANIZATION = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $logo: String
   ) {
     mergeOrganization: MergeOrganization(
       organizationId: $organizationId
@@ -63,6 +66,7 @@ const MERGE_ORGANIZATION = gql`
       nick: $nick
       short: $short
       status: $status
+      logo: $logo
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -86,6 +90,7 @@ const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
   const { organizationId } = useParams()
+  const client = useApolloClient()
 
   const {
     loading: queryLoading,
@@ -118,12 +123,9 @@ const Organization = () => {
     },
   })
 
-  const organizationData = useMemo(
-    () => (queryData && queryData.organization[0]) || {},
-    [queryData]
-  )
+  const organizationData = queryData?.organization[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -135,9 +137,7 @@ const Organization = () => {
         const dataToSubmit = {
           ...rest,
           organizationId: organizationId === 'new' ? uuidv4() : organizationId,
-          foundDateDay: dayjs(foundDate).date(),
-          foundDateMonth: dayjs(foundDate).month() + 1,
-          foundDateYear: dayjs(foundDate).year(),
+          ...decomposeDate(foundDate, 'foundDate'),
         }
 
         mergeOrganization({
@@ -148,6 +148,36 @@ const Organization = () => {
       }
     },
     [organizationId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: READ_ORGANIZATION,
+        variables: {
+          organizationId,
+        },
+      })
+
+      client.writeQuery({
+        query: READ_ORGANIZATION,
+        data: {
+          organization: [
+            {
+              ...queryResult.organization[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          organizationId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, organizationId]
   )
 
   return (
@@ -172,7 +202,36 @@ const Organization = () => {
               <title>{organizationData.name || 'Organization'}</title>
             </Helmet>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
+              <Grid item xs={12} md={4} lg={3}>
+                <Paper className={classes.paper}>
+                  <Img
+                    placeholder={placeholderOrganization}
+                    src={organizationData.logo}
+                    className={classes.logo}
+                    alt={organizationData.name}
+                  />
+
+                  <RHFInput
+                    style={{ display: 'none' }}
+                    defaultValue={organizationData.logo}
+                    control={control}
+                    name="logo"
+                    label="Logo URL"
+                    disabled
+                    fullWidth
+                    variant="standard"
+                    error={errors.logo}
+                  />
+
+                  <Uploader
+                    buttonText={'Change logo'}
+                    onSubmit={updateLogo}
+                    folderName="organizations"
+                  />
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={12} lg={9}>
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>

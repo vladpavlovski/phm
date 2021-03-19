@@ -34,7 +34,7 @@ import { Relations } from './relations'
 import { ADMIN_PERSONS, getAdminPersonRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-import placeholderAvatar from '../../../img/placeholder.jpg'
+import placeholderAvatar from '../../../img/placeholderPerson.jpg'
 
 const READ_PERSON = gql`
   query getPerson($personId: ID!) {
@@ -261,6 +261,7 @@ const Person = () => {
                     <Uploader
                       buttonText={'Change avatar'}
                       onSubmit={updateAvatar}
+                      folderName="avatars"
                     />
                   </Paper>
                 </Grid>

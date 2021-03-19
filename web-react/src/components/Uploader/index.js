@@ -33,7 +33,14 @@ const formatFileName = (filename, folderName = 'common') => {
 }
 
 const Uploader = props => {
-  const { buttonProps, buttonText, filesLimit, onSubmit, ...rest } = props
+  const {
+    buttonProps,
+    buttonText,
+    filesLimit,
+    onSubmit,
+    folderName,
+    ...rest
+  } = props
   const [open, setOpen] = useState(false)
   const [fileObjects, setFileObjects] = useState([])
 
@@ -45,7 +52,7 @@ const Uploader = props => {
     const fileToUpload = fileObjects?.[0]
     const signedResponse = await s3Sign({
       variables: {
-        filename: formatFileName(fileToUpload?.file?.name, 'avatars'),
+        filename: formatFileName(fileToUpload?.file?.name, folderName),
         filetype: fileToUpload?.file?.type,
       },
     })
@@ -68,7 +75,7 @@ const Uploader = props => {
         console.error(e)
         enqueueSnackbar(e, { variant: 'error' })
       })
-  }, [fileObjects])
+  }, [fileObjects, folderName])
 
   const onClose = useCallback(() => {
     setOpen(false)
@@ -162,6 +169,7 @@ Uploader.defaultProps = {
   showAlerts: false,
   filesLimit: 1,
   disableRejectionFeedback: true,
+  folderName: 'common',
 }
 
 Uploader.propTypes = {

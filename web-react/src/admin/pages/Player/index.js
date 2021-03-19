@@ -34,7 +34,7 @@ import { Relations } from './relations'
 import { ADMIN_PLAYERS, getAdminPlayerRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-import placeholderAvatar from '../../../img/placeholder.jpg'
+import placeholderAvatar from '../../../img/placeholderPerson.jpg'
 
 const READ_PLAYER = gql`
   query getPlayer($playerId: ID!) {
@@ -264,6 +264,7 @@ const Player = () => {
                     <Uploader
                       buttonText={'Change avatar'}
                       onSubmit={updateAvatar}
+                      folderName="avatars"
                     />
                   </Paper>
                 </Grid>
