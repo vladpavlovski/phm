@@ -43,6 +43,7 @@ const GET_POSITION_TYPES = gql`
       positionTypes {
         positionTypeId
         name
+        code
         description
       }
     }
@@ -54,11 +55,13 @@ const MERGE_RULEPACK_POSITION_TYPE = gql`
     $rulePackId: ID!
     $positionTypeId: ID!
     $name: String!
+    $code: String
     $description: String
   ) {
     positionType: MergePositionType(
       positionTypeId: $positionTypeId
       name: $name
+      code: $code
       description: $description
     ) {
       positionTypeId
@@ -74,6 +77,7 @@ const MERGE_RULEPACK_POSITION_TYPE = gql`
       to {
         positionTypeId
         name
+        code
         description
       }
     }
@@ -91,6 +95,7 @@ const DELETE_POSITION_TYPE = gql`
 const schema = object().shape({
   name: string().required('Name is required'),
   description: string(),
+  code: string(),
 })
 
 const PositionTypes = props => {
@@ -180,6 +185,11 @@ const PositionTypes = props => {
         field: 'name',
         headerName: 'Name',
         width: 150,
+      },
+      {
+        field: 'code',
+        headerName: 'Code',
+        width: 100,
       },
       {
         field: 'description',
@@ -355,7 +365,7 @@ const FormDialog = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.positionTypeRulePack.to.name} added to ${rulePack.name}!`,
+        `${data.positionTypeRulePack.to.name} saved to ${rulePack.name}!`,
         {
           variant: 'success',
         }
@@ -373,13 +383,10 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, description } = dataToCheck
-
         mergeRulePackPositionType({
           variables: {
             rulePackId,
-            name,
-            description,
+            ...dataToCheck,
             positionTypeId: data?.positionTypeId || uuidv4(),
           },
         })
@@ -421,6 +428,17 @@ const FormDialog = props => {
                       fullWidth
                       variant="standard"
                       error={errors?.name}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.code || ''}
+                      name="code"
+                      label="Code"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.code}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>

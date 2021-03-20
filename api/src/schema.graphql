@@ -974,6 +974,7 @@ type PenaltyShotStatus {
 type Period {
   periodId: ID! @id
   name: String!
+  code: String
   duration: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
@@ -1066,6 +1067,7 @@ type GameEventLocation {
 type PositionType {
   positionTypeId: ID! @id
   name: String!
+  code: String
   description: String
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
