@@ -466,6 +466,7 @@ const FormDialog = props => {
 
         <DialogActions>
           <Button
+            type="button"
             onClick={() => {
               handleCloseDialog()
             }}
