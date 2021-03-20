@@ -18,7 +18,8 @@ export const GET_PERSONS = gql`
   query getPersons {
     persons: Person {
       personId
-      name
+      firstName
+      lastName
     }
   }
 `
@@ -34,8 +35,13 @@ const XGridTable = () => {
   const columns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
+        field: 'firstName',
+        headerName: 'First name',
+        width: 150,
+      },
+      {
+        field: 'lastName',
+        headerName: 'Last name',
         width: 150,
       },
       {

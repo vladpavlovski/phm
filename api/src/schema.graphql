@@ -27,7 +27,8 @@ type Mutation {
 }
 
 interface Human {
-  name: String!
+  firstName: String!
+  lastName: String!
   birthday: Date
   userName: String @unique
   phone: String @unique
@@ -47,7 +48,8 @@ interface Human {
 
 type Player implements Human {
   playerId: ID! @id
-  name: String!
+  firstName: String!
+  lastName: String!
   birthday: Date
   userName: String @unique
   phone: String @unique
@@ -184,7 +186,8 @@ type MetaHistory {
 
 type Person implements Human {
   personId: ID! @id
-  name: String!
+  firstName: String!
+  lastName: String!
   birthday: Date
   userName: String @unique
   phone: String @unique

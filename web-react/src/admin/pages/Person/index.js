@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
@@ -24,7 +23,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -40,7 +39,8 @@ const GET_PERSON = gql`
   query getPerson($personId: ID!) {
     person: Person(personId: $personId) {
       personId
-      name
+      firstName
+      lastName
       birthday {
         formatted
       }
@@ -59,7 +59,8 @@ const GET_PERSON = gql`
 const MERGE_PERSON = gql`
   mutation mergePerson(
     $personId: ID!
-    $name: String
+    $firstName: String
+    $lastName: String
     $birthdayDay: Int
     $birthdayMonth: Int
     $birthdayYear: Int
@@ -77,7 +78,8 @@ const MERGE_PERSON = gql`
   ) {
     mergePerson: MergePerson(
       personId: $personId
-      name: $name
+      firstName: $firstName
+      lastName: $lastName
       birthday: {
         day: $birthdayDay
         month: $birthdayMonth
@@ -173,9 +175,7 @@ const Person = () => {
         const dataToSubmit = {
           ...rest,
           personId: personId === 'new' ? uuidv4() : personId,
-          birthdayDay: dayjs(birthday).date(),
-          birthdayMonth: dayjs(birthday).month() + 1,
-          birthdayYear: dayjs(birthday).year(),
+          ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }
 
@@ -294,14 +294,26 @@ const Person = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={personData.name}
+                          defaultValue={personData.firstName}
                           control={control}
-                          name="name"
-                          label="Name"
+                          name="firstName"
+                          label="First name"
                           required
                           fullWidth
                           variant="standard"
-                          error={errors.name}
+                          error={errors.firstName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.lastName}
+                          control={control}
+                          name="lastName"
+                          label="Last name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.lastName}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
