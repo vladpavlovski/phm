@@ -43,6 +43,7 @@ const GET_PERIODS = gql`
       periods {
         periodId
         name
+        code
         duration
       }
     }
@@ -54,9 +55,15 @@ const MERGE_RULEPACK_PERIOD = gql`
     $rulePackId: ID!
     $periodId: ID!
     $name: String
+    $code: String
     $duration: Int
   ) {
-    period: MergePeriod(periodId: $periodId, name: $name, duration: $duration) {
+    period: MergePeriod(
+      periodId: $periodId
+      name: $name
+      code: $code
+      duration: $duration
+    ) {
       periodId
       name
     }
@@ -70,6 +77,7 @@ const MERGE_RULEPACK_PERIOD = gql`
       to {
         periodId
         name
+        code
         duration
       }
     }
@@ -86,6 +94,7 @@ const DELETE_PERIOD = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
+  code: string(),
   duration: number().integer().positive().required('Duration is required'),
 })
 
@@ -177,7 +186,11 @@ const Periods = props => {
         headerName: 'Name',
         width: 150,
       },
-
+      {
+        field: 'code',
+        headerName: 'Code',
+        width: 100,
+      },
       {
         field: 'duration',
         headerName: 'Duration',
@@ -346,7 +359,7 @@ const FormDialog = props => {
       },
       onCompleted: data => {
         enqueueSnackbar(
-          `${data.periodRulePack.to.name} added to ${rulePack.name}!`,
+          `${data.periodRulePack.to.name} saved to ${rulePack.name}!`,
           {
             variant: 'success',
           }
@@ -365,12 +378,13 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, duration } = dataToCheck
+        const { name, duration, code } = dataToCheck
 
         mergeRulePackPeriod({
           variables: {
             rulePackId,
             name,
+            code,
             duration: !isNaN(parseInt(duration)) && parseInt(duration),
             periodId: data?.periodId || uuidv4(),
           },
@@ -413,6 +427,17 @@ const FormDialog = props => {
                       fullWidth
                       variant="standard"
                       error={errors?.name}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.code || ''}
+                      name="code"
+                      label="Code"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.code}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
