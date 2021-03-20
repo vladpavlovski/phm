@@ -11,7 +11,7 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import {
   setIdFromEntityId,
   getXGridValueFromArray,
@@ -22,7 +22,8 @@ export const GET_PLAYERS = gql`
   query getPlayers {
     players: Player {
       playerId
-      name
+      firstName
+      lastName
       positions {
         positionId
         name
@@ -32,7 +33,6 @@ export const GET_PLAYERS = gql`
         name
       }
     }
-    playersCount
   }
 `
 
@@ -44,13 +44,16 @@ const XGridTable = () => {
     fetchPolicy: 'cache-and-network',
   })
 
-  // console.log('data:', data)
-
   const columns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
+        field: 'firstName',
+        headerName: 'First Name',
+        width: 150,
+      },
+      {
+        field: 'lastName',
+        headerName: 'Last name',
         width: 150,
       },
       {
@@ -111,7 +114,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

@@ -40,7 +40,8 @@ const GET_PLAYER = gql`
   query getPlayer($playerId: ID!) {
     player: Player(playerId: $playerId) {
       playerId
-      name
+      firstName
+      lastName
       birthday {
         formatted
       }
@@ -62,7 +63,8 @@ const GET_PLAYER = gql`
 const MERGE_PLAYER = gql`
   mutation mergePlayer(
     $playerId: ID!
-    $name: String
+    $firstName: String
+    $lastName: String
     $birthdayDay: Int
     $birthdayMonth: Int
     $birthdayYear: Int
@@ -83,7 +85,8 @@ const MERGE_PLAYER = gql`
   ) {
     mergePlayer: MergePlayer(
       playerId: $playerId
-      name: $name
+      firstName: $firstName
+      lastName: $lastName
       birthday: {
         day: $birthdayDay
         month: $birthdayMonth
@@ -299,28 +302,28 @@ const Player = () => {
                       </div>
                     </Toolbar>
                     <Grid container spacing={2}>
-                      {/* <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={playerData.avatar}
-                          control={control}
-                          name="avatar"
-                          label="Avatar URL"
-                          // disabled
-                          fullWidth
-                          variant="standard"
-                          error={errors.avatar}
-                        />
-                      </Grid> */}
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={playerData.name}
+                          defaultValue={playerData.firstName}
                           control={control}
-                          name="name"
-                          label="Name"
+                          name="firstName"
+                          label="First Name"
                           required
                           fullWidth
                           variant="standard"
-                          error={errors.name}
+                          error={errors.firstName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.lastName}
+                          control={control}
+                          name="lastName"
+                          label="Last name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.lastName}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
