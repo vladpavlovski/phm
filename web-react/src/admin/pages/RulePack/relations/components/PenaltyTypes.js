@@ -95,7 +95,7 @@ const DELETE_PENALTY_TYPE = gql`
 const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
-  duration: number().integer().positive().required('Duration is required'),
+  duration: number().positive().required('Duration is required'),
 })
 
 const PenaltyTypes = props => {
@@ -440,7 +440,6 @@ const FormDialog = props => {
                       defaultValue={data?.code || ''}
                       name="code"
                       label="Code"
-                      required
                       fullWidth
                       variant="standard"
                       error={errors?.code}
