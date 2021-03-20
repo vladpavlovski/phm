@@ -36,7 +36,7 @@ export const setIdFromEntityId = (array, idField) =>
 export const getXGridValueFromArray = (array = [], fieldName) => {
   let value = ''
   array.forEach((item, i) => {
-    value = `${item[fieldName]}${i !== array.length - 1 ? ', ' : ''}`
+    value += `${item[fieldName]}${i !== array.length - 1 ? ', ' : ''}`
   })
   return value
 }
