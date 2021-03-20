@@ -43,6 +43,7 @@ const GET_RESULT_POINTS = gql`
       resultPoints {
         resultPointId
         name
+        code
         points
       }
     }
@@ -54,11 +55,13 @@ const MERGE_RULEPACK_RESULT_POINT = gql`
     $rulePackId: ID!
     $resultPointId: ID!
     $name: String
+    $code: String
     $points: Int
   ) {
     resultPoint: MergeResultPoint(
       resultPointId: $resultPointId
       name: $name
+      code: $code
       points: $points
     ) {
       resultPointId
@@ -74,6 +77,7 @@ const MERGE_RULEPACK_RESULT_POINT = gql`
       to {
         resultPointId
         name
+        code
         points
       }
     }
@@ -90,7 +94,8 @@ const DELETE_RESULT_POINT = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  points: number().integer().positive().required('Points is required'),
+  code: string(),
+  points: number().integer().required('Points is required'),
 })
 
 const ResultPoints = props => {
@@ -180,6 +185,11 @@ const ResultPoints = props => {
         field: 'name',
         headerName: 'Name',
         width: 150,
+      },
+      {
+        field: 'code',
+        headerName: 'Code',
+        width: 100,
       },
       {
         field: 'points',
@@ -351,7 +361,7 @@ const FormDialog = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.resultPointRulePack.to.name} added to ${rulePack.name}!`,
+        `${data.resultPointRulePack.to.name} saved to ${rulePack.name}!`,
         {
           variant: 'success',
         }
@@ -369,12 +379,13 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, points } = dataToCheck
+        const { name, points, code } = dataToCheck
 
         mergeRulePackResultPoint({
           variables: {
             rulePackId,
             name,
+            code,
             points: parseInt(points),
             resultPointId: data?.resultPointId || uuidv4(),
           },
@@ -422,7 +433,18 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.points || ''}
+                      defaultValue={data?.code || ''}
+                      name="code"
+                      label="Code"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.code}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.points?.toString() ?? ''}
                       name="points"
                       label="Points"
                       required
@@ -439,6 +461,7 @@ const FormDialog = props => {
 
         <DialogActions>
           <Button
+            type="button"
             onClick={() => {
               handleCloseDialog()
             }}

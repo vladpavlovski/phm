@@ -1140,6 +1140,7 @@ type ResultType {
 type ResultPoint {
   resultPointId: ID! @id
   name: String!
+  code: String!
   points: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
