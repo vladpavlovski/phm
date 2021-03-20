@@ -4,7 +4,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-import 'react-imported-component/macro'
+import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
@@ -53,6 +53,8 @@ const GET_PLAYER = gql`
       weight
       gender
       avatar
+      phone
+      email
     }
   }
 `
@@ -66,6 +68,7 @@ const MERGE_PLAYER = gql`
     $birthdayYear: Int
     $userName: String
     $phone: String
+    $email: String
     $gender: String
     $stick: String
     $height: String
@@ -88,6 +91,7 @@ const MERGE_PLAYER = gql`
       }
       userName: $userName
       phone: $phone
+      email: $email
       gender: $gender
       stick: $stick
       height: $height
@@ -117,7 +121,7 @@ const Player = () => {
   const history = useHistory()
   const classes = useStyles()
   const { playerId } = useParams()
-
+  const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
 
   const {
@@ -138,6 +142,9 @@ const Player = () => {
         const newPlayerId = data.mergePlayer.playerId
         history.replace(getAdminPlayerRoute(newPlayerId))
       }
+      enqueueSnackbar(`Player saved!`, {
+        variant: 'success',
+      })
     },
   })
 
@@ -149,6 +156,9 @@ const Player = () => {
   ] = useMutation(DELETE_PLAYER, {
     onCompleted: () => {
       history.push(ADMIN_PLAYERS)
+      enqueueSnackbar(`Player was deleted!`, {
+        variant: 'info',
+      })
     },
   })
 
@@ -322,6 +332,28 @@ const Player = () => {
                           fullWidth
                           variant="standard"
                           error={errors.externalId}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.phone}
+                          control={control}
+                          name="phone"
+                          label="Phone"
+                          fullWidth
+                          variant="standard"
+                          error={errors.phone}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.email}
+                          control={control}
+                          name="email"
+                          label="Email"
+                          fullWidth
+                          variant="standard"
+                          error={errors.email}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>

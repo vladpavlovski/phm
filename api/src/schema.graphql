@@ -31,6 +31,7 @@ interface Human {
   birthday: Date
   userName: String @unique
   phone: String @unique
+  email: String @unique
   gender: String
   height: String
   weight: String
@@ -50,6 +51,7 @@ type Player implements Human {
   birthday: Date
   userName: String @unique
   phone: String @unique
+  email: String @unique
   gender: String
   stick: String
   height: String
@@ -186,6 +188,7 @@ type Person implements Human {
   birthday: Date
   userName: String @unique
   phone: String @unique
+  email: String @unique
   gender: String
   height: String
   weight: String

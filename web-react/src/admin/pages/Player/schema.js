@@ -1,4 +1,5 @@
 import { object, string, date } from 'yup'
+import { phoneRegExp } from '../../../utils'
 
 export const schema = object().shape({
   name: string().required('Name is required'),
@@ -12,4 +13,9 @@ export const schema = object().shape({
   weight: string(),
   gender: string(),
   avatar: string(),
+  phone: string().matches(phoneRegExp, {
+    message: 'Phone number is not valid',
+    excludeEmptyString: true,
+  }),
+  email: string().email('Email is not valid'),
 })
