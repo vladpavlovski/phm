@@ -32,6 +32,27 @@ const GET_ORGANIZATIONS = gql`
   }
 `
 
+const MERGE_COMPETITION_ORGANIZATION = gql`
+  mutation mergeCompetitionOrganization(
+    $competitionId: ID!
+    $organizationIdToMerge: ID!
+  ) {
+    competitionOrganizationMerge: MergeCompetitionOrganization(
+      from: { competitionId: $competitionId }
+      to: { organizationId: $organizationIdToMerge }
+    ) {
+      from {
+        competitionId
+        name
+      }
+      to {
+        organizationId
+        name
+      }
+    }
+  }
+`
+
 const REMOVE_MERGE_COMPETITION_ORGANIZATION = gql`
   mutation removeMergeCompetitionOrganization(
     $competitionId: ID!
@@ -107,6 +128,27 @@ const Organization = props => {
     }
   )
 
+  const [mergeOrganizationCompetition] = useMutation(
+    MERGE_COMPETITION_ORGANIZATION,
+    {
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
+          {
+            variant: 'success',
+          }
+        )
+        setSelectedOrganization(data.competitionOrganizationMerge.to)
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
+        console.error(error)
+      },
+    }
+  )
+
   const openAccordion = useCallback(() => {
     if (!queryData) {
       getData({ variables: { competitionId } })
@@ -115,11 +157,21 @@ const Organization = props => {
 
   const handleOrganizationChange = useCallback(
     data => {
-      if (selectedOrganization.organizationId !== data.organizationId) {
+      if (
+        selectedOrganization &&
+        selectedOrganization?.organizationId !== data?.organizationId
+      ) {
         removeMergeOrganizationCompetition({
           variables: {
             competitionId,
             organizationIdToRemove: selectedOrganization.organizationId,
+            organizationIdToMerge: data.organizationId,
+          },
+        })
+      } else {
+        mergeOrganizationCompetition({
+          variables: {
+            competitionId,
             organizationIdToMerge: data.organizationId,
           },
         })
@@ -167,7 +219,6 @@ const Organization = props => {
                     <TextField
                       {...params}
                       fullWidth
-                      // label="Organization"
                       variant="standard"
                       inputProps={{
                         ...params.inputProps,
