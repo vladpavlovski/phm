@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-
+import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
@@ -48,10 +48,10 @@ const GET_PERSON = gql`
       activityStatus
       country
       city
-      height
-      weight
       gender
       avatar
+      phone
+      email
     }
   }
 `
@@ -65,9 +65,8 @@ const MERGE_PERSON = gql`
     $birthdayYear: Int
     $userName: String
     $phone: String
+    $email: String
     $gender: String
-    $height: String
-    $weight: String
     $externalId: String
     $activityStatus: String
     $countryBirth: String
@@ -86,9 +85,8 @@ const MERGE_PERSON = gql`
       }
       userName: $userName
       phone: $phone
+      email: $email
       gender: $gender
-      height: $height
-      weight: $weight
       externalId: $externalId
       activityStatus: $activityStatus
       countryBirth: $countryBirth
@@ -114,6 +112,7 @@ const Person = () => {
   const history = useHistory()
   const classes = useStyles()
   const { personId } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
     loading: queryLoading,
@@ -133,6 +132,9 @@ const Person = () => {
         const newPersonId = data.mergePerson.personId
         history.replace(getAdminPersonRoute(newPersonId))
       }
+      enqueueSnackbar(`Person saved!`, {
+        variant: 'success',
+      })
     },
   })
 
@@ -144,6 +146,9 @@ const Person = () => {
   ] = useMutation(DELETE_PERSON, {
     onCompleted: () => {
       history.push(ADMIN_PERSONS)
+      enqueueSnackbar(`Person was deleted!`, {
+        variant: 'info',
+      })
     },
   })
 
@@ -311,6 +316,28 @@ const Person = () => {
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.phone}
+                          control={control}
+                          name="phone"
+                          label="Phone"
+                          fullWidth
+                          variant="standard"
+                          error={errors.phone}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.email}
+                          control={control}
+                          name="email"
+                          label="Email"
+                          fullWidth
+                          variant="standard"
+                          error={errors.email}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFDatepicker
                           fullWidth
                           control={control}
@@ -392,28 +419,6 @@ const Person = () => {
                           <MenuItem value="female">Female</MenuItem>
                           <MenuItem value="other">Other</MenuItem>
                         </ReactHookFormSelect>
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={personData.height}
-                          control={control}
-                          name="height"
-                          label="Height"
-                          fullWidth
-                          variant="standard"
-                          error={errors.height}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={personData.weight}
-                          control={control}
-                          name="weight"
-                          label="Weight"
-                          fullWidth
-                          variant="standard"
-                          error={errors.weight}
-                        />
                       </Grid>
                     </Grid>
                   </Paper>
