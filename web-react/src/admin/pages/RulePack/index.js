@@ -26,7 +26,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
 
-const READ_RULEPACK = gql`
+const GET_RULEPACK = gql`
   query getRulePack($rulePackId: ID!) {
     rulePack: RulePack(rulePackId: $rulePackId) {
       rulePackId
@@ -61,7 +61,7 @@ const RulePack = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_RULEPACK, {
+  } = useQuery(GET_RULEPACK, {
     fetchPolicy: 'network',
     variables: { rulePackId },
     skip: rulePackId === 'new',

@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import Img from 'react-cool-img'
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
@@ -15,10 +15,10 @@ import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, checkId } from '../../../utils'
+import { dateExist, checkId, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -26,10 +26,10 @@ import { schema } from './schema'
 import { ADMIN_VENUES, getAdminVenueRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
-const READ_VENUE = gql`
+const GET_VENUE = gql`
   query getVenue($venueId: ID!) {
     venue: Venue(venueId: $venueId) {
       venueId
@@ -40,6 +40,7 @@ const READ_VENUE = gql`
       description
       location
       capacity
+      logo
       foundDate {
         formatted
       }
@@ -71,6 +72,7 @@ const MERGE_VENUE = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $logo: String
   ) {
     mergeVenue: MergeVenue(
       venueId: $venueId
@@ -81,6 +83,7 @@ const MERGE_VENUE = gql`
       description: $description
       location: $location
       capacity: $capacity
+      logo: $logo
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -105,12 +108,12 @@ const Venue = () => {
   const classes = useStyles()
   const { venueId } = useParams()
   const { enqueueSnackbar } = useSnackbar()
-
+  const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_VENUE, {
+  } = useQuery(GET_VENUE, {
     fetchPolicy: 'network-only',
     variables: { venueId },
     skip: venueId === 'new',
@@ -139,11 +142,9 @@ const Venue = () => {
     },
   })
 
-  const venueData = useMemo(() => (queryData && queryData.venue[0]) || {}, [
-    queryData,
-  ])
+  const venueData = queryData?.venue[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -156,9 +157,7 @@ const Venue = () => {
           ...rest,
           venueId: checkId(venueId),
           capacity: capacity ? parseInt(capacity) : 0,
-          foundDateDay: dayjs(foundDate).date(),
-          foundDateMonth: dayjs(foundDate).month() + 1,
-          foundDateYear: dayjs(foundDate).year(),
+          ...decomposeDate(foundDate, 'foundDate'),
         }
 
         mergeVenue({
@@ -169,6 +168,36 @@ const Venue = () => {
       }
     },
     [venueId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_VENUE,
+        variables: {
+          venueId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_VENUE,
+        data: {
+          venue: [
+            {
+              ...queryResult.venue[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          venueId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, venueId]
   )
 
   return (
@@ -194,7 +223,36 @@ const Venue = () => {
                 <title>{venueData.name || 'Venue'}</title>
               </Helmet>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
+                <Grid item xs={12} md={4} lg={3}>
+                  <Paper className={classes.paper}>
+                    <Img
+                      placeholder={placeholderOrganization}
+                      src={venueData.logo}
+                      className={classes.logo}
+                      alt={venueData.name}
+                    />
+
+                    <RHFInput
+                      style={{ display: 'none' }}
+                      defaultValue={venueData.logo}
+                      control={control}
+                      name="logo"
+                      label="Logo URL"
+                      disabled
+                      fullWidth
+                      variant="standard"
+                      error={errors.logo}
+                    />
+
+                    <Uploader
+                      buttonText={'Change logo'}
+                      onSubmit={updateLogo}
+                      folderName="venues"
+                    />
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={12} lg={9}>
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>

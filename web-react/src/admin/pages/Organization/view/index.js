@@ -10,7 +10,7 @@ const View = () => {
   const { setBarTitle } = useContext(LayoutContext)
 
   useEffect(() => {
-    setBarTitle('Associations')
+    setBarTitle('Organizations')
     return () => {
       setBarTitle('')
     }
@@ -18,7 +18,7 @@ const View = () => {
   return (
     <>
       <Helmet>
-        <title>Associations</title>
+        <title>Organizations</title>
       </Helmet>
       <Grid container spacing={3}>
         <Grid item xs={12}>

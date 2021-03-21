@@ -1,12 +1,13 @@
-import React, { useCallback, useMemo, useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-
+import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
+import Img from 'react-cool-img'
+
 import Toolbar from '@material-ui/core/Toolbar'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
@@ -20,8 +21,9 @@ import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
+import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -31,12 +33,14 @@ import { Relations } from './relations'
 import { ADMIN_PERSONS, getAdminPersonRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
+import placeholderAvatar from '../../../img/placeholderPerson.jpg'
 
-const READ_PERSON = gql`
+const GET_PERSON = gql`
   query getPerson($personId: ID!) {
-    Person(personId: $personId) {
+    person: Person(personId: $personId) {
       personId
-      name
+      firstName
+      lastName
       birthday {
         formatted
       }
@@ -44,9 +48,10 @@ const READ_PERSON = gql`
       activityStatus
       country
       city
-      height
-      weight
       gender
+      avatar
+      phone
+      email
     }
   }
 `
@@ -54,26 +59,27 @@ const READ_PERSON = gql`
 const MERGE_PERSON = gql`
   mutation mergePerson(
     $personId: ID!
-    $name: String
+    $firstName: String
+    $lastName: String
     $birthdayDay: Int
     $birthdayMonth: Int
     $birthdayYear: Int
     $userName: String
     $phone: String
+    $email: String
     $gender: String
-    $height: String
-    $weight: String
     $externalId: String
     $activityStatus: String
     $countryBirth: String
     $cityBirth: String
     $country: String
     $city: String
-    $avatarUrl: String
+    $avatar: String
   ) {
     mergePerson: MergePerson(
       personId: $personId
-      name: $name
+      firstName: $firstName
+      lastName: $lastName
       birthday: {
         day: $birthdayDay
         month: $birthdayMonth
@@ -81,16 +87,15 @@ const MERGE_PERSON = gql`
       }
       userName: $userName
       phone: $phone
+      email: $email
       gender: $gender
-      height: $height
-      weight: $weight
       externalId: $externalId
       activityStatus: $activityStatus
       countryBirth: $countryBirth
       cityBirth: $cityBirth
       country: $country
       city: $city
-      avatarUrl: $avatarUrl
+      avatar: $avatar
     ) {
       personId
     }
@@ -109,12 +114,13 @@ const Person = () => {
   const history = useHistory()
   const classes = useStyles()
   const { personId } = useParams()
-
+  const { enqueueSnackbar } = useSnackbar()
+  const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_PERSON, {
+  } = useQuery(GET_PERSON, {
     fetchPolicy: 'network-only',
     variables: { personId },
   })
@@ -128,12 +134,13 @@ const Person = () => {
         const newPersonId = data.mergePerson.personId
         history.replace(getAdminPersonRoute(newPersonId))
       }
+      enqueueSnackbar(`Person saved!`, {
+        variant: 'success',
+      })
     },
   })
 
-  const personData = useMemo(() => (queryData && queryData.Person[0]) || {}, [
-    queryData,
-  ])
+  const personData = (queryData && queryData.person[0]) || {}
 
   const [
     deletePerson,
@@ -141,6 +148,9 @@ const Person = () => {
   ] = useMutation(DELETE_PERSON, {
     onCompleted: () => {
       history.push(ADMIN_PERSONS)
+      enqueueSnackbar(`Person was deleted!`, {
+        variant: 'info',
+      })
     },
   })
 
@@ -165,9 +175,7 @@ const Person = () => {
         const dataToSubmit = {
           ...rest,
           personId: personId === 'new' ? uuidv4() : personId,
-          birthdayDay: dayjs(birthday).date(),
-          birthdayMonth: dayjs(birthday).month() + 1,
-          birthdayYear: dayjs(birthday).year(),
+          ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }
 
@@ -179,6 +187,36 @@ const Person = () => {
       }
     },
     [personId]
+  )
+
+  const updateAvatar = useCallback(
+    url => {
+      setValue('avatar', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_PERSON,
+        variables: {
+          personId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_PERSON,
+        data: {
+          person: [
+            {
+              ...queryResult.person[0],
+              avatar: url,
+            },
+          ],
+        },
+        variables: {
+          personId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client]
   )
 
   return (
@@ -203,157 +241,201 @@ const Person = () => {
               <Helmet>
                 <title>{personData.name || 'Person'}</title>
               </Helmet>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
-                  <div>
-                    <Title>{'Person'}</Title>
-                  </div>
-                  <div>
-                    {formState.isDirty && (
-                      <ButtonSave loading={mutationLoading} />
-                    )}
-                    {personId !== 'new' && (
-                      <ButtonDelete
-                        loading={loadingDelete}
-                        onClick={() => {
-                          deletePerson({ variables: { personId } })
-                        }}
-                      />
-                    )}
-                  </div>
-                </Toolbar>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4} lg={3}>
+                  <Paper className={classes.paper}>
+                    <Img
+                      placeholder={placeholderAvatar}
+                      src={personData.avatar}
+                      className={classes.logo}
+                      alt={personData.name}
+                    />
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={personData.name}
+                      style={{ display: 'none' }}
+                      defaultValue={personData.avatar}
                       control={control}
-                      name="name"
-                      label="Name"
-                      required
+                      name="avatar"
+                      label="Avatar URL"
+                      disabled
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors.avatar}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={personData.externalId}
-                      control={control}
-                      name="externalId"
-                      label="External Id"
-                      fullWidth
-                      variant="standard"
-                      error={errors.externalId}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFDatepicker
-                      fullWidth
-                      control={control}
-                      variant="standard"
-                      name="birthday"
-                      label="Birthday"
-                      id="birthday"
-                      openTo="year"
-                      disableFuture
-                      inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'date']}
-                      defaultValue={
-                        personData.birthday &&
-                        dateExist(personData.birthday.formatted)
-                          ? personData.birthday.formatted
-                          : null
-                      }
-                      error={errors.birthday}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={personData.activityStatus}
-                      control={control}
-                      name="activityStatus"
-                      label="Activity Status"
-                      fullWidth
-                      variant="standard"
-                      error={errors.activityStatus}
-                    />
-                  </Grid>
 
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFAutocomplete
-                      fullWidth
-                      options={countriesNames}
-                      defaultValue={personData.country}
-                      // getOptionLabel={option => {
-                      //   console.log(option)
-                      //   return option
-                      // }}
-                      // getOptionSelected={(option, value) => {
-                      //   console.log(option, value)
-                      //   return equals(option, value)
-                      // }}
-                      control={control}
-                      id="country"
-                      name="country"
-                      label="Country"
+                    <Uploader
+                      buttonText={'Change avatar'}
+                      onSubmit={updateAvatar}
+                      folderName="avatars"
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={personData.city}
-                      control={control}
-                      name="city"
-                      label="City"
-                      fullWidth
-                      variant="standard"
-                      error={errors.city}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <ReactHookFormSelect
-                      fullWidth
-                      name="gender"
-                      label="Gender"
-                      id="gender"
-                      control={control}
-                      defaultValue={
-                        (personData.gender &&
-                          personData.gender.toLowerCase()) ||
-                        ''
-                      }
-                      error={errors.gender}
-                    >
-                      <MenuItem value="male">Male</MenuItem>
-                      <MenuItem value="female">Female</MenuItem>
-                      <MenuItem value="other">Other</MenuItem>
-                    </ReactHookFormSelect>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={personData.height}
-                      control={control}
-                      name="height"
-                      label="Height"
-                      fullWidth
-                      variant="standard"
-                      error={errors.height}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={personData.weight}
-                      control={control}
-                      name="weight"
-                      label="Weight"
-                      fullWidth
-                      variant="standard"
-                      error={errors.weight}
-                    />
-                  </Grid>
+                  </Paper>
                 </Grid>
-              </Paper>
+                <Grid item xs={12} md={8} lg={9}>
+                  <Paper className={classes.paper}>
+                    <Toolbar disableGutters className={classes.toolbarForm}>
+                      <div>
+                        <Title>{'Person'}</Title>
+                      </div>
+                      <div>
+                        {formState.isDirty && (
+                          <ButtonSave loading={mutationLoading} />
+                        )}
+                        {personId !== 'new' && (
+                          <ButtonDelete
+                            loading={loadingDelete}
+                            onClick={() => {
+                              deletePerson({ variables: { personId } })
+                            }}
+                          />
+                        )}
+                      </div>
+                    </Toolbar>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.firstName}
+                          control={control}
+                          name="firstName"
+                          label="First name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.firstName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.lastName}
+                          control={control}
+                          name="lastName"
+                          label="Last name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.lastName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.externalId}
+                          control={control}
+                          name="externalId"
+                          label="External Id"
+                          fullWidth
+                          variant="standard"
+                          error={errors.externalId}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.phone}
+                          control={control}
+                          name="phone"
+                          label="Phone"
+                          fullWidth
+                          variant="standard"
+                          error={errors.phone}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.email}
+                          control={control}
+                          name="email"
+                          label="Email"
+                          fullWidth
+                          variant="standard"
+                          error={errors.email}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFDatepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="birthday"
+                          label="Birthday"
+                          id="birthday"
+                          openTo="year"
+                          disableFuture
+                          inputFormat={'DD/MM/YYYY'}
+                          views={['year', 'month', 'date']}
+                          defaultValue={
+                            personData.birthday &&
+                            dateExist(personData.birthday.formatted)
+                              ? personData.birthday.formatted
+                              : null
+                          }
+                          error={errors.birthday}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.activityStatus}
+                          control={control}
+                          name="activityStatus"
+                          label="Activity Status"
+                          fullWidth
+                          variant="standard"
+                          error={errors.activityStatus}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFAutocomplete
+                          fullWidth
+                          options={countriesNames}
+                          defaultValue={personData.country}
+                          // getOptionLabel={option => {
+                          //   console.log(option)
+                          //   return option
+                          // }}
+                          // getOptionSelected={(option, value) => {
+                          //   console.log(option, value)
+                          //   return equals(option, value)
+                          // }}
+                          control={control}
+                          id="country"
+                          name="country"
+                          label="Country"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={personData.city}
+                          control={control}
+                          name="city"
+                          label="City"
+                          fullWidth
+                          variant="standard"
+                          error={errors.city}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="gender"
+                          label="Gender"
+                          id="gender"
+                          control={control}
+                          defaultValue={
+                            (personData.gender &&
+                              personData.gender.toLowerCase()) ||
+                            ''
+                          }
+                          error={errors.gender}
+                        >
+                          <MenuItem value="male">Male</MenuItem>
+                          <MenuItem value="female">Female</MenuItem>
+                          <MenuItem value="other">Other</MenuItem>
+                        </ReactHookFormSelect>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+              </Grid>
             </form>
             <Relations personId={personId} />
           </>

@@ -4,7 +4,7 @@ import { Bugfender } from '@bugfender/sdk'
 import { createBrowserHistory } from 'history'
 
 import App from './App'
-import registerServiceWorker from './registerServiceWorker'
+// import registerServiceWorker from './registerServiceWorker'
 import { AuthorizedApolloProvider } from './graphql'
 import { Auth0Provider } from '@auth0/auth0-react'
 import config from './config'
@@ -22,6 +22,7 @@ if (config.environment !== 'development') {
     // version: '',
     // build: '',
   })
+  Bugfender.enableCrashReporting()
 }
 
 const history = createBrowserHistory()
@@ -47,4 +48,4 @@ const Main = () => (
 )
 
 ReactDOM.render(<Main />, document.getElementById('root'))
-registerServiceWorker()
+// registerServiceWorker()

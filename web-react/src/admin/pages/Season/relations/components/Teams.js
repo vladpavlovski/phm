@@ -44,7 +44,7 @@ const GET_TEAMS = gql`
   }
 `
 
-const REMOVE_ASSOCIATION_TEAM = gql`
+const REMOVE_ORGANIZATION_TEAM = gql`
   mutation removeSeasonTeam($seasonId: ID!, $teamId: ID!) {
     seasonTeam: RemoveSeasonTeams(
       from: { teamId: $teamId }
@@ -71,7 +71,7 @@ export const GET_ALL_TEAMS = gql`
   }
 `
 
-const MERGE_ASSOCIATION_TEAM = gql`
+const MERGE_ORGANIZATION_TEAM = gql`
   mutation mergeSeasonTeams($seasonId: ID!, $teamId: ID!) {
     seasonTeam: MergeSeasonTeams(
       from: { teamId: $teamId }
@@ -119,7 +119,7 @@ const Teams = props => {
   })
 
   const [removeTeamSeason, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_ASSOCIATION_TEAM,
+    REMOVE_ORGANIZATION_TEAM,
     {
       update(cache, { data: { seasonTeam } }) {
         try {
@@ -169,7 +169,7 @@ const Teams = props => {
     }
   )
 
-  const [mergeTeamSeason] = useMutation(MERGE_ASSOCIATION_TEAM, {
+  const [mergeTeamSeason] = useMutation(MERGE_ORGANIZATION_TEAM, {
     update(cache, { data: { seasonTeam } }) {
       try {
         const queryResult = cache.readQuery({

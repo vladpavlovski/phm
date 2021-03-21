@@ -29,7 +29,7 @@ import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
 
-const READ_SEASON = gql`
+const GET_SEASON = gql`
   query getSeason($seasonId: ID!) {
     season: Season(seasonId: $seasonId) {
       seasonId
@@ -94,7 +94,7 @@ const Season = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_SEASON, {
+  } = useQuery(GET_SEASON, {
     fetchPolicy: 'network-only',
     variables: { seasonId },
     skip: seasonId === 'new',

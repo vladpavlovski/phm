@@ -1,42 +1,44 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
+import Img from 'react-cool-img'
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
+import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_ASSOCIATIONS, getAdminAssociationRoute } from '../../../routes'
+import { ADMIN_ORGANIZATIONS, getAdminOrganizationRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-
+import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
-const READ_ASSOCIATION = gql`
-  query getAssociation($associationId: ID!) {
-    association: Association(associationId: $associationId) {
-      associationId
+const GET_ORGANIZATION = gql`
+  query getOrganization($organizationId: ID!) {
+    organization: Organization(organizationId: $organizationId) {
+      organizationId
       name
       nick
       short
       status
       legalName
+      logo
       foundDate {
         formatted
       }
@@ -44,9 +46,9 @@ const READ_ASSOCIATION = gql`
   }
 `
 
-const MERGE_ASSOCIATION = gql`
-  mutation mergeAssociation(
-    $associationId: ID!
+const MERGE_ORGANIZATION = gql`
+  mutation mergeOrganization(
+    $organizationId: ID!
     $name: String
     $legalName: String
     $nick: String
@@ -55,75 +57,75 @@ const MERGE_ASSOCIATION = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $logo: String
   ) {
-    mergeAssociation: MergeAssociation(
-      associationId: $associationId
+    mergeOrganization: MergeOrganization(
+      organizationId: $organizationId
       name: $name
       legalName: $legalName
       nick: $nick
       short: $short
       status: $status
+      logo: $logo
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
         year: $foundDateYear
       }
     ) {
-      associationId
+      organizationId
     }
   }
 `
 
-const DELETE_ASSOCIATION = gql`
-  mutation deleteAssociation($associationId: ID!) {
-    deleteAssociation: DeleteAssociation(associationId: $associationId) {
-      associationId
+const DELETE_ORGANIZATION = gql`
+  mutation deleteOrganization($organizationId: ID!) {
+    deleteOrganization: DeleteOrganization(organizationId: $organizationId) {
+      organizationId
     }
   }
 `
 
-const Association = () => {
+const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { associationId } = useParams()
+  const { organizationId } = useParams()
+  const client = useApolloClient()
 
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_ASSOCIATION, {
+  } = useQuery(GET_ORGANIZATION, {
     fetchPolicy: 'network-only',
-    variables: { associationId },
-    skip: associationId === 'new',
+    variables: { organizationId },
+    skip: organizationId === 'new',
   })
 
   const [
-    mergeAssociation,
+    mergeOrganization,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_ASSOCIATION, {
+  ] = useMutation(MERGE_ORGANIZATION, {
     onCompleted: data => {
-      if (associationId === 'new') {
-        const newId = data.mergeAssociation.associationId
-        history.replace(getAdminAssociationRoute(newId))
+      if (organizationId === 'new') {
+        const newId = data.mergeOrganization.organizationId
+        history.replace(getAdminOrganizationRoute(newId))
       }
     },
   })
 
   const [
-    deleteAssociation,
+    deleteOrganization,
     { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_ASSOCIATION, {
+  ] = useMutation(DELETE_ORGANIZATION, {
     onCompleted: () => {
-      history.push(ADMIN_ASSOCIATIONS)
+      history.push(ADMIN_ORGANIZATIONS)
     },
   })
 
-  const associationData = useMemo(
-    () => (queryData && queryData.association[0]) || {},
-    [queryData]
-  )
+  const organizationData = queryData?.organization[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
@@ -134,20 +136,48 @@ const Association = () => {
 
         const dataToSubmit = {
           ...rest,
-          associationId: associationId === 'new' ? uuidv4() : associationId,
-          foundDateDay: dayjs(foundDate).date(),
-          foundDateMonth: dayjs(foundDate).month() + 1,
-          foundDateYear: dayjs(foundDate).year(),
+          organizationId: organizationId === 'new' ? uuidv4() : organizationId,
+          ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeAssociation({
+        mergeOrganization({
           variables: dataToSubmit,
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [associationId]
+    [organizationId]
+  )
+
+  const updateLogo = useCallback(
+    url => {
+      setValue('logo', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_ORGANIZATION,
+        variables: {
+          organizationId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_ORGANIZATION,
+        data: {
+          organization: [
+            {
+              ...queryResult.organization[0],
+              logo: url,
+            },
+          ],
+        },
+        variables: {
+          organizationId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client, organizationId]
   )
 
   return (
@@ -158,7 +188,7 @@ const Association = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(associationData || associationId === 'new') &&
+      {(organizationData || organizationId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -169,24 +199,55 @@ const Association = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{associationData.name || 'Association'}</title>
+              <title>{organizationData.name || 'Organization'}</title>
             </Helmet>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
+              <Grid item xs={12} md={4} lg={3}>
+                <Paper className={classes.paper}>
+                  <Img
+                    placeholder={placeholderOrganization}
+                    src={organizationData.logo}
+                    className={classes.logo}
+                    alt={organizationData.name}
+                  />
+
+                  <RHFInput
+                    style={{ display: 'none' }}
+                    defaultValue={organizationData.logo}
+                    control={control}
+                    name="logo"
+                    label="Logo URL"
+                    disabled
+                    fullWidth
+                    variant="standard"
+                    error={errors.logo}
+                  />
+
+                  <Uploader
+                    buttonText={'Change logo'}
+                    onSubmit={updateLogo}
+                    folderName="organizations"
+                  />
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={12} lg={9}>
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
-                      <Title>{'Association'}</Title>
+                      <Title>{'Organization'}</Title>
                     </div>
                     <div>
                       {formState.isDirty && (
                         <ButtonSave loading={mutationLoadingMerge} />
                       )}
-                      {associationId !== 'new' && (
+                      {organizationId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteAssociation({ variables: { associationId } })
+                            deleteOrganization({
+                              variables: { organizationId },
+                            })
                           }}
                         />
                       )}
@@ -196,7 +257,7 @@ const Association = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={associationData.name}
+                        defaultValue={organizationData.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -208,7 +269,7 @@ const Association = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={associationData.legalName}
+                        defaultValue={organizationData.legalName}
                         control={control}
                         name="legalName"
                         label="Legal name"
@@ -219,7 +280,7 @@ const Association = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={associationData.nick}
+                        defaultValue={organizationData.nick}
                         control={control}
                         name="nick"
                         label="Nick"
@@ -230,7 +291,7 @@ const Association = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={associationData.short}
+                        defaultValue={organizationData.short}
                         control={control}
                         name="short"
                         label="Short"
@@ -241,7 +302,7 @@ const Association = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={associationData.status}
+                        defaultValue={organizationData.status}
                         control={control}
                         name="status"
                         label="Status"
@@ -264,9 +325,9 @@ const Association = () => {
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'date']}
                         defaultValue={
-                          associationData.foundDate &&
-                          dateExist(associationData.foundDate.formatted)
-                            ? associationData.foundDate.formatted
+                          organizationData.foundDate &&
+                          dateExist(organizationData.foundDate.formatted)
+                            ? organizationData.foundDate.formatted
                             : null
                         }
                         error={errors.foundDate}
@@ -276,11 +337,11 @@ const Association = () => {
                 </Paper>
               </Grid>
             </Grid>
-            <Relations associationId={associationId} />
+            <Relations organizationId={organizationId} />
           </form>
         )}
     </Container>
   )
 }
 
-export { Association as default }
+export { Organization as default }

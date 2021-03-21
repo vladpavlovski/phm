@@ -36,7 +36,7 @@ export const setIdFromEntityId = (array, idField) =>
 export const getXGridValueFromArray = (array = [], fieldName) => {
   let value = ''
   array.forEach((item, i) => {
-    value = `${item[fieldName]}${i !== array.length - 1 ? ', ' : ''}`
+    value += `${item[fieldName]}${i !== array.length - 1 ? ', ' : ''}`
   })
   return value
 }
@@ -71,3 +71,5 @@ export const formatDate = date =>
 const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
 
 export const isValidUuid = uuid => uuidRegex.test(uuid)
+
+export const phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/

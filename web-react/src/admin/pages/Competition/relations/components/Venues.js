@@ -31,7 +31,7 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const READ_VENUES = gql`
+const GET_VENUES = gql`
   query getVenues($competitionId: ID) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
@@ -105,7 +105,7 @@ const Venues = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(READ_VENUES)
+  ] = useLazyQuery(GET_VENUES)
 
   const [
     getAllVenues,
@@ -120,7 +120,7 @@ const Venues = props => {
     update(cache, { data: { competitionVenue } }) {
       try {
         const queryResult = cache.readQuery({
-          query: READ_VENUES,
+          query: GET_VENUES,
           variables: {
             competitionId,
           },
@@ -137,7 +137,7 @@ const Venues = props => {
           ],
         }
         cache.writeQuery({
-          query: READ_VENUES,
+          query: GET_VENUES,
           data: updatedResult,
           variables: {
             competitionId,
@@ -173,7 +173,7 @@ const Venues = props => {
     update(cache, { data: { competitionVenue } }) {
       try {
         const queryResult = cache.readQuery({
-          query: READ_VENUES,
+          query: GET_VENUES,
           variables: {
             competitionId,
           },
@@ -192,7 +192,7 @@ const Venues = props => {
           ],
         }
         cache.writeQuery({
-          query: READ_VENUES,
+          query: GET_VENUES,
           data: updatedResult,
           variables: {
             competitionId,

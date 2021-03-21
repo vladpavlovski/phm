@@ -31,7 +31,7 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const READ_SPONSORS = gql`
+const GET_SPONSORS = gql`
   query getSponsors($teamId: ID) {
     team: Team(teamId: $teamId) {
       teamId
@@ -101,7 +101,7 @@ const Sponsors = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(READ_SPONSORS)
+  ] = useLazyQuery(GET_SPONSORS)
 
   const [
     getAllSponsors,
@@ -116,7 +116,7 @@ const Sponsors = props => {
     update(cache, { data: { teamSponsor } }) {
       try {
         const queryResult = cache.readQuery({
-          query: READ_SPONSORS,
+          query: GET_SPONSORS,
           variables: {
             teamId,
           },
@@ -133,7 +133,7 @@ const Sponsors = props => {
           ],
         }
         cache.writeQuery({
-          query: READ_SPONSORS,
+          query: GET_SPONSORS,
           data: updatedResult,
           variables: {
             teamId,
@@ -164,7 +164,7 @@ const Sponsors = props => {
       update(cache, { data: { teamSponsor } }) {
         try {
           const queryResult = cache.readQuery({
-            query: READ_SPONSORS,
+            query: GET_SPONSORS,
             variables: {
               teamId,
             },
@@ -183,7 +183,7 @@ const Sponsors = props => {
             ],
           }
           cache.writeQuery({
-            query: READ_SPONSORS,
+            query: GET_SPONSORS,
             data: updatedResult,
             variables: {
               teamId,

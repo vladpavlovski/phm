@@ -1,12 +1,14 @@
-import React, { useCallback, useMemo, useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
-import dayjs from 'dayjs'
-import { gql, useQuery, useMutation } from '@apollo/client'
+
+import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-import 'react-imported-component/macro'
+import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
+import Img from 'react-cool-img'
+
 import Toolbar from '@material-ui/core/Toolbar'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
@@ -20,8 +22,9 @@ import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
+import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist } from '../../../utils'
+import { dateExist, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -31,12 +34,14 @@ import { Relations } from './relations'
 import { ADMIN_PLAYERS, getAdminPlayerRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
+import placeholderAvatar from '../../../img/placeholderPerson.jpg'
 
-const READ_PLAYER = gql`
+const GET_PLAYER = gql`
   query getPlayer($playerId: ID!) {
-    Player(playerId: $playerId) {
+    player: Player(playerId: $playerId) {
       playerId
-      name
+      firstName
+      lastName
       birthday {
         formatted
       }
@@ -48,6 +53,9 @@ const READ_PLAYER = gql`
       height
       weight
       gender
+      avatar
+      phone
+      email
     }
   }
 `
@@ -55,12 +63,14 @@ const READ_PLAYER = gql`
 const MERGE_PLAYER = gql`
   mutation mergePlayer(
     $playerId: ID!
-    $name: String
+    $firstName: String
+    $lastName: String
     $birthdayDay: Int
     $birthdayMonth: Int
     $birthdayYear: Int
     $userName: String
     $phone: String
+    $email: String
     $gender: String
     $stick: String
     $height: String
@@ -71,11 +81,12 @@ const MERGE_PLAYER = gql`
     $cityBirth: String
     $country: String
     $city: String
-    $avatarUrl: String
+    $avatar: String
   ) {
     mergePlayer: MergePlayer(
       playerId: $playerId
-      name: $name
+      firstName: $firstName
+      lastName: $lastName
       birthday: {
         day: $birthdayDay
         month: $birthdayMonth
@@ -83,6 +94,7 @@ const MERGE_PLAYER = gql`
       }
       userName: $userName
       phone: $phone
+      email: $email
       gender: $gender
       stick: $stick
       height: $height
@@ -93,7 +105,7 @@ const MERGE_PLAYER = gql`
       cityBirth: $cityBirth
       country: $country
       city: $city
-      avatarUrl: $avatarUrl
+      avatar: $avatar
     ) {
       playerId
     }
@@ -112,12 +124,14 @@ const Player = () => {
   const history = useHistory()
   const classes = useStyles()
   const { playerId } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
+  const client = useApolloClient()
 
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(READ_PLAYER, {
+  } = useQuery(GET_PLAYER, {
     fetchPolicy: 'network-only',
     variables: { playerId },
   })
@@ -131,12 +145,13 @@ const Player = () => {
         const newPlayerId = data.mergePlayer.playerId
         history.replace(getAdminPlayerRoute(newPlayerId))
       }
+      enqueueSnackbar(`Player saved!`, {
+        variant: 'success',
+      })
     },
   })
 
-  const playerData = useMemo(() => (queryData && queryData.Player[0]) || {}, [
-    queryData,
-  ])
+  const playerData = (queryData && queryData.player[0]) || {}
 
   const [
     deletePlayer,
@@ -144,6 +159,9 @@ const Player = () => {
   ] = useMutation(DELETE_PLAYER, {
     onCompleted: () => {
       history.push(ADMIN_PLAYERS)
+      enqueueSnackbar(`Player was deleted!`, {
+        variant: 'info',
+      })
     },
   })
 
@@ -161,16 +179,13 @@ const Player = () => {
   }, [playerData])
 
   const onSubmit = useCallback(
-    dataToCheck => {
+    async dataToCheck => {
       try {
         const { country, birthday, ...rest } = dataToCheck
-
         const dataToSubmit = {
           ...rest,
           playerId: playerId === 'new' ? uuidv4() : playerId,
-          birthdayDay: dayjs(birthday).date(),
-          birthdayMonth: dayjs(birthday).month() + 1,
-          birthdayYear: dayjs(birthday).year(),
+          ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }
         // console.log('dataToSubmit', dataToSubmit)
@@ -183,6 +198,36 @@ const Player = () => {
       }
     },
     [playerId]
+  )
+
+  const updateAvatar = useCallback(
+    url => {
+      setValue('avatar', url, true)
+
+      const queryResult = client.readQuery({
+        query: GET_PLAYER,
+        variables: {
+          playerId,
+        },
+      })
+
+      client.writeQuery({
+        query: GET_PLAYER,
+        data: {
+          player: [
+            {
+              ...queryResult.player[0],
+              avatar: url,
+            },
+          ],
+        },
+        variables: {
+          playerId,
+        },
+      })
+      handleSubmit(onSubmit)()
+    },
+    [client]
   )
 
   return (
@@ -207,168 +252,233 @@ const Player = () => {
               <Helmet>
                 <title>{playerData.name || 'Player'}</title>
               </Helmet>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
-                  <div>
-                    <Title>{'Player'}</Title>
-                  </div>
-                  <div>
-                    {formState.isDirty && (
-                      <ButtonSave loading={mutationLoading} />
-                    )}
-                    {playerId !== 'new' && (
-                      <ButtonDelete
-                        loading={loadingDelete}
-                        onClick={() => {
-                          deletePlayer({ variables: { playerId } })
-                        }}
-                      />
-                    )}
-                  </div>
-                </Toolbar>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4} lg={3}>
+                  <Paper className={classes.paper}>
+                    <Img
+                      placeholder={placeholderAvatar}
+                      src={playerData.avatar}
+                      className={classes.logo}
+                      alt={playerData.name}
+                    />
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={playerData.name}
+                      style={{ display: 'none' }}
+                      defaultValue={playerData.avatar}
                       control={control}
-                      name="name"
-                      label="Name"
-                      required
+                      name="avatar"
+                      label="Avatar URL"
+                      disabled
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors.avatar}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.externalId}
-                      control={control}
-                      name="externalId"
-                      label="External Id"
-                      fullWidth
-                      variant="standard"
-                      error={errors.externalId}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFDatepicker
-                      fullWidth
-                      control={control}
-                      variant="standard"
-                      name="birthday"
-                      label="Birthday"
-                      id="birthday"
-                      openTo="year"
-                      disableFuture
-                      inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'date']}
-                      defaultValue={
-                        playerData.birthday &&
-                        dateExist(playerData.birthday.formatted)
-                          ? playerData.birthday.formatted
-                          : null
-                      }
-                      error={errors.birthday}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.activityStatus}
-                      control={control}
-                      name="activityStatus"
-                      label="Activity Status"
-                      fullWidth
-                      variant="standard"
-                      error={errors.activityStatus}
-                    />
-                  </Grid>
 
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFAutocomplete
-                      fullWidth
-                      options={countriesNames}
-                      defaultValue={playerData.country}
-                      // getOptionLabel={option => {
-                      //   console.log(option)
-                      //   return option
-                      // }}
-                      // getOptionSelected={(option, value) => {
-                      //   console.log(option, value)
-                      //   return equals(option, value)
-                      // }}
-                      control={control}
-                      id="country"
-                      name="country"
-                      label="Country"
+                    <Uploader
+                      buttonText={'Change avatar'}
+                      onSubmit={updateAvatar}
+                      folderName="avatars"
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.city}
-                      control={control}
-                      name="city"
-                      label="City"
-                      fullWidth
-                      variant="standard"
-                      error={errors.city}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.stick}
-                      control={control}
-                      name="stick"
-                      label="Stick"
-                      fullWidth
-                      variant="standard"
-                      error={errors.stick}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <ReactHookFormSelect
-                      fullWidth
-                      name="gender"
-                      label="Gender"
-                      id="gender"
-                      control={control}
-                      defaultValue={
-                        (playerData.gender &&
-                          playerData.gender.toLowerCase()) ||
-                        ''
-                      }
-                      error={errors.gender}
-                    >
-                      <MenuItem value="male">Male</MenuItem>
-                      <MenuItem value="female">Female</MenuItem>
-                      <MenuItem value="other">Other</MenuItem>
-                    </ReactHookFormSelect>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.height}
-                      control={control}
-                      name="height"
-                      label="Height"
-                      fullWidth
-                      variant="standard"
-                      error={errors.height}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={playerData.weight}
-                      control={control}
-                      name="weight"
-                      label="Weight"
-                      fullWidth
-                      variant="standard"
-                      error={errors.weight}
-                    />
-                  </Grid>
+                  </Paper>
                 </Grid>
-              </Paper>
+                <Grid item xs={12} md={8} lg={9}>
+                  <Paper className={classes.paper}>
+                    <Toolbar disableGutters className={classes.toolbarForm}>
+                      <div>
+                        <Title>{'Player'}</Title>
+                      </div>
+                      <div>
+                        {formState.isDirty && (
+                          <ButtonSave loading={mutationLoading} />
+                        )}
+                        {playerId !== 'new' && (
+                          <ButtonDelete
+                            loading={loadingDelete}
+                            onClick={() => {
+                              deletePlayer({ variables: { playerId } })
+                            }}
+                          />
+                        )}
+                      </div>
+                    </Toolbar>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.firstName}
+                          control={control}
+                          name="firstName"
+                          label="First Name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.firstName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.lastName}
+                          control={control}
+                          name="lastName"
+                          label="Last name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.lastName}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.externalId}
+                          control={control}
+                          name="externalId"
+                          label="External Id"
+                          fullWidth
+                          variant="standard"
+                          error={errors.externalId}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.phone}
+                          control={control}
+                          name="phone"
+                          label="Phone"
+                          fullWidth
+                          variant="standard"
+                          error={errors.phone}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.email}
+                          control={control}
+                          name="email"
+                          label="Email"
+                          fullWidth
+                          variant="standard"
+                          error={errors.email}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFDatepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="birthday"
+                          label="Birthday"
+                          id="birthday"
+                          openTo="year"
+                          disableFuture
+                          inputFormat={'DD/MM/YYYY'}
+                          views={['year', 'month', 'date']}
+                          defaultValue={
+                            playerData.birthday &&
+                            dateExist(playerData.birthday.formatted)
+                              ? playerData.birthday.formatted
+                              : null
+                          }
+                          error={errors.birthday}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.activityStatus}
+                          control={control}
+                          name="activityStatus"
+                          label="Activity Status"
+                          fullWidth
+                          variant="standard"
+                          error={errors.activityStatus}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFAutocomplete
+                          fullWidth
+                          options={countriesNames}
+                          defaultValue={playerData.country}
+                          // getOptionLabel={option => {
+                          //   console.log(option)
+                          //   return option
+                          // }}
+                          // getOptionSelected={(option, value) => {
+                          //   console.log(option, value)
+                          //   return equals(option, value)
+                          // }}
+                          control={control}
+                          id="country"
+                          name="country"
+                          label="Country"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.city}
+                          control={control}
+                          name="city"
+                          label="City"
+                          fullWidth
+                          variant="standard"
+                          error={errors.city}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.stick}
+                          control={control}
+                          name="stick"
+                          label="Stick"
+                          fullWidth
+                          variant="standard"
+                          error={errors.stick}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="gender"
+                          label="Gender"
+                          id="gender"
+                          control={control}
+                          defaultValue={
+                            (playerData.gender &&
+                              playerData.gender.toLowerCase()) ||
+                            ''
+                          }
+                          error={errors.gender}
+                        >
+                          <MenuItem value="male">Male</MenuItem>
+                          <MenuItem value="female">Female</MenuItem>
+                          <MenuItem value="other">Other</MenuItem>
+                        </ReactHookFormSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.height}
+                          control={control}
+                          name="height"
+                          label="Height"
+                          fullWidth
+                          variant="standard"
+                          error={errors.height}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData.weight}
+                          control={control}
+                          name="weight"
+                          label="Weight"
+                          fullWidth
+                          variant="standard"
+                          error={errors.weight}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+              </Grid>
             </form>
             <Relations playerId={playerId} />
           </>

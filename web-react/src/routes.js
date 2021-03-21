@@ -14,8 +14,8 @@ export const ADMIN_PLAYERS = '/admin/players'
 export const ADMIN_PLAYER = '/admin/player/:playerId'
 export const ADMIN_TEAMS = '/admin/teams'
 export const ADMIN_TEAM = '/admin/team/:teamId'
-export const ADMIN_ASSOCIATIONS = '/admin/associations'
-export const ADMIN_ASSOCIATION = '/admin/association/:associationId'
+export const ADMIN_ORGANIZATIONS = '/admin/organizations'
+export const ADMIN_ORGANIZATION = '/admin/organization/:organizationId'
 export const ADMIN_COMPETITIONS = '/admin/competitions'
 export const ADMIN_COMPETITION = '/admin/competition/:competitionId'
 export const ADMIN_SPONSORS = '/admin/sponsors'
@@ -44,8 +44,8 @@ export const getAdminPlayerRoute = playerId =>
 
 export const getAdminTeamRoute = teamId => generatePath(ADMIN_TEAM, { teamId })
 
-export const getAdminAssociationRoute = associationId =>
-  generatePath(ADMIN_ASSOCIATION, { associationId })
+export const getAdminOrganizationRoute = organizationId =>
+  generatePath(ADMIN_ORGANIZATION, { organizationId })
 
 export const getAdminCompetitionRoute = competitionId =>
   generatePath(ADMIN_COMPETITION, { competitionId })
