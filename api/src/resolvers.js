@@ -4,7 +4,14 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 const s3Bucket = process.env.AWS_S3_BUCKET
-const s3Client = new S3()
+const s3Region = process.env.AWS_S3_REGION
+const accessKeyId = process.env.AWS_S3_REGION
+const secretAccessKey = process.env.AWS_HMS_SECRET_ACCESS_KEY
+const s3Client = new S3({
+  region: s3Region,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+})
 
 export const resolvers = {
   Mutation: {

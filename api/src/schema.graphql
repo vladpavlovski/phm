@@ -950,13 +950,10 @@ type RulePack {
   penaltyShotStatuses: [PenaltyShotStatus]
     @relation(name: "SET_UP", direction: OUT)
   periods: [Period] @relation(name: "SET_UP", direction: OUT)
-  shotSubTypes: [ShotSubType] @relation(name: "SET_UP", direction: OUT)
   shotTargets: [ShotTarget] @relation(name: "SET_UP", direction: OUT)
   shotStyles: [ShotStyle] @relation(name: "SET_UP", direction: OUT)
   shotTypes: [ShotType] @relation(name: "SET_UP", direction: OUT)
   goalTypes: [GoalType] @relation(name: "SET_UP", direction: OUT)
-  goalSubTypes: [GoalSubType] @relation(name: "SET_UP", direction: OUT)
-  penaltySubTypes: [PenaltySubType] @relation(name: "SET_UP", direction: OUT)
   penaltyTypes: [PenaltyType] @relation(name: "SET_UP", direction: OUT)
   gameEventLocations: [GameEventLocation]
     @relation(name: "SET_UP", direction: OUT)
@@ -985,25 +982,12 @@ type Period {
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
-# :ShotSubType
-
-type ShotSubType {
-  shotSubTypeId: ID! @id
-  name: String!
-  code: String!
-  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
-}
-
-# :ShotTarget
-
 type ShotTarget {
   shotTargetId: ID! @id
   name: String!
   code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
-
-# :ShotStyle
 
 type ShotStyle {
   shotStyleId: ID! @id
@@ -1012,43 +996,35 @@ type ShotStyle {
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
-# :ShotType
-
 type ShotType {
   shotTypeId: ID! @id
   name: String!
   code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+  subTypes: [ShotSubType] @relation(name: "SET_UP", direction: OUT)
 }
 
-# :GoalType
+type ShotSubType {
+  shotSubTypeId: ID! @id
+  name: String!
+  code: String!
+  shotType: [ShotType] @relation(name: "SET_UP", direction: IN)
+}
 
 type GoalType {
   goalTypeId: ID! @id
   name: String!
   code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+  subTypes: [GoalSubType] @relation(name: "SET_UP", direction: OUT)
 }
-
-# :GoalSubType
 
 type GoalSubType {
   goalSubTypeId: ID! @id
   name: String!
   code: String!
-  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+  goalType: GoalType @relation(name: "SET_UP", direction: IN)
 }
-
-# :PenaltySubType
-
-type PenaltySubType {
-  penaltySubTypeId: ID! @id
-  name: String!
-  code: String!
-  rulePack: RulePack @relation(name: "SET_UP", direction: IN)
-}
-
-# :PenaltyType
 
 type PenaltyType {
   penaltyTypeId: ID! @id
@@ -1056,9 +1032,15 @@ type PenaltyType {
   code: String!
   duration: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+  subTypes: [PenaltySubType] @relation(name: "SET_UP", direction: OUT)
 }
 
-# :GameEventLocation
+type PenaltySubType {
+  penaltySubTypeId: ID! @id
+  name: String!
+  code: String!
+  penaltyType: PenaltyType @relation(name: "SET_UP", direction: IN)
+}
 
 type GameEventLocation {
   gameEventLocationId: ID! @id
@@ -1068,8 +1050,6 @@ type GameEventLocation {
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
-# :PositionType
-
 type PositionType {
   positionTypeId: ID! @id
   name: String!
@@ -1078,7 +1058,6 @@ type PositionType {
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
-# :Wear
 type Wear {
   wearId: ID! @id
   name: String!
@@ -1090,7 +1069,6 @@ type Wear {
 
 # A pozor jsou týmy které mohou mít 3 série dresů - a samozřejmě vyvíjí se v čase, tedy nabízí se nám spíše to že Jersey (nebo ještě lépe vyrobíme entitu Wear (merch nebo prostě oblečení) ta bude mít vztah na Tým, Asociaci, Competition apd.. a jeden z proprieties bude Wear: Jersey a to bude mít vztah na Media) tím zajistíme že jich můžeme mít "nekonečně mnoho" dresů pro tým a ke každému Wear ještě dodáme vztah na "season" abychom označili v jaké sezoně jaké dresy (a jiné klubové oblečení) ten tým má / toto trochu bude pomáhat do budoucna i s e-shopem prodejem týmového oblečení (ale to do budoucna)  - viz příloha screenshot (existuje prostě 10k dresů za historii týmu)
 
-# WearItem
 type WearItem {
   wearItemId: ID! @id
   name: String!
@@ -1099,8 +1077,6 @@ type WearItem {
   jersey: Jersey @relation(name: "FOR_JERSEY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
 }
-
-# :Position
 
 type Position {
   positionId: ID! @id
@@ -1112,8 +1088,6 @@ type Position {
   team: Team @relation(name: "USE_POSITION", direction: IN)
 }
 
-# :Jersey
-
 type Jersey {
   jerseyId: ID! @id
   name: String!
@@ -1122,8 +1096,6 @@ type Jersey {
   team: Team @relation(name: "USE_JERSEY", direction: IN)
   wearItem: WearItem @relation(name: "FOR_JERSEY", direction: IN)
 }
-
-# :FinalResult
 
 type FinalResult {
   finalResultId: ID! @id
