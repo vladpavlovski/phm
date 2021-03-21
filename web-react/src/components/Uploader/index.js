@@ -12,8 +12,8 @@ import dayjs from 'dayjs'
 import Compress from 'react-image-file-resizer'
 
 const S3_SIGN = gql`
-  mutation signS3($filename: String!, $filetype: String!) {
-    signS3(filename: $filename, filetype: $filetype) {
+  mutation CustomSignS3($filename: String!, $filetype: String!) {
+    CustomSignS3(filename: $filename, filetype: $filetype) {
       url
       signedRequest
     }
@@ -57,7 +57,7 @@ const Uploader = props => {
       },
     })
 
-    const { signedRequest, url } = signedResponse?.data?.signS3
+    const { signedRequest, url } = signedResponse?.data?.CustomSignS3
     fetch(signedRequest, {
       method: 'PUT',
       body: fileToUpload?.file,

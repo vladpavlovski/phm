@@ -23,7 +23,7 @@ type S3Payload {
 }
 
 type Mutation {
-  signS3(filename: String!, filetype: String!): S3Payload!
+  CustomSignS3(filename: String!, filetype: String!): S3Payload!
 }
 
 interface Human {
