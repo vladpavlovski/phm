@@ -18,8 +18,8 @@ enum ActivityStatus {
 }
 
 type S3Payload {
-  signedRequest: String! @neo4j_ignore
-  url: String! @neo4j_ignore
+  signedRequest: String!
+  url: String!
 }
 
 interface Human {
@@ -79,7 +79,7 @@ type Player implements Human {
 }
 
 type Query {
-  CustomSignS3(filename: String!, filetype: String!): S3Payload! @neo4j_ignore
+  CustomSignS3(filename: String!, filetype: String!): S3Payload
   playersCount: Int
     @cypher(
       statement: """
