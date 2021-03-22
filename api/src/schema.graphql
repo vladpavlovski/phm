@@ -18,12 +18,21 @@ enum ActivityStatus {
 }
 
 type S3Payload {
-  signedRequest: String!
-  url: String!
+  signedRequest: String! @neo4j_ignore
+  url: String! @neo4j_ignore
 }
 
 type Mutation {
   CustomSignS3(filename: String!, filetype: String!): S3Payload!
+    @cypher(
+      statement: """
+      RETURN "SIGN S3"
+      """
+    )
+}
+
+extend schema {
+  mutation: Mutation
 }
 
 interface Human {
