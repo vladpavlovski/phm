@@ -33,10 +33,10 @@ const schema = makeAugmentedSchema({
   resolvers,
   config: {
     query: {
-      exclude: ['S3Payload'],
+      exclude: ['CustomSignS3', 'S3Payload'],
     },
     mutation: {
-      exclude: ['S3Payload'],
+      exclude: [],
     },
     auth: {
       isAuthenticated: true,
@@ -89,13 +89,12 @@ init(driver)
  */
 const server = new ApolloServer({
   context: ({ req }) => {
-    // console.log('req:', req)
     return {
       driver,
       req,
       neo4jDatabase: process.env.NEO4J_DATABASE,
       cypherParams: {
-        userAuthId: req && req.user && req.user.sub,
+        userAuthId: req?.user?.sub,
       },
     }
   },

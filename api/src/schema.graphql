@@ -22,19 +22,6 @@ type S3Payload {
   url: String! @neo4j_ignore
 }
 
-type Mutation {
-  CustomSignS3(filename: String!, filetype: String!): S3Payload!
-    @cypher(
-      statement: """
-      RETURN "SIGN S3"
-      """
-    )
-}
-
-extend schema {
-  mutation: Mutation
-}
-
 interface Human {
   firstName: String!
   lastName: String!
@@ -92,6 +79,7 @@ type Player implements Human {
 }
 
 type Query {
+  CustomSignS3(filename: String!, filetype: String!): S3Payload! @neo4j_ignore
   playersCount: Int
     @cypher(
       statement: """

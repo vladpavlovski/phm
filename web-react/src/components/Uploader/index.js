@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
 import Button from '@material-ui/core/Button'
@@ -12,8 +12,8 @@ import dayjs from 'dayjs'
 import Compress from 'react-image-file-resizer'
 
 const S3_SIGN = gql`
-  mutation CustomSignS3($filename: String!, $filetype: String!) {
-    CustomSignS3(filename: $filename, filetype: $filetype) {
+  query CustomSignS3($filename: String!, $filetype: String!) {
+    data: CustomSignS3(filename: $filename, filetype: $filetype) {
       url
       signedRequest
     }
@@ -46,35 +46,37 @@ const Uploader = props => {
 
   const { enqueueSnackbar } = useSnackbar()
 
-  const [s3Sign] = useMutation(S3_SIGN)
+  const [s3Sign] = useLazyQuery(S3_SIGN, {
+    onCompleted: signedResponse => {
+      const { signedRequest, url } = signedResponse?.data
+      fetch(signedRequest, {
+        method: 'PUT',
+        body: fileObjects?.[0]?.file,
+      })
+        .then(response => {
+          if (response?.status === 200) {
+            onSubmit(url)
+            onClose()
+            enqueueSnackbar('🎉 File successfully upload!', {
+              variant: 'success',
+            })
+          }
+        })
+        .catch(e => {
+          console.error(e)
+          enqueueSnackbar(e, { variant: 'error' })
+        })
+    },
+  })
 
-  const onSave = useCallback(async () => {
+  const onSave = useCallback(() => {
     const fileToUpload = fileObjects?.[0]
-    const signedResponse = await s3Sign({
+    s3Sign({
       variables: {
         filename: formatFileName(fileToUpload?.file?.name, folderName),
         filetype: fileToUpload?.file?.type,
       },
     })
-
-    const { signedRequest, url } = signedResponse?.data?.CustomSignS3
-    fetch(signedRequest, {
-      method: 'PUT',
-      body: fileToUpload?.file,
-    })
-      .then(response => {
-        if (response?.status === 200) {
-          onSubmit(url)
-          onClose()
-          enqueueSnackbar('🎉 File successfully upload!', {
-            variant: 'success',
-          })
-        }
-      })
-      .catch(e => {
-        console.error(e)
-        enqueueSnackbar(e, { variant: 'error' })
-      })
   }, [fileObjects, folderName])
 
   const onClose = useCallback(() => {

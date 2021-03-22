@@ -14,7 +14,7 @@ const s3Client = new S3({
 })
 
 export const resolvers = {
-  Mutation: {
+  Query: {
     CustomSignS3: async (_, args) => {
       // attributes: (obj, args, context, info)
       const { filename, filetype } = args
