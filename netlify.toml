@@ -15,10 +15,11 @@
   NEO4J_PASSWORD = "arts-dyes-north"
   
 [[redirects]]
+  from = "/*"
+  to = "/*"
+  status = 200
+
+[[redirects]]
   from = "/graphql"
   to = "/.netlify/functions/graphql"
-  status = 200
-  
-  from = "/*"
-  to = "/index.html"
   status = 200
