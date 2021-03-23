@@ -26,17 +26,23 @@ export const resolvers = {
         ACL: 'public-read',
       }
 
-      const command = new PutObjectCommand(s3Params)
+      const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
+      console.log('url:', url)
 
-      return getSignedUrl(s3Client, command, {
-        expiresIn: 3600,
-      }).then(signedRequest => {
-        const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
-        console.log('url:', url)
-        return {
-          signedRequest,
-          url,
-        }
+      const command = new PutObjectCommand(s3Params)
+      return new Promise((resolve, reject) => {
+        return getSignedUrl(s3Client, command, {
+          expiresIn: 3600,
+        })
+          .then(signedRequest => {
+            resolve({
+              signedRequest,
+              url,
+            })
+          })
+          .catch(e => {
+            reject(e)
+          })
       })
     },
   },
