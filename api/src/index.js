@@ -14,7 +14,7 @@ const app = express()
 
 app.use(
   jwt({
-    secret: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET.replace(/\\n/gm, '\n'),
     algorithms: ['RS256'],
     credentialsRequired: false,
   })

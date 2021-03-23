@@ -1,0 +1,15 @@
+{
+  "name": "hms-presigns3-serverless",
+  "version": "0.0.1",
+  "description": "HMS presign files for upload to AWS S3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vlad Pavlovski",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.9.0",
+    "@aws-sdk/s3-request-presigner": "^3.9.0"
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import { gql, useLazyQuery } from '@apollo/client'
+// import { gql, useLazyQuery } from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
 import Button from '@material-ui/core/Button'
@@ -11,14 +11,14 @@ import { DropzoneDialogBase } from 'material-ui-dropzone'
 import dayjs from 'dayjs'
 import Compress from 'react-image-file-resizer'
 
-const S3_SIGN = gql`
-  query CustomSignS3($filename: String!, $filetype: String!) {
-    data: CustomSignS3(filename: $filename, filetype: $filetype) {
-      url
-      signedRequest
-    }
-  }
-`
+// const S3_SIGN = gql`
+//   query CustomSignS3($filename: String!, $filetype: String!) {
+//     data: CustomSignS3(filename: $filename, filetype: $filetype) {
+//       url
+//       signedRequest
+//     }
+//   }
+// `
 
 const formatFileName = (filename, folderName = 'common') => {
   const date = dayjs().format('YYYY-MM-DD')
@@ -46,37 +46,50 @@ const Uploader = props => {
 
   const { enqueueSnackbar } = useSnackbar()
 
-  const [s3Sign] = useLazyQuery(S3_SIGN, {
-    onCompleted: signedResponse => {
-      const { signedRequest, url } = signedResponse?.data
-      fetch(signedRequest, {
-        method: 'PUT',
-        body: fileObjects?.[0]?.file,
-      })
-        .then(response => {
-          if (response?.status === 200) {
-            onSubmit(url)
-            onClose()
-            enqueueSnackbar('🎉 File successfully upload!', {
-              variant: 'success',
-            })
-          }
-        })
-        .catch(e => {
-          console.error(e)
-          enqueueSnackbar(e, { variant: 'error' })
-        })
-    },
-  })
+  // const [s3Sign] = useLazyQuery(S3_SIGN, {
+  //   onCompleted: signedResponse => {
+  //     const { signedRequest, url } = signedResponse?.data
+  //   },
+  // })
 
-  const onSave = useCallback(() => {
+  const onSave = useCallback(async () => {
     const fileToUpload = fileObjects?.[0]
-    s3Sign({
-      variables: {
+
+    const presignData = await fetch('/signs3', {
+      method: 'POST',
+      body: JSON.stringify({
         filename: formatFileName(fileToUpload?.file?.name, folderName),
         filetype: fileToUpload?.file?.type,
-      },
+      }),
     })
+    console.log('presignData: ', presignData)
+    const { signedRequest, url } = presignData
+
+    fetch(signedRequest, {
+      method: 'PUT',
+      body: fileObjects?.[0]?.file,
+    })
+      .then(response => response.json())
+      .then(response => {
+        if (response?.status === 200) {
+          onSubmit(url)
+          onClose()
+          enqueueSnackbar('🎉 File successfully upload!', {
+            variant: 'success',
+          })
+        }
+      })
+      .catch(e => {
+        console.error(e)
+        enqueueSnackbar(e, { variant: 'error' })
+      })
+
+    // s3Sign({
+    //   variables: {
+    //     filename: formatFileName(fileToUpload?.file?.name, folderName),
+    //     filetype: fileToUpload?.file?.type,
+    //   },
+    // })
   }, [fileObjects, folderName])
 
   const onClose = useCallback(() => {
