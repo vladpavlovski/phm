@@ -15,9 +15,9 @@ const s3Client = new S3({
 
 export const resolvers = {
   Query: {
-    CustomSignS3: async (_, args) => {
+    CustomSignS3: (_, args) => {
       // attributes: (obj, args, context, info)
-      console.log('args: ', args)
+      // console.log('args: ', args)
       const { filename, filetype } = args
       const s3Params = {
         Bucket: s3Bucket,
@@ -28,16 +28,16 @@ export const resolvers = {
 
       const command = new PutObjectCommand(s3Params)
 
-      const signedRequest = await getSignedUrl(s3Client, command, {
+      return getSignedUrl(s3Client, command, {
         expiresIn: 3600,
+      }).then(signedRequest => {
+        const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
+        console.log('url:', url)
+        return {
+          signedRequest,
+          url,
+        }
       })
-
-      const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
-      console.log('url:', url)
-      return {
-        signedRequest,
-        url,
-      }
     },
   },
 }
