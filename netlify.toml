@@ -5,6 +5,9 @@
 
 [dev]
   command = "npm start"
+  targetPort = 3000
+  port = 4001
+  framework = "#custom"
 
 [template.environment]
   NEO4J_URI = "bolt://3.86.228.230:7687"

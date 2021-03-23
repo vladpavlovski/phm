@@ -33,10 +33,10 @@ const schema = makeAugmentedSchema({
   resolvers,
   config: {
     query: {
-      exclude: ['CustomSignS3', 'S3Payload'],
+      exclude: ['S3Payload'],
     },
     mutation: {
-      exclude: [],
+      exclude: ['S3Payload'],
     },
     auth: {
       isAuthenticated: true,

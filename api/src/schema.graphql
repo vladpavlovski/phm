@@ -79,7 +79,7 @@ type Player implements Human {
 }
 
 type Query {
-  CustomSignS3(filename: String!, filetype: String!): S3Payload
+  CustomSignS3(filename: String!, filetype: String!): S3Payload!
   playersCount: Int
     @cypher(
       statement: """

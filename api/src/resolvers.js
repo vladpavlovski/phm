@@ -17,6 +17,7 @@ export const resolvers = {
   Query: {
     CustomSignS3: async (_, args) => {
       // attributes: (obj, args, context, info)
+      console.log('args: ', args)
       const { filename, filetype } = args
       const s3Params = {
         Bucket: s3Bucket,
@@ -32,7 +33,7 @@ export const resolvers = {
       })
 
       const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
-
+      console.log('url:', url)
       return {
         signedRequest,
         url,
