@@ -1,15 +1,18 @@
-import { S3, PutObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import AWS from 'aws-sdk'
+const {
+  AWS_S3_BUCKET,
+  AWS_S3_REGION,
+  AWS_HMS_ACCESS_KEY_ID,
+  AWS_HMS_SECRET_ACCESS_KEY,
+} = process.env
 
-const s3Bucket = process.env.AWS_S3_BUCKET
-const s3Region = process.env.AWS_S3_REGION
-const accessKeyId = process.env.AWS_S3_REGION
-const secretAccessKey = process.env.AWS_HMS_SECRET_ACCESS_KEY
-
-const s3Client = new S3({
-  region: s3Region,
-  accessKeyId: accessKeyId,
-  secretAccessKey: secretAccessKey,
+const s3 = new AWS.S3({
+  signatureVersion: 'v4',
+  region: AWS_S3_REGION,
+  credentials: new AWS.Credentials(
+    AWS_HMS_ACCESS_KEY_ID,
+    AWS_HMS_SECRET_ACCESS_KEY
+  ),
 })
 
 module.exports.handler = async event => {
@@ -20,24 +23,21 @@ module.exports.handler = async event => {
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: 'Missing fileName or fileType on body',
+        message: 'Missing filename or filetype on body',
       }),
     }
   }
 
   const s3Params = {
-    Bucket: s3Bucket,
+    Bucket: AWS_S3_BUCKET,
     Key: filename,
     ContentType: filetype,
     ACL: 'public-read',
   }
 
-  const url = `https://${s3Bucket}.s3.amazonaws.com/${filename}`
-  const command = new PutObjectCommand(s3Params)
+  const url = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/${filename}`
 
-  const signedRequest = await getSignedUrl(s3Client, command, {
-    expiresIn: 3600,
-  })
+  const signedRequest = s3.getSignedUrl('putObject', s3Params)
 
   return {
     statusCode: 200,

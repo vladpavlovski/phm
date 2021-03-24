@@ -15,18 +15,16 @@
   "license": "MIT",
   "dependencies": {
     "@apollo/client": "^3.3.12",
-    "@aws-sdk/client-s3": "^3.9.0",
-    "@aws-sdk/s3-request-presigner": "^3.9.0",
     "apollo-server": "^2.21.2",
     "apollo-server-lambda": "^2.21.2",
+    "aws-sdk": "^2.871.0",
     "csv-parse": "^4.15.3",
     "dotenv": "^8.2.0",
     "express-jwt": "^6.0.0",
     "neo4j-driver": "^4.2.3",
     "neo4j-graphql-js": "^2.19.2",
     "node-fetch": "^2.6.1",
-    "react": "^17.0.1",
-    "react-native": "^0.64.0"
+    "react": "^17.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.10",
