@@ -62,8 +62,8 @@ const Uploader = props => {
         filetype: fileToUpload?.file?.type,
       }),
     })
-    const presignData = presignDataResponse.json()
-    console.log('presignData: ', presignData)
+    const presignData = await presignDataResponse.json()
+    // console.log('presignData: ', presignData)
     const { signedRequest, url } = presignData
 
     fetch(signedRequest, {
