@@ -55,13 +55,14 @@ const Uploader = props => {
   const onSave = useCallback(async () => {
     const fileToUpload = fileObjects?.[0]
 
-    const presignData = await fetch('/signs3', {
+    const presignDataResponse = await fetch('http://localhost:34567/signs3', {
       method: 'POST',
       body: JSON.stringify({
         filename: formatFileName(fileToUpload?.file?.name, folderName),
         filetype: fileToUpload?.file?.type,
       }),
     })
+    const presignData = presignDataResponse.json()
     console.log('presignData: ', presignData)
     const { signedRequest, url } = presignData
 
