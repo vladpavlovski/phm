@@ -1,5 +1,6 @@
 [build]
-  command = "npm i && cd api && npm i && cd ../web-react && npm i && cd .. && npm run build && cp api/build/graphql-schema.js api/build/functions/graphql/. && cp api/build/schema.graphql api/build/functions/graphql/.  && cd api/src/functions/graphql && npm i"
+  command = "npm i && cd api && npm i && cd ../web-react && npm i && cd .. && npm run build && cp api/build/graphql-schema.js api/build/functions/graphql/. && cp api/build/schema.graphql api/build/functions/graphql/.  && cd api/src/functions/graphql && npm i && cd ../signs3 && npm i"
+
   publish = "web-react/build"
   functions = "api/build/functions"
 
@@ -8,8 +9,12 @@
   targetPort = 3000
   port = 4001
   framework = "#custom"
+  functionsPort = 34567
 
-
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[redirects]]
   from = "/graphql"
@@ -20,3 +25,4 @@
   from = "/signs3"
   to = "/.netlify/functions/signs3"
   status = 200
+

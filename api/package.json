@@ -1,5 +1,5 @@
 {
-  "name": "hockey-management-system-api",
+  "name": "hms-api",
   "version": "0.0.1",
   "description": "API app for HMS",
   "main": "src/index.js",
@@ -25,7 +25,8 @@
     "neo4j-driver": "^4.2.3",
     "neo4j-graphql-js": "^2.19.2",
     "node-fetch": "^2.6.1",
-    "react": "^17.0.1"
+    "react": "^17.0.1",
+    "react-native": "^0.64.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.10",

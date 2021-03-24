@@ -1,8 +1,8 @@
 {
-  "name": "hms-presigns3-serverless",
+  "name": "hms-signs3-serverless",
   "version": "0.0.1",
-  "description": "HMS presign files for upload to AWS S3",
-  "main": "index.js",
+  "description": "netlify functions:create - HMS sign files for upload to AWS S3",
+  "main": "signs3.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
