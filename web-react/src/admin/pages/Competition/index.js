@@ -17,7 +17,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, decomposeDate } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -221,11 +221,13 @@ const Competition = () => {
                     error={errors.logo}
                   />
 
-                  <Uploader
-                    buttonText={'Change logo'}
-                    onSubmit={updateLogo}
-                    folderName="competitions"
-                  />
+                  {isValidUuid(competitionId) && (
+                    <Uploader
+                      buttonText={'Change logo'}
+                      onSubmit={updateLogo}
+                      folderName="competitions"
+                    />
+                  )}
                 </Paper>
               </Grid>
 
@@ -322,7 +324,9 @@ const Competition = () => {
                 </Paper>
               </Grid>
             </Grid>
-            <Relations competitionId={competitionId} />
+            {isValidUuid(competitionId) && (
+              <Relations competitionId={competitionId} />
+            )}
           </form>
         )}
     </Container>

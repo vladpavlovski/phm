@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, checkId } from '../../../utils'
+import { dateExist, checkId, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -282,7 +282,7 @@ const Season = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations seasonId={seasonId} />
+            {isValidUuid(seasonId) && <Relations seasonId={seasonId} />}
           </>
         )}
     </Container>

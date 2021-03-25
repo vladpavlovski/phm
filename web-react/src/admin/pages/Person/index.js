@@ -23,7 +23,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist, decomposeDate } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -263,11 +263,13 @@ const Person = () => {
                       error={errors.avatar}
                     />
 
-                    <Uploader
-                      buttonText={'Change avatar'}
-                      onSubmit={updateAvatar}
-                      folderName="avatars"
-                    />
+                    {isValidUuid(personId) && (
+                      <Uploader
+                        buttonText={'Change avatar'}
+                        onSubmit={updateAvatar}
+                        folderName="avatars"
+                      />
+                    )}
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={8} lg={9}>
@@ -437,7 +439,7 @@ const Person = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations personId={personId} />
+            {isValidUuid(personId) && <Relations personId={personId} />}
           </>
         )}
     </Container>

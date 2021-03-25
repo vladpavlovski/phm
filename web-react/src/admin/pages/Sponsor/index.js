@@ -16,7 +16,7 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFInput } from '../../../components/RHFInput'
-import { checkId } from '../../../utils'
+import { checkId, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -216,11 +216,13 @@ const Sponsor = () => {
                       error={errors.logo}
                     />
 
-                    <Uploader
-                      buttonText={'Change logo'}
-                      onSubmit={updateLogo}
-                      folderName="sponsors"
-                    />
+                    {isValidUuid(sponsorId) && (
+                      <Uploader
+                        buttonText={'Change logo'}
+                        onSubmit={updateLogo}
+                        folderName="sponsors"
+                      />
+                    )}
                   </Paper>
                 </Grid>
 
@@ -329,7 +331,7 @@ const Sponsor = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations sponsorId={sponsorId} />
+            {isValidUuid(sponsorId) && <Relations sponsorId={sponsorId} />}
           </>
         )}
     </Container>
