@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
+import { Bugfender } from '@bugfender/sdk'
 export class ErrorBoundary extends React.Component {
   static getDerivedStateFromError() {
     return {
@@ -16,6 +16,7 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     console.error('Error boundary error', error, info)
+    Bugfender.sendIssue(`[UI error] ${error}`, `${info}`)
   }
 
   render() {

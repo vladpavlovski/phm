@@ -1,4 +1,5 @@
 import React from 'react'
+import { Bugfender } from '@bugfender/sdk'
 import {
   ApolloProvider,
   ApolloClient,
@@ -28,10 +29,15 @@ const AuthorizedApolloProvider = ({ children }) => {
               locations
             )}`
           )
+          Bugfender.sendIssue(
+            '[GraphQL error]',
+            `${message}, Location: ${JSON.stringify(locations)}`
+          )
         })
       // TODO: solution for network errors
       if (networkError) {
         console.error(`[Network error]: ${networkError}`)
+        Bugfender.sendIssue('[Network error]', `${networkError}`)
       }
       forward(operation)
     }
