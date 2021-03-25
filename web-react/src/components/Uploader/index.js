@@ -70,7 +70,6 @@ const Uploader = props => {
       method: 'PUT',
       body: fileObjects?.[0]?.file,
     })
-      .then(response => response.json())
       .then(response => {
         if (response?.status === 200) {
           onSubmit(url)
