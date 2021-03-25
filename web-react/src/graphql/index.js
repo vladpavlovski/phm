@@ -29,15 +29,16 @@ const AuthorizedApolloProvider = ({ children }) => {
               locations
             )}`
           )
-          Bugfender.sendIssue(
-            '[GraphQL error]',
-            `${message}, Location: ${JSON.stringify(locations)}`
-          )
+          !config.dev &&
+            Bugfender.sendIssue(
+              '[GraphQL error]',
+              `${message}, Location: ${JSON.stringify(locations)}`
+            )
         })
       // TODO: solution for network errors
       if (networkError) {
         console.error(`[Network error]: ${networkError}`)
-        Bugfender.sendIssue('[Network error]', `${networkError}`)
+        !config.dev && Bugfender.sendIssue('[Network error]', `${networkError}`)
       }
       forward(operation)
     }
@@ -57,7 +58,7 @@ const AuthorizedApolloProvider = ({ children }) => {
   const client = new ApolloClient({
     link: authLink.concat(httpLink, errorLink),
     cache,
-    connectToDevTools: config.environment === 'development',
+    connectToDevTools: config.dev,
   })
 
   return <ApolloProvider client={client}>{children}</ApolloProvider>

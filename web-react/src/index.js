@@ -9,7 +9,7 @@ import { AuthorizedApolloProvider } from './graphql'
 import { Auth0Provider } from '@auth0/auth0-react'
 import config from './config'
 
-if (config.environment !== 'development') {
+if (!config.dev) {
   Bugfender.init({
     appKey: config.bugfenderKey,
     // apiURL: 'https://api.bugfender.com',

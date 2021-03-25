@@ -5,5 +5,5 @@ export default {
   auth0Audience: process.env.REACT_APP_AUTH0_AUDIENCE,
   auth0Scope: process.env.REACT_APP_AUTH0_SCOPE,
   bugfenderKey: process.env.REACT_APP_BUGFENDER_KEY,
-  environment: process.env.NODE_ENV,
+  dev: process.env.NODE_ENV === 'development',
 }
