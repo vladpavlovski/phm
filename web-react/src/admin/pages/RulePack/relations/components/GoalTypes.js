@@ -519,15 +519,17 @@ const FormDialog = props => {
               }}
             />
           ) : (
-            <Button
-              type="button"
-              variant="contained"
-              onClick={() => {
-                setNewSubType(true)
-              }}
-            >
-              Add new subType
-            </Button>
+            data?.goalTypeId && (
+              <Button
+                type="button"
+                variant="contained"
+                onClick={() => {
+                  setNewSubType(true)
+                }}
+              >
+                Add new subType
+              </Button>
+            )
           )}
         </div>
       </DialogContent>
