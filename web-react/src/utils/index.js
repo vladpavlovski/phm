@@ -73,3 +73,9 @@ const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-
 export const isValidUuid = uuid => uuidRegex.test(uuid)
 
 export const phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
+
+export const getInitials = value => {
+  let initials = value.replace(/[^a-zA-Z- ]/g, '').match(/\b\w/g)
+
+  return initials.join('')
+}
