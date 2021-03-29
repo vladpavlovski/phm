@@ -1,4 +1,3 @@
-import { useDebounce } from './useDebounce'
-import { useWindowSize } from './useWindowSize'
-
-export { useDebounce, useWindowSize }
+export { useDebounce } from './useDebounce'
+export { useWindowSize } from './useWindowSize'
+export { useUserSetup } from './useUserSetup'

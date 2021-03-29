@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -24,7 +23,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist, decomposeDate } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -184,7 +183,7 @@ const Player = () => {
         const { country, birthday, ...rest } = dataToCheck
         const dataToSubmit = {
           ...rest,
-          playerId: playerId === 'new' ? uuidv4() : playerId,
+          playerId: checkId(playerId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }
@@ -274,11 +273,13 @@ const Player = () => {
                       error={errors.avatar}
                     />
 
-                    <Uploader
-                      buttonText={'Change avatar'}
-                      onSubmit={updateAvatar}
-                      folderName="avatars"
-                    />
+                    {isValidUuid(playerId) && (
+                      <Uploader
+                        buttonText={'Change avatar'}
+                        onSubmit={updateAvatar}
+                        folderName="avatars"
+                      />
+                    )}
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={8} lg={9}>
@@ -480,7 +481,7 @@ const Player = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations playerId={playerId} />
+            {isValidUuid(playerId) && <Relations playerId={playerId} />}
           </>
         )}
     </Container>

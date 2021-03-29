@@ -18,7 +18,7 @@ import Mood from '@material-ui/icons/Mood'
 import Group from '@material-ui/icons/Group'
 import Groups from '@material-ui/icons/Groups'
 import SportsHockey from '@material-ui/icons/SportsHockey'
-
+import PeopleAlt from '@material-ui/icons/PeopleAlt'
 import { useStyles } from './styled'
 
 const useGeneralMenuState = createPersistedState('generalMenu')
@@ -247,6 +247,21 @@ const MainListItems = props => {
           }
           primary="Rule Packs"
           to={ROUTES.ADMIN_RULEPACKS}
+        />
+        <ListItemLink
+          icon={
+            <Tooltip
+              arrow
+              title="Users"
+              placement="right"
+              disableHoverListener={open}
+              TransitionComponent={Zoom}
+            >
+              <PeopleAlt />
+            </Tooltip>
+          }
+          primary="Users"
+          to={ROUTES.ADMIN_USERS}
         />
         {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
       <ListItemLink

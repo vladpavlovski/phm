@@ -33,7 +33,12 @@ import { RHFInput } from '../../../../../components/RHFInput'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, showTimeAsMinutes } from '../../../../../utils'
+import {
+  setIdFromEntityId,
+  showTimeAsMinutes,
+  getXGridValueFromArray,
+  checkId,
+} from '../../../../../utils'
 
 const GET_PENALTY_TYPES = gql`
   query getRulePack($rulePackId: ID) {
@@ -45,6 +50,11 @@ const GET_PENALTY_TYPES = gql`
         name
         code
         duration
+        subTypes {
+          penaltySubTypeId
+          name
+          code
+        }
       }
     }
   }
@@ -92,10 +102,54 @@ const DELETE_PENALTY_TYPE = gql`
   }
 `
 
+const MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE = gql`
+  mutation mergeRulePackPenaltySubType(
+    $penaltyTypeId: ID!
+    $penaltySubTypeId: ID!
+    $name: String
+    $code: String
+  ) {
+    penaltySubType: MergePenaltySubType(
+      penaltySubTypeId: $penaltySubTypeId
+      name: $name
+      code: $code
+    ) {
+      penaltySubTypeId
+      name
+    }
+    penaltySubTypePenaltyType: MergePenaltySubTypePenaltyType(
+      from: { penaltyTypeId: $penaltyTypeId }
+      to: { penaltySubTypeId: $penaltySubTypeId }
+    ) {
+      from {
+        name
+      }
+      to {
+        penaltySubTypeId
+        name
+        code
+      }
+    }
+  }
+`
+
+const DELETE_PENALTY_SUB_TYPE = gql`
+  mutation deletePenaltySubType($penaltySubTypeId: ID!) {
+    deleted: DeletePenaltySubType(penaltySubTypeId: $penaltySubTypeId) {
+      penaltySubTypeId
+    }
+  }
+`
+
 const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
   duration: number().positive().required('Duration is required'),
+})
+
+const schemaSubType = object().shape({
+  name: string().required('Name is required'),
+  code: string().required('Code is required'),
 })
 
 const PenaltyTypes = props => {
@@ -201,6 +255,14 @@ const PenaltyTypes = props => {
         },
       },
       {
+        field: 'subTypes',
+        headerName: 'Sub Types',
+        width: 300,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.subTypes, 'name')
+        },
+      },
+      {
         field: 'penaltyTypeId',
         headerName: 'Edit',
         width: 120,
@@ -208,7 +270,7 @@ const PenaltyTypes = props => {
         renderCell: params => {
           return (
             <Button
-              onClick={() => handleOpenDialog(params.row)}
+              onClick={() => handleOpenDialog(params.value)}
               variant={'outlined'}
               size="small"
               className={classes.submit}
@@ -300,7 +362,9 @@ const PenaltyTypes = props => {
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={formData.current}
+        data={rulePack?.penaltyTypes?.find(
+          gt => gt.penaltyTypeId === formData.current
+        )}
       />
     </Accordion>
   )
@@ -308,7 +372,7 @@ const PenaltyTypes = props => {
 
 const FormDialog = props => {
   const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
-
+  const [newSubType, setNewSubType] = useState(false)
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -410,14 +474,14 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new penalty type to ${rulePack?.name}`}</DialogTitle>
-        <DialogContent>
+      <DialogTitle id="alert-dialog-title">{`Add new penalty type to ${rulePack?.name}`}</DialogTitle>
+      <DialogContent>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={classes.form}
+          noValidate
+          autoComplete="off"
+        >
           <Container>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
@@ -440,6 +504,7 @@ const FormDialog = props => {
                       defaultValue={data?.code || ''}
                       name="code"
                       label="Code"
+                      required
                       fullWidth
                       variant="standard"
                       error={errors?.code}
@@ -461,23 +526,306 @@ const FormDialog = props => {
               </Grid>
             </Grid>
           </Container>
-        </DialogContent>
+        </form>
 
-        <DialogActions>
-          <Button
-            type="button"
-            onClick={() => {
-              handleCloseDialog()
-            }}
-          >
-            {'Cancel'}
-          </Button>
-          <LoadingButton type="submit" pending={loadingMergePenaltyType}>
-            {loadingMergePenaltyType ? 'Saving...' : 'Save'}
-          </LoadingButton>
-        </DialogActions>
-      </form>
+        <div style={{ margin: '2rem 0' }}>
+          {data?.subTypes?.map(st => (
+            <SubType
+              key={st.penaltySubTypeId}
+              rulePack={rulePack}
+              rulePackId={rulePackId}
+              penaltyTypeId={data?.penaltyTypeId}
+              setNewSubType={setNewSubType}
+              data={st}
+            />
+          ))}
+        </div>
+        <div style={{ margin: '2rem 0' }}>
+          {data?.penaltyTypeId && newSubType ? (
+            <SubType
+              rulePack={rulePack}
+              rulePackId={rulePackId}
+              penaltyTypeId={data?.penaltyTypeId}
+              setNewSubType={setNewSubType}
+              data={{
+                penaltySubTypeId: null,
+                name: '',
+                code: '',
+              }}
+            />
+          ) : (
+            data?.penaltyTypeId && (
+              <Button
+                type="button"
+                variant="contained"
+                onClick={() => {
+                  setNewSubType(true)
+                }}
+              >
+                Add new subType
+              </Button>
+            )
+          )}
+        </div>
+      </DialogContent>
+
+      <DialogActions>
+        <Button
+          type="button"
+          onClick={() => {
+            handleCloseDialog()
+          }}
+        >
+          {'Cancel'}
+        </Button>
+        <LoadingButton
+          type="button"
+          onClick={handleSubmit(onSubmit)}
+          pending={loadingMergePenaltyType}
+        >
+          {loadingMergePenaltyType ? 'Saving...' : 'Save'}
+        </LoadingButton>
+      </DialogActions>
     </Dialog>
+  )
+}
+
+const SubType = props => {
+  const { rulePack, rulePackId, penaltyTypeId, data, setNewSubType } = props
+  const classes = useStyles()
+  const { enqueueSnackbar } = useSnackbar()
+
+  const { handleSubmit, control, errors } = useForm({
+    resolver: yupResolver(schemaSubType),
+  })
+
+  const [
+    mergePenaltyTypePenaltySubType,
+    { loading: loadingMergePenaltySubType },
+  ] = useMutation(MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE, {
+    update(cache, { data: { penaltySubTypePenaltyType } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_PENALTY_TYPES,
+          variables: {
+            rulePackId,
+          },
+        })
+
+        const penaltyType = queryResult.rulePack[0].penaltyTypes.find(
+          gt => gt.penaltyTypeId === penaltyTypeId
+        )
+        const existingData = penaltyType.subTypes
+        const newItem = penaltySubTypePenaltyType.to
+
+        let updatedData = []
+        if (
+          existingData.find(
+            ed => ed.penaltySubTypeId === newItem.penaltySubTypeId
+          )
+        ) {
+          // replace if item exist in array
+          updatedData = existingData.map(ed =>
+            ed.penaltySubTypeId === newItem.penaltySubTypeId ? newItem : ed
+          )
+        } else {
+          // add new item if item not in array
+          updatedData = [...existingData, newItem]
+        }
+
+        const updatedResult = {
+          rulePack: [
+            {
+              ...queryResult.rulePack[0],
+              penaltyTypes: [
+                ...queryResult.rulePack[0].penaltyTypes.filter(
+                  gt => gt.penaltyTypeId !== penaltyTypeId
+                ),
+                { ...penaltyType, subTypes: updatedData },
+              ],
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_PENALTY_TYPES,
+          data: updatedResult,
+          variables: {
+            rulePackId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: data => {
+      enqueueSnackbar(
+        `${data.penaltySubTypePenaltyType.to.name} added to ${rulePack.name}!`,
+        {
+          variant: 'success',
+        }
+      )
+      setNewSubType(false)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const [
+    deletePenaltySubType,
+    { loading: mutationLoadingDeletePenaltySubType },
+  ] = useMutation(DELETE_PENALTY_SUB_TYPE, {
+    variables: {
+      penaltySubTypeId: data?.penaltySubTypeId,
+    },
+    update(cache, { data: { deleted } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_PENALTY_TYPES,
+          variables: {
+            rulePackId,
+          },
+        })
+
+        const penaltyType = queryResult.rulePack[0].penaltyTypes.find(
+          gt => gt.penaltyTypeId === penaltyTypeId
+        )
+
+        const updatedData = penaltyType.subTypes.filter(
+          p => p.penaltySubTypeId !== deleted.penaltySubTypeId
+        )
+
+        const updatedResult = {
+          rulePack: [
+            {
+              ...queryResult.rulePack[0],
+              penaltyTypes: [
+                ...queryResult.rulePack[0].penaltyTypes.filter(
+                  gt => gt.penaltyTypeId !== penaltyTypeId
+                ),
+                {
+                  ...penaltyType,
+                  subTypes: updatedData,
+                },
+              ],
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_PENALTY_TYPES,
+          data: updatedResult,
+          variables: {
+            rulePackId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar(`PenaltySubType was deleted!`, {
+        variant: 'info',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const onSubmit = useCallback(
+    dataToCheck => {
+      try {
+        const { name, code } = dataToCheck
+
+        mergePenaltyTypePenaltySubType({
+          variables: {
+            penaltyTypeId,
+            name,
+            code,
+            penaltySubTypeId: checkId(data?.penaltySubTypeId || 'new'),
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    [penaltyTypeId, data]
+  )
+
+  return (
+    <Container>
+      <form
+        onSubmit={null}
+        className={classes.form}
+        noValidate
+        autoComplete="off"
+      >
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={12} lg={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={5} md={5} lg={5}>
+                <RHFInput
+                  control={control}
+                  defaultValue={data?.name || ''}
+                  name="name"
+                  label="SubType Name"
+                  required
+                  fullWidth
+                  variant="standard"
+                  error={errors?.name}
+                />
+              </Grid>
+              <Grid item xs={12} sm={5} md={5} lg={5}>
+                <RHFInput
+                  control={control}
+                  defaultValue={data?.code || ''}
+                  name="code"
+                  label="SubType Code"
+                  required
+                  fullWidth
+                  variant="standard"
+                  error={errors?.code}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={1} md={1} lg={1}>
+                {data?.penaltySubTypeId && (
+                  <LoadingButton
+                    onClick={() => {
+                      deletePenaltySubType()
+                    }}
+                    type="button"
+                    pending={mutationLoadingDeletePenaltySubType}
+                  >
+                    {mutationLoadingDeletePenaltySubType
+                      ? 'Deleting...'
+                      : 'Delete'}
+                  </LoadingButton>
+                )}
+              </Grid>
+
+              <Grid item xs={12} sm={1} md={1} lg={1}>
+                <LoadingButton
+                  onClick={() => {
+                    handleSubmit(onSubmit)()
+                  }}
+                  type="button"
+                  pending={loadingMergePenaltySubType}
+                >
+                  {loadingMergePenaltySubType ? 'Saving...' : 'Save'}
+                </LoadingButton>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </form>
+    </Container>
   )
 }
 

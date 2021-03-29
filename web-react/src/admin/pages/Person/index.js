@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -23,7 +22,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist, decomposeDate } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -174,7 +173,7 @@ const Person = () => {
 
         const dataToSubmit = {
           ...rest,
-          personId: personId === 'new' ? uuidv4() : personId,
+          personId: checkId(personId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }
@@ -263,11 +262,13 @@ const Person = () => {
                       error={errors.avatar}
                     />
 
-                    <Uploader
-                      buttonText={'Change avatar'}
-                      onSubmit={updateAvatar}
-                      folderName="avatars"
-                    />
+                    {isValidUuid(personId) && (
+                      <Uploader
+                        buttonText={'Change avatar'}
+                        onSubmit={updateAvatar}
+                        folderName="avatars"
+                      />
+                    )}
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={8} lg={9}>
@@ -437,7 +438,7 @@ const Person = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations personId={personId} />
+            {isValidUuid(personId) && <Relations personId={personId} />}
           </>
         )}
     </Container>

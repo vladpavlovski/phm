@@ -19,6 +19,7 @@ import { RHFInput } from '../../../components/RHFInput'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
+import { isValidUuid } from '../../../utils'
 
 import { ADMIN_RULEPACKS, getAdminRulePackRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
@@ -178,7 +179,7 @@ const RulePack = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations rulePackId={rulePackId} />
+            {isValidUuid(rulePackId) && <Relations rulePackId={rulePackId} />}
           </>
         )}
     </Container>

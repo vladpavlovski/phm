@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
 import clsx from 'clsx'
-import { useAuth0 } from '@auth0/auth0-react'
 import {
   Drawer,
   AppBar,
@@ -12,7 +11,6 @@ import {
 } from '@material-ui/core'
 import createPersistedState from 'use-persisted-state'
 
-// import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 
@@ -20,6 +18,7 @@ import LayoutContext from '../../context/layout'
 import { Copyright } from '../../components/Copyright'
 import { useStyles } from './styled'
 import { MainListItems } from './listItems'
+import { UserMenu } from './UserMenu'
 
 const useLayoutSidebarState = createPersistedState('layoutSidebar')
 
@@ -28,7 +27,6 @@ const Layout = props => {
   const classes = useStyles()
   const [open, setOpen] = useLayoutSidebarState(true)
   const { barTitle } = useContext(LayoutContext)
-  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0()
 
   return (
     <div className={classes.root}>
@@ -38,20 +36,6 @@ const Layout = props => {
         className={clsx(classes.appBar, open && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
-          {/* <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={() => {
-              setOpen(true)
-            }}
-            className={clsx(
-              classes.menuButton
-              // !open && classes.menuButtonHidden
-            )}
-          >
-            <MenuIcon />
-          </IconButton> */}
           <Typography
             component="h1"
             variant="h6"
@@ -66,18 +50,7 @@ const Layout = props => {
               <NotificationsIcon />
             </Badge>
           </IconButton> */}
-          {!isAuthenticated && (
-            <button onClick={() => loginWithRedirect()}>Log In</button>
-          )}
-          {isAuthenticated && (
-            <button
-              onClick={() => logout({ returnTo: window.location.origin })}
-            >
-              Log Out
-            </button>
-          )}
-          {/* {isAuthenticated && console.log('user:', user)} */}
-          {isAuthenticated && user.name}
+          <UserMenu />
         </Toolbar>
       </AppBar>
       <Drawer

@@ -19,7 +19,7 @@ import { Uploader } from '../../../components/Uploader'
 import { RHFColorpicker } from '../../../components/RHFColorpicker'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, decomposeDate } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -53,7 +53,8 @@ const GET_TEAM = gql`
       }
       players {
         playerId
-        name
+        firstName
+        lastName
       }
     }
   }
@@ -247,11 +248,13 @@ const Team = () => {
                       error={errors.logo}
                     />
 
-                    <Uploader
-                      buttonText={'Change logo'}
-                      onSubmit={updateLogo}
-                      folderName="teams"
-                    />
+                    {isValidUuid(teamId) && (
+                      <Uploader
+                        buttonText={'Change logo'}
+                        onSubmit={updateLogo}
+                        folderName="teams"
+                      />
+                    )}
                   </Paper>
                 </Grid>
 
@@ -417,7 +420,7 @@ const Team = () => {
                 </Grid>
               </Grid>
             </form>
-            <Relations teamId={teamId} />
+            {isValidUuid(teamId) && <Relations teamId={teamId} />}
           </>
         )}
     </Container>

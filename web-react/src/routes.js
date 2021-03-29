@@ -34,6 +34,8 @@ export const ADMIN_GROUP = '/admin/group/:groupId'
 export const ADMIN_GROUPS = '/admin/groups'
 export const ADMIN_PERSONS = '/admin/persons'
 export const ADMIN_PERSON = '/admin/person/:personId'
+export const ADMIN_USERS = '/admin/users'
+export const ADMIN_USER = '/admin/user/:userId'
 
 // export const getArticleRoute = gameId => generatePath(ARTICLE, { gameId })
 // export const getArticleGeneratedRoute = gameId =>
@@ -73,3 +75,5 @@ export const getAdminGroupRoute = groupId =>
 
 export const getAdminPersonRoute = personId =>
   generatePath(ADMIN_PERSON, { personId })
+
+export const getAdminUserRoute = userId => generatePath(ADMIN_USER, { userId })
