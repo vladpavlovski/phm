@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -23,7 +22,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
+import { dateExist, decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -174,7 +173,7 @@ const Person = () => {
 
         const dataToSubmit = {
           ...rest,
-          personId: personId === 'new' ? uuidv4() : personId,
+          personId: checkId(personId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }

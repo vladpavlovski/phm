@@ -229,10 +229,14 @@ type Occupation {
 
 type User {
   userId: ID! @id
-  name: String!
-  userName: String
+  firstName: String!
+  lastName: String!
+  nickName: String
   phone: String
   email: String
+  emailVerified: Boolean
+  avatar: String
+  locale: String
   player: Player @relation(name: "ACCOUNT_FOR", direction: OUT)
   person: Person @relation(name: "ACCOUNT_FOR", direction: OUT)
   comments: [Comment] @relation(name: "WRITE_A_COMMENT", direction: OUT)
