@@ -53,7 +53,8 @@ const GET_TEAM = gql`
       }
       players {
         playerId
-        name
+        firstName
+        lastName
       }
     }
   }

@@ -39,7 +39,8 @@ const GET_PLAYERS = gql`
       name
       players {
         playerId
-        name
+        firstName
+        lastName
         positions {
           positionId
           name
@@ -62,7 +63,8 @@ const REMOVE_TEAM_PLAYER = gql`
     ) {
       from {
         playerId
-        name
+        firstName
+        lastName
       }
     }
   }
@@ -91,7 +93,8 @@ const MERGE_TEAM_PLAYER = gql`
     ) {
       from {
         playerId
-        name
+        firstName
+        lastName
         positions {
           positionId
           name
@@ -245,11 +248,15 @@ const Players = props => {
   const teamPlayersColumns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
+        field: 'firstName',
+        headerName: 'First name',
         width: 150,
       },
-
+      {
+        field: 'lastName',
+        headerName: 'Last name',
+        width: 150,
+      },
       {
         field: 'positions',
         headerName: 'Positions',
