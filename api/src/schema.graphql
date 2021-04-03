@@ -78,8 +78,21 @@ type Player implements Human {
   lineups: [TakingPartIn]
 }
 
+type Mutation {
+  CreateJerseys(teamId: ID!, nameBase: String!): [Jersey!]
+    @cypher(
+      statement: """
+      MATCH (t:Team {teamId: $teamId})
+      UNWIND range(1, 99) as numberRange
+      CREATE (j:Jersey {jerseyId: apoc.create.uuid(), number: numberRange, name: $nameBase + ' - ' + numberRange})
+      CREATE (j) <- [r:USE_JERSEY] - (t)
+      RETURN j
+      ORDER BY j.number ASC
+      """
+    )
+}
+
 type Query {
-  CustomSignS3(filename: String!, filetype: String!): S3Payload!
   playersCount: Int
     @cypher(
       statement: """

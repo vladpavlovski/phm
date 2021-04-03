@@ -11,6 +11,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Membership } from './components/Membership'
 import { Players } from './components/Players'
 import { Sponsors } from './components/Sponsors'
+import { Jerseys } from './components/Jerseys'
 
 const Relations = props => {
   const { teamId } = props
@@ -49,6 +50,7 @@ const Relations = props => {
       </Accordion>
 
       <Players teamId={teamId} />
+      <Jerseys teamId={teamId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
