@@ -23,6 +23,7 @@ type S3Payload {
 }
 
 interface Human {
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
@@ -44,6 +45,7 @@ interface Human {
 
 type Player implements Human {
   playerId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
@@ -196,6 +198,7 @@ type MetaHistory {
 
 type Person implements Human {
   personId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
