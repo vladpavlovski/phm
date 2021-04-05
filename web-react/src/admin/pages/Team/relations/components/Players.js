@@ -75,6 +75,8 @@ export const GET_ALL_PLAYERS = gql`
     players: Player {
       playerId
       name
+      firstName
+      lastName
       teams {
         name
       }
@@ -93,6 +95,7 @@ const MERGE_TEAM_PLAYER = gql`
     ) {
       from {
         playerId
+        name
         firstName
         lastName
         positions {
