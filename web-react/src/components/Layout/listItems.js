@@ -18,6 +18,7 @@ import Mood from '@material-ui/icons/Mood'
 import Group from '@material-ui/icons/Group'
 import Groups from '@material-ui/icons/Groups'
 import SportsHockey from '@material-ui/icons/SportsHockey'
+import WbAutoIcon from '@material-ui/icons/WbAuto'
 import PeopleAlt from '@material-ui/icons/PeopleAlt'
 import { useStyles } from './styled'
 
@@ -185,6 +186,22 @@ const MainListItems = props => {
               }
               primary="Venues"
               to={ROUTES.ADMIN_VENUES}
+            />
+            <ListItemLink
+              className={classes.menuSubListItem}
+              icon={
+                <Tooltip
+                  arrow
+                  title="Awards"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <WbAutoIcon />
+                </Tooltip>
+              }
+              primary="Awards"
+              to={ROUTES.ADMIN_AWARDS}
             />
           </List>
         </Collapse>
