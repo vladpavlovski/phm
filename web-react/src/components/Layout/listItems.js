@@ -19,6 +19,7 @@ import Group from '@material-ui/icons/Group'
 import Groups from '@material-ui/icons/Groups'
 import SportsHockey from '@material-ui/icons/SportsHockey'
 import WbAutoIcon from '@material-ui/icons/WbAuto'
+import SettingsIcon from '@material-ui/icons/Settings'
 import PeopleAlt from '@material-ui/icons/PeopleAlt'
 import { useStyles } from './styled'
 
@@ -280,6 +281,22 @@ const MainListItems = props => {
           primary="Users"
           to={ROUTES.ADMIN_USERS}
         />
+        <ListItemLink
+          icon={
+            <Tooltip
+              arrow
+              title="System Settings"
+              placement="right"
+              disableHoverListener={open}
+              TransitionComponent={Zoom}
+            >
+              <SettingsIcon />
+            </Tooltip>
+          }
+          primary="System Settings"
+          to={ROUTES.ADMIN_SYSTEM_SETTINGS}
+        />
+
         {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
       <ListItemLink
         icon={<DoneAll />}

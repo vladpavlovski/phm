@@ -2,8 +2,8 @@ export const initializeDatabase = driver => {
   const initCypher = `CALL apoc.schema.assert({}, {
     Player: ["playerId"],
     MetaPlayer: ["metaPlayerId"],
-    Staff: ["staffId"],
-    Account: ["accountId"],
+    Person: ["personId"],
+    User: ["userId"],
     Team: ["teamId"],
     Lineup: ["lineupId"],
     Game: ["gameId"],
@@ -66,7 +66,8 @@ export const initializeDatabase = driver => {
     FinalResult: ["finalResultId"],
     InjuryType: ["injuryTypeId"],
     ResultType: ["resultTypeId"],
-    ResultPoint: ["resultPointId"]
+    ResultPoint: ["resultPointId"],
+    SystemSettings: ["systemSettingsId"]
   })`
 
   const executeQuery = driver => {

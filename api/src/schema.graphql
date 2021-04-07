@@ -843,8 +843,6 @@ type Phase {
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
-# :Payment
-
 type Payment {
   paymentId: ID! @id
   dateTime: DateTime
@@ -854,8 +852,6 @@ type Payment {
 }
 
 #urbis: zde jsem stále zamotaný podle mě těch vztahů tady bude více.. ale nedokáži to vymyslet zatím odkládám
-
-# :Award
 
 type Award {
   awardId: ID! @id
@@ -880,8 +876,6 @@ type Award {
   seasons: [Season] @relation(name: "HAS_AN_AWARD", direction: IN)
 }
 
-# :Media
-
 type Media {
   mediaId: ID! @id
   organization: Organization @relation(name: "HAS_MEDIA", direction: IN)
@@ -902,8 +896,6 @@ type Media {
   files: [File] @relation(name: "HAS_FILE", direction: OUT)
 }
 
-# :File
-
 type File {
   fileId: ID! @id
   name: String
@@ -914,8 +906,6 @@ type File {
   media: Media @relation(name: "HAS_FILE", direction: IN)
 }
 
-# :Invitation
-
 type Invitation {
   invitationId: ID! @id
   name: String
@@ -925,8 +915,6 @@ type Invitation {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
 }
-
-# :InvitationList
 
 type InvitationList {
   invitationListId: ID! @id
@@ -941,8 +929,6 @@ type RespondToInvitation @relation(name: "RESPOND_TO_INVITATION") {
   status: String
 }
 
-# :Achievement
-
 type Achievement {
   achievementId: ID! @id
   name: String
@@ -952,8 +938,6 @@ type Achievement {
   person: [Person] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
   teams: [Team] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
 }
-
-# :RulePack
 
 type RulePack {
   rulePackId: ID! @id
@@ -978,9 +962,9 @@ type RulePack {
   injuryTypes: [InjuryType] @relation(name: "SET_UP", direction: OUT)
   resultTypes: [ResultType] @relation(name: "SET_UP", direction: OUT)
   resultPoints: [ResultPoint] @relation(name: "SET_UP", direction: OUT)
+  systemSettings: SystemSettings
+    @relation(name: "GUIDED_DEFAULT_BY", direction: IN)
 }
-
-# :PenaltyShotStatus
 
 type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
@@ -988,8 +972,6 @@ type PenaltyShotStatus {
   code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
-
-# :Period
 
 type Period {
   periodId: ID! @id
@@ -1138,6 +1120,15 @@ type ResultPoint {
   code: String!
   points: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+}
+
+# SystemSettings entity should be only one in the whole DB.
+# That why systemSettingsId = "system-settings"
+type SystemSettings {
+  systemSettingsId: ID! @id
+  name: String
+  language: String
+  rulePack: RulePack @relation(name: "GUIDED_DEFAULT_BY", direction: OUT)
 }
 
 #urbis: NOVÉ ENTITY

@@ -50,6 +50,7 @@ const AdminUser = Load(() => import('./admin/pages/User'))
 const AdminUserView = Load(() => import('./admin/pages/User/view'))
 const AdminAward = Load(() => import('./admin/pages/Award'))
 const AdminAwardView = Load(() => import('./admin/pages/Award/view'))
+const AdminSystemSettings = Load(() => import('./admin/pages/SystemSettings'))
 
 dayjs.extend(duration)
 dayjs.extend(utc)
@@ -183,6 +184,11 @@ const App = ({ history }) => {
                       path={ROUTES.ADMIN_AWARD}
                       exact
                       component={AdminAward}
+                    />
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_SYSTEM_SETTINGS}
+                      exact
+                      component={AdminSystemSettings}
                     />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route
