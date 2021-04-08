@@ -7,13 +7,14 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
-
-const Relations = () => {
-  // const { systemSettingsId } = props
+import { RulePack } from './components/RulePack'
+const Relations = props => {
+  const { systemSettingsId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
+      <RulePack systemSettingsId={systemSettingsId} />
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}

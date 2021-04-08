@@ -19,6 +19,7 @@ import Group from '@material-ui/icons/Group'
 import Groups from '@material-ui/icons/Groups'
 import SportsHockey from '@material-ui/icons/SportsHockey'
 import WbAutoIcon from '@material-ui/icons/WbAuto'
+import GavelIcon from '@material-ui/icons/Gavel'
 import SettingsIcon from '@material-ui/icons/Settings'
 import PeopleAlt from '@material-ui/icons/PeopleAlt'
 import { useStyles } from './styled'
@@ -260,7 +261,7 @@ const MainListItems = props => {
               disableHoverListener={open}
               TransitionComponent={Zoom}
             >
-              <SportsHockey />
+              <GavelIcon />
             </Tooltip>
           }
           primary="Rule Packs"
