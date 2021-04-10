@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { useStyles } from '../../commonComponents/styled'
 
 import { Membership } from './components/Membership'
-import { Players } from './components/Players'
+import { Players } from './components/players'
 import { Sponsors } from './components/Sponsors'
 import { Jerseys } from './components/Jerseys'
 import { Positions } from './components/Positions'
