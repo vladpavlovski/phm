@@ -86,14 +86,40 @@ type Mutation {
       statement: """
       MATCH (t:Team {teamId: $teamId})
       UNWIND range(1, 99) as numberRange
-      CREATE (j:Jersey {jerseyId: apoc.create.uuid(), number: numberRange, name: $nameBase + ' - ' + numberRange})
+      CREATE (j:Jersey {
+        jerseyId: apoc.create.uuid(),
+        number: numberRange,
+        name: $nameBase + ' - ' + numberRange
+      })
       CREATE (j) <- [r:USE_JERSEY] - (t)
       RETURN j
       ORDER BY j.number ASC
       """
     )
-}
 
+  CreateTeamDefaultPositions(teamId: ID!, systemSettingsId: ID!): [Position!]
+    @cypher(
+      statement: """
+      MATCH (team: Team {teamId: $teamId})
+      MATCH (systemSettings: SystemSettings {
+        systemSettingsId: $systemSettingsId
+        }) - [:GUIDED_DEFAULT_BY]
+        - (rulePack: RulePack)
+        - [:SET_UP] -> (positionTypes: PositionType)
+      UNWIND positionTypes AS positions
+      CREATE (newPosition: Position {
+        positionId: apoc.create.uuid(),
+        name: positions.name,
+        short: positions.short,
+        description: positions.description,
+        fromDefault: true
+      })
+      CREATE (newPosition) <- [:USE_POSITION] - (team)
+      return newPosition
+      """
+    )
+}
+# vladzzz team id: 8c798530-f57a-4c6f-bbac-1e7e40e4cfa8
 type Query {
   playersCount: Int
     @cypher(
@@ -1052,7 +1078,7 @@ type GameEventLocation {
 type PositionType {
   positionTypeId: ID! @id
   name: String!
-  code: String
+  short: String
   description: String
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
@@ -1080,7 +1106,6 @@ type WearItem {
 type Position {
   positionId: ID! @id
   name: String!
-  nick: String
   short: String
   description: String
   players: [Player] @relation(name: "HAS_POSITION", direction: IN)

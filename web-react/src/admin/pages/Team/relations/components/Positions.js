@@ -12,36 +12,35 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import AddIcon from '@material-ui/icons/Add'
 import EditIcon from '@material-ui/icons/Edit'
 import CreateIcon from '@material-ui/icons/Create'
 import Toolbar from '@material-ui/core/Toolbar'
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
+import LoadingButton from '@material-ui/lab/LoadingButton'
 
+import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
-import LoadingButton from '@material-ui/lab/LoadingButton'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
 import { RHFInput } from '../../../../../components/RHFInput'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_POSITION_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+const GET_POSITIONS = gql`
+  query getPositions($teamId: ID) {
+    team: Team(teamId: $teamId) {
+      teamId
       name
-      positionTypes {
-        positionTypeId
+      positions {
+        positionId
         name
         short
         description
@@ -50,32 +49,54 @@ const GET_POSITION_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_POSITION_TYPE = gql`
-  mutation mergeRulePackPositionType(
-    $rulePackId: ID!
-    $positionTypeId: ID!
+const DELETE_TEAM_POSITION = gql`
+  mutation deleteTeamPosition($teamId: ID!, $positionId: ID!) {
+    teamPosition: RemoveTeamPositions(
+      from: { teamId: $teamId }
+      to: { positionId: $positionId }
+    ) {
+      from {
+        teamId
+      }
+      to {
+        positionId
+        name
+      }
+    }
+    position: DeletePosition(positionId: $positionId) {
+      positionId
+    }
+  }
+`
+
+const MERGE_TEAM_POSITION = gql`
+  mutation mergeTeamPosition(
+    $teamId: ID!
+    $positionId: ID!
     $name: String!
     $short: String
     $description: String
   ) {
-    positionType: MergePositionType(
-      positionTypeId: $positionTypeId
+    position: MergePosition(
+      positionId: $positionId
       name: $name
       short: $short
       description: $description
     ) {
-      positionTypeId
+      positionId
       name
+      short
+      description
     }
-    positionTypeRulePack: MergePositionTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { positionTypeId: $positionTypeId }
+    teamPosition: MergeTeamPositions(
+      from: { teamId: $teamId }
+      to: { positionId: $positionId }
     ) {
       from {
-        name
+        teamId
       }
       to {
-        positionTypeId
+        positionId
         name
         short
         description
@@ -84,45 +105,145 @@ const MERGE_RULEPACK_POSITION_TYPE = gql`
   }
 `
 
-const DELETE_POSITION_TYPE = gql`
-  mutation deletePositionType($positionTypeId: ID!) {
-    deleted: DeletePositionType(positionTypeId: $positionTypeId) {
-      positionTypeId
+const CREATE_DEFAULT_POSITIONS = gql`
+  mutation createPositions($teamId: ID!, $systemSettingsId: ID!) {
+    defaultPositions: CreateTeamDefaultPositions(
+      teamId: $teamId
+      systemSettingsId: $systemSettingsId
+    ) {
+      positionId
+      name
+      short
+      description
     }
   }
 `
 
-const schema = object().shape({
-  name: string().required('Name is required'),
-  description: string(),
-  short: string(),
-})
-
-const PositionTypes = props => {
-  const { rulePackId } = props
-
-  const classes = useStyles()
+const Positions = props => {
+  const { teamId } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
   const { enqueueSnackbar } = useSnackbar()
+  const classes = useStyles()
 
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false)
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_POSITION_TYPES, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_POSITIONS)
 
-  const rulePack = queryData?.rulePack?.[0]
+  const team = queryData && queryData.team && queryData.team[0]
+
+  const [deleteTeamPosition, { loading: mutationLoadingDelete }] = useMutation(
+    DELETE_TEAM_POSITION,
+    {
+      update(cache, { data: { teamPosition } }) {
+        // TODO:
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_POSITIONS,
+            variables: {
+              teamId,
+            },
+          })
+
+          const updatedPositions = queryResult.team[0].positions.filter(
+            p => p.positionId !== teamPosition.to.positionId
+          )
+
+          const updatedResult = {
+            team: [
+              {
+                ...queryResult.team[0],
+                positions: updatedPositions,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_POSITIONS,
+            data: updatedResult,
+            variables: {
+              teamId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.teamPosition.to.name} not position ${team.name}`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [
+    createDefaultPositions,
+    { loading: queryCreateDefaultLoading },
+  ] = useMutation(CREATE_DEFAULT_POSITIONS, {
+    variables: {
+      teamId,
+      systemSettingsId: 'system-settings',
+    },
+
+    update(cache, { data: { defaultPositions } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_POSITIONS,
+          variables: {
+            teamId,
+          },
+        })
+
+        const updatedResult = {
+          team: [
+            {
+              ...queryResult.team[0],
+              positions: defaultPositions,
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_POSITIONS,
+          data: updatedResult,
+          variables: {
+            teamId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar(`Default positions added to ${team.name}!`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData({ variables: { teamId } })
     }
   }, [])
 
@@ -131,73 +252,28 @@ const PositionTypes = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deletePositionType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_POSITION_TYPE,
-    {
-      update(cache, { data: { deleted } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_POSITION_TYPES,
-            variables: {
-              rulePackId,
-            },
-          })
-          const updatedData = queryResult.rulePack[0].positionTypes.filter(
-            p => p.positionTypeId !== deleted.positionTypeId
-          )
-
-          const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                positionTypes: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_POSITION_TYPES,
-            data: updatedResult,
-            variables: {
-              rulePackId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: () => {
-        enqueueSnackbar(`Position type was deleted!`, {
-          variant: 'info',
-        })
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const rulePackPositionTypesColumns = useMemo(
+  const teamPositionsColumns = useMemo(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 150,
+        width: 200,
       },
+
       {
         field: 'short',
         headerName: 'Short',
-        width: 100,
+        width: 200,
       },
+
       {
         field: 'description',
         headerName: 'Description',
-        width: 300,
+        width: 200,
       },
+
       {
-        field: 'positionTypeId',
+        field: 'positionId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -217,7 +293,7 @@ const PositionTypes = props => {
         },
       },
       {
-        field: 'removeButton',
+        field: 'deleteButton',
         headerName: 'Delete',
         width: 120,
         disableColumnMenu: true,
@@ -226,20 +302,23 @@ const PositionTypes = props => {
             <ButtonDialog
               text={'Delete'}
               textLoading={'Deleting...'}
-              loading={mutationLoadingRemove}
+              loading={mutationLoadingDelete}
               size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this position type?'}
-              dialogDescription={'Position type will be completely delete'}
-              dialogNegativeText={'No, keep it'}
-              dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
-                deletePositionType({
+              startIcon={<LinkOffIcon />}
+              dialogTitle={'Do you really want to delete team position?'}
+              dialogDescription={
+                'Position will completely delete from database.'
+              }
+              dialogNegativeText={'No, keep position'}
+              dialogPositiveText={'Yes, delete position'}
+              onDialogClosePositive={() => {
+                deleteTeamPosition({
                   variables: {
-                    positionTypeId: params.row.positionTypeId,
+                    teamId,
+                    positionId: params.row.positionId,
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -252,11 +331,11 @@ const PositionTypes = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="position-types-content"
-        id="position-types-header"
+        aria-controls="positions-content"
+        id="positions-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Position Types
+          Positions
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -273,19 +352,34 @@ const PositionTypes = props => {
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
-                  startIcon={<CreateIcon />}
+                  startIcon={<AddIcon />}
                 >
                   Create Position
                 </Button>
+
+                {team?.positions?.length === 0 && (
+                  <LoadingButton
+                    type="button"
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={createDefaultPositions}
+                    className={classes.submit}
+                    startIcon={<CreateIcon />}
+                    pending={queryCreateDefaultLoading}
+                    pendingPosition="start"
+                  >
+                    {queryCreateDefaultLoading
+                      ? 'Creating...'
+                      : 'Create default'}
+                  </LoadingButton>
+                )}
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={rulePackPositionTypesColumns}
-                rows={setIdFromEntityId(
-                  rulePack.positionTypes,
-                  'positionTypeId'
-                )}
+                columns={teamPositionsColumns}
+                rows={setIdFromEntityId(team.positions, 'positionId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -295,10 +389,9 @@ const PositionTypes = props => {
           </>
         )}
       </AccordionDetails>
-
       <FormDialog
-        rulePack={rulePack}
-        rulePackId={rulePackId}
+        team={team}
+        teamId={teamId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
@@ -307,8 +400,14 @@ const PositionTypes = props => {
   )
 }
 
+const schema = object().shape({
+  name: string().required('Name is required'),
+  description: string(),
+  short: string(),
+})
+
 const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+  const { team, teamId, openDialog, handleCloseDialog, data } = props
 
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
@@ -318,28 +417,26 @@ const FormDialog = props => {
   })
 
   const [
-    mergeRulePackPositionType,
+    mergeTeamPosition,
     { loading: loadingMergePositionType },
-  ] = useMutation(MERGE_RULEPACK_POSITION_TYPE, {
-    update(cache, { data: { positionTypeRulePack } }) {
+  ] = useMutation(MERGE_TEAM_POSITION, {
+    update(cache, { data: { teamPosition } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_POSITION_TYPES,
+          query: GET_POSITIONS,
           variables: {
-            rulePackId,
+            teamId,
           },
         })
 
-        const existingData = queryResult.rulePack[0].positionTypes
-        const newItem = positionTypeRulePack.to
+        const existingData = queryResult.team[0].positions
+        const newItem = teamPosition.to
 
         let updatedData = []
-        if (
-          existingData.find(ed => ed.positionTypeId === newItem.positionTypeId)
-        ) {
+        if (existingData.find(ed => ed.positionId === newItem.positionId)) {
           // replace if item exist in array
           updatedData = existingData.map(ed =>
-            ed.positionTypeId === newItem.positionTypeId ? newItem : ed
+            ed.positionId === newItem.positionId ? newItem : ed
           )
         } else {
           // add new item if item not in array
@@ -347,18 +444,18 @@ const FormDialog = props => {
         }
 
         const updatedResult = {
-          rulePack: [
+          team: [
             {
-              ...queryResult.rulePack[0],
-              positionTypes: updatedData,
+              ...queryResult.team[0],
+              positions: updatedData,
             },
           ],
         }
         cache.writeQuery({
-          query: GET_POSITION_TYPES,
+          query: GET_POSITIONS,
           data: updatedResult,
           variables: {
-            rulePackId,
+            teamId,
           },
         })
       } catch (error) {
@@ -366,12 +463,9 @@ const FormDialog = props => {
       }
     },
     onCompleted: data => {
-      enqueueSnackbar(
-        `${data.positionTypeRulePack.to.name} saved to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+      enqueueSnackbar(`${data.teamPosition.to.name} saved to ${team.name}!`, {
+        variant: 'success',
+      })
       handleCloseDialog()
     },
     onError: error => {
@@ -385,18 +479,18 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        mergeRulePackPositionType({
+        mergeTeamPosition({
           variables: {
-            rulePackId,
+            teamId,
             ...dataToCheck,
-            positionTypeId: data?.positionTypeId || uuidv4(),
+            positionId: data?.positionId || uuidv4(),
           },
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [rulePackId, data]
+    [teamId, data]
   )
 
   return (
@@ -414,7 +508,7 @@ const FormDialog = props => {
         noValidate
         autoComplete="off"
       >
-        <DialogTitle id="alert-dialog-title">{`Add new positionType to ${rulePack?.name}`}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{`Add new position to ${team?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -478,8 +572,8 @@ const FormDialog = props => {
   )
 }
 
-PositionTypes.propTypes = {
-  rulePackId: PropTypes.string,
+Positions.propTypes = {
+  teamId: PropTypes.string,
 }
 
-export { PositionTypes }
+export { Positions }
