@@ -38,6 +38,10 @@ const useStyles = makeStyles(theme => ({
   logo: {
     width: '100%',
   },
+  xGridLogo: {
+    width: '6rem',
+    height: '6rem',
+  },
 }))
 
 export { useStyles }
