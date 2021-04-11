@@ -1,8 +1,21 @@
+# Settings in the [build] context are global and are applied to all contexts
+# unless otherwise overridden by more specific contexts.
+
 [build]
   command = "npm i && cd api && npm i && cd ../web-react && npm i && cd .. && npm run build && cp api/build/graphql-schema.js api/build/functions/graphql/. && cp api/build/schema.graphql api/build/functions/graphql/.  && cd api/src/functions/graphql && npm i && cd ../signs3 && npm i"
-
   publish = "web-react/build"
   functions = "api/build/functions"
+
+# Production context: all deploys from the Production branch set in your site’s
+# deploy contexts will inherit these settings.
+
+# [context.production.environment]
+  
+# Specific branch context: all deploys from this specific branch will inherit
+# these settings.
+# [context.staging.environment] # “staging” is a branch name
+# [context.dev.environment] # dev is a branch name
+
 
 [dev]
   command = "npm start"
@@ -25,3 +38,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+
+[[plugins]]
+  package = 'netlify-plugin-contextual-env'
