@@ -18,59 +18,63 @@ import { setIdFromEntityId } from '../../../../../../utils'
 import { GET_PLAYERS } from './index'
 import TeamPlayersContext from './context'
 
-const MERGE_PLAYER_POSITION = gql`
-  mutation mergePlayerPosition($playerId: ID!, $positionId: ID!) {
-    mergePlayerPosition: MergePlayerPositions(
+const MERGE_PLAYER_JERSEY = gql`
+  mutation mergePlayerJersey($playerId: ID!, $jerseyId: ID!) {
+    mergePlayerJersey: MergePlayerJerseys(
       from: { playerId: $playerId }
-      to: { positionId: $positionId }
+      to: { jerseyId: $jerseyId }
     ) {
       from {
         playerId
         firstName
         lastName
         name
-        positions {
-          positionId
+        jerseys {
+          jerseyId
           name
+          number
         }
       }
       to {
-        positionId
+        jerseyId
         name
+        number
       }
     }
   }
 `
 
-const REMOVE_PLAYER_POSITION = gql`
-  mutation removePlayerPosition($playerId: ID!, $positionId: ID!) {
-    removePlayerPosition: RemovePlayerPositions(
+const REMOVE_PLAYER_JERSEY = gql`
+  mutation removePlayerJersey($playerId: ID!, $jerseyId: ID!) {
+    removePlayerJersey: RemovePlayerJerseys(
       from: { playerId: $playerId }
-      to: { positionId: $positionId }
+      to: { jerseyId: $jerseyId }
     ) {
       from {
         playerId
         firstName
         lastName
         name
-        positions {
-          positionId
+        jerseys {
+          jerseyId
           name
+          number
         }
       }
       to {
-        positionId
+        jerseyId
         name
+        number
       }
     }
   }
 `
 
-export const SetPlayerPosition = props => {
+export const SetPlayerJersey = props => {
   const { player } = props
   const classes = useStyles()
 
-  const { setPlayerPositionDialogOpen, setPlayerData } = useContext(
+  const { setPlayerJerseyDialogOpen, setPlayerData } = useContext(
     TeamPlayersContext
   )
 
@@ -79,36 +83,36 @@ export const SetPlayerPosition = props => {
       type="button"
       onClick={() => {
         setPlayerData(player)
-        setPlayerPositionDialogOpen(true)
+        setPlayerJerseyDialogOpen(true)
       }}
       variant={'outlined'}
       size="small"
       className={classes.submit}
       startIcon={<AddIcon />}
     >
-      Set Position
+      Set Jersey
     </Button>
   )
 }
 
-export const PlayerPositionDialog = props => {
+export const PlayerJerseyDialog = props => {
   const { teamId, team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const {
-    playerPositionDialogOpen,
-    setPlayerPositionDialogOpen,
+    playerJerseyDialogOpen,
+    setPlayerJerseyDialogOpen,
     playerData: player,
     setPlayerData,
   } = useContext(TeamPlayersContext)
 
   const handleCloseDialog = useCallback(() => {
-    setPlayerPositionDialogOpen(false)
+    setPlayerJerseyDialogOpen(false)
     setPlayerData(null)
   }, [])
 
-  const [mergePlayerPosition] = useMutation(MERGE_PLAYER_POSITION, {
-    update(cache, { data: { mergePlayerPosition } }) {
+  const [mergePlayerJersey] = useMutation(MERGE_PLAYER_JERSEY, {
+    update(cache, { data: { mergePlayerJersey } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_PLAYERS,
@@ -118,7 +122,7 @@ export const PlayerPositionDialog = props => {
         })
 
         const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = mergePlayerPosition.from
+        const updatedPlayer = mergePlayerJersey.from
 
         let updatedData = []
         if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
@@ -149,7 +153,7 @@ export const PlayerPositionDialog = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data.mergePlayerPosition.from.name} now is ${data.mergePlayerPosition.to.name} for ${team?.name}!`,
+        `${data.mergePlayerJersey.from.name} now is ${data.mergePlayerJersey.to.name} for ${team?.name}!`,
         {
           variant: 'success',
         }
@@ -163,8 +167,8 @@ export const PlayerPositionDialog = props => {
     },
   })
 
-  const [removePlayerPosition] = useMutation(REMOVE_PLAYER_POSITION, {
-    update(cache, { data: { removePlayerPosition } }) {
+  const [removePlayerJersey] = useMutation(REMOVE_PLAYER_JERSEY, {
+    update(cache, { data: { removePlayerJersey } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_PLAYERS,
@@ -173,7 +177,7 @@ export const PlayerPositionDialog = props => {
           },
         })
         const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = removePlayerPosition.from
+        const updatedPlayer = removePlayerJersey.from
 
         let updatedData = []
         if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
@@ -204,7 +208,7 @@ export const PlayerPositionDialog = props => {
     },
     onCompleted: data => {
       enqueueSnackbar(
-        `${data?.removePlayerPosition?.from?.name} not anymore ${data?.removePlayerPosition?.to?.name} for ${team?.name}!`,
+        `${data?.removePlayerJersey?.from?.name} not anymore ${data?.removePlayerJersey?.to?.name} for ${team?.name}!`,
         {
           variant: 'info',
         }
@@ -218,7 +222,7 @@ export const PlayerPositionDialog = props => {
     },
   })
 
-  const teamPositionsColumns = useMemo(
+  const teamJerseysColumns = useMemo(
     () => [
       {
         field: 'name',
@@ -226,17 +230,22 @@ export const PlayerPositionDialog = props => {
         width: 150,
       },
       {
-        field: 'positionId',
-        headerName: 'Has Position',
+        field: 'number',
+        headerName: 'Number',
+        width: 150,
+      },
+      {
+        field: 'jerseyId',
+        headerName: 'Has Jersey',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <TogglePosition
-              positionId={params.value}
+            <ToggleJersey
+              jerseyId={params.value}
               player={player}
-              merge={mergePlayerPosition}
-              remove={removePlayerPosition}
+              merge={mergePlayerJersey}
+              remove={removePlayerJersey}
             />
           )
         },
@@ -249,24 +258,29 @@ export const PlayerPositionDialog = props => {
     <Dialog
       fullWidth
       maxWidth="md"
-      open={playerPositionDialogOpen}
+      open={playerJerseyDialogOpen}
       onClose={handleCloseDialog}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      {team?.positions && (
+      {team?.jerseys && (
         <>
-          <DialogTitle id="alert-dialog-title">{`Set ${player?.name} positions for ${team?.name}`}</DialogTitle>
+          <DialogTitle id="alert-dialog-title">{`Set ${player?.name} jerseys for ${team?.name}`}</DialogTitle>
           <DialogContent>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
-                columns={teamPositionsColumns}
-                rows={setIdFromEntityId(team?.positions, 'positionId')}
+                columns={teamJerseysColumns}
+                rows={setIdFromEntityId(team?.jerseys, 'jerseyId')}
                 disableSelectionOnClick
-                // loading={queryTeamPositionsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
+                sortModel={[
+                  {
+                    field: 'number',
+                    sort: 'asc',
+                  },
+                ]}
               />
             </div>
           </DialogContent>
@@ -279,10 +293,10 @@ export const PlayerPositionDialog = props => {
   )
 }
 
-const TogglePosition = props => {
-  const { positionId, player, remove, merge } = props
+const ToggleJersey = props => {
+  const { jerseyId, player, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!player?.positions?.find(p => p.positionId === positionId)
+    !!player?.jerseys?.find(p => p.jerseyId === jerseyId)
   )
 
   return (
@@ -294,13 +308,13 @@ const TogglePosition = props => {
             isMember
               ? remove({
                   variables: {
-                    positionId,
+                    jerseyId,
                     playerId: player.playerId,
                   },
                 })
               : merge({
                   variables: {
-                    positionId,
+                    jerseyId,
                     playerId: player.playerId,
                   },
                 })
@@ -310,11 +324,11 @@ const TogglePosition = props => {
           color="primary"
         />
       }
-      label={isMember ? 'In position' : 'No position'}
+      label={isMember ? 'Has jersey' : 'No jersey'}
     />
   )
 }
-TogglePosition.propTypes = {
+ToggleJersey.propTypes = {
   playerId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
@@ -322,6 +336,6 @@ TogglePosition.propTypes = {
   merge: PropTypes.func,
 }
 
-SetPlayerPosition.propTypes = {
+SetPlayerJersey.propTypes = {
   teamId: PropTypes.string,
 }

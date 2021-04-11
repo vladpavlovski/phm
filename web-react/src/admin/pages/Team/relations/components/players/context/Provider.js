@@ -6,15 +6,21 @@ const TeamPlayersProvider = props => {
   const [playerPositionDialogOpen, setPlayerPositionDialogOpen] = useState(
     initialContextState.playerPositionDialogOpen
   )
-  const [playerPositionData, setPlayerPositionData] = useState(null)
+  const [playerJerseyDialogOpen, setPlayerJerseyDialogOpen] = useState(
+    initialContextState.playerJerseyDialogOpen
+  )
+
+  const [playerData, setPlayerData] = useState(null)
 
   return (
     <TeamPlayersContext.Provider
       value={{
         playerPositionDialogOpen,
         setPlayerPositionDialogOpen,
-        playerPositionData,
-        setPlayerPositionData,
+        playerJerseyDialogOpen,
+        setPlayerJerseyDialogOpen,
+        playerData,
+        setPlayerData,
       }}
     >
       {props.children}

@@ -21,13 +21,16 @@ import { LinkButton } from '../../../../../../components/LinkButton'
 import { Loader } from '../../../../../../components/Loader'
 import { Error } from '../../../../../../components/Error'
 import { useStyles } from '../../../../commonComponents/styled'
+import { XGridLogo } from '../../../../commonComponents/XGridLogo'
 import {
   setIdFromEntityId,
   getXGridValueFromArray,
 } from '../../../../../../utils'
 import { AddPlayer } from './AddPlayer'
 import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
+import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
 import { TeamPlayersProvider } from './context/Provider'
+import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
 
 export const GET_PLAYERS = gql`
   query getTeam($teamId: ID) {
@@ -38,11 +41,17 @@ export const GET_PLAYERS = gql`
         positionId
         name
       }
+      jerseys {
+        jerseyId
+        name
+        number
+      }
       players {
         playerId
         firstName
         lastName
         name
+        avatar
         positions {
           positionId
           name
@@ -147,6 +156,21 @@ const Players = props => {
   const teamPlayersColumns = useMemo(
     () => [
       {
+        field: 'avatar',
+        headerName: 'Photo',
+        width: 80,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <XGridLogo
+              src={params.value}
+              placeholder={placeholderPerson}
+              alt={params.row.name}
+            />
+          )
+        },
+      },
+      {
         field: 'firstName',
         headerName: 'First name',
         width: 150,
@@ -155,6 +179,24 @@ const Players = props => {
         field: 'lastName',
         headerName: 'Last name',
         width: 150,
+      },
+
+      {
+        field: 'playerId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminPlayerRoute(params.value)}
+              target="_blank"
+            >
+              Profile
+            </LinkButton>
+          )
+        },
       },
       {
         field: 'positions',
@@ -178,26 +220,19 @@ const Players = props => {
         headerName: 'Jerseys',
         width: 200,
         valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
+          return getXGridValueFromArray(params.row.jerseys, 'name')
         },
       },
       {
-        field: 'playerId',
-        headerName: 'Edit',
-        width: 120,
+        field: 'setPlayerJersey',
+        headerName: 'Set Jersey',
+        width: 200,
         disableColumnMenu: true,
         renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<AccountBox />}
-              to={getAdminPlayerRoute(params.value)}
-              target="_blank"
-            >
-              Profile
-            </LinkButton>
-          )
+          return <SetPlayerJersey player={params.row} />
         },
       },
+
       {
         field: 'removeButton',
         headerName: 'Remove',
@@ -285,6 +320,7 @@ const Players = props => {
         </AccordionDetails>
       </Accordion>
       <PlayerPositionDialog teamId={teamId} team={team} />
+      <PlayerJerseyDialog teamId={teamId} team={team} />
     </TeamPlayersProvider>
   )
 }
