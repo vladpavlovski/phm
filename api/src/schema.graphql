@@ -23,6 +23,7 @@ type S3Payload {
 }
 
 interface Human {
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
@@ -44,6 +45,7 @@ interface Human {
 
 type Player implements Human {
   playerId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
@@ -78,8 +80,47 @@ type Player implements Human {
   lineups: [TakingPartIn]
 }
 
+type Mutation {
+  CreateJerseys(teamId: ID!, nameBase: String!): [Jersey!]
+    @cypher(
+      statement: """
+      MATCH (t:Team {teamId: $teamId})
+      UNWIND range(1, 99) as numberRange
+      CREATE (j:Jersey {
+        jerseyId: apoc.create.uuid(),
+        number: numberRange,
+        name: $nameBase + ' - ' + numberRange
+      })
+      CREATE (j) <- [r:USE_JERSEY] - (t)
+      RETURN j
+      ORDER BY j.number ASC
+      """
+    )
+
+  CreateTeamDefaultPositions(teamId: ID!, systemSettingsId: ID!): [Position!]
+    @cypher(
+      statement: """
+      MATCH (team: Team {teamId: $teamId})
+      MATCH (systemSettings: SystemSettings {
+        systemSettingsId: $systemSettingsId
+        }) - [:GUIDED_DEFAULT_BY]
+        - (rulePack: RulePack)
+        - [:SET_UP] -> (positionTypes: PositionType)
+      UNWIND positionTypes AS positions
+      CREATE (newPosition: Position {
+        positionId: apoc.create.uuid(),
+        name: positions.name,
+        short: positions.short,
+        description: positions.description,
+        fromDefault: true
+      })
+      CREATE (newPosition) <- [:USE_POSITION] - (team)
+      return newPosition
+      """
+    )
+}
+# vladzzz team id: 8c798530-f57a-4c6f-bbac-1e7e40e4cfa8
 type Query {
-  CustomSignS3(filename: String!, filetype: String!): S3Payload!
   playersCount: Int
     @cypher(
       statement: """
@@ -183,6 +224,7 @@ type MetaHistory {
 
 type Person implements Human {
   personId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   birthday: Date
@@ -827,8 +869,6 @@ type Phase {
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
-# :Payment
-
 type Payment {
   paymentId: ID! @id
   dateTime: DateTime
@@ -838,8 +878,6 @@ type Payment {
 }
 
 #urbis: zde jsem stále zamotaný podle mě těch vztahů tady bude více.. ale nedokáži to vymyslet zatím odkládám
-
-# :Award
 
 type Award {
   awardId: ID! @id
@@ -864,8 +902,6 @@ type Award {
   seasons: [Season] @relation(name: "HAS_AN_AWARD", direction: IN)
 }
 
-# :Media
-
 type Media {
   mediaId: ID! @id
   organization: Organization @relation(name: "HAS_MEDIA", direction: IN)
@@ -886,8 +922,6 @@ type Media {
   files: [File] @relation(name: "HAS_FILE", direction: OUT)
 }
 
-# :File
-
 type File {
   fileId: ID! @id
   name: String
@@ -898,8 +932,6 @@ type File {
   media: Media @relation(name: "HAS_FILE", direction: IN)
 }
 
-# :Invitation
-
 type Invitation {
   invitationId: ID! @id
   name: String
@@ -909,8 +941,6 @@ type Invitation {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitationList: InvitationList @relation(name: "HAS_LIST", direction: OUT)
 }
-
-# :InvitationList
 
 type InvitationList {
   invitationListId: ID! @id
@@ -925,8 +955,6 @@ type RespondToInvitation @relation(name: "RESPOND_TO_INVITATION") {
   status: String
 }
 
-# :Achievement
-
 type Achievement {
   achievementId: ID! @id
   name: String
@@ -936,8 +964,6 @@ type Achievement {
   person: [Person] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
   teams: [Team] @relation(name: "HAS_ACHIEVEMENT", direction: IN)
 }
-
-# :RulePack
 
 type RulePack {
   rulePackId: ID! @id
@@ -962,9 +988,9 @@ type RulePack {
   injuryTypes: [InjuryType] @relation(name: "SET_UP", direction: OUT)
   resultTypes: [ResultType] @relation(name: "SET_UP", direction: OUT)
   resultPoints: [ResultPoint] @relation(name: "SET_UP", direction: OUT)
+  systemSettings: SystemSettings
+    @relation(name: "GUIDED_DEFAULT_BY", direction: IN)
 }
-
-# :PenaltyShotStatus
 
 type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
@@ -972,8 +998,6 @@ type PenaltyShotStatus {
   code: String!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
-
-# :Period
 
 type Period {
   periodId: ID! @id
@@ -1054,7 +1078,7 @@ type GameEventLocation {
 type PositionType {
   positionTypeId: ID! @id
   name: String!
-  code: String
+  short: String
   description: String
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
@@ -1082,7 +1106,6 @@ type WearItem {
 type Position {
   positionId: ID! @id
   name: String!
-  nick: String
   short: String
   description: String
   players: [Player] @relation(name: "HAS_POSITION", direction: IN)
@@ -1122,6 +1145,15 @@ type ResultPoint {
   code: String!
   points: Int!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
+}
+
+# SystemSettings entity should be only one in the whole DB.
+# That why systemSettingsId = "system-settings"
+type SystemSettings {
+  systemSettingsId: ID! @id
+  name: String
+  language: String
+  rulePack: RulePack @relation(name: "GUIDED_DEFAULT_BY", direction: OUT)
 }
 
 #urbis: NOVÉ ENTITY

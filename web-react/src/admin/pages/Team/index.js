@@ -28,7 +28,7 @@ import { ADMIN_TEAMS, getAdminTeamRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
-import { Relations } from './relations/Relations'
+import { Relations } from './relations'
 
 const GET_TEAM = gql`
   query getTeam($teamId: ID!) {
