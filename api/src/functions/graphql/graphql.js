@@ -5,24 +5,39 @@ const { ApolloServer } = require('apollo-server-lambda')
 const { makeAugmentedSchema } = require('neo4j-graphql-js')
 const neo4j = require('neo4j-driver')
 
+const {
+  DEV_NEO4J_URI,
+  DEV_NEO4J_USER,
+  DEV_NEO4J_PASSWORD,
+  PRODUCTION_NEO4J_URI,
+  PRODUCTION_NEO4J_USER,
+  PRODUCTION_NEO4J_PASSWORD,
+  NEO4J_ENCRYPTED,
+  NEO4J_DATABASE,
+  NETLIFY_DEV,
+} = process.env
+
+const NEO4J_URI = NETLIFY_DEV ? DEV_NEO4J_URI : PRODUCTION_NEO4J_URI
+const NEO4J_USER = NETLIFY_DEV ? DEV_NEO4J_USER : PRODUCTION_NEO4J_USER
+const NEO4J_PASSWORD = NETLIFY_DEV
+  ? DEV_NEO4J_PASSWORD
+  : PRODUCTION_NEO4J_PASSWORD
+
 // This module is copied during the build step
 // Be sure to run `npm run build`
 const { typeDefs } = require('./graphql-schema')
 
 const driver = neo4j.driver(
-  process.env.NEO4J_URI || 'bolt://localhost:7687',
-  neo4j.auth.basic(
-    process.env.NEO4J_USER || 'neo4j',
-    process.env.NEO4J_PASSWORD || 'neo4j'
-  ),
+  NEO4J_URI || 'bolt://localhost:7687',
+  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j'),
   {
-    encrypted: process.env.NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
+    encrypted: NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
   }
 )
 
 const server = new ApolloServer({
   schema: makeAugmentedSchema({ typeDefs }),
-  context: { driver, neo4jDatabase: process.env.NEO4J_DATABASE },
+  context: { driver, neo4jDatabase: NEO4J_DATABASE },
 })
 
 exports.handler = server.createHandler()
