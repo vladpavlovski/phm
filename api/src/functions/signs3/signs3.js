@@ -1,10 +1,14 @@
 import AWS from 'aws-sdk'
 const {
-  AWS_S3_BUCKET,
   AWS_S3_REGION,
   AWS_HMS_ACCESS_KEY_ID,
   AWS_HMS_SECRET_ACCESS_KEY,
+  PRODUCTION_AWS_S3_BUCKET,
+  DEV_AWS_S3_BUCKET,
+  NETLIFY_DEV,
 } = process.env
+
+const AWS_S3_BUCKET = NETLIFY_DEV ? DEV_AWS_S3_BUCKET : PRODUCTION_AWS_S3_BUCKET
 
 const s3 = new AWS.S3({
   signatureVersion: 'v4',

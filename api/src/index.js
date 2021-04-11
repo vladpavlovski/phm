@@ -10,11 +10,33 @@ import { resolvers } from './resolvers'
 // set environment variables from .env
 dotenv.config()
 
+const {
+  JWT_SECRET,
+  DEV_NEO4J_URI,
+  DEV_NEO4J_USER,
+  DEV_NEO4J_PASSWORD,
+  PRODUCTION_NEO4J_URI,
+  PRODUCTION_NEO4J_USER,
+  PRODUCTION_NEO4J_PASSWORD,
+  NEO4J_ENCRYPTED,
+  NEO4J_DATABASE,
+  GRAPHQL_SERVER_PORT,
+  GRAPHQL_SERVER_PATH,
+  GRAPHQL_SERVER_HOST,
+  NETLIFY_DEV,
+} = process.env
+
+const NEO4J_URI = NETLIFY_DEV ? DEV_NEO4J_URI : PRODUCTION_NEO4J_URI
+const NEO4J_USER = NETLIFY_DEV ? DEV_NEO4J_USER : PRODUCTION_NEO4J_USER
+const NEO4J_PASSWORD = NETLIFY_DEV
+  ? DEV_NEO4J_PASSWORD
+  : PRODUCTION_NEO4J_PASSWORD
+
 const app = express()
 
 app.use(
   jwt({
-    secret: process.env.JWT_SECRET.replace(/\\n/gm, '\n'),
+    secret: JWT_SECRET.replace(/\\n/gm, '\n'),
     algorithms: ['RS256'],
     credentialsRequired: false,
   })
@@ -52,13 +74,10 @@ const schema = makeAugmentedSchema({
  * with fallback to defaults
  */
 const driver = neo4j.driver(
-  process.env.NEO4J_URI || 'bolt://localhost:7687',
-  neo4j.auth.basic(
-    process.env.NEO4J_USER || 'neo4j',
-    process.env.NEO4J_PASSWORD || 'neo4j'
-  ),
+  NEO4J_URI || 'bolt://localhost:7687',
+  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j'),
   {
-    encrypted: process.env.NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
+    encrypted: NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
   }
 )
 
@@ -92,7 +111,7 @@ const server = new ApolloServer({
     return {
       driver,
       req,
-      neo4jDatabase: process.env.NEO4J_DATABASE,
+      neo4jDatabase: NEO4J_DATABASE,
       cypherParams: {
         userAuthId: req?.user?.sub,
       },
@@ -104,9 +123,9 @@ const server = new ApolloServer({
 })
 
 // Specify host, port and path for GraphQL endpoint
-const port = process.env.GRAPHQL_SERVER_PORT || 4001
-const path = process.env.GRAPHQL_SERVER_PATH || '/graphql'
-const host = process.env.GRAPHQL_SERVER_HOST || '0.0.0.0'
+const port = GRAPHQL_SERVER_PORT || 4001
+const path = GRAPHQL_SERVER_PATH || '/graphql'
+const host = GRAPHQL_SERVER_HOST || '0.0.0.0'
 
 /*
  * Optionally, apply Express middleware for authentication, etc
