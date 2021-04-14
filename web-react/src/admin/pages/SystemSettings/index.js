@@ -65,17 +65,18 @@ const SystemSettings = () => {
 
   const [
     mergeSystemSettings,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+    {
+      loading: mutationLoadingMerge,
+      error: mutationErrorMerge,
+      data: mutationDataMerge,
+    },
   ] = useMutation(MERGE_SYSTEM_SETTINGS, {
     onCompleted: () => {
       enqueueSnackbar('SystemSettings saved!', { variant: 'success' })
     },
   })
 
-  const systemSettingsData = useMemo(
-    () => (queryData && queryData.systemSettings[0]) || {},
-    [queryData]
-  )
+  const systemSettingsData = queryData?.systemSettings?.[0]
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
@@ -108,68 +109,65 @@ const SystemSettings = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {systemSettingsData &&
-        !queryLoading &&
-        !queryError &&
-        !mutationErrorMerge && (
-          <>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className={classes.form}
-              noValidate
-              autoComplete="off"
-            >
-              <Helmet>
-                <title>{systemSettingsData.name || 'SystemSettings'}</title>
-              </Helmet>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
-                  <Paper className={classes.paper}>
-                    <Toolbar disableGutters className={classes.toolbarForm}>
-                      <div>
-                        <Title>{'SystemSettings'}</Title>
-                      </div>
-                      <div>
-                        {formState.isDirty && (
-                          <ButtonSave loading={mutationLoadingMerge} />
-                        )}
-                      </div>
-                    </Toolbar>
+      {!queryLoading && !queryError && !mutationErrorMerge && (
+        <>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className={classes.form}
+            noValidate
+            autoComplete="off"
+          >
+            <Helmet>
+              <title>{systemSettingsData?.name || 'SystemSettings'}</title>
+            </Helmet>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={12} lg={12}>
+                <Paper className={classes.paper}>
+                  <Toolbar disableGutters className={classes.toolbarForm}>
+                    <div>
+                      <Title>{'SystemSettings'}</Title>
+                    </div>
+                    <div>
+                      {formState.isDirty && (
+                        <ButtonSave loading={mutationLoadingMerge} />
+                      )}
+                    </div>
+                  </Toolbar>
 
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6} md={6} lg={6}>
-                        <RHFInput
-                          defaultValue={systemSettingsData.name}
-                          control={control}
-                          name="name"
-                          label="Name"
-                          required
-                          fullWidth
-                          variant="standard"
-                          error={errors.name}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={6} lg={6}>
-                        <RHFInput
-                          defaultValue={systemSettingsData.language}
-                          control={control}
-                          name="language"
-                          label="Language"
-                          fullWidth
-                          variant="standard"
-                          error={errors.language}
-                        />
-                      </Grid>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
+                      <RHFInput
+                        defaultValue={systemSettingsData?.name}
+                        control={control}
+                        name="name"
+                        label="Name"
+                        required
+                        fullWidth
+                        variant="standard"
+                        error={errors.name}
+                      />
                     </Grid>
-                  </Paper>
-                </Grid>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
+                      <RHFInput
+                        defaultValue={systemSettingsData?.language}
+                        control={control}
+                        name="language"
+                        label="Language"
+                        fullWidth
+                        variant="standard"
+                        error={errors.language}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
-            </form>
-            {systemSettingsData && (
-              <Relations systemSettingsId={systemSettingsId} />
-            )}
-          </>
-        )}
+            </Grid>
+          </form>
+          {(systemSettingsData || mutationDataMerge) && (
+            <Relations systemSettingsId={systemSettingsId} />
+          )}
+        </>
+      )}
     </Container>
   )
 }
