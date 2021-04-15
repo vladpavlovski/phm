@@ -18,10 +18,14 @@ import Mood from '@material-ui/icons/Mood'
 import Group from '@material-ui/icons/Group'
 import Groups from '@material-ui/icons/Groups'
 import SportsHockey from '@material-ui/icons/SportsHockey'
-import WbAutoIcon from '@material-ui/icons/WbAuto'
 import GavelIcon from '@material-ui/icons/Gavel'
 import SettingsIcon from '@material-ui/icons/Settings'
 import PeopleAlt from '@material-ui/icons/PeopleAlt'
+import EmojiEventsIcon from '@material-ui/icons/EmojiEvents'
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'
+import DateRangeIcon from '@material-ui/icons/DateRange'
+import ApartmentIcon from '@material-ui/icons/Apartment'
+import GroupWorkIcon from '@material-ui/icons/GroupWork'
 import { useStyles } from './styled'
 
 const useGeneralMenuState = createPersistedState('generalMenu')
@@ -119,7 +123,7 @@ const MainListItems = props => {
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
                 >
-                  <SportsHockey />
+                  <GroupWorkIcon />
                 </Tooltip>
               }
               primary="Organizations"
@@ -151,7 +155,7 @@ const MainListItems = props => {
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
                 >
-                  <SportsHockey />
+                  <MonetizationOnIcon />
                 </Tooltip>
               }
               primary="Sponsors"
@@ -167,7 +171,7 @@ const MainListItems = props => {
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
                 >
-                  <SportsHockey />
+                  <DateRangeIcon />
                 </Tooltip>
               }
               primary="Seasons"
@@ -183,7 +187,7 @@ const MainListItems = props => {
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
                 >
-                  <SportsHockey />
+                  <ApartmentIcon />
                 </Tooltip>
               }
               primary="Venues"
@@ -199,7 +203,7 @@ const MainListItems = props => {
                   disableHoverListener={open}
                   TransitionComponent={Zoom}
                 >
-                  <WbAutoIcon />
+                  <EmojiEventsIcon />
                 </Tooltip>
               }
               primary="Awards"
