@@ -252,7 +252,7 @@ const Team = () => {
                       <Uploader
                         buttonText={'Change logo'}
                         onSubmit={updateLogo}
-                        folderName="teams"
+                        folderName="images/teams"
                       />
                     )}
                   </Paper>

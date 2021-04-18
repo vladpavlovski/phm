@@ -200,7 +200,7 @@ const User = () => {
                       <Uploader
                         buttonText={'Change avatar'}
                         onSubmit={updateAvatar}
-                        folderName="avatars"
+                        folderName="images/avatars"
                       />
                     )}
                   </Paper>

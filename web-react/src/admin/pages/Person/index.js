@@ -266,7 +266,7 @@ const Person = () => {
                       <Uploader
                         buttonText={'Change avatar'}
                         onSubmit={updateAvatar}
-                        folderName="avatars"
+                        folderName="images/avatars"
                       />
                     )}
                   </Paper>

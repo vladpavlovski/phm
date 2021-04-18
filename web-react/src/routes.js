@@ -39,6 +39,8 @@ export const ADMIN_GAMES = '/admin/games'
 export const ADMIN_GAME = '/admin/game/:gameId'
 export const ADMIN_STARS = '/admin/stars'
 export const ADMIN_STAR = '/admin/star/:starId'
+export const ADMIN_EVENTS = '/admin/events'
+export const ADMIN_EVENT = '/admin/event/:eventId'
 
 export const getAdminPlayerRoute = playerId =>
   generatePath(ADMIN_PLAYER, { playerId })
@@ -77,4 +79,6 @@ export const getAdminPersonRoute = personId =>
 
 export const getAdminUserRoute = userId => generatePath(ADMIN_USER, { userId })
 export const getAdminGameRoute = gameId => generatePath(ADMIN_GAME, { gameId })
-export const getAdminStarRoute = starId => generatePath(ADMIN_GAME, { starId })
+export const getAdminStarRoute = starId => generatePath(ADMIN_STAR, { starId })
+export const getAdminEventRoute = eventId =>
+  generatePath(ADMIN_EVENT, { eventId })

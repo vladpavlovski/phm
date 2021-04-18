@@ -220,7 +220,7 @@ const Sponsor = () => {
                       <Uploader
                         buttonText={'Change logo'}
                         onSubmit={updateLogo}
-                        folderName="sponsors"
+                        folderName="images/sponsors"
                       />
                     )}
                   </Paper>

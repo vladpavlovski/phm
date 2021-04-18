@@ -26,6 +26,8 @@ import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'
 import DateRangeIcon from '@material-ui/icons/DateRange'
 import ApartmentIcon from '@material-ui/icons/Apartment'
 import GroupWorkIcon from '@material-ui/icons/GroupWork'
+import EventIcon from '@material-ui/icons/Event'
+
 import { useStyles } from './styled'
 
 const useGeneralMenuState = createPersistedState('generalMenu')
@@ -285,6 +287,21 @@ const MainListItems = props => {
           }
           primary="Users"
           to={ROUTES.ADMIN_USERS}
+        />
+        <ListItemLink
+          icon={
+            <Tooltip
+              arrow
+              title="Events"
+              placement="right"
+              disableHoverListener={open}
+              TransitionComponent={Zoom}
+            >
+              <EventIcon />
+            </Tooltip>
+          }
+          primary="Events"
+          to={ROUTES.ADMIN_EVENTS}
         />
         <ListItemLink
           icon={

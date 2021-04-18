@@ -9,4 +9,9 @@ export const resolvers = {
       return `${obj.firstName} ${obj.lastName}`
     },
   },
+  User: {
+    name: obj => {
+      return `${obj.firstName} ${obj.lastName}`
+    },
+  },
 }

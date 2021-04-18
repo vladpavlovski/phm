@@ -225,7 +225,7 @@ const Competition = () => {
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
-                      folderName="competitions"
+                      folderName="images/competitions"
                     />
                   )}
                 </Paper>

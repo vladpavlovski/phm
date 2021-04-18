@@ -6,6 +6,8 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
 import 'react-imported-component/macro'
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
@@ -51,9 +53,12 @@ const AdminUserView = Load(() => import('./admin/pages/User/view'))
 const AdminAward = Load(() => import('./admin/pages/Award'))
 const AdminAwardView = Load(() => import('./admin/pages/Award/view'))
 const AdminSystemSettings = Load(() => import('./admin/pages/SystemSettings'))
+const AdminEvent = Load(() => import('./admin/pages/Event'))
+const AdminEventView = Load(() => import('./admin/pages/Event/view'))
 
 dayjs.extend(duration)
 dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const App = ({ history }) => {
   return (
@@ -189,6 +194,17 @@ const App = ({ history }) => {
                       path={ROUTES.ADMIN_SYSTEM_SETTINGS}
                       exact
                       component={AdminSystemSettings}
+                    />
+
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_EVENTS}
+                      exact
+                      component={AdminEventView}
+                    />
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_EVENT}
+                      exact
+                      component={AdminEvent}
                     />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route

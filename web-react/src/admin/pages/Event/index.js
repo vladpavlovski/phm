@@ -1,14 +1,12 @@
 import React, { useCallback } from 'react'
-
+import { useAuth0 } from '@auth0/auth0-react'
 import { useParams, useHistory } from 'react-router-dom'
-
+import { useSnackbar } from 'notistack'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
-
-import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -17,113 +15,132 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
+import { RHFTimepicker } from '../../../components/RHFTimepicker'
+
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
+import {
+  dateExist,
+  decomposeDate,
+  decomposeTime,
+  isValidUuid,
+  checkId,
+} from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_ORGANIZATIONS, getAdminOrganizationRoute } from '../../../routes'
+import { ADMIN_EVENTS, getAdminEventRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-import placeholderOrganization from '../../../img/placeholderOrganization.png'
-import { Relations } from './relations'
+import placeholderEvent from '../../../img/placeholderEvent.png'
+// import { Relations } from './relations'
 
-const GET_ORGANIZATION = gql`
-  query getOrganization($organizationId: ID!) {
-    organization: Organization(organizationId: $organizationId) {
-      organizationId
+const GET_EVENT = gql`
+  query getEvent($eventId: ID!) {
+    event: Event(eventId: $eventId) {
+      eventId
       name
-      nick
-      short
-      status
-      legalName
-      logo
-      foundDate {
+      description
+      date {
         formatted
       }
-    }
-  }
-`
-
-const MERGE_ORGANIZATION = gql`
-  mutation mergeOrganization(
-    $organizationId: ID!
-    $name: String
-    $legalName: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-  ) {
-    mergeOrganization: MergeOrganization(
-      organizationId: $organizationId
-      name: $name
-      legalName: $legalName
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+      time {
+        formatted
       }
+      organizer {
+        userId
+        firstName
+        lastName
+        name
+      }
+    }
+  }
+`
+
+const MERGE_EVENT = gql`
+  mutation mergeEvent(
+    $eventId: ID!
+    $userId: ID!
+    $name: String
+    $description: String
+    $dateDay: Int
+    $dateMonth: Int
+    $dateYear: Int
+    $timeHour: Int
+    $timeMinute: Int
+  ) {
+    mergeEvent: MergeEvent(
+      eventId: $eventId
+      name: $name
+      description: $description
+      date: { day: $dateDay, month: $dateMonth, year: $dateYear }
+      time: { hour: $timeHour, minute: $timeMinute }
     ) {
-      organizationId
+      eventId
+    }
+    mergeUserEvent: MergeUserEvents(
+      from: { userId: $userId }
+      to: { eventId: $eventId }
+    ) {
+      from {
+        userId
+        firstName
+        lastName
+      }
     }
   }
 `
 
-const DELETE_ORGANIZATION = gql`
-  mutation deleteOrganization($organizationId: ID!) {
-    deleteOrganization: DeleteOrganization(organizationId: $organizationId) {
-      organizationId
+const DELETE_EVENT = gql`
+  mutation deleteEvent($eventId: ID!) {
+    deleteEvent: DeleteEvent(eventId: $eventId) {
+      eventId
     }
   }
 `
 
-const Organization = () => {
+const Event = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { organizationId } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
+  const { eventId } = useParams()
+  const { user } = useAuth0()
+  console.log('user:', user)
   const client = useApolloClient()
-
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(GET_ORGANIZATION, {
+  } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only',
-    variables: { organizationId },
-    skip: organizationId === 'new',
+    variables: { eventId },
+    skip: eventId === 'new',
   })
 
   const [
-    mergeOrganization,
+    mergeEvent,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_ORGANIZATION, {
+  ] = useMutation(MERGE_EVENT, {
     onCompleted: data => {
-      if (organizationId === 'new') {
-        const newId = data.mergeOrganization.organizationId
-        history.replace(getAdminOrganizationRoute(newId))
+      if (eventId === 'new') {
+        const newId = data.mergeEvent.eventId
+        history.replace(getAdminEventRoute(newId))
       }
+      enqueueSnackbar('Event saved!', { variant: 'success' })
     },
   })
 
   const [
-    deleteOrganization,
+    deleteEvent,
     { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_ORGANIZATION, {
+  ] = useMutation(DELETE_EVENT, {
     onCompleted: () => {
-      history.push(ADMIN_ORGANIZATIONS)
+      history.push(ADMIN_EVENTS)
+      enqueueSnackbar('Event was deleted!')
     },
   })
 
-  const organizationData = queryData?.organization[0] || {}
+  const eventData = queryData?.event[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -132,22 +149,24 @@ const Organization = () => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { foundDate, ...rest } = dataToCheck
+        const { date, time, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          organizationId: organizationId === 'new' ? uuidv4() : organizationId,
-          ...decomposeDate(foundDate, 'foundDate'),
+          userId: eventData?.organizer?.userId || user?.sub,
+          eventId: checkId(eventId),
+          ...decomposeDate(date, 'date'),
+          ...decomposeTime(time, 'time'),
         }
 
-        mergeOrganization({
+        mergeEvent({
           variables: dataToSubmit,
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [organizationId]
+    [eventId]
   )
 
   const updateLogo = useCallback(
@@ -155,29 +174,29 @@ const Organization = () => {
       setValue('logo', url, true)
 
       const queryResult = client.readQuery({
-        query: GET_ORGANIZATION,
+        query: GET_EVENT,
         variables: {
-          organizationId,
+          eventId,
         },
       })
 
       client.writeQuery({
-        query: GET_ORGANIZATION,
+        query: GET_EVENT,
         data: {
-          organization: [
+          event: [
             {
-              ...queryResult.organization[0],
+              ...queryResult.event[0],
               logo: url,
             },
           ],
         },
         variables: {
-          organizationId,
+          eventId,
         },
       })
       handleSubmit(onSubmit)()
     },
-    [client, organizationId]
+    [client, eventId]
   )
 
   return (
@@ -188,7 +207,7 @@ const Organization = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(organizationData || organizationId === 'new') &&
+      {(eventData || eventId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -199,21 +218,21 @@ const Organization = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{organizationData.name || 'Organization'}</title>
+              <title>{eventData.name || 'Event'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
                 <Paper className={classes.paper}>
                   <Img
-                    placeholder={placeholderOrganization}
-                    src={organizationData.logo}
+                    placeholder={placeholderEvent}
+                    src={eventData.logo}
                     className={classes.logo}
-                    alt={organizationData.name}
+                    alt={eventData.name}
                   />
 
                   <RHFInput
                     style={{ display: 'none' }}
-                    defaultValue={organizationData.logo}
+                    defaultValue={eventData.logo}
                     control={control}
                     name="logo"
                     label="Logo URL"
@@ -223,11 +242,11 @@ const Organization = () => {
                     error={errors.logo}
                   />
 
-                  {isValidUuid(organizationId) && (
+                  {isValidUuid(eventId) && (
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
-                      folderName="images/organizations"
+                      folderName="images/events"
                     />
                   )}
                 </Paper>
@@ -237,19 +256,17 @@ const Organization = () => {
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
-                      <Title>{'Organization'}</Title>
+                      <Title>{'Event'}</Title>
                     </div>
                     <div>
                       {formState.isDirty && (
                         <ButtonSave loading={mutationLoadingMerge} />
                       )}
-                      {organizationId !== 'new' && (
+                      {eventId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteOrganization({
-                              variables: { organizationId },
-                            })
+                            deleteEvent({ variables: { eventId } })
                           }}
                         />
                       )}
@@ -257,9 +274,9 @@ const Organization = () => {
                   </Toolbar>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
                       <RHFInput
-                        defaultValue={organizationData.name}
+                        defaultValue={eventData.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -269,48 +286,15 @@ const Organization = () => {
                         error={errors.name}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
                       <RHFInput
-                        defaultValue={organizationData.legalName}
+                        defaultValue={eventData.description}
                         control={control}
-                        name="legalName"
-                        label="Legal name"
+                        name="description"
+                        label="Description"
                         fullWidth
                         variant="standard"
-                        error={errors.legalName}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={organizationData.nick}
-                        control={control}
-                        name="nick"
-                        label="Nick"
-                        fullWidth
-                        variant="standard"
-                        error={errors.nick}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={organizationData.short}
-                        control={control}
-                        name="short"
-                        label="Short"
-                        fullWidth
-                        variant="standard"
-                        error={errors.short}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={organizationData.status}
-                        control={control}
-                        name="status"
-                        label="Status"
-                        fullWidth
-                        variant="standard"
-                        error={errors.status}
+                        error={errors.description}
                       />
                     </Grid>
 
@@ -319,33 +303,57 @@ const Organization = () => {
                         fullWidth
                         control={control}
                         variant="standard"
-                        name="foundDate"
-                        label="Found Date"
-                        id="foundDate"
+                        name="date"
+                        label="Date"
+                        id="date"
                         openTo="year"
-                        disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'date']}
                         defaultValue={
-                          organizationData.foundDate &&
-                          dateExist(organizationData.foundDate.formatted)
-                            ? organizationData.foundDate.formatted
+                          eventData.date && dateExist(eventData.date.formatted)
+                            ? eventData.date.formatted
                             : null
                         }
-                        error={errors.foundDate}
+                        error={errors.date}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFTimepicker
+                        fullWidth
+                        control={control}
+                        variant="standard"
+                        name="time"
+                        label="Time"
+                        id="time"
+                        mask="__:__"
+                        openTo="hours"
+                        inputFormat={'HH:mm'}
+                        views={['hours', 'minutes']}
+                        defaultValue={eventData?.time?.formatted}
+                        error={errors?.time}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={eventData?.organizer?.name}
+                        control={control}
+                        name="Author"
+                        label="Author"
+                        fullWidth
+                        disabled
+                        variant="standard"
+                        error={errors.author}
                       />
                     </Grid>
                   </Grid>
                 </Paper>
               </Grid>
             </Grid>
-            {isValidUuid(organizationId) && (
-              <Relations organizationId={organizationId} />
-            )}
+            {/* {isValidUuid(eventId) && <Relations eventId={eventId} />} */}
           </form>
         )}
     </Container>
   )
 }
 
-export { Organization as default }
+export { Event as default }

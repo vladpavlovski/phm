@@ -248,7 +248,7 @@ const Venue = () => {
                       <Uploader
                         buttonText={'Change logo'}
                         onSubmit={updateLogo}
-                        folderName="venues"
+                        folderName="images/venues"
                       />
                     )}
                   </Paper>

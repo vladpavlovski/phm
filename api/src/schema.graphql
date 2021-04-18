@@ -271,6 +271,7 @@ type Occupation {
 
 type User {
   userId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   nickName: String
@@ -785,7 +786,7 @@ type Competition {
 
 # :Event
 
-union EventOrganizer = Competition | Team | User
+# union EventOrganizer = Competition | Team | User
 
 type Event {
   eventId: ID! @id
@@ -793,8 +794,9 @@ type Event {
   description: String
   date: Date
   time: Time
+  logo: String
   address: Address @relation(name: "TAKES_PLACE_AT", direction: OUT)
-  organizer: EventOrganizer @relation(name: "ORGANIZE_AN", direction: IN)
+  organizer: User @relation(name: "ORGANIZE_AN", direction: IN)
   game: Game @relation(name: "TRANSFORM_TO", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitation: Invitation @relation(name: "CREATE_INVITATION", direction: OUT)
