@@ -14,7 +14,13 @@ export const toTitleCase = R.compose(
   R.split(' ')
 )
 
-export const dateExist = date => date !== '0000-01-01'
+export const getDateFromDate = date =>
+  date && date !== '0000-01-01' ? dayjs(date) : null
+
+export const getDateFromTime = time =>
+  time && time !== '00:00:00Z'
+    ? dayjs.tz(`2021-01-01 ${time}`, dayjs.tz.guess()).format()
+    : null
 
 export const checkId = id => (id === 'new' ? uuidv4() : id)
 
@@ -62,11 +68,20 @@ export const decomposeDate = (date, fieldName) => ({
   [`${fieldName}Year`]: dayjs(date).year(),
 })
 
+export const decomposeTime = (time, fieldName) => ({
+  [`${fieldName}Hour`]: dayjs(time).hour(),
+  [`${fieldName}Minute`]: dayjs(time).minute(),
+  [`${fieldName}Second`]: dayjs(time).second(),
+})
+
 export const decomposeNumber = value =>
   !isNaN(parseInt(value)) && parseInt(value)
 
 export const formatDate = date =>
   date === '0000-01-01' ? ' ' : dayjs(date).format('LL')
+
+export const formatTime = time =>
+  time === '00:00:00Z' ? ' ' : time.slice(0, 5)
 
 const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
 

@@ -1,10 +1,11 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import TextField from '@material-ui/core/TextField'
-import DatePicker from '@material-ui/lab/DatePicker'
-import { getDateFromDate } from '../../utils'
+import dayjs from 'dayjs'
+import TimePicker from '@material-ui/lab/TimePicker'
+import { getDateFromTime } from '../../utils'
 
-const RHFDatepicker = props => {
+const RHFTimepicker = props => {
   const {
     control,
     name,
@@ -19,7 +20,7 @@ const RHFDatepicker = props => {
       name={name}
       control={control}
       render={({ onChange, onBlur, value, name, ref }) => (
-        <DatePicker
+        <TimePicker
           {...rest}
           renderInput={params => (
             <TextField
@@ -37,18 +38,20 @@ const RHFDatepicker = props => {
           name={name}
         />
       )}
-      defaultValue={defaultValue ? getDateFromDate(defaultValue) : null}
+      defaultValue={defaultValue ? dayjs(getDateFromTime(defaultValue)) : null}
     />
   )
 }
 
-RHFDatepicker.defaultProps = {
+RHFTimepicker.defaultProps = {
   defaultValue: null,
   fullWidth: false,
-  openTo: 'year',
+  openTo: 'hours',
   disableFuture: false,
-  views: ['year', 'month', 'date'],
+  views: ['hours', 'minutes', 'seconds'],
   error: false,
+  ampm: false,
+  ampmInClock: false,
 }
 
-export { RHFDatepicker }
+export { RHFTimepicker }

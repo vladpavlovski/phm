@@ -271,6 +271,7 @@ type Occupation {
 
 type User {
   userId: ID! @id
+  name: String
   firstName: String!
   lastName: String!
   nickName: String
@@ -364,7 +365,7 @@ type TakingPartIn @relation(name: "TAKING_PART_IN") {
 
 type Game {
   gameId: ID! @id
-  name: String
+  name: String!
   type: String
   startDate: Date
   endDate: Date
@@ -373,6 +374,7 @@ type Game {
   foreignId: String
   info: String
   description: String
+  awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   lineup: Lineup @relation(name: "GENERATES", direction: IN)
   staff: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
   phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
@@ -430,6 +432,7 @@ type Save {
 
 type Star {
   starId: ID! @id
+  name: String
   gameEvent: GameEvent @relation(name: "CREATE_STAR", direction: IN)
   metaPlayer: MetaPlayer @relation(name: "IS_STAR", direction: OUT)
   award: Award @relation(name: "WIN_AN_AWARD", direction: OUT)
@@ -783,7 +786,7 @@ type Competition {
 
 # :Event
 
-union EventOrganizer = Competition | Team | User
+# union EventOrganizer = Competition | Team | User
 
 type Event {
   eventId: ID! @id
@@ -791,8 +794,9 @@ type Event {
   description: String
   date: Date
   time: Time
+  logo: String
   address: Address @relation(name: "TAKES_PLACE_AT", direction: OUT)
-  organizer: EventOrganizer @relation(name: "ORGANIZE_AN", direction: IN)
+  organizer: User @relation(name: "ORGANIZE_AN", direction: IN)
   game: Game @relation(name: "TRANSFORM_TO", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   invitation: Invitation @relation(name: "CREATE_INVITATION", direction: OUT)
@@ -887,19 +891,19 @@ type Award {
   description: String
   type: String
   foundDate: Date
+  seasons: [Season] @relation(name: "HAS_AN_AWARD", direction: IN)
+  competitions: [Competition] @relation(name: "BELONGS_TO", direction: OUT)
   phases: [Phase] @relation(name: "BELONGS_TO", direction: OUT)
   groups: [Group] @relation(name: "BELONGS_TO", direction: OUT)
-  competitions: [Competition] @relation(name: "BELONGS_TO", direction: OUT)
-  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
-  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  games: [Game] @relation(name: "HAS_AN_AWARD", direction: IN)
-  person: [Person] @relation(name: "WIN_AN_AWARD", direction: IN)
   teams: [Team] @relation(name: "WIN_AN_AWARD", direction: IN)
-  stars: [Star] @relation(name: "WIN_AN_AWARD", direction: IN)
+  games: [Game] @relation(name: "HAS_AN_AWARD", direction: IN)
   players: [Player] @relation(name: "WIN_AN_AWARD", direction: IN)
-  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  person: [Person] @relation(name: "WIN_AN_AWARD", direction: IN)
   venue: Venue @relation(name: "HAS_AN_AWARD", direction: IN)
-  seasons: [Season] @relation(name: "HAS_AN_AWARD", direction: IN)
+  stars: [Star] @relation(name: "WIN_AN_AWARD", direction: IN)
+  sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
+  discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  media: Media @relation(name: "HAS_MEDIA", direction: OUT)
 }
 
 type Media {

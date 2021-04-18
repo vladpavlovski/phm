@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, checkId, isValidUuid } from '../../../utils'
+import { checkId, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -248,12 +248,7 @@ const Season = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
-                          defaultValue={
-                            seasonData.startDate &&
-                            dateExist(seasonData.startDate.formatted)
-                              ? seasonData.startDate.formatted
-                              : null
-                          }
+                          defaultValue={seasonData?.startDate?.formatted}
                           error={errors.startDate}
                         />
                       </Grid>
@@ -268,12 +263,7 @@ const Season = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
-                          defaultValue={
-                            seasonData.endDate &&
-                            dateExist(seasonData.endDate.formatted)
-                              ? seasonData.endDate.formatted
-                              : null
-                          }
+                          defaultValue={seasonData?.endDate?.formatted}
                           error={errors.endDate}
                         />
                       </Grid>

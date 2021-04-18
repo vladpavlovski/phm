@@ -357,7 +357,7 @@ const RulePack = props => {
               <XGrid
                 columns={systemSettingsRulePackColumns}
                 rows={setIdFromEntityId(
-                  systemSettings.rulePack ? [systemSettings.rulePack] : [],
+                  systemSettings?.rulePack ? [systemSettings?.rulePack] : [],
                   'rulePackId'
                 )}
                 loading={queryAllSystemSettingsLoading}

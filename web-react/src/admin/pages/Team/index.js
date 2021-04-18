@@ -19,7 +19,7 @@ import { Uploader } from '../../../components/Uploader'
 import { RHFColorpicker } from '../../../components/RHFColorpicker'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, decomposeDate, isValidUuid } from '../../../utils'
+import { decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -252,7 +252,7 @@ const Team = () => {
                       <Uploader
                         buttonText={'Change logo'}
                         onSubmit={updateLogo}
-                        folderName="teams"
+                        folderName="images/teams"
                       />
                     )}
                   </Paper>
@@ -406,13 +406,8 @@ const Team = () => {
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
-                          defaultValue={
-                            teamData.foundDate &&
-                            dateExist(teamData.foundDate.formatted)
-                              ? teamData.foundDate.formatted
-                              : null
-                          }
-                          error={errors.foundDate}
+                          defaultValue={teamData?.foundDate?.formatted}
+                          error={errors?.foundDate}
                         />
                       </Grid>
                     </Grid>

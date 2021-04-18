@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-
+import { useAuth0 } from '@auth0/auth0-react'
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -16,112 +15,131 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
+import { RHFTimepicker } from '../../../components/RHFTimepicker'
+
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
+import {
+  decomposeDate,
+  decomposeTime,
+  isValidUuid,
+  checkId,
+} from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_COMPETITIONS, getAdminCompetitionRoute } from '../../../routes'
+import { ADMIN_EVENTS, getAdminEventRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
-import placeholderOrganization from '../../../img/placeholderOrganization.png'
-import { Relations } from './relations'
+import placeholderEvent from '../../../img/placeholderEvent.png'
+// import { Relations } from './relations'
 
-const GET_COMPETITION = gql`
-  query getCompetition($competitionId: ID!) {
-    competition: Competition(competitionId: $competitionId) {
-      competitionId
+const GET_EVENT = gql`
+  query getEvent($eventId: ID!) {
+    event: Event(eventId: $eventId) {
+      eventId
       name
-      nick
-      short
-      status
-      logo
-      foundDate {
+      description
+      date {
         formatted
       }
-    }
-  }
-`
-
-const MERGE_COMPETITION = gql`
-  mutation mergeCompetition(
-    $competitionId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-  ) {
-    mergeCompetition: MergeCompetition(
-      competitionId: $competitionId
-      name: $name
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+      time {
+        formatted
       }
+      organizer {
+        userId
+        firstName
+        lastName
+        name
+      }
+    }
+  }
+`
+
+const MERGE_EVENT = gql`
+  mutation mergeEvent(
+    $eventId: ID!
+    $userId: ID!
+    $name: String
+    $description: String
+    $dateDay: Int
+    $dateMonth: Int
+    $dateYear: Int
+    $timeHour: Int
+    $timeMinute: Int
+  ) {
+    mergeEvent: MergeEvent(
+      eventId: $eventId
+      name: $name
+      description: $description
+      date: { day: $dateDay, month: $dateMonth, year: $dateYear }
+      time: { hour: $timeHour, minute: $timeMinute }
     ) {
-      competitionId
+      eventId
+    }
+    mergeUserEvent: MergeUserEvents(
+      from: { userId: $userId }
+      to: { eventId: $eventId }
+    ) {
+      from {
+        userId
+        firstName
+        lastName
+      }
     }
   }
 `
 
-const DELETE_COMPETITION = gql`
-  mutation deleteCompetition($competitionId: ID!) {
-    deleteCompetition: DeleteCompetition(competitionId: $competitionId) {
-      competitionId
+const DELETE_EVENT = gql`
+  mutation deleteEvent($eventId: ID!) {
+    deleteEvent: DeleteEvent(eventId: $eventId) {
+      eventId
     }
   }
 `
 
-const Competition = () => {
+const Event = () => {
   const history = useHistory()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const { competitionId } = useParams()
+  const { eventId } = useParams()
+  const { user } = useAuth0()
+
   const client = useApolloClient()
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(GET_COMPETITION, {
+  } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only',
-    variables: { competitionId },
-    skip: competitionId === 'new',
+    variables: { eventId },
+    skip: eventId === 'new',
   })
 
   const [
-    mergeCompetition,
+    mergeEvent,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_COMPETITION, {
+  ] = useMutation(MERGE_EVENT, {
     onCompleted: data => {
-      if (competitionId === 'new') {
-        const newId = data.mergeCompetition.competitionId
-        history.replace(getAdminCompetitionRoute(newId))
+      if (eventId === 'new') {
+        const newId = data.mergeEvent.eventId
+        history.replace(getAdminEventRoute(newId))
       }
-      enqueueSnackbar('Competition saved!', { variant: 'success' })
+      enqueueSnackbar('Event saved!', { variant: 'success' })
     },
   })
 
   const [
-    deleteCompetition,
+    deleteEvent,
     { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_COMPETITION, {
+  ] = useMutation(DELETE_EVENT, {
     onCompleted: () => {
-      history.push(ADMIN_COMPETITIONS)
-      enqueueSnackbar('Competition was deleted!')
+      history.push(ADMIN_EVENTS)
+      enqueueSnackbar('Event was deleted!')
     },
   })
 
-  const competitionData = queryData?.competition[0] || {}
+  const eventData = queryData?.event[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -130,22 +148,24 @@ const Competition = () => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { foundDate, ...rest } = dataToCheck
+        const { date, time, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          competitionId: competitionId === 'new' ? uuidv4() : competitionId,
-          ...decomposeDate(foundDate, 'foundDate'),
+          userId: eventData?.organizer?.userId || user?.sub,
+          eventId: checkId(eventId),
+          ...decomposeDate(date, 'date'),
+          ...decomposeTime(time, 'time'),
         }
 
-        mergeCompetition({
+        mergeEvent({
           variables: dataToSubmit,
         })
       } catch (error) {
         console.error(error)
       }
     },
-    [competitionId]
+    [eventId]
   )
 
   const updateLogo = useCallback(
@@ -153,29 +173,29 @@ const Competition = () => {
       setValue('logo', url, true)
 
       const queryResult = client.readQuery({
-        query: GET_COMPETITION,
+        query: GET_EVENT,
         variables: {
-          competitionId,
+          eventId,
         },
       })
 
       client.writeQuery({
-        query: GET_COMPETITION,
+        query: GET_EVENT,
         data: {
-          competition: [
+          event: [
             {
-              ...queryResult.competition[0],
+              ...queryResult.event[0],
               logo: url,
             },
           ],
         },
         variables: {
-          competitionId,
+          eventId,
         },
       })
       handleSubmit(onSubmit)()
     },
-    [client, competitionId]
+    [client, eventId]
   )
 
   return (
@@ -186,7 +206,7 @@ const Competition = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(competitionData || competitionId === 'new') &&
+      {(eventData || eventId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -197,21 +217,21 @@ const Competition = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{competitionData.name || 'Competition'}</title>
+              <title>{eventData.name || 'Event'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
                 <Paper className={classes.paper}>
                   <Img
-                    placeholder={placeholderOrganization}
-                    src={competitionData.logo}
+                    placeholder={placeholderEvent}
+                    src={eventData.logo}
                     className={classes.logo}
-                    alt={competitionData.name}
+                    alt={eventData.name}
                   />
 
                   <RHFInput
                     style={{ display: 'none' }}
-                    defaultValue={competitionData.logo}
+                    defaultValue={eventData.logo}
                     control={control}
                     name="logo"
                     label="Logo URL"
@@ -221,11 +241,11 @@ const Competition = () => {
                     error={errors.logo}
                   />
 
-                  {isValidUuid(competitionId) && (
+                  {isValidUuid(eventId) && (
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
-                      folderName="images/competitions"
+                      folderName="images/events"
                     />
                   )}
                 </Paper>
@@ -235,17 +255,17 @@ const Competition = () => {
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
-                      <Title>{'Competition'}</Title>
+                      <Title>{'Event'}</Title>
                     </div>
                     <div>
                       {formState.isDirty && (
                         <ButtonSave loading={mutationLoadingMerge} />
                       )}
-                      {competitionId !== 'new' && (
+                      {eventId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteCompetition({ variables: { competitionId } })
+                            deleteEvent({ variables: { eventId } })
                           }}
                         />
                       )}
@@ -253,9 +273,9 @@ const Competition = () => {
                   </Toolbar>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
                       <RHFInput
-                        defaultValue={competitionData.name}
+                        defaultValue={eventData.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -265,37 +285,15 @@ const Competition = () => {
                         error={errors.name}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <Grid item xs={12} sm={6} md={6} lg={6}>
                       <RHFInput
-                        defaultValue={competitionData.nick}
+                        defaultValue={eventData.description}
                         control={control}
-                        name="nick"
-                        label="Nick"
+                        name="description"
+                        label="Description"
                         fullWidth
                         variant="standard"
-                        error={errors.nick}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData.short}
-                        control={control}
-                        name="short"
-                        label="Short"
-                        fullWidth
-                        variant="standard"
-                        error={errors.short}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData.status}
-                        control={control}
-                        name="status"
-                        label="Status"
-                        fullWidth
-                        variant="standard"
-                        error={errors.status}
+                        error={errors.description}
                       />
                     </Grid>
 
@@ -304,28 +302,53 @@ const Competition = () => {
                         fullWidth
                         control={control}
                         variant="standard"
-                        name="foundDate"
-                        label="Found Date"
-                        id="foundDate"
+                        name="date"
+                        label="Date"
+                        id="date"
                         openTo="year"
-                        disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'date']}
-                        defaultValue={competitionData?.foundDate?.formatted}
-                        error={errors.foundDate}
+                        defaultValue={eventData?.date?.formatted}
+                        error={errors.date}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFTimepicker
+                        fullWidth
+                        control={control}
+                        variant="standard"
+                        name="time"
+                        label="Time"
+                        id="time"
+                        mask="__:__"
+                        openTo="hours"
+                        inputFormat={'HH:mm'}
+                        views={['hours', 'minutes']}
+                        defaultValue={eventData?.time?.formatted}
+                        error={errors?.time}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={eventData?.organizer?.name}
+                        control={control}
+                        name="Author"
+                        label="Author"
+                        fullWidth
+                        disabled
+                        variant="standard"
+                        error={errors.author}
                       />
                     </Grid>
                   </Grid>
                 </Paper>
               </Grid>
             </Grid>
-            {isValidUuid(competitionId) && (
-              <Relations competitionId={competitionId} />
-            )}
+            {/* {isValidUuid(eventId) && <Relations eventId={eventId} />} */}
           </form>
         )}
     </Container>
   )
 }
 
-export { Competition as default }
+export { Event as default }

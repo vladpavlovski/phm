@@ -36,7 +36,6 @@ import { useStyles } from '../../../commonComponents/styled'
 import {
   setIdFromEntityId,
   decomposeDate,
-  dateExist,
   formatDate,
 } from '../../../../../utils'
 
@@ -533,11 +532,7 @@ const FormDialog = props => {
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'date']}
-                      defaultValue={
-                        data?.startDate && dateExist(data?.startDate?.formatted)
-                          ? data?.startDate?.formatted
-                          : null
-                      }
+                      defaultValue={data?.startDate?.formatted}
                       error={errors?.startDate}
                     />
                   </Grid>
@@ -552,11 +547,7 @@ const FormDialog = props => {
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'date']}
-                      defaultValue={
-                        data?.endDate && dateExist(data?.endDate?.formatted)
-                          ? data?.endDate?.formatted
-                          : null
-                      }
+                      defaultValue={data?.endDate?.formatted}
                       error={errors?.endDate}
                     />
                   </Grid>
