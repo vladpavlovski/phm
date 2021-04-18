@@ -365,7 +365,7 @@ type TakingPartIn @relation(name: "TAKING_PART_IN") {
 
 type Game {
   gameId: ID! @id
-  name: String
+  name: String!
   type: String
   startDate: Date
   endDate: Date

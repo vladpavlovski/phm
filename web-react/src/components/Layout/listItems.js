@@ -27,6 +27,7 @@ import DateRangeIcon from '@material-ui/icons/DateRange'
 import ApartmentIcon from '@material-ui/icons/Apartment'
 import GroupWorkIcon from '@material-ui/icons/GroupWork'
 import EventIcon from '@material-ui/icons/Event'
+import SportsEsportsIcon from '@material-ui/icons/SportsEsports'
 
 import { useStyles } from './styled'
 
@@ -302,6 +303,21 @@ const MainListItems = props => {
           }
           primary="Events"
           to={ROUTES.ADMIN_EVENTS}
+        />
+        <ListItemLink
+          icon={
+            <Tooltip
+              arrow
+              title="Games"
+              placement="right"
+              disableHoverListener={open}
+              TransitionComponent={Zoom}
+            >
+              <SportsEsportsIcon />
+            </Tooltip>
+          }
+          primary="Games"
+          to={ROUTES.ADMIN_GAMES}
         />
         <ListItemLink
           icon={

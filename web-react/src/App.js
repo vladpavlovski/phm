@@ -55,6 +55,8 @@ const AdminAwardView = Load(() => import('./admin/pages/Award/view'))
 const AdminSystemSettings = Load(() => import('./admin/pages/SystemSettings'))
 const AdminEvent = Load(() => import('./admin/pages/Event'))
 const AdminEventView = Load(() => import('./admin/pages/Event/view'))
+const AdminGame = Load(() => import('./admin/pages/Game'))
+const AdminGameView = Load(() => import('./admin/pages/Game/view'))
 
 dayjs.extend(duration)
 dayjs.extend(utc)
@@ -205,6 +207,17 @@ const App = ({ history }) => {
                       path={ROUTES.ADMIN_EVENT}
                       exact
                       component={AdminEvent}
+                    />
+
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_GAMES}
+                      exact
+                      component={AdminGameView}
+                    />
+                    <PrivateRoute
+                      path={ROUTES.ADMIN_GAME}
+                      exact
+                      component={AdminGame}
                     />
                     {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                     <Route
