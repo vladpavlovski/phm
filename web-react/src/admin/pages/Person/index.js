@@ -22,7 +22,7 @@ import { ReactHookFormSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
-import { dateExist, decomposeDate, isValidUuid, checkId } from '../../../utils'
+import { decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -362,12 +362,7 @@ const Person = () => {
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
-                          defaultValue={
-                            personData.birthday &&
-                            dateExist(personData.birthday.formatted)
-                              ? personData.birthday.formatted
-                              : null
-                          }
+                          defaultValue={personData?.birthday?.formatted}
                           error={errors.birthday}
                         />
                       </Grid>

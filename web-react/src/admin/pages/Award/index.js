@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { dateExist, checkId, isValidUuid, decomposeDate } from '../../../utils'
+import { checkId, isValidUuid, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -264,12 +264,7 @@ const Award = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'date']}
-                          defaultValue={
-                            awardData.foundDate &&
-                            dateExist(awardData.foundDate.formatted)
-                              ? awardData.foundDate.formatted
-                              : null
-                          }
+                          defaultValue={awardData?.foundDate?.formatted}
                           error={errors.foundDate}
                         />
                       </Grid>

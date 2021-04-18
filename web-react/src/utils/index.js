@@ -14,7 +14,8 @@ export const toTitleCase = R.compose(
   R.split(' ')
 )
 
-export const dateExist = date => date !== '0000-01-01'
+export const getDateFromDate = date =>
+  date && date !== '0000-01-01' ? dayjs(date) : null
 
 export const getDateFromTime = time =>
   time && time !== '00:00:00Z'

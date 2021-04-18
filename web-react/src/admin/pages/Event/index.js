@@ -19,7 +19,6 @@ import { RHFTimepicker } from '../../../components/RHFTimepicker'
 
 import { RHFInput } from '../../../components/RHFInput'
 import {
-  dateExist,
   decomposeDate,
   decomposeTime,
   isValidUuid,
@@ -105,7 +104,7 @@ const Event = () => {
   const { enqueueSnackbar } = useSnackbar()
   const { eventId } = useParams()
   const { user } = useAuth0()
-  console.log('user:', user)
+
   const client = useApolloClient()
   const {
     loading: queryLoading,
@@ -309,11 +308,7 @@ const Event = () => {
                         openTo="year"
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'date']}
-                        defaultValue={
-                          eventData.date && dateExist(eventData.date.formatted)
-                            ? eventData.date.formatted
-                            : null
-                        }
+                        defaultValue={eventData?.date?.formatted}
                         error={errors.date}
                       />
                     </Grid>
