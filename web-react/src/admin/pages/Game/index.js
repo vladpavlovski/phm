@@ -18,7 +18,12 @@ import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFTimepicker } from '../../../components/RHFTimepicker'
 
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, decomposeTime, checkId } from '../../../utils'
+import {
+  decomposeDate,
+  decomposeTime,
+  checkId,
+  isValidUuid,
+} from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -27,9 +32,9 @@ import { ADMIN_GAMES, getAdminGameRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
-// import { Relations } from './relations'
+import { Relations } from './relations'
 
-const GET_GAME = gql`
+export const GET_GAME = gql`
   query getGame($gameId: ID!) {
     game: Game(gameId: $gameId) {
       gameId
@@ -38,6 +43,14 @@ const GET_GAME = gql`
       info
       foreignId
       description
+      teams {
+        team {
+          teamId
+          name
+          logo
+        }
+        host
+      }
       startDate {
         formatted
       }
@@ -187,164 +200,168 @@ const Game = () => {
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
-            <Helmet>
-              <title>{gameData?.name || 'Game'}</title>
-            </Helmet>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
-                    <div>
-                      <Title>{'Game'}</Title>
-                    </div>
-                    <div>
-                      {formState.isDirty && (
-                        <ButtonSave loading={mutationLoadingMerge} />
-                      )}
-                      {gameId !== 'new' && (
-                        <ButtonDelete
-                          loading={loadingDelete}
-                          onClick={() => {
-                            deleteGame({ variables: { gameId } })
-                          }}
+          <>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className={classes.form}
+              noValidate
+              autoComplete="off"
+            >
+              <Helmet>
+                <title>{gameData?.name || 'Game'}</title>
+              </Helmet>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={12} lg={12}>
+                  <Paper className={classes.paper}>
+                    <Toolbar disableGutters className={classes.toolbarForm}>
+                      <div>
+                        <Title>{'Game'}</Title>
+                      </div>
+                      <div>
+                        {formState.isDirty && (
+                          <ButtonSave loading={mutationLoadingMerge} />
+                        )}
+                        {gameId !== 'new' && (
+                          <ButtonDelete
+                            loading={loadingDelete}
+                            onClick={() => {
+                              deleteGame({ variables: { gameId } })
+                            }}
+                          />
+                        )}
+                      </div>
+                    </Toolbar>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData.name}
+                          control={control}
+                          name="name"
+                          label="Name"
+                          required
+                          fullWidth
+                          variant="standard"
+                          error={errors.name}
                         />
-                      )}
-                    </div>
-                  </Toolbar>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={gameData?.foreignId}
+                          control={control}
+                          name="foreignId"
+                          label="Foreign Id"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.foreignId}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={gameData?.type}
+                          control={control}
+                          name="type"
+                          label="Type"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.type}
+                        />
+                      </Grid>
 
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={6} lg={6}>
-                      <RHFInput
-                        defaultValue={gameData.name}
-                        control={control}
-                        name="name"
-                        label="Name"
-                        required
-                        fullWidth
-                        variant="standard"
-                        error={errors.name}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={gameData?.foreignId}
-                        control={control}
-                        name="foreignId"
-                        label="Foreign Id"
-                        fullWidth
-                        variant="standard"
-                        error={errors?.foreignId}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={gameData?.type}
-                        control={control}
-                        name="type"
-                        label="Type"
-                        fullWidth
-                        variant="standard"
-                        error={errors?.type}
-                      />
-                    </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFDatepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="startDate"
+                          label="Start Date"
+                          id="startDate"
+                          openTo="year"
+                          inputFormat={'DD/MM/YYYY'}
+                          views={['year', 'month', 'date']}
+                          defaultValue={gameData?.startDate?.formatted}
+                          error={errors?.startDate}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFTimepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="startTime"
+                          label="Start Time"
+                          id="startTime"
+                          mask="__:__"
+                          openTo="hours"
+                          inputFormat={'HH:mm'}
+                          views={['hours', 'minutes']}
+                          defaultValue={gameData?.startTime?.formatted}
+                          error={errors?.startTime}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFDatepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="endDate"
+                          label="End Date"
+                          id="endDate"
+                          openTo="year"
+                          inputFormat={'DD/MM/YYYY'}
+                          views={['year', 'month', 'date']}
+                          defaultValue={gameData?.endDate?.formatted}
+                          error={errors?.endDate}
+                        />
+                      </Grid>
 
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFDatepicker
-                        fullWidth
-                        control={control}
-                        variant="standard"
-                        name="startDate"
-                        label="Start Date"
-                        id="startDate"
-                        openTo="year"
-                        inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
-                        defaultValue={gameData?.startDate?.formatted}
-                        error={errors?.startDate}
-                      />
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFTimepicker
+                          fullWidth
+                          control={control}
+                          variant="standard"
+                          name="endTime"
+                          label="End Time"
+                          id="endTime"
+                          mask="__:__"
+                          openTo="hours"
+                          inputFormat={'HH:mm'}
+                          views={['hours', 'minutes']}
+                          defaultValue={gameData?.endTime?.formatted}
+                          error={errors?.endTime}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData.description}
+                          control={control}
+                          name="description"
+                          label="Description"
+                          fullWidth
+                          variant="standard"
+                          error={errors.description}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData?.info}
+                          control={control}
+                          name="info"
+                          label="Info"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.info}
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFTimepicker
-                        fullWidth
-                        control={control}
-                        variant="standard"
-                        name="startTime"
-                        label="Start Time"
-                        id="startTime"
-                        mask="__:__"
-                        openTo="hours"
-                        inputFormat={'HH:mm'}
-                        views={['hours', 'minutes']}
-                        defaultValue={gameData?.startTime?.formatted}
-                        error={errors?.startTime}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFDatepicker
-                        fullWidth
-                        control={control}
-                        variant="standard"
-                        name="endDate"
-                        label="End Date"
-                        id="endDate"
-                        openTo="year"
-                        inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
-                        defaultValue={gameData?.endDate?.formatted}
-                        error={errors?.endDate}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFTimepicker
-                        fullWidth
-                        control={control}
-                        variant="standard"
-                        name="endTime"
-                        label="End Time"
-                        id="endTime"
-                        mask="__:__"
-                        openTo="hours"
-                        inputFormat={'HH:mm'}
-                        views={['hours', 'minutes']}
-                        defaultValue={gameData?.endTime?.formatted}
-                        error={errors?.endTime}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={6} lg={6}>
-                      <RHFInput
-                        defaultValue={gameData.description}
-                        control={control}
-                        name="description"
-                        label="Description"
-                        fullWidth
-                        variant="standard"
-                        error={errors.description}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={6} lg={6}>
-                      <RHFInput
-                        defaultValue={gameData?.info}
-                        control={control}
-                        name="info"
-                        label="Info"
-                        fullWidth
-                        variant="standard"
-                        error={errors?.info}
-                      />
-                    </Grid>
-                  </Grid>
-                </Paper>
+                  </Paper>
+                </Grid>
               </Grid>
-            </Grid>
-            {/* {isValidUuid(gameId) && <Relations gameId={gameId} />} */}
-          </form>
+            </form>
+            {isValidUuid(gameId) && (
+              <Relations gameId={gameId} teams={gameData?.teams} />
+            )}
+          </>
         )}
     </Container>
   )

@@ -313,10 +313,12 @@ type Team {
   players: [Player] @relation(name: "PLAY_IN", direction: IN)
 
   staff: [Person] @relation(name: "HAS_TEAM_STAFF", direction: OUT)
-
+  # gamesAsGuest: [Game] @relation(name: "PLAYS_AS_GUEST", direction: OUT)
+  # gamesAsHost: [Game] @relation(name: "PLAYS_AS_HOST", direction: OUT)
+  games: [TeamGame]
   # lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
   # lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
-  lineups: [Lineup] @relation(name: "DEFINE", direction: OUT)
+  lineups: [Define]
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
@@ -336,16 +338,16 @@ type Team {
   seasons: [Season] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
-type Define @relation(name: "DEFINE") {
-  from: Team
-  to: Lineup
+type Define @relation(name: "DEFINE", from: "team", to: "lineup") {
+  team: Team
+  lineup: Lineup
   host: Boolean
 }
 
 # :Lineup
 type Lineup {
   lineupId: ID! @id
-  teams: [Team] @relation(name: "DEFINE", direction: IN)
+  teams: [Define]
   # teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
   # teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
   listGuest: [TakingPartIn]
@@ -355,13 +357,21 @@ type Lineup {
 
 # TakingPartIn
 
-type TakingPartIn @relation(name: "TAKING_PART_IN") {
-  from: Player
-  to: Lineup
+type TakingPartIn
+  @relation(name: "TAKING_PART_IN", from: "player", to: "lineup") {
+  player: Player
+  lineup: Lineup
   jersey: Int
+  position: String
 }
 
 # :Game
+
+type TeamGame @relation(name: "PLAYS", from: "team", to: "game") {
+  team: Team
+  game: Game
+  host: Boolean
+}
 
 type Game {
   gameId: ID! @id
@@ -374,6 +384,7 @@ type Game {
   foreignId: String
   info: String
   description: String
+  teams: [TeamGame]
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   lineup: Lineup @relation(name: "GENERATES", direction: IN)
   staff: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
