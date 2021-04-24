@@ -51,6 +51,18 @@ export const GET_GAME = gql`
         }
         host
       }
+      players {
+        player {
+          avatar
+          playerId
+          name
+          firstName
+          lastName
+        }
+        host
+        jersey
+        position
+      }
       startDate {
         formatted
       }
@@ -189,7 +201,7 @@ const Game = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
@@ -359,7 +371,11 @@ const Game = () => {
               </Grid>
             </form>
             {isValidUuid(gameId) && (
-              <Relations gameId={gameId} teams={gameData?.teams} />
+              <Relations
+                gameId={gameId}
+                teams={gameData?.teams}
+                players={gameData?.players}
+              />
             )}
           </>
         )}

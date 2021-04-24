@@ -41,8 +41,6 @@ interface Human {
   updatedAt: DateTime
 }
 
-# :Player :Goalkeeper
-
 type Player implements Human {
   playerId: ID! @id
   name: String
@@ -77,7 +75,7 @@ type Player implements Human {
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "META_FOR", direction: IN)
-  lineups: [TakingPartIn]
+  games: [TakingPartIn]
 }
 
 type Mutation {
@@ -165,8 +163,6 @@ type Query {
     )
 }
 
-# :MetaPlayer
-
 type MetaPlayer {
   metaPlayerId: ID! @id
   player: Player @relation(name: "META_FOR", direction: OUT)
@@ -197,8 +193,6 @@ type MetaPlayer {
   hits: [Hit] @relation(name: "GIVE_BY", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
 }
-
-# :MetaHistory
 
 type MetaHistory {
   metaHistoryId: ID! @id
@@ -267,8 +261,6 @@ type Occupation {
   person: [Person] @relation(name: "TYPE_OF", direction: IN)
 }
 
-# :User
-
 type User {
   userId: ID! @id
   name: String
@@ -294,8 +286,6 @@ type UserSettings {
   user: User @relation(name: "HAS_SETTINGS", direction: IN)
 }
 
-# :Team
-
 type Team {
   teamId: ID! @id
   name: String!
@@ -318,7 +308,7 @@ type Team {
   games: [TeamGame]
   # lineupsAsGuest: [Lineup] @relation(name: "DEFINES_AS_GUEST", direction: OUT)
   # lineupsAsHost: [Lineup] @relation(name: "DEFINES_AS_HOST", direction: OUT)
-  lineups: [Define]
+  # lineups: [Define]
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
@@ -338,34 +328,30 @@ type Team {
   seasons: [Season] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
 
-type Define @relation(name: "DEFINE", from: "team", to: "lineup") {
-  team: Team
-  lineup: Lineup
-  host: Boolean
-}
+# type Define @relation(name: "DEFINE", from: "team", to: "lineup") {
+#   team: Team
+#   lineup: Lineup
+#   host: Boolean
+# }
 
-# :Lineup
-type Lineup {
-  lineupId: ID! @id
-  teams: [Define]
-  # teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
-  # teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
-  listGuest: [TakingPartIn]
-  listHost: [TakingPartIn]
-  game: Game @relation(name: "GENERATES", direction: OUT)
-}
-
-# TakingPartIn
+# type Lineup {
+#   lineupId: ID! @id
+#   teams: [Define]
+#   # teamGuest: Team @relation(name: "DEFINES_AS_GUEST", direction: IN)
+#   # teamHost: Team @relation(name: "DEFINES_AS_HOST", direction: IN)
+#   listGuest: [TakingPartIn]
+#   listHost: [TakingPartIn]
+#   game: Game @relation(name: "GENERATES", direction: OUT)
+# }
 
 type TakingPartIn
-  @relation(name: "TAKING_PART_IN", from: "player", to: "lineup") {
+  @relation(name: "TAKING_PART_IN", from: "player", to: "game") {
   player: Player
-  lineup: Lineup
+  game: Game
+  host: Boolean
   jersey: Int
   position: String
 }
-
-# :Game
 
 type TeamGame @relation(name: "PLAYS", from: "team", to: "game") {
   team: Team
@@ -385,8 +371,9 @@ type Game {
   info: String
   description: String
   teams: [TeamGame]
+  players: [TakingPartIn]
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
-  lineup: Lineup @relation(name: "GENERATES", direction: IN)
+  # lineup: Lineup @relation(name: "GENERATES", direction: IN)
   staff: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
   phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
   group: Group @relation(name: "PARTICIPATE_IN", direction: OUT)
@@ -397,8 +384,6 @@ type Game {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   finalResult: FinalResult @relation(name: "COMPOSE_RESULT", direction: OUT)
 }
-
-# :GameEvent
 
 type GameEvent {
   gameEventId: ID! @id
@@ -430,16 +415,12 @@ type GameEvent {
   nextGameEvent: GameEvent @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
 }
 
-# :Save
-
 type Save {
   saveId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_SAVE", direction: IN)
   shot: Shot @relation(name: "CREATE_SAVE", direction: IN)
   metaPlayer: MetaPlayer @relation(name: "SAVED_BY", direction: OUT)
 }
-
-# :Star
 
 type Star {
   starId: ID! @id
@@ -448,8 +429,6 @@ type Star {
   metaPlayer: MetaPlayer @relation(name: "IS_STAR", direction: OUT)
   award: Award @relation(name: "WIN_AN_AWARD", direction: OUT)
 }
-
-# :Pass
 
 type Pass {
   passId: ID! @id
@@ -461,16 +440,12 @@ type Pass {
   shot: Shot @relation(name: "ASSISTANCE", direction: OUT)
 }
 
-#  :Offside
-
 type Offside {
   offsideId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_OFFSIDE", direction: IN)
   causedBy: MetaPlayer @relation(name: "CAUSED_BY", direction: OUT)
   checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
 }
-
-# :Goal
 
 type Goal {
   goalId: ID! @id
@@ -483,8 +458,6 @@ type Goal {
   checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
   canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
 }
-
-# :Shot
 
 type Shot {
   shotId: ID! @id
@@ -502,8 +475,6 @@ type Shot {
   save: Save @relation(name: "CREATE_SAVE", direction: OUT)
 }
 
-# :PenaltyShot
-
 type PenaltyShot {
   penaltyShotId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_PENALTY_SHOT", direction: IN)
@@ -516,8 +487,6 @@ type PenaltyShot {
   createdBy: Revision @relation(name: "CREATED_BY", direction: OUT)
 }
 
-# :Revision
-
 union CheckedRevisions = Offside | Goal | PenaltyShot
 union CanceledRevisions = Timeout | PenaltyShot | Goal
 
@@ -528,15 +497,11 @@ type Revision {
   checked: [CheckedRevisions] @relation(name: "CHECKED_BY", direction: IN)
 }
 
-# :Timeout
-
 type Timeout {
   timeoutId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_TIMEOUT", direction: IN)
   canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
 }
-
-# :Penalty
 
 type Penalty {
   penaltyId: ID! @id
@@ -549,8 +514,6 @@ type Penalty {
   suspension: Suspension @relation(name: "CREATE_SUSPENSION", direction: OUT)
 }
 
-# :IntervalOnIce
-
 type IntervalOnIce {
   intervalOnIceId: ID! @id
   endTime: DateTime
@@ -559,15 +522,11 @@ type IntervalOnIce {
   spentBy: Player @relation(name: "SPENT_BY", direction: OUT)
 }
 
-# :Fight
-
 type Fight {
   fightId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_FIGHT", direction: IN)
   players: [Player] @relation(name: "PARTICIPATE_IN", direction: OUT)
 }
-
-# :FaceOff
 
 type FaceOff {
   faceOffId: ID! @id
@@ -576,14 +535,11 @@ type FaceOff {
   wonBy: Player @relation(name: "WON_BY", direction: OUT)
 }
 
-# :Icing
 type Icing {
   icingId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_ICING", direction: IN)
   causedBy: Player @relation(name: "CAUSED_BY", direction: OUT)
 }
-
-# :TakeOver
 
 type TakeOver {
   takeOverId: ID! @id
@@ -592,15 +548,11 @@ type TakeOver {
   richedBy: MetaPlayer @relation(name: "RICHED_BY", direction: OUT)
 }
 
-# :Hit
-
 type Hit {
   hitId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_HIT", direction: IN)
   giveBy: MetaPlayer @relation(name: "GIVE_BY", direction: OUT)
 }
-
-# :Injury
 
 type Injury {
   injuryId: ID! @id
@@ -617,8 +569,6 @@ type Injury {
 #vlad : VYMYSLET
 # a opět zda je injury valid nebo již recovered? jakože už skončilo a opět ovlivní Availatility status
 
-# :Suspension
-
 type Suspension {
   suspensionId: ID! @id
   description: String
@@ -632,8 +582,6 @@ type Suspension {
 #vlad : VYMYSLET
 #urbis: zde musíme nějak vyřešit že Suspension start date is: Suspension end date is: a pokud je suspension již ukončená ovlivní to zase Availability status.. chápeš?
 
-# :AvailabilityStatus
-
 type AvailabilityStatus {
   availabilityStatusId: ID! @id
   metaPlayer: MetaPlayer @relation(name: "GAME_READY_FOR", direction: OUT)
@@ -641,7 +589,6 @@ type AvailabilityStatus {
   suspensions: Suspension @relation(name: "HAS_AN_IMPACT", direction: IN)
 }
 
-# :Transfer
 type Transfer {
   transferId: ID! @id
   date: Date
@@ -649,8 +596,6 @@ type Transfer {
   teamTo: Team @relation(name: "TO_TEAM", direction: OUT)
   metaPlayer: MetaPlayer @relation(name: "TRANSFER_FOR_PLAYER", direction: OUT)
 }
-
-# :Discussion
 
 type Discussion {
   discussionId: ID! @id
@@ -668,8 +613,6 @@ type Discussion {
   file: File @relation(name: "HAS_DISCUSSION", direction: IN)
 }
 
-# :Comment
-
 type Comment {
   commentId: ID! @id
   text: String
@@ -683,7 +626,6 @@ type Comment {
   author: User @relation(name: "WRITE_A_COMMENT", direction: IN)
 }
 
-# :Organization
 type Organization {
   organizationId: ID! @id
   name: String
@@ -702,8 +644,6 @@ type Organization {
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
-
-# :Sponsor
 
 type Sponsor {
   sponsorId: ID! @id
@@ -725,8 +665,6 @@ type Sponsor {
   phases: [Phase] @relation(name: "SPONSORED_BY", direction: IN)
   groups: [Group] @relation(name: "SPONSORED_BY", direction: IN)
 }
-
-# :Venue
 
 type Venue {
   venueId: ID! @id
@@ -750,8 +688,6 @@ type Venue {
   awards: [Award] @relation(name: "HAS_AN_AWARD", direction: OUT)
 }
 
-# 34. :Address
-
 type Address {
   addressId: ID! @id
   addressLine1: String
@@ -768,8 +704,6 @@ type Address {
   venue: Venue @relation(name: "LOCATED_AT", direction: IN)
   events: [Event] @relation(name: "TAKES_PLACE_AT", direction: IN)
 }
-
-# 35. :Competition
 
 type Competition {
   competitionId: ID! @id
@@ -795,8 +729,6 @@ type Competition {
   metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
-# :Event
-
 # union EventOrganizer = Competition | Team | User
 
 type Event {
@@ -815,8 +747,6 @@ type Event {
     @relation(name: "CREATE_INVITATION_LIST", direction: OUT)
 }
 
-# :Season
-
 type Season {
   seasonId: ID! @id
   name: String
@@ -834,7 +764,6 @@ type Season {
   metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
-# :Group
 type Group {
   groupId: ID! @id
   name: String!
@@ -854,7 +783,6 @@ type Group {
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
 }
 
-# :Phase
 # TODO: make rule CompetitionPhaseStatuses
 # enum phaseStatus {
 #   NOTSTARTED

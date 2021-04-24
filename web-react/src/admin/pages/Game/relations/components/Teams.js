@@ -320,7 +320,10 @@ const TeamCard = props => {
   )
 
   return (
-    <Paper className={classes.paper}>
+    <Paper
+      className={classes.paper}
+      style={{ height: '35rem', marginBottom: '2rem' }}
+    >
       <Toolbar disableGutters className={classes.toolbarForm}>
         <div>
           <Title>{`Team ${host ? 'Host' : 'Guest'}${

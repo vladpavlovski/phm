@@ -48,6 +48,7 @@ const useStyles = makeStyles(theme => ({
   },
   gameTeamLogo: {
     maxWidth: '30rem',
+    maxHeight: '25rem',
   },
 }))
 
