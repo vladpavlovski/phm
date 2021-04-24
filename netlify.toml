@@ -2,7 +2,7 @@
 # unless otherwise overridden by more specific contexts.
 
 [build]
-  command = "npm i && cd api && npm i && cd ../web-react && npm i && cd .. && npm run build && cp api/build/graphql-schema.js api/build/functions/graphql/. && cp api/build/schema.graphql api/build/functions/graphql/.  && cd api/src/functions/graphql && npm i && cd ../signs3 && npm i"
+  command = "npm i && cd api && npm i && cd ../web-react && npm i && cd .. && npm run build && cp api/build/graphql-schema.js api/build/functions/graphql/. && cp api/build/resolvers.js api/build/functions/graphql/. && cp api/build/schema.graphql api/build/functions/graphql/.  && cd api/src/functions/graphql && npm i && cd ../signs3 && npm i"
   publish = "web-react/build"
   functions = "api/build/functions"
 
