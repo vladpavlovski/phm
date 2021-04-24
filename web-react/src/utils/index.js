@@ -36,8 +36,15 @@ export const arrayToStringList = (data, keyId, keyValue = 'name') =>
     </span>
   )
 
-export const setIdFromEntityId = (array, idField) =>
-  array.map(item => ({ ...item, id: item[idField] }))
+export const setIdFromEntityId = (array, filedId) =>
+  array.map(item => ({ ...item, id: item[filedId] }))
+
+export const setXGridForRelation = (array, filedId, propertyName) => {
+  return array.map(item => {
+    const { [propertyName]: data, ...rest } = item
+    return { id: data[filedId], ...data, ...rest }
+  })
+}
 
 export const getXGridValueFromArray = (array = [], fieldName) => {
   let value = ''

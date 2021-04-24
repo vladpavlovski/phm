@@ -42,6 +42,14 @@ const useStyles = makeStyles(theme => ({
     width: '6rem',
     height: '6rem',
   },
+  gameTeamLogoWrapper: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  gameTeamLogo: {
+    maxWidth: '30rem',
+    maxHeight: '25rem',
+  },
 }))
 
 export { useStyles }
