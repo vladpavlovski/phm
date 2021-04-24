@@ -26,6 +26,7 @@ const NEO4J_PASSWORD = NETLIFY_DEV
 // This module is copied during the build step
 // Be sure to run `npm run build`
 const { typeDefs } = require('./graphql-schema')
+const { resolvers } = require('./resolvers')
 
 const driver = neo4j.driver(
   NEO4J_URI || 'bolt://localhost:7687',
@@ -36,8 +37,33 @@ const driver = neo4j.driver(
 )
 
 const server = new ApolloServer({
-  schema: makeAugmentedSchema({ typeDefs }),
-  context: { driver, neo4jDatabase: NEO4J_DATABASE },
+  schema: makeAugmentedSchema({
+    typeDefs,
+    resolvers,
+    config: {
+      query: {
+        exclude: ['S3Payload'],
+      },
+      mutation: {
+        exclude: ['S3Payload'],
+      },
+      auth: {
+        isAuthenticated: true,
+        hasRole: true,
+        // hasScope: true,
+      },
+    },
+  }),
+  context: ({ req }) => {
+    return {
+      driver,
+      req,
+      neo4jDatabase: NEO4J_DATABASE,
+      cypherParams: {
+        userAuthId: req?.user?.sub,
+      },
+    }
+  },
 })
 
 exports.handler = server.createHandler()
