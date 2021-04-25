@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+// import Accordion from '@material-ui/core/Accordion'
+// import AccordionSummary from '@material-ui/core/AccordionSummary'
+// import AccordionDetails from '@material-ui/core/AccordionDetails'
+// import Typography from '@material-ui/core/Typography'
+// import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 
@@ -13,6 +13,7 @@ import { Players } from './components/players'
 import { Sponsors } from './components/Sponsors'
 import { Jerseys } from './components/Jerseys'
 import { Positions } from './components/Positions'
+import { Occupations } from './components/Occupations'
 
 const Relations = props => {
   const { teamId } = props
@@ -21,7 +22,7 @@ const Relations = props => {
   return (
     <div className={classes.accordionWrapper}>
       <Membership teamId={teamId} />
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="achievements-awards-content"
@@ -34,8 +35,8 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>Achievements & Awards Table</Typography>
         </AccordionDetails>
-      </Accordion>
-      <Accordion>
+      </Accordion> */}
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="team-staff-content"
@@ -48,13 +49,14 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>Team staff Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
 
       <Players teamId={teamId} />
       <Jerseys teamId={teamId} />
       <Positions teamId={teamId} />
+      <Occupations teamId={teamId} />
 
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="transfers-content"
@@ -67,11 +69,11 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>Transfers Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
 
       <Sponsors teamId={teamId} />
 
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="wear-content"
@@ -82,8 +84,8 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>wear Table</Typography>
         </AccordionDetails>
-      </Accordion>
-      <Accordion>
+      </Accordion> */}
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="media-content"
@@ -94,7 +96,7 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>media Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
     </div>
   )
 }

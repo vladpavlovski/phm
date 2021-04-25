@@ -258,7 +258,10 @@ type Person implements Human {
 type Occupation {
   occupationId: ID! @id
   name: String
+  description: String
   person: [Person] @relation(name: "TYPE_OF", direction: IN)
+  team: Team @relation(name: "USE_OCCUPATION", direction: IN)
+  organization: Organization @relation(name: "USE_OCCUPATION", direction: IN)
 }
 
 type User {
@@ -326,6 +329,7 @@ type Team {
   groups: [Group] @relation(name: "PARTICIPATE_IN", direction: OUT)
   phases: [Phase] @relation(name: "PARTICIPATE_IN", direction: OUT)
   seasons: [Season] @relation(name: "PARTICIPATE_IN", direction: OUT)
+  occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
 }
 
 # type Define @relation(name: "DEFINE", from: "team", to: "lineup") {
@@ -643,6 +647,7 @@ type Organization {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
+  occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
 }
 
 type Sponsor {
