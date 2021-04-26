@@ -253,6 +253,7 @@ type Person implements Human {
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
   invitations: [RespondToInvitation]
   venueManager: Venue @relation(name: "HAS_MANAGER", direction: IN)
+  occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
 }
 
 type Occupation {
@@ -305,7 +306,7 @@ type Team {
   disabled: Boolean
   players: [Player] @relation(name: "PLAY_IN", direction: IN)
 
-  staff: [Person] @relation(name: "HAS_TEAM_STAFF", direction: OUT)
+  persons: [Person] @relation(name: "HAS_TEAM_STAFF", direction: OUT)
   # gamesAsGuest: [Game] @relation(name: "PLAYS_AS_GUEST", direction: OUT)
   # gamesAsHost: [Game] @relation(name: "PLAYS_AS_HOST", direction: OUT)
   games: [TeamGame]
@@ -378,7 +379,7 @@ type Game {
   players: [TakingPartIn]
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   # lineup: Lineup @relation(name: "GENERATES", direction: IN)
-  staff: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
+  persons: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
   phase: Phase @relation(name: "COMPLETE_IN", direction: OUT)
   group: Group @relation(name: "PARTICIPATE_IN", direction: OUT)
   venue: Venue @relation(name: "TAKES_PLAYS_ON", direction: OUT)
@@ -728,7 +729,7 @@ type Competition {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   awards: [Award] @relation(name: "BELONGS_TO", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
-  staff: [Person] @relation(name: "HAS_COMPETITION_STAFF", direction: OUT)
+  persons: [Person] @relation(name: "HAS_COMPETITION_STAFF", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   metaHistories: [MetaHistory] @relation(name: "PARTICIPATE_IN", direction: IN)

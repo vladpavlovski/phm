@@ -14,9 +14,10 @@ import { Sponsors } from './components/Sponsors'
 import { Jerseys } from './components/Jerseys'
 import { Positions } from './components/Positions'
 import { Occupations } from './components/Occupations'
+import { Persons } from './components/persons'
 
 const Relations = props => {
-  const { teamId } = props
+  const { teamId, data } = props
   const classes = useStyles()
 
   return (
@@ -54,7 +55,8 @@ const Relations = props => {
       <Players teamId={teamId} />
       <Jerseys teamId={teamId} />
       <Positions teamId={teamId} />
-      <Occupations teamId={teamId} />
+      <Occupations teamId={teamId} persons={data?.persons} />
+      <Persons teamId={teamId} team={data} />
 
       {/* <Accordion>
         <AccordionSummary
