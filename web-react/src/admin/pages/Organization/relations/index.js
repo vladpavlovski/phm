@@ -1,16 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+// import Accordion from '@material-ui/core/Accordion'
+// import AccordionSummary from '@material-ui/core/AccordionSummary'
+// import AccordionDetails from '@material-ui/core/AccordionDetails'
+// import Typography from '@material-ui/core/Typography'
+// import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Sponsors } from './components/Sponsors'
 import { Teams } from './components/Teams'
 import { Competitions } from './components/Competitions'
 import { RulePacks } from './components/RulePacks'
+import { Occupations } from './components/Occupations'
 
 const Relations = props => {
   const { organizationId } = props
@@ -18,7 +19,7 @@ const Relations = props => {
 
   return (
     <div className={classes.accordionWrapper}>
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="manager-content"
@@ -34,13 +35,14 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>Manager info</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
       <Sponsors organizationId={organizationId} />
       <Teams organizationId={organizationId} />
       <Competitions organizationId={organizationId} />
       <RulePacks organizationId={organizationId} />
+      <Occupations organizationId={organizationId} />
 
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="media-content"
@@ -51,7 +53,7 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>media Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
     </div>
   )
 }
