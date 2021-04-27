@@ -4,7 +4,7 @@
   "description": "React app for PHM",
   "license": "MIT",
   "dependencies": {
-    "@apollo/client": "^3.3.13",
+    "@apollo/client": "^3.3.14",
     "@auth0/auth0-react": "^1.4.0",
     "@bugfender/sdk": "^1.5.0",
     "@emotion/react": "^11.1.5",
