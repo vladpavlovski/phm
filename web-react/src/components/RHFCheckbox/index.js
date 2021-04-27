@@ -1,12 +1,12 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import PropTypes from 'prop-types'
-import { FormControlLabel, FormHelperText, Checkbox } from '@material-ui/core'
+import { FormControlLabel, FormHelperText, Switch } from '@material-ui/core'
 
-const RHFCheckbox = ({ label, error, name, id, ...props }) => (
+const RHFSwitch = ({ label, error, name, id, ...props }) => (
   <>
     <FormControlLabel
-      control={<Controller as={Checkbox} {...props} />}
+      control={<Controller as={Switch} {...props} />}
       label={label}
       id={id}
       name={name}
@@ -15,10 +15,10 @@ const RHFCheckbox = ({ label, error, name, id, ...props }) => (
   </>
 )
 
-RHFCheckbox.propTypes = {
+RHFSwitch.propTypes = {
   control: PropTypes.object.isRequired,
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
 }
 
-export { RHFCheckbox }
+export { RHFSwitch }

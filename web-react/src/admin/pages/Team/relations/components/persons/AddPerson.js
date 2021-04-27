@@ -10,7 +10,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import Switch from '@material-ui/core/Switch'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { Loader } from '../../../../../../components/Loader'
@@ -253,7 +253,7 @@ const ToggleNewPerson = props => {
   return (
     <FormControlLabel
       control={
-        <Checkbox
+        <Switch
           checked={isMember}
           onChange={() => {
             isMember

@@ -19,7 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import LoadingButton from '@material-ui/lab/LoadingButton'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import Switch from '@material-ui/core/Switch'
 
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -524,7 +524,7 @@ const TogglePlayerJersey = props => {
   return (
     <FormControlLabel
       control={
-        <Checkbox
+        <Switch
           checked={isOwner}
           onChange={() => {
             isOwner
