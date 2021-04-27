@@ -29,7 +29,7 @@ import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
-const GET_ORGANIZATION = gql`
+export const GET_ORGANIZATION = gql`
   query getOrganization($organizationId: ID!) {
     organization: Organization(organizationId: $organizationId) {
       organizationId
@@ -41,6 +41,21 @@ const GET_ORGANIZATION = gql`
       logo
       foundDate {
         formatted
+      }
+      persons {
+        personId
+        firstName
+        lastName
+        name
+        avatar
+        occupations {
+          occupationId
+          name
+        }
+      }
+      occupations {
+        occupationId
+        name
       }
     }
   }
@@ -335,7 +350,10 @@ const Organization = () => {
               </Grid>
             </Grid>
             {isValidUuid(organizationId) && (
-              <Relations organizationId={organizationId} />
+              <Relations
+                organizationId={organizationId}
+                data={organizationData}
+              />
             )}
           </form>
         )}

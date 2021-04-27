@@ -21,100 +21,95 @@ import {
   getXGridValueFromArray,
 } from '../../../../../../utils'
 
-import { GET_PLAYERS } from './index'
+import { GET_ORGANIZATION } from '../../../index'
 
-export const GET_ALL_PLAYERS = gql`
-  query getPlayers {
-    players: Player {
-      playerId
+export const GET_ALL_PERSONS = gql`
+  query getPersons {
+    persons: Person {
+      personId
       name
       firstName
       lastName
       name
-      teams {
-        teamId
+      organizations {
+        organizationId
         name
       }
-      positions {
-        positionId
+      occupations {
+        occupationId
         name
       }
     }
   }
 `
 
-const MERGE_TEAM_PLAYER = gql`
-  mutation mergeTeamPlayer($teamId: ID!, $playerId: ID!) {
-    teamPlayer: MergeTeamPlayers(
-      from: { playerId: $playerId }
-      to: { teamId: $teamId }
+const MERGE_ORGANIZATION_PERSON = gql`
+  mutation mergeOrganizationPerson($organizationId: ID!, $personId: ID!) {
+    organizationPerson: MergeOrganizationPersons(
+      from: { organizationId: $organizationId }
+      to: { personId: $personId }
     ) {
-      from {
-        playerId
+      to {
+        personId
         name
         firstName
         lastName
-        positions {
-          positionId
+        occupations {
+          occupationId
           name
-        }
-        jerseys {
-          jerseyId
-          name
-          number
         }
       }
     }
   }
 `
 
-const AddPlayer = props => {
-  const { teamId, team, removeTeamPlayer } = props
+const AddPerson = props => {
+  const { organizationId, organization, removeOrganizationPerson } = props
 
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
 
-  const [openAddPlayer, setOpenAddPlayer] = useState(false)
+  const [openAddPerson, setOpenAddPerson] = useState(false)
 
-  const handleCloseAddPlayer = useCallback(() => {
-    setOpenAddPlayer(false)
+  const handleCloseAddPerson = useCallback(() => {
+    setOpenAddPerson(false)
   }, [])
 
   const [
-    getAllPlayers,
+    getAllPersons,
     {
-      loading: queryAllPlayersLoading,
-      error: queryAllPlayersError,
-      data: queryAllPlayersData,
+      loading: queryAllPersonsLoading,
+      error: queryAllPersonsError,
+      data: queryAllPersonsData,
     },
-  ] = useLazyQuery(GET_ALL_PLAYERS, {
+  ] = useLazyQuery(GET_ALL_PERSONS, {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-    update(cache, { data: { teamPlayer } }) {
+  const [mergeOrganizationPerson] = useMutation(MERGE_ORGANIZATION_PERSON, {
+    update(cache, { data: { organizationPerson } }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
+          query: GET_ORGANIZATION,
           variables: {
-            teamId,
+            organizationId,
           },
         })
-        const existingPlayers = queryResult?.team[0].players
-        const newPlayer = teamPlayer.from
+        const existingPersons = queryResult?.organization[0].persons
+        const newPerson = organizationPerson.to
         const updatedResult = {
-          team: [
+          organization: [
             {
-              ...queryResult?.team[0],
-              players: [newPlayer, ...existingPlayers],
+              ...queryResult?.organization[0],
+              persons: [newPerson, ...existingPersons],
             },
           ],
         }
         cache.writeQuery({
-          query: GET_PLAYERS,
+          query: GET_ORGANIZATION,
           data: updatedResult,
           variables: {
-            teamId,
+            organizationId,
           },
         })
       } catch (error) {
@@ -122,9 +117,12 @@ const AddPlayer = props => {
       }
     },
     onCompleted: data => {
-      enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
-        variant: 'success',
-      })
+      enqueueSnackbar(
+        `${data.organizationPerson.to.name} added to ${organization.name}!`,
+        {
+          variant: 'success',
+        }
+      )
     },
     onError: error => {
       enqueueSnackbar(`Error happened :( ${error}`, {
@@ -134,99 +132,99 @@ const AddPlayer = props => {
     },
   })
 
-  const handleOpenAddPlayer = useCallback(() => {
-    if (!queryAllPlayersData) {
-      getAllPlayers()
+  const handleOpenAddPerson = useCallback(() => {
+    if (!queryAllPersonsData) {
+      getAllPersons()
     }
-    setOpenAddPlayer(true)
+    setOpenAddPerson(true)
   }, [])
 
-  const allPlayersColumns = useMemo(
+  const allPersonsColumns = useMemo(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 150,
+        width: 200,
       },
       {
-        field: 'teams',
-        headerName: 'Teams',
+        field: 'organizations',
+        headerName: 'Organizations',
         width: 200,
         valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
+          return getXGridValueFromArray(params.row.organizations, 'name')
         },
       },
       {
-        field: 'positions',
-        headerName: 'Positions',
+        field: 'occupations',
+        headerName: 'Occupations',
         width: 200,
         valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
+          return getXGridValueFromArray(params.row.occupations, 'name')
         },
       },
 
       {
-        field: 'playerId',
+        field: 'personId',
         headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPlayer
-              playerId={params.value}
-              teamId={teamId}
-              team={team}
-              merge={mergeTeamPlayer}
-              remove={removeTeamPlayer}
+            <ToggleNewPerson
+              personId={params.value}
+              organizationId={organizationId}
+              organization={organization}
+              merge={mergeOrganizationPerson}
+              remove={removeOrganizationPerson}
             />
           )
         },
       },
     ],
-    [team]
+    [organization]
   )
 
   return (
     <>
       <Button
         type="button"
-        onClick={handleOpenAddPlayer}
+        onClick={handleOpenAddPerson}
         variant={'outlined'}
         size="small"
         className={classes.submit}
         startIcon={<AddIcon />}
       >
-        Add Player
+        Add Person
       </Button>
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddPlayer}
-        onClose={handleCloseAddPlayer}
+        open={openAddPerson}
+        onClose={handleCloseAddPerson}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
-        {queryAllPlayersError && !queryAllPlayersLoading && (
-          <Error message={queryAllPlayersError.message} />
+        {queryAllPersonsLoading && !queryAllPersonsError && <Loader />}
+        {queryAllPersonsError && !queryAllPersonsLoading && (
+          <Error message={queryAllPersonsError.message} />
         )}
-        {queryAllPlayersData &&
-          !queryAllPlayersLoading &&
-          !queryAllPlayersError && (
+        {queryAllPersonsData &&
+          !queryAllPersonsLoading &&
+          !queryAllPersonsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add new player to ${
-                team && team.name
+              <DialogTitle id="alert-dialog-title">{`Add new person to ${
+                organization && organization.name
               }`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
-                    columns={allPlayersColumns}
+                    columns={allPersonsColumns}
                     rows={setIdFromEntityId(
-                      queryAllPlayersData.players,
-                      'playerId'
+                      queryAllPersonsData.persons,
+                      'personId'
                     )}
                     disableSelectionOnClick
-                    loading={queryAllPlayersLoading}
+                    loading={queryAllPersonsLoading}
                     components={{
                       Toolbar: GridToolbar,
                     }}
@@ -238,7 +236,7 @@ const AddPlayer = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddPlayer()
+              handleCloseAddPerson()
             }}
           >
             {'Done'}
@@ -249,10 +247,10 @@ const AddPlayer = props => {
   )
 }
 
-const ToggleNewPlayer = props => {
-  const { playerId, teamId, team, remove, merge } = props
+const ToggleNewPerson = props => {
+  const { personId, organizationId, organization, remove, merge } = props
   const [isMember, setIsMember] = useState(
-    !!team.players.find(p => p.playerId === playerId)
+    !!organization.persons.find(p => p.personId === personId)
   )
 
   return (
@@ -264,19 +262,19 @@ const ToggleNewPlayer = props => {
             isMember
               ? remove({
                   variables: {
-                    teamId,
-                    playerId,
+                    organizationId,
+                    personId,
                   },
                 })
               : merge({
                   variables: {
-                    teamId,
-                    playerId,
+                    organizationId,
+                    personId,
                   },
                 })
             setIsMember(!isMember)
           }}
-          name="teamMember"
+          name="organizationMember"
           color="primary"
         />
       }
@@ -285,16 +283,16 @@ const ToggleNewPlayer = props => {
   )
 }
 
-ToggleNewPlayer.propTypes = {
-  playerId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamPlayer: PropTypes.func,
-  mergeTeamPlayer: PropTypes.func,
+ToggleNewPerson.propTypes = {
+  personId: PropTypes.string,
+  organizationId: PropTypes.string,
+  organization: PropTypes.object,
+  removeOrganizationPerson: PropTypes.func,
+  mergeOrganizationPerson: PropTypes.func,
 }
 
-AddPlayer.propTypes = {
-  teamId: PropTypes.string,
+AddPerson.propTypes = {
+  organizationId: PropTypes.string,
 }
 
-export { AddPlayer }
+export { AddPerson }

@@ -19,7 +19,7 @@ import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 import AccountBox from '@material-ui/icons/AccountBox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import Switch from '@material-ui/core/Switch'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
@@ -482,7 +482,7 @@ const ToggleNewSeason = props => {
   return (
     <FormControlLabel
       control={
-        <Checkbox
+        <Switch
           checked={isMember}
           onChange={() => {
             isMember

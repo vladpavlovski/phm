@@ -30,7 +30,7 @@ import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
-const GET_TEAM = gql`
+export const GET_TEAM = gql`
   query getTeam($teamId: ID!) {
     team: Team(teamId: $teamId) {
       teamId
@@ -55,6 +55,21 @@ const GET_TEAM = gql`
         playerId
         firstName
         lastName
+      }
+      persons {
+        personId
+        firstName
+        lastName
+        name
+        avatar
+        occupations {
+          occupationId
+          name
+        }
+      }
+      occupations {
+        occupationId
+        name
       }
     }
   }
@@ -415,7 +430,9 @@ const Team = () => {
                 </Grid>
               </Grid>
             </form>
-            {isValidUuid(teamId) && <Relations teamId={teamId} />}
+            {isValidUuid(teamId) && (
+              <Relations teamId={teamId} data={teamData} />
+            )}
           </>
         )}
     </Container>

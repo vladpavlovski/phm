@@ -17,7 +17,7 @@ import TableRow from '@material-ui/core/TableRow'
 import Box from '@material-ui/core/Box'
 import Collapse from '@material-ui/core/Collapse'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import Switch from '@material-ui/core/Switch'
 import IconButton from '@material-ui/core/IconButton'
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
@@ -370,7 +370,7 @@ const OrganizationRow = props => {
         <TableCell align="left">
           <FormControlLabel
             control={
-              <Checkbox
+              <Switch
                 checked={isMember}
                 onChange={() => {
                   mergeTeamOrganization({
@@ -480,7 +480,7 @@ const CompetitionRow = props => {
         <TableCell align="left">
           <FormControlLabel
             control={
-              <Checkbox
+              <Switch
                 checked={isMember}
                 onChange={() => {
                   mergeTeamCompetition({
@@ -606,7 +606,7 @@ const PhaseRow = props => {
       <TableCell align="left">
         <FormControlLabel
           control={
-            <Checkbox
+            <Switch
               checked={isMember}
               onChange={() => {
                 mergeTeamPhase({
@@ -664,7 +664,7 @@ const GroupRow = props => {
       <TableCell align="left">
         <FormControlLabel
           control={
-            <Checkbox
+            <Switch
               checked={isMember}
               onChange={() => {
                 mergeTeamGroup({
@@ -722,7 +722,7 @@ const SeasonRow = props => {
       <TableCell align="left">
         <FormControlLabel
           control={
-            <Checkbox
+            <Switch
               checked={isMember}
               onChange={() => {
                 mergeTeamGroup({
