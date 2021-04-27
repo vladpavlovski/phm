@@ -12,9 +12,10 @@ import { Teams } from './components/Teams'
 import { Competitions } from './components/Competitions'
 import { RulePacks } from './components/RulePacks'
 import { Occupations } from './components/Occupations'
+import { Persons } from './components/persons'
 
 const Relations = props => {
-  const { organizationId } = props
+  const { organizationId, data } = props
   const classes = useStyles()
 
   return (
@@ -36,6 +37,7 @@ const Relations = props => {
           <Typography>Manager info</Typography>
         </AccordionDetails>
       </Accordion> */}
+      <Persons organizationId={organizationId} organization={data} />
       <Sponsors organizationId={organizationId} />
       <Teams organizationId={organizationId} />
       <Competitions organizationId={organizationId} />
