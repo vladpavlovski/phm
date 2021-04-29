@@ -9,7 +9,9 @@ import { Helmet } from 'react-helmet'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
-import { Container, Grid, Paper } from '@material-ui/core'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 
 import Toolbar from '@material-ui/core/Toolbar'
 
