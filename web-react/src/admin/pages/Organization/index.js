@@ -41,6 +41,7 @@ export const GET_ORGANIZATION = gql`
       status
       legalName
       logo
+      urlSlug
       foundDate {
         formatted
       }
@@ -75,6 +76,7 @@ const MERGE_ORGANIZATION = gql`
     $foundDateMonth: Int
     $foundDateYear: Int
     $logo: String
+    $urlSlug: String!
   ) {
     mergeOrganization: MergeOrganization(
       organizationId: $organizationId
@@ -84,6 +86,7 @@ const MERGE_ORGANIZATION = gql`
       short: $short
       status: $status
       logo: $logo
+      urlSlug: $urlSlug
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -317,6 +320,19 @@ const Organization = () => {
                         fullWidth
                         variant="standard"
                         error={errors.short}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={organizationData.urlSlug}
+                        control={control}
+                        name="urlSlug"
+                        label="Url Slug"
+                        required
+                        fullWidth
+                        variant="standard"
+                        error={errors.urlSlug}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
