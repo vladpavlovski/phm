@@ -117,8 +117,15 @@ type Mutation {
       """
     )
 }
-# vladzzz team id: 8c798530-f57a-4c6f-bbac-1e7e40e4cfa8
+
 type Query {
+  organizationBySlug(urlSlug: String!): Organization
+    @cypher(
+      statement: """
+      MATCH (organization: Organization {urlSlug: $urlSlug})
+      return organization
+      """
+    )
   playersCount: Int
     @cypher(
       statement: """

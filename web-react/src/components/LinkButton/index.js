@@ -1,10 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import { Button } from '@material-ui/core'
+import Button from '@material-ui/core/Button'
+import IconButton from '@material-ui/core/IconButton'
 
 const LinkButton = props => {
-  return <Button {...props}>{props.children}</Button>
+  const { icon, children, ...restProps } = props
+  return icon ? (
+    <IconButton {...restProps}>{children}</IconButton>
+  ) : (
+    <Button {...restProps}>{children}</Button>
+  )
 }
 
 LinkButton.defaultProps = {
@@ -12,6 +18,7 @@ LinkButton.defaultProps = {
   variant: 'contained',
   color: 'primary',
   component: Link,
+  icon: false,
 }
 
 LinkButton.propTypes = {

@@ -20,7 +20,7 @@ import { useStyles } from './styled'
 import { MainListItems } from './listItems'
 import { UserMenu } from './UserMenu'
 
-const useLayoutSidebarState = createPersistedState('layoutSidebar')
+const useLayoutSidebarState = createPersistedState('HMS-LayoutSidebar')
 
 const Layout = props => {
   const { children } = props
@@ -62,7 +62,7 @@ const Layout = props => {
       >
         <div className={classes.toolbarIcon}>
           <Typography variant="h4" component="h1">
-            PHM CUP
+            HMS
           </Typography>
           <IconButton
             onClick={() => {

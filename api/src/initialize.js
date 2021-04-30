@@ -30,7 +30,7 @@ export const initializeDatabase = driver => {
     Transfer: ["transferId"],
     Discussion: ["discussionId"],
     Comment: ["commentId"],
-    Organization: ["organizationId"],
+    Organization: ["organizationId", "urlSlug"],
     Sponsor: ["sponsorId"],
     Venue: ["venueId"],
     Address: ["addressId"],

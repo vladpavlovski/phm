@@ -12,8 +12,8 @@ const useStyles = makeStyles(theme => ({
     margin: `0 ${theme.spacing(1)} !important`,
   },
   teamLogoView: {
-    width: '2rem',
-    height: '2rem',
+    width: '4rem',
+    height: '4rem',
   },
   toolbarForm: {
     display: 'flex',

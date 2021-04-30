@@ -1,12 +1,14 @@
 import React, { useContext, useEffect } from 'react'
 import { useTheme } from '@material-ui/core/styles'
-import { Grid, Paper } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
-import clsx from 'clsx'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 
 import LayoutContext from '../../../context/layout'
 
 import UserCount from './UserCount'
+import { useStyles } from '../commonComponents/styled'
+import { Organizations } from './components/Organizations'
 
 export default function Dashboard() {
   const theme = useTheme()
@@ -20,41 +22,29 @@ export default function Dashboard() {
     }
   }, [])
 
-  const useStyles = makeStyles(theme => ({
-    root: {
-      display: 'flex',
-    },
-    paper: {
-      padding: theme.spacing(2),
-      display: 'flex',
-      overflow: 'auto',
-      flexDirection: 'column',
-    },
-    fixedHeight: {
-      height: 240,
-    },
-  }))
   const classes = useStyles(theme)
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
 
   return (
-    <React.Fragment>
-      <Grid container spacing={4}>
-        {/* Ratings Chart */}
-        <Grid item xs={12} md={8} lg={7}>
-          <Paper className={fixedHeightPaper}></Paper>
+    <Container maxWidth="lg" className={classes.container}>
+      <React.Fragment>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8} lg={7}>
+            <Paper className={classes.paper}>
+              <Organizations />
+            </Paper>
+          </Grid>
+          {/* User Count */}
+          <Grid item xs={12} md={4} lg={5}>
+            <Paper className={classes.paper}>
+              <UserCount />
+            </Paper>
+          </Grid>
+          {/* Recent Reviews */}
+          <Grid item xs={12}>
+            <Paper className={classes.paper}></Paper>
+          </Grid>
         </Grid>
-        {/* User Count */}
-        <Grid item xs={12} md={4} lg={5}>
-          <Paper className={fixedHeightPaper}>
-            <UserCount />
-          </Paper>
-        </Grid>
-        {/* Recent Reviews */}
-        <Grid item xs={12}>
-          <Paper className={classes.paper}></Paper>
-        </Grid>
-      </Grid>
-    </React.Fragment>
+      </React.Fragment>
+    </Container>
   )
 }
