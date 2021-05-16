@@ -270,7 +270,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Teams"
-              to={ROUTES.ADMIN_TEAMS}
+              to={ROUTES.getAdminOrgTeamsRoute(organizationData.urlSlug)}
             />
             <ListItemLink
               icon={

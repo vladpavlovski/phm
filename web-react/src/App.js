@@ -96,12 +96,12 @@ const App = ({ history }) => {
                         component={AdminPlayer}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_TEAMS}
+                        path={ROUTES.ADMIN_ORG_TEAMS}
                         exact
                         component={AdminTeamsView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_TEAM}
+                        path={ROUTES.ADMIN_ORG_TEAM}
                         exact
                         component={AdminTeam}
                       />

@@ -126,6 +126,13 @@ type Query {
       return organization
       """
     )
+  teamsByOrganization(organizationSlug: String!): [Team]
+    @cypher(
+      statement: """
+      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (team: Team)
+      return team
+      """
+    )
   playersCount: Int
     @cypher(
       statement: """
