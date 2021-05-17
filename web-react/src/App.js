@@ -86,12 +86,12 @@ const App = ({ history }) => {
                         component={Dashboard}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_PLAYERS}
+                        path={ROUTES.ADMIN_ORG_PLAYERS}
                         exact
                         component={AdminPlayersView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_PLAYER}
+                        path={ROUTES.ADMIN_ORG_PLAYER}
                         exact
                         component={AdminPlayer}
                       />

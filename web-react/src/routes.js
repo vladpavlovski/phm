@@ -8,8 +8,8 @@ export const NOT_FOUND = '/notfound'
 export const NETWORK_ERROR = '/network-error'
 export const ADMIN_DASHBOARD = '/admin/dashboard'
 
-export const ADMIN_PLAYERS = '/admin/players'
-export const ADMIN_PLAYER = '/admin/player/:playerId'
+export const ADMIN_ORG_PLAYERS = '/admin/:organizationSlug/players'
+export const ADMIN_ORG_PLAYER = '/admin/:organizationSlug/player/:playerId'
 export const ADMIN_ORG_TEAMS = '/admin/:organizationSlug/teams'
 export const ADMIN_ORG_TEAM = '/admin/:organizationSlug/team/:teamId'
 export const ADMIN_ORGANIZATIONS = '/admin/organizations'
@@ -43,8 +43,10 @@ export const ADMIN_STAR = '/admin/star/:starId'
 export const ADMIN_EVENTS = '/admin/events'
 export const ADMIN_EVENT = '/admin/event/:eventId'
 
-export const getAdminPlayerRoute = playerId =>
-  generatePath(ADMIN_PLAYER, { playerId })
+export const getAdminOrgPlayersRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
+export const getAdminOrgPlayerRoute = (organizationSlug, playerId) =>
+  generatePath(ADMIN_ORG_PLAYER, { organizationSlug, playerId })
 
 export const getAdminOrgTeamsRoute = organizationSlug =>
   generatePath(ADMIN_ORG_TEAMS, { organizationSlug })

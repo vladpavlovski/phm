@@ -270,7 +270,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Teams"
-              to={ROUTES.getAdminOrgTeamsRoute(organizationData.urlSlug)}
+              to={ROUTES.getAdminOrgTeamsRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={
@@ -285,7 +285,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Players"
-              to={ROUTES.ADMIN_PLAYERS}
+              to={ROUTES.getAdminOrgPlayersRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={

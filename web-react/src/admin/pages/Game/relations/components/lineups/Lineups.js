@@ -1,10 +1,9 @@
 import React, { useCallback, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
-
+import { useParams } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-// import Img from 'react-cool-img'
-// import Container from '@material-ui/core/Container'
+
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
 import Button from '@material-ui/core/Button'
@@ -14,9 +13,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Toolbar from '@material-ui/core/Toolbar'
 import AddIcon from '@material-ui/icons/Add'
-// import RemoveIcon from '@material-ui/icons/Remove'
-// import Typography from '@material-ui/core/Typography'
-// import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+
 import AccountBox from '@material-ui/icons/AccountBox'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 
@@ -25,7 +22,7 @@ import { LinkButton } from '../../../../../../components/LinkButton'
 import { Title } from '../../../../../../components/Title'
 import { Loader } from '../../../../../../components/Loader'
 import { Error } from '../../../../../../components/Error'
-import { getAdminPlayerRoute } from '../../../../../../routes'
+import { getAdminOrgPlayerRoute } from '../../../../../../routes'
 import {
   setIdFromEntityId,
   getXGridValueFromArray,
@@ -161,6 +158,7 @@ const Lineups = props => {
 const LineupList = props => {
   const { gameId, team, host = false, players } = props
   const [playerDialog, setPlayerDialog] = useState(false)
+  const { organizationSlug } = useParams()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -486,7 +484,7 @@ const LineupList = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminPlayerRoute(params.value)}
+              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
               target="_blank"
             >
               Profile
