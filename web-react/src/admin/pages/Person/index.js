@@ -29,7 +29,10 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { ADMIN_PERSONS, getAdminPersonRoute } from '../../../routes'
+import {
+  getAdminOrgPersonsRoute,
+  getAdminOrgPersonRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'
@@ -112,7 +115,7 @@ const DELETE_PERSON = gql`
 const Person = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { personId } = useParams()
+  const { personId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -131,7 +134,7 @@ const Person = () => {
     onCompleted: data => {
       if (personId === 'new') {
         const newPersonId = data.mergePerson.personId
-        history.replace(getAdminPersonRoute(newPersonId))
+        history.replace(getAdminOrgPersonRoute(organizationSlug, newPersonId))
       }
       enqueueSnackbar(`Person saved!`, {
         variant: 'success',
@@ -146,7 +149,7 @@ const Person = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_PERSON, {
     onCompleted: () => {
-      history.push(ADMIN_PERSONS)
+      history.push(getAdminOrgPersonsRoute(organizationSlug))
       enqueueSnackbar(`Person was deleted!`, {
         variant: 'info',
       })

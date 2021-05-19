@@ -31,8 +31,8 @@ export const ADMIN_PHASE = '/admin/phase/:phaseId'
 export const ADMIN_PHASES = '/admin/phases'
 export const ADMIN_GROUP = '/admin/group/:groupId'
 export const ADMIN_GROUPS = '/admin/groups'
-export const ADMIN_PERSONS = '/admin/persons'
-export const ADMIN_PERSON = '/admin/person/:personId'
+export const ADMIN_ORG_PERSONS = '/admin/:organizationSlug/persons'
+export const ADMIN_ORG_PERSON = '/admin/:organizationSlug/person/:personId'
 export const ADMIN_USERS = '/admin/users'
 export const ADMIN_USER = '/admin/user/:userId'
 export const ADMIN_SYSTEM_SETTINGS = '/admin/systemSettings'
@@ -83,8 +83,11 @@ export const getAdminPhaseRoute = phaseId =>
 export const getAdminGroupRoute = groupId =>
   generatePath(ADMIN_GROUP, { groupId })
 
-export const getAdminPersonRoute = personId =>
-  generatePath(ADMIN_PERSON, { personId })
+export const getAdminOrgPersonsRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_PERSONS, { organizationSlug })
+
+export const getAdminOrgPersonRoute = (organizationSlug, personId) =>
+  generatePath(ADMIN_ORG_PERSON, { organizationSlug, personId })
 
 export const getAdminUserRoute = userId => generatePath(ADMIN_USER, { userId })
 export const getAdminGameRoute = gameId => generatePath(ADMIN_GAME, { gameId })
