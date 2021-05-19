@@ -122,44 +122,44 @@ const App = ({ history }) => {
                       />
 
                       <PrivateRoute
-                        path={ROUTES.ADMIN_COMPETITIONS}
+                        path={ROUTES.ADMIN_ORG_COMPETITIONS}
                         exact
                         component={AdminCompetitionsView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_COMPETITION}
+                        path={ROUTES.ADMIN_ORG_COMPETITION}
                         exact
                         component={AdminCompetition}
                       />
 
                       <PrivateRoute
-                        path={ROUTES.ADMIN_SPONSORS}
+                        path={ROUTES.ADMIN_ORG_SPONSORS}
                         exact
                         component={AdminSponsorsView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_SPONSOR}
+                        path={ROUTES.ADMIN_ORG_SPONSOR}
                         exact
                         component={AdminSponsor}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_VENUES}
+                        path={ROUTES.ADMIN_ORG_VENUES}
                         exact
                         component={AdminVenuesView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_VENUE}
+                        path={ROUTES.ADMIN_ORG_VENUE}
                         exact
                         component={AdminVenue}
                       />
 
                       <PrivateRoute
-                        path={ROUTES.ADMIN_SEASONS}
+                        path={ROUTES.ADMIN_ORG_SEASONS}
                         exact
                         component={AdminSeasonsView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_SEASON}
+                        path={ROUTES.ADMIN_ORG_SEASON}
                         exact
                         component={AdminSeason}
                       />

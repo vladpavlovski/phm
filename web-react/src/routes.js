@@ -15,15 +15,15 @@ export const ADMIN_ORG_TEAM = '/admin/:organizationSlug/team/:teamId'
 export const ADMIN_ORGANIZATIONS = '/admin/organizations'
 export const ADMIN_ORGANIZATION = '/admin/organization/:organizationId'
 export const ADMIN_ORGANIZATION_DASHBOARD = '/admin/:organizationSlug'
-export const ADMIN_COMPETITIONS = '/admin/:organizationSlug/competitions'
-export const ADMIN_COMPETITION =
+export const ADMIN_ORG_COMPETITIONS = '/admin/:organizationSlug/competitions'
+export const ADMIN_ORG_COMPETITION =
   '/admin/:organizationSlug/competition/:competitionId'
-export const ADMIN_SPONSORS = '/admin/:organizationSlug/sponsors'
-export const ADMIN_SPONSOR = '/admin/:organizationSlug/sponsor/:sponsorId'
-export const ADMIN_SEASONS = '/admin/:organizationSlug/seasons'
-export const ADMIN_SEASON = '/admin/:organizationSlug/season/:seasonId'
-export const ADMIN_VENUES = '/admin/venues'
-export const ADMIN_VENUE = '/admin/venue/:venueId'
+export const ADMIN_ORG_SPONSORS = '/admin/:organizationSlug/sponsors'
+export const ADMIN_ORG_SPONSOR = '/admin/:organizationSlug/sponsor/:sponsorId'
+export const ADMIN_ORG_SEASONS = '/admin/:organizationSlug/seasons'
+export const ADMIN_ORG_SEASON = '/admin/:organizationSlug/season/:seasonId'
+export const ADMIN_ORG_VENUES = '/admin/:organizationSlug/venues'
+export const ADMIN_ORG_VENUE = '/admin/:organizationSlug/venue/:venueId'
 export const ADMIN_RULEPACK = '/admin/rulePack/:rulePackId'
 export const ADMIN_RULEPACKS = '/admin/rulePacks'
 export const ADMIN_AWARD = '/admin/award/:awardId'
@@ -61,24 +61,27 @@ export const getAdminOrganizationDashboardRoute = organizationSlug =>
   generatePath(ADMIN_ORGANIZATION_DASHBOARD, { organizationSlug })
 
 export const getAdminOrgCompetitionsRoute = organizationSlug =>
-  generatePath(ADMIN_COMPETITIONS, { organizationSlug })
+  generatePath(ADMIN_ORG_COMPETITIONS, { organizationSlug })
 
 export const getAdminOrgCompetitionRoute = (organizationSlug, competitionId) =>
-  generatePath(ADMIN_COMPETITION, { organizationSlug, competitionId })
+  generatePath(ADMIN_ORG_COMPETITION, { organizationSlug, competitionId })
 
 export const getAdminOrgSponsorsRoute = organizationSlug =>
-  generatePath(ADMIN_SPONSORS, { organizationSlug })
+  generatePath(ADMIN_ORG_SPONSORS, { organizationSlug })
 export const getAdminOrgSponsorRoute = (organizationSlug, sponsorId) =>
-  generatePath(ADMIN_SPONSOR, { organizationSlug, sponsorId })
+  generatePath(ADMIN_ORG_SPONSOR, { organizationSlug, sponsorId })
 
 export const getAdminOrgSeasonsRoute = organizationSlug =>
-  generatePath(ADMIN_SEASONS, { organizationSlug })
+  generatePath(ADMIN_ORG_SEASONS, { organizationSlug })
 
 export const getAdminOrgSeasonRoute = (organizationSlug, seasonId) =>
-  generatePath(ADMIN_SEASON, { organizationSlug, seasonId })
+  generatePath(ADMIN_ORG_SEASON, { organizationSlug, seasonId })
 
-export const getAdminVenueRoute = venueId =>
-  generatePath(ADMIN_VENUE, { venueId })
+export const getAdminOrgVenuesRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_VENUES, { organizationSlug })
+
+export const getAdminOrgVenueRoute = (organizationSlug, venueId) =>
+  generatePath(ADMIN_ORG_VENUE, { organizationSlug, venueId })
 
 export const getAdminRulePackRoute = rulePackId =>
   generatePath(ADMIN_RULEPACK, { rulePackId })

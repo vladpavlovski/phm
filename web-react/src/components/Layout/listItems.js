@@ -241,7 +241,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Venues"
-                  to={ROUTES.ADMIN_VENUES}
+                  to={ROUTES.getAdminOrgVenuesRoute(organizationData?.urlSlug)}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
