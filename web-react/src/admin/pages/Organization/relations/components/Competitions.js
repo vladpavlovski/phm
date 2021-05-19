@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -24,7 +25,7 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminCompetitionRoute } from '../../../../../routes'
+import { getAdminOrgCompetitionRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -99,6 +100,7 @@ const Competitions = props => {
   const { organizationId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
+  const { organizationSlug } = useParams()
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
   const handleCloseAddOrganization = useCallback(() => {
@@ -254,7 +256,7 @@ const Competitions = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminCompetitionRoute(params.value)}
+              to={getAdminOrgCompetitionRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>

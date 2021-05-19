@@ -189,7 +189,9 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Competitions"
-                  to={ROUTES.ADMIN_COMPETITIONS}
+                  to={ROUTES.getAdminOrgCompetitionsRoute(
+                    organizationData?.urlSlug
+                  )}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
