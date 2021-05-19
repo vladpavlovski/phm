@@ -140,48 +140,6 @@ type Query {
       return player
       """
     )
-  playersCount: Int
-    @cypher(
-      statement: """
-      MATCH (p:Player) RETURN count(p)
-      """
-    )
-  teamsCount: Int
-    @cypher(
-      statement: """
-      MATCH (t:Team) RETURN count(t)
-      """
-    )
-  organizationsCount: Int
-    @cypher(
-      statement: """
-      MATCH (a:Organization) RETURN count(a)
-      """
-    )
-  competitionsCount: Int
-    @cypher(
-      statement: """
-      MATCH (c:Competition) RETURN count(c)
-      """
-    )
-  sponsorsCount: Int
-    @cypher(
-      statement: """
-      MATCH (s:Sponsor) RETURN count(s)
-      """
-    )
-  seasonsCount: Int
-    @cypher(
-      statement: """
-      MATCH (s:Season) RETURN count(s)
-      """
-    )
-  venuesCount: Int
-    @cypher(
-      statement: """
-      MATCH (v:Venue) RETURN count(v)
-      """
-    )
 }
 
 type MetaPlayer {

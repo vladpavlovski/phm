@@ -28,7 +28,6 @@ const GET_SEASONS = gql`
       }
       nick
     }
-    seasonsCount
   }
 `
 

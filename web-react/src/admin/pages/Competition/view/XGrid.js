@@ -21,7 +21,6 @@ const GET_COMPETITIONS = gql`
       name
       nick
     }
-    competitionsCount
   }
 `
 

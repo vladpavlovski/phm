@@ -22,7 +22,6 @@ const GET_SPONSORS = gql`
       legalName
       nick
     }
-    sponsorsCount
   }
 `
 
