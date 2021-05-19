@@ -23,7 +23,10 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_SEASONS, getAdminSeasonRoute } from '../../../routes'
+import {
+  getAdminOrgSeasonsRoute,
+  getAdminOrgSeasonRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -87,7 +90,7 @@ const DELETE_SEASON = gql`
 const Season = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { seasonId } = useParams()
+  const { seasonId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -107,7 +110,7 @@ const Season = () => {
     onCompleted: data => {
       if (seasonId === 'new') {
         const newId = data.mergeSeason.seasonId
-        history.replace(getAdminSeasonRoute(newId))
+        history.replace(getAdminOrgSeasonRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Season saved!', { variant: 'success' })
     },
@@ -118,7 +121,7 @@ const Season = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_SEASON, {
     onCompleted: () => {
-      history.push(ADMIN_SEASONS)
+      history.push(getAdminOrgSeasonsRoute(organizationSlug))
       enqueueSnackbar('Season was deleted!')
     },
   })

@@ -1,13 +1,14 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import dayjs from 'dayjs'
+import { useParams } from 'react-router-dom'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminSeasonRoute } from '../../../../routes'
+import { getAdminOrgSeasonRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -16,8 +17,8 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_SEASONS = gql`
-  query getSeasons {
-    seasons: Season {
+  query getSeasons($organizationSlug: String!) {
+    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
       seasonId
       name
       startDate {
@@ -33,13 +34,12 @@ const GET_SEASONS = gql`
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_SEASONS, {
+    variables: { organizationSlug },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
-
-  // console.log('data:', data)
 
   const columns = useMemo(
     () => [
@@ -84,7 +84,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminSeasonRoute(params.value)}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -92,7 +92,7 @@ const XGridTable = () => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const windowSize = useWindowSize()
@@ -110,7 +110,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminSeasonRoute('new')}
+                  to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

@@ -207,7 +207,9 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Sponsors"
-                  to={ROUTES.ADMIN_SPONSORS}
+                  to={ROUTES.getAdminOrgSponsorsRoute(
+                    organizationData?.urlSlug
+                  )}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
@@ -223,7 +225,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Seasons"
-                  to={ROUTES.ADMIN_SEASONS}
+                  to={ROUTES.getAdminOrgSeasonsRoute(organizationData?.urlSlug)}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
