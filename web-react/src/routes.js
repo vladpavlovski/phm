@@ -18,8 +18,8 @@ export const ADMIN_ORGANIZATION_DASHBOARD = '/admin/:organizationSlug'
 export const ADMIN_COMPETITIONS = '/admin/:organizationSlug/competitions'
 export const ADMIN_COMPETITION =
   '/admin/:organizationSlug/competition/:competitionId'
-export const ADMIN_SPONSORS = '/admin/sponsors'
-export const ADMIN_SPONSOR = '/admin/sponsor/:sponsorId'
+export const ADMIN_SPONSORS = '/admin/:organizationSlug/sponsors'
+export const ADMIN_SPONSOR = '/admin/:organizationSlug/sponsor/:sponsorId'
 export const ADMIN_SEASONS = '/admin/seasons'
 export const ADMIN_SEASON = '/admin/season/:seasonId'
 export const ADMIN_VENUES = '/admin/venues'
@@ -66,8 +66,10 @@ export const getAdminOrgCompetitionsRoute = organizationSlug =>
 export const getAdminOrgCompetitionRoute = (organizationSlug, competitionId) =>
   generatePath(ADMIN_COMPETITION, { organizationSlug, competitionId })
 
-export const getAdminSponsorRoute = sponsorId =>
-  generatePath(ADMIN_SPONSOR, { sponsorId })
+export const getAdminOrgSponsorsRoute = organizationSlug =>
+  generatePath(ADMIN_SPONSORS, { organizationSlug })
+export const getAdminOrgSponsorRoute = (organizationSlug, sponsorId) =>
+  generatePath(ADMIN_SPONSOR, { organizationSlug, sponsorId })
 
 export const getAdminSeasonRoute = seasonId =>
   generatePath(ADMIN_SEASON, { seasonId })

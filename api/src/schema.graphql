@@ -147,6 +147,13 @@ type Query {
       return competition
       """
     )
+  sponsorsByOrganization(organizationSlug: String!): [Competition]
+    @cypher(
+      statement: """
+      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:INVOLVED] - (sponsor:Sponsor)
+      return sponsor
+      """
+    )
 }
 
 type MetaPlayer {

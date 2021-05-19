@@ -21,7 +21,10 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_SPONSORS, getAdminSponsorRoute } from '../../../routes'
+import {
+  getAdminOrgSponsorsRoute,
+  getAdminOrgSponsorRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
@@ -82,7 +85,7 @@ const DELETE_SPONSOR = gql`
 const Sponsor = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { sponsorId } = useParams()
+  const { sponsorId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -102,7 +105,7 @@ const Sponsor = () => {
     onCompleted: data => {
       if (sponsorId === 'new') {
         const newId = data.mergeSponsor.sponsorId
-        history.replace(getAdminSponsorRoute(newId))
+        history.replace(getAdminOrgSponsorRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Sponsor saved!', { variant: 'success' })
     },
@@ -113,7 +116,7 @@ const Sponsor = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_SPONSOR, {
     onCompleted: () => {
-      history.push(ADMIN_SPONSORS)
+      history.push(getAdminOrgSponsorsRoute(organizationSlug))
       enqueueSnackbar('Sponsor was deleted!')
     },
   })
