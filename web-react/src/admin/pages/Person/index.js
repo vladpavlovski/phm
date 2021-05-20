@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useContext } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
@@ -36,6 +36,7 @@ import {
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'
+import OrganizationContext from '../../../context/organization'
 
 const GET_PERSON = gql`
   query getPerson($personId: ID!) {
@@ -77,6 +78,7 @@ const MERGE_PERSON = gql`
     $country: String
     $city: String
     $avatar: String
+    $organizationId: ID!
   ) {
     mergePerson: MergePerson(
       personId: $personId
@@ -101,6 +103,14 @@ const MERGE_PERSON = gql`
     ) {
       personId
     }
+    mergePersonOrg: MergePersonOrgs(
+      from: { personId: $personId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        personId
+      }
+    }
   }
 `
 
@@ -116,6 +126,7 @@ const Person = () => {
   const history = useHistory()
   const classes = useStyles()
   const { personId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -179,6 +190,7 @@ const Person = () => {
           personId: checkId(personId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
+          organizationId: organizationData?.organizationId,
         }
 
         mergePerson({
@@ -188,7 +200,7 @@ const Person = () => {
         console.error(error)
       }
     },
-    [personId]
+    [personId, organizationData]
   )
 
   const updateAvatar = useCallback(

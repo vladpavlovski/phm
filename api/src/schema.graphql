@@ -140,6 +140,13 @@ type Query {
       return player
       """
     )
+  personsByOrganization(organizationSlug: String!): [Person]
+    @cypher(
+      statement: """
+      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (person:Person)
+      return person
+      """
+    )
   competitionsByOrganization(organizationSlug: String!): [Competition]
     @cypher(
       statement: """
@@ -248,6 +255,7 @@ type Person implements Human {
   payments: [Payment] @relation(name: "INITIATES_PAYMENT", direction: OUT)
   organizations: [Organization]
     @relation(name: "HAS_ORGANIZATION_STAFF", direction: IN)
+  orgs: [Organization] @relation(name: "ENGAGED_IN", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
@@ -644,6 +652,7 @@ type Organization {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   persons: [Person] @relation(name: "HAS_ORGANIZATION_STAFF", direction: OUT)
+  orgPersons: [Person] @relation(name: "ENGAGED_IN", direction: IN)
   payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
   competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)

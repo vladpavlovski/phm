@@ -16,8 +16,8 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_PERSONS = gql`
-  query getPersons {
-    persons: Person {
+  query getPersons($organizationSlug: String!) {
+    persons: personsByOrganization(organizationSlug: $organizationSlug) {
       personId
       firstName
       lastName
@@ -29,6 +29,7 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_PERSONS, {
+    variables: { organizationSlug },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
