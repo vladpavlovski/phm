@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 
@@ -28,6 +28,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_AWARD = gql`
   query getAward($awardId: ID!) {
@@ -56,6 +57,7 @@ const MERGE_AWARD = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $organizationId: ID!
   ) {
     mergeAward: MergeAward(
       awardId: $awardId
@@ -72,6 +74,14 @@ const MERGE_AWARD = gql`
     ) {
       awardId
     }
+    mergeAwardOrg: MergeAwardOrgs(
+      from: { awardId: $awardId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        awardId
+      }
+    }
   }
 `
 
@@ -87,6 +97,7 @@ const Award = () => {
   const history = useHistory()
   const classes = useStyles()
   const { awardId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -139,6 +150,7 @@ const Award = () => {
           ...rest,
           awardId: checkId(awardId),
           ...decomposeDate(foundDate, 'foundDate'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeAward({
@@ -148,7 +160,7 @@ const Award = () => {
         console.error(error)
       }
     },
-    [awardId]
+    [awardId, organizationData]
   )
 
   return (

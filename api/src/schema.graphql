@@ -129,43 +129,50 @@ type Query {
   teamsByOrganization(organizationSlug: String!): [Team]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (team: Team)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (team: Team)
       return team
       """
     )
   playersByOrganization(organizationSlug: String!): [Player]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
       return player
       """
     )
   personsByOrganization(organizationSlug: String!): [Person]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (person:Person)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (person:Person)
       return person
       """
     )
   competitionsByOrganization(organizationSlug: String!): [Competition]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition)
       return competition
       """
     )
   sponsorsByOrganization(organizationSlug: String!): [Sponsor]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
       return sponsor
       """
     )
   seasonsByOrganization(organizationSlug: String!): [Season]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
       return season
+      """
+    )
+  awardsByOrganization(organizationSlug: String!): [Award]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (award:Award)
+      return award
       """
     )
 }
@@ -652,14 +659,15 @@ type Organization {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   persons: [Person] @relation(name: "HAS_ORGANIZATION_STAFF", direction: OUT)
-  orgPersons: [Person] @relation(name: "ENGAGED_IN", direction: IN)
   payments: [Payment] @relation(name: "RECEIVES_PAYMENT", direction: IN)
   competitions: [Competition] @relation(name: "OWNED_BY", direction: IN)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
+  orgPersons: [Person] @relation(name: "ENGAGED_IN", direction: IN)
   orgSponsors: [Sponsor] @relation(name: "ENGAGED_IN", direction: IN)
+  orgAwards: [Award] @relation(name: "PROVIDED_BY", direction: IN)
 }
 
 type Sponsor {
@@ -861,6 +869,7 @@ type Award {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  orgs: [Organization] @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type Media {

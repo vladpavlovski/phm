@@ -16,8 +16,8 @@ import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_AWARDS = gql`
-  query getAwards {
-    awards: Award {
+  query getAwards($organizationSlug: String!) {
+    awards: awardsByOrganization(organizationSlug: $organizationSlug) {
       awardId
       name
       type
@@ -29,6 +29,7 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_AWARDS, {
+    variables: { organizationSlug },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
