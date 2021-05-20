@@ -154,10 +154,10 @@ type Query {
       return competition
       """
     )
-  sponsorsByOrganization(organizationSlug: String!): [Competition]
+  sponsorsByOrganization(organizationSlug: String!): [Sponsor]
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:INVOLVED] - (sponsor:Sponsor)
+      MATCH (organization: Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
       return sponsor
       """
     )
@@ -659,6 +659,7 @@ type Organization {
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
+  orgSponsors: [Sponsor] @relation(name: "ENGAGED_IN", direction: IN)
 }
 
 type Sponsor {
@@ -680,6 +681,7 @@ type Sponsor {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   phases: [Phase] @relation(name: "SPONSORED_BY", direction: IN)
   groups: [Group] @relation(name: "SPONSORED_BY", direction: IN)
+  orgs: [Organization] @relation(name: "ENGAGED_IN", direction: OUT)
 }
 
 type Venue {

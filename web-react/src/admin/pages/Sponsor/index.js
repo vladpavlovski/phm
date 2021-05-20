@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
@@ -29,6 +29,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_SPONSOR = gql`
   query getSponsor($sponsorId: ID!) {
@@ -57,6 +58,7 @@ const MERGE_SPONSOR = gql`
     $web: String
     $description: String
     $logo: String
+    $organizationId: ID!
   ) {
     mergeSponsor: MergeSponsor(
       sponsorId: $sponsorId
@@ -70,6 +72,14 @@ const MERGE_SPONSOR = gql`
       logo: $logo
     ) {
       sponsorId
+    }
+    mergeSponsorOrg: MergeSponsorOrgs(
+      from: { sponsorId: $sponsorId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        sponsorId
+      }
     }
   }
 `
@@ -86,6 +96,7 @@ const Sponsor = () => {
   const history = useHistory()
   const classes = useStyles()
   const { sponsorId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -133,6 +144,7 @@ const Sponsor = () => {
         const dataToSubmit = {
           ...dataToCheck,
           sponsorId: checkId(sponsorId),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeSponsor({
@@ -142,7 +154,7 @@ const Sponsor = () => {
         console.error(error)
       }
     },
-    [sponsorId]
+    [sponsorId, organizationData]
   )
 
   const updateLogo = useCallback(
