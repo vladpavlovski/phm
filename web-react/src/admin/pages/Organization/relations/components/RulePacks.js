@@ -2,7 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-
+import { useParams } from 'react-router-dom'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
@@ -24,7 +24,7 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminRulePackRoute } from '../../../../../routes'
+import { getAdminOrgRulePackRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -93,6 +93,7 @@ const RulePacks = props => {
   const { organizationId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
+  const { organizationSlug } = useParams()
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
   const handleCloseAddOrganization = useCallback(() => {
@@ -245,7 +246,7 @@ const RulePacks = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminRulePackRoute(params.value)}
+              to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -286,7 +287,7 @@ const RulePacks = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const allRulePacksColumns = useMemo(

@@ -21,7 +21,10 @@ import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 import { isValidUuid } from '../../../utils'
 
-import { ADMIN_RULEPACKS, getAdminRulePackRoute } from '../../../routes'
+import {
+  getAdminOrgRulePacksRoute,
+  getAdminOrgRulePackRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -55,7 +58,7 @@ const DELETE_RULEPACK = gql`
 const RulePack = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { rulePackId } = useParams()
+  const { rulePackId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -75,7 +78,7 @@ const RulePack = () => {
     onCompleted: data => {
       if (rulePackId === 'new') {
         const newId = data.mergeRulePack.rulePackId
-        history.replace(getAdminRulePackRoute(newId))
+        history.replace(getAdminOrgRulePackRoute(organizationSlug, newId))
       }
       enqueueSnackbar('RulePack saved!', { variant: 'success' })
     },
@@ -86,7 +89,7 @@ const RulePack = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_RULEPACK, {
     onCompleted: () => {
-      history.push(ADMIN_RULEPACKS)
+      history.push(getAdminOrgRulePacksRoute(organizationSlug))
       enqueueSnackbar('RulePack was deleted!')
     },
   })

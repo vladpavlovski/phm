@@ -17,8 +17,6 @@ export const ADMIN_STARS = '/admin/stars'
 export const ADMIN_STAR = '/admin/star/:starId'
 export const ADMIN_EVENTS = '/admin/events'
 export const ADMIN_EVENT = '/admin/event/:eventId'
-export const ADMIN_RULEPACK = '/admin/rulePack/:rulePackId'
-export const ADMIN_RULEPACKS = '/admin/rulePacks'
 
 export const ADMIN_ORG_PLAYERS = '/admin/players/:organizationSlug'
 export const ADMIN_ORG_PLAYER = '/admin/player/:organizationSlug/:playerId'
@@ -44,6 +42,9 @@ export const ADMIN_ORG_PERSONS = '/admin/persons/:organizationSlug'
 export const ADMIN_ORG_PERSON = '/admin/person/:organizationSlug/:personId'
 export const ADMIN_ORG_AWARD = '/admin/award/:organizationSlug/:awardId'
 export const ADMIN_ORG_AWARDS = '/admin/awards/:organizationSlug'
+export const ADMIN_ORG_RULEPACK =
+  '/admin/rulePack/:organizationSlug/:rulePackId'
+export const ADMIN_ORG_RULEPACKS = '/admin/rulePacks/:organizationSlug'
 
 export const getAdminOrgPlayersRoute = organizationSlug =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
@@ -84,8 +85,11 @@ export const getAdminOrgVenuesRoute = organizationSlug =>
 export const getAdminOrgVenueRoute = (organizationSlug, venueId) =>
   generatePath(ADMIN_ORG_VENUE, { organizationSlug, venueId })
 
-export const getAdminRulePackRoute = rulePackId =>
-  generatePath(ADMIN_RULEPACK, { rulePackId })
+export const getAdminOrgRulePacksRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_RULEPACKS, { organizationSlug })
+
+export const getAdminOrgRulePackRoute = (organizationSlug, rulePackId) =>
+  generatePath(ADMIN_ORG_RULEPACK, { organizationSlug, rulePackId })
 
 export const getAdminOrgAwardsRoute = organizationSlug =>
   generatePath(ADMIN_ORG_AWARDS, { organizationSlug })

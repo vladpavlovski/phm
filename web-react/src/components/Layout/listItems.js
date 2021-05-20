@@ -319,7 +319,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Rule Packs"
-              to={ROUTES.ADMIN_RULEPACKS}
+              to={ROUTES.getAdminOrgRulePacksRoute(organizationData?.urlSlug)}
             />
 
             <ListItemLink

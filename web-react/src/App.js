@@ -164,12 +164,12 @@ const App = ({ history }) => {
                         component={AdminSeason}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_RULEPACKS}
+                        path={ROUTES.ADMIN_ORG_RULEPACKS}
                         exact
                         component={AdminRulePacksView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_RULEPACK}
+                        path={ROUTES.ADMIN_ORG_RULEPACK}
                         exact
                         component={AdminRulePack}
                       />
