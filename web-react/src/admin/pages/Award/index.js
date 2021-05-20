@@ -23,7 +23,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_AWARDS, getAdminAwardRoute } from '../../../routes'
+import { getAdminOrgAwardsRoute, getAdminOrgAwardRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -86,7 +86,7 @@ const DELETE_AWARD = gql`
 const Award = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { awardId } = useParams()
+  const { awardId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -106,7 +106,7 @@ const Award = () => {
     onCompleted: data => {
       if (awardId === 'new') {
         const newId = data.mergeAward.awardId
-        history.replace(getAdminAwardRoute(newId))
+        history.replace(getAdminOrgAwardRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Award saved!', { variant: 'success' })
     },
@@ -117,7 +117,7 @@ const Award = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_AWARD, {
     onCompleted: () => {
-      history.push(ADMIN_AWARDS)
+      history.push(getAdminOrgAwardsRoute(organizationSlug))
       enqueueSnackbar('Award was deleted!')
     },
   })

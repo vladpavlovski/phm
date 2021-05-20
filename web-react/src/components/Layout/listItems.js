@@ -257,7 +257,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Awards"
-                  to={ROUTES.ADMIN_AWARDS}
+                  to={ROUTES.getAdminOrgAwardsRoute(organizationData?.urlSlug)}
                 />
               </List>
             </Collapse>

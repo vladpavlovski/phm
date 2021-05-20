@@ -194,12 +194,12 @@ const App = ({ history }) => {
                         component={AdminUser}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_AWARDS}
+                        path={ROUTES.ADMIN_ORG_AWARDS}
                         exact
                         component={AdminAwardView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_AWARD}
+                        path={ROUTES.ADMIN_ORG_AWARD}
                         exact
                         component={AdminAward}
                       />
