@@ -350,7 +350,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Games"
-              to={ROUTES.ADMIN_GAMES}
+              to={ROUTES.getAdminOrgGamesRoute(organizationData?.urlSlug)}
             />
           </List>
         </>

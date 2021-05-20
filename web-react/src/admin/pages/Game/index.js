@@ -28,7 +28,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_GAMES, getAdminGameRoute } from '../../../routes'
+import { getAdminOrgGamesRoute, getAdminOrgGameRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -135,7 +135,7 @@ const Game = () => {
   const history = useHistory()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const { gameId } = useParams()
+  const { gameId, organizationSlug } = useParams()
 
   const {
     loading: queryLoading,
@@ -154,7 +154,7 @@ const Game = () => {
     onCompleted: data => {
       if (gameId === 'new') {
         const newId = data.mergeGame.gameId
-        history.replace(getAdminGameRoute(newId))
+        history.replace(getAdminOrgGameRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Game saved!', { variant: 'success' })
     },
@@ -165,7 +165,7 @@ const Game = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_GAME, {
     onCompleted: () => {
-      history.push(ADMIN_GAMES)
+      history.push(getAdminOrgGamesRoute(organizationSlug))
       enqueueSnackbar('Game was deleted!')
     },
   })

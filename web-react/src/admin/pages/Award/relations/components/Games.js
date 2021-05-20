@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -13,7 +14,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
-import { getAdminGameRoute } from '../../../../../routes'
+import { getAdminOrgGameRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -71,7 +72,7 @@ const MERGE_AWARD_GAME = gql`
 
 const Games = props => {
   const { awardId } = props
-
+  const { organizationSlug } = useParams()
   const classes = useStyles()
 
   const [
@@ -118,7 +119,7 @@ const Games = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminGameRoute(params.value)}
+              to={getAdminOrgGameRoute(organizationSlug, params.value)}
               target="_blank"
             >
               Profile
@@ -127,7 +128,7 @@ const Games = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   return (

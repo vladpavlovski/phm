@@ -221,12 +221,12 @@ const App = ({ history }) => {
                       />
 
                       <PrivateRoute
-                        path={ROUTES.ADMIN_GAMES}
+                        path={ROUTES.ADMIN_ORG_GAMES}
                         exact
                         component={AdminGameView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_GAME}
+                        path={ROUTES.ADMIN_ORG_GAME}
                         exact
                         component={AdminGame}
                       />

@@ -11,11 +11,6 @@ export const ADMIN_DASHBOARD = '/admin/dashboard'
 export const ADMIN_USERS = '/admin/users'
 export const ADMIN_USER = '/admin/user/:userId'
 export const ADMIN_SYSTEM_SETTINGS = '/admin/systemSettings'
-export const ADMIN_GAMES = '/admin/games'
-export const ADMIN_GAME = '/admin/game/:gameId'
-
-export const ADMIN_ORG_EVENTS = '/admin/events/:organizationSlug'
-export const ADMIN_ORG_EVENT = '/admin/event/:organizationSlug/:eventId'
 
 export const ADMIN_ORG_PLAYERS = '/admin/players/:organizationSlug'
 export const ADMIN_ORG_PLAYER = '/admin/player/:organizationSlug/:playerId'
@@ -46,6 +41,10 @@ export const ADMIN_ORG_AWARDS = '/admin/awards/:organizationSlug'
 export const ADMIN_ORG_RULEPACK =
   '/admin/rulePack/:organizationSlug/:rulePackId'
 export const ADMIN_ORG_RULEPACKS = '/admin/rulePacks/:organizationSlug'
+export const ADMIN_ORG_EVENTS = '/admin/events/:organizationSlug'
+export const ADMIN_ORG_EVENT = '/admin/event/:organizationSlug/:eventId'
+export const ADMIN_ORG_GAMES = '/admin/games/:organizationSlug'
+export const ADMIN_ORG_GAME = '/admin/game/:organizationSlug/:gameId'
 
 export const getAdminOrgPlayersRoute = organizationSlug =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
@@ -111,10 +110,15 @@ export const getAdminOrgPersonRoute = (organizationSlug, personId) =>
   generatePath(ADMIN_ORG_PERSON, { organizationSlug, personId })
 
 export const getAdminUserRoute = userId => generatePath(ADMIN_USER, { userId })
-export const getAdminGameRoute = gameId => generatePath(ADMIN_GAME, { gameId })
 export const getAdminStarRoute = starId => generatePath(ADMIN_STAR, { starId })
 export const getAdminOrgEventsRoute = organizationSlug =>
   generatePath(ADMIN_ORG_EVENTS, { organizationSlug })
 
 export const getAdminOrgEventRoute = (organizationSlug, eventId) =>
   generatePath(ADMIN_ORG_EVENT, { organizationSlug, eventId })
+
+export const getAdminOrgGamesRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_GAMES, { organizationSlug })
+
+export const getAdminOrgGameRoute = (organizationSlug, gameId) =>
+  generatePath(ADMIN_ORG_GAME, { organizationSlug, gameId })
