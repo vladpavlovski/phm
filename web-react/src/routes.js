@@ -13,10 +13,9 @@ export const ADMIN_USER = '/admin/user/:userId'
 export const ADMIN_SYSTEM_SETTINGS = '/admin/systemSettings'
 export const ADMIN_GAMES = '/admin/games'
 export const ADMIN_GAME = '/admin/game/:gameId'
-export const ADMIN_STARS = '/admin/stars'
-export const ADMIN_STAR = '/admin/star/:starId'
-export const ADMIN_EVENTS = '/admin/events'
-export const ADMIN_EVENT = '/admin/event/:eventId'
+
+export const ADMIN_ORG_EVENTS = '/admin/events/:organizationSlug'
+export const ADMIN_ORG_EVENT = '/admin/event/:organizationSlug/:eventId'
 
 export const ADMIN_ORG_PLAYERS = '/admin/players/:organizationSlug'
 export const ADMIN_ORG_PLAYER = '/admin/player/:organizationSlug/:playerId'
@@ -24,7 +23,7 @@ export const ADMIN_ORG_TEAMS = '/admin/teams/:organizationSlug'
 export const ADMIN_ORG_TEAM = '/admin/team/:organizationSlug/:teamId'
 export const ADMIN_ORGANIZATIONS = '/admin/organizations'
 export const ADMIN_ORGANIZATION = '/admin/organization/:organizationId'
-export const ADMIN_ORGANIZATION_DASHBOARD = '/admin/:organizationSlug'
+export const ADMIN_ORGANIZATION_DASHBOARD = '/admin/dashboard/:organizationSlug'
 export const ADMIN_ORG_COMPETITIONS = '/admin/competitions/:organizationSlug'
 export const ADMIN_ORG_COMPETITION =
   '/admin/competition/:organizationSlug/:competitionId'
@@ -38,6 +37,8 @@ export const ADMIN_PHASE = '/admin/phase/:phaseId'
 export const ADMIN_PHASES = '/admin/phases'
 export const ADMIN_GROUP = '/admin/group/:groupId'
 export const ADMIN_GROUPS = '/admin/groups'
+export const ADMIN_STARS = '/admin/stars'
+export const ADMIN_STAR = '/admin/star/:starId'
 export const ADMIN_ORG_PERSONS = '/admin/persons/:organizationSlug'
 export const ADMIN_ORG_PERSON = '/admin/person/:organizationSlug/:personId'
 export const ADMIN_ORG_AWARD = '/admin/award/:organizationSlug/:awardId'
@@ -112,5 +113,8 @@ export const getAdminOrgPersonRoute = (organizationSlug, personId) =>
 export const getAdminUserRoute = userId => generatePath(ADMIN_USER, { userId })
 export const getAdminGameRoute = gameId => generatePath(ADMIN_GAME, { gameId })
 export const getAdminStarRoute = starId => generatePath(ADMIN_STAR, { starId })
-export const getAdminEventRoute = eventId =>
-  generatePath(ADMIN_EVENT, { eventId })
+export const getAdminOrgEventsRoute = organizationSlug =>
+  generatePath(ADMIN_ORG_EVENTS, { organizationSlug })
+
+export const getAdminOrgEventRoute = (organizationSlug, eventId) =>
+  generatePath(ADMIN_ORG_EVENT, { organizationSlug, eventId })

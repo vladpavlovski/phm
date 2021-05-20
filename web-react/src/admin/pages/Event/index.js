@@ -28,7 +28,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_EVENTS, getAdminEventRoute } from '../../../routes'
+import { getAdminOrgEventsRoute, getAdminOrgEventRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderEvent from '../../../img/placeholderEvent.png'
@@ -102,7 +102,7 @@ const Event = () => {
   const history = useHistory()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const { eventId } = useParams()
+  const { eventId, organizationSlug } = useParams()
   const { user } = useAuth0()
 
   const client = useApolloClient()
@@ -123,7 +123,7 @@ const Event = () => {
     onCompleted: data => {
       if (eventId === 'new') {
         const newId = data.mergeEvent.eventId
-        history.replace(getAdminEventRoute(newId))
+        history.replace(getAdminOrgEventRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Event saved!', { variant: 'success' })
     },
@@ -134,7 +134,7 @@ const Event = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_EVENT, {
     onCompleted: () => {
-      history.push(ADMIN_EVENTS)
+      history.push(getAdminOrgEventsRoute(organizationSlug))
       enqueueSnackbar('Event was deleted!')
     },
   })

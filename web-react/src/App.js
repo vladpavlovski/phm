@@ -210,12 +210,12 @@ const App = ({ history }) => {
                       />
 
                       <PrivateRoute
-                        path={ROUTES.ADMIN_EVENTS}
+                        path={ROUTES.ADMIN_ORG_EVENTS}
                         exact
                         component={AdminEventView}
                       />
                       <PrivateRoute
-                        path={ROUTES.ADMIN_EVENT}
+                        path={ROUTES.ADMIN_ORG_EVENT}
                         exact
                         component={AdminEvent}
                       />
