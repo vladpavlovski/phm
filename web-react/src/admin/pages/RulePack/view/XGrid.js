@@ -16,8 +16,8 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_RULEPACKS = gql`
-  query getRulePacks {
-    rulePacks: RulePack {
+  query getRulePacks($organizationSlug: String!) {
+    rulePacks: rulePacksByOrganization(organizationSlug: $organizationSlug) {
       rulePackId
       name
     }
@@ -28,6 +28,9 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_RULEPACKS, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

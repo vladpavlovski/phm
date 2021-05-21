@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation } from '@apollo/client'
@@ -29,6 +29,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_RULEPACK = gql`
   query getRulePack($rulePackId: ID!) {
@@ -40,9 +41,21 @@ const GET_RULEPACK = gql`
 `
 
 const MERGE_RULEPACK = gql`
-  mutation mergeRulePack($rulePackId: ID!, $name: String) {
+  mutation mergeRulePack(
+    $rulePackId: ID!
+    $name: String
+    $organizationId: ID!
+  ) {
     mergeRulePack: MergeRulePack(rulePackId: $rulePackId, name: $name) {
       rulePackId
+    }
+    mergeRulePackOrg: MergeRulePackOrgs(
+      from: { rulePackId: $rulePackId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        rulePackId
+      }
     }
   }
 `
@@ -59,6 +72,7 @@ const RulePack = () => {
   const history = useHistory()
   const classes = useStyles()
   const { rulePackId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -108,6 +122,7 @@ const RulePack = () => {
         const dataToSubmit = {
           ...rest,
           rulePackId: rulePackId === 'new' ? uuidv4() : rulePackId,
+          organizationId: organizationData?.organizationId,
         }
 
         mergeRulePack({
@@ -117,7 +132,7 @@ const RulePack = () => {
         console.error(error)
       }
     },
-    [rulePackId]
+    [rulePackId, organizationData]
   )
 
   return (

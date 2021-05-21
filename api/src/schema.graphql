@@ -175,6 +175,13 @@ type Query {
       return award
       """
     )
+  rulePacksByOrganization(organizationSlug: String!): [RulePack]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
+      return rulePack
+      """
+    )
 }
 
 type MetaPlayer {
@@ -668,6 +675,7 @@ type Organization {
   orgPersons: [Person] @relation(name: "ENGAGED_IN", direction: IN)
   orgSponsors: [Sponsor] @relation(name: "ENGAGED_IN", direction: IN)
   orgAwards: [Award] @relation(name: "PROVIDED_BY", direction: IN)
+  orgRulePacks: [RulePack] @relation(name: "PROVIDED_BY", direction: IN)
 }
 
 type Sponsor {
@@ -960,6 +968,7 @@ type RulePack {
   resultPoints: [ResultPoint] @relation(name: "SET_UP", direction: OUT)
   systemSettings: SystemSettings
     @relation(name: "GUIDED_DEFAULT_BY", direction: IN)
+  orgs: [Organization] @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type PenaltyShotStatus {
