@@ -21,8 +21,8 @@ import {
 } from '../../../../utils'
 
 const GET_GAMES = gql`
-  query getGames {
-    games: Game {
+  query getGames($organizationSlug: String!) {
+    games: gamesByOrganization(organizationSlug: $organizationSlug) {
       gameId
       name
       type
@@ -41,6 +41,9 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_GAMES, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

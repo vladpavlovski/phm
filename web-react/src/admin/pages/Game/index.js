@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -33,6 +33,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 export const GET_GAME = gql`
   query getGame($gameId: ID!) {
@@ -101,6 +102,7 @@ const MERGE_GAME = gql`
     $startTimeMinute: Int
     $endTimeHour: Int
     $endTimeMinute: Int
+    $organizationId: ID!
   ) {
     mergeGame: MergeGame(
       gameId: $gameId
@@ -120,6 +122,14 @@ const MERGE_GAME = gql`
     ) {
       gameId
     }
+    mergeGameOrg: MergeGameOrg(
+      from: { gameId: $gameId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        gameId
+      }
+    }
   }
 `
 
@@ -134,6 +144,7 @@ const DELETE_GAME = gql`
 const Game = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const { gameId, organizationSlug } = useParams()
 
@@ -188,6 +199,7 @@ const Game = () => {
           ...decomposeDate(endDate, 'endDate'),
           ...decomposeTime(startTime, 'startTime'),
           ...decomposeTime(endTime, 'endTime'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeGame({

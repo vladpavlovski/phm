@@ -189,6 +189,13 @@ type Query {
       return event
       """
     )
+  gamesByOrganization(organizationSlug: String!): [Game]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (game:Game)
+      return game
+      """
+    )
 }
 
 type MetaPlayer {
@@ -417,6 +424,7 @@ type Game {
   rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   finalResult: FinalResult @relation(name: "COMPOSE_RESULT", direction: OUT)
+  org: Organization @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type GameEvent {
@@ -684,6 +692,7 @@ type Organization {
   orgAwards: [Award] @relation(name: "PROVIDED_BY", direction: IN)
   orgRulePacks: [RulePack] @relation(name: "PROVIDED_BY", direction: IN)
   orgEvents: [Event] @relation(name: "CREATE_IN", direction: IN)
+  orgGames: [Game] @relation(name: "PROVIDED_BY", direction: IN)
 }
 
 type Sponsor {
