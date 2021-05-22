@@ -47,7 +47,7 @@ RHFDatepicker.defaultProps = {
   fullWidth: false,
   openTo: 'year',
   disableFuture: false,
-  views: ['year', 'month', 'date'],
+  views: ['year', 'month', 'day'],
   error: false,
 }
 

@@ -290,7 +290,7 @@ const Game = () => {
                           id="startDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={gameData?.startDate?.formatted}
                           error={errors?.startDate}
                         />
@@ -321,7 +321,7 @@ const Game = () => {
                           id="endDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={gameData?.endDate?.formatted}
                           error={errors?.endDate}
                         />

@@ -182,6 +182,13 @@ type Query {
       return rulePack
       """
     )
+  eventsByOrganization(organizationSlug: String!): [Event]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:CREATE_IN] - (event:Event)
+      return event
+      """
+    )
 }
 
 type MetaPlayer {
@@ -676,6 +683,7 @@ type Organization {
   orgSponsors: [Sponsor] @relation(name: "ENGAGED_IN", direction: IN)
   orgAwards: [Award] @relation(name: "PROVIDED_BY", direction: IN)
   orgRulePacks: [RulePack] @relation(name: "PROVIDED_BY", direction: IN)
+  orgEvents: [Event] @relation(name: "CREATE_IN", direction: IN)
 }
 
 type Sponsor {
@@ -779,6 +787,7 @@ type Event {
   invitation: Invitation @relation(name: "CREATE_INVITATION", direction: OUT)
   invitationList: InvitationList
     @relation(name: "CREATE_INVITATION_LIST", direction: OUT)
+  org: Organization @relation(name: "CREATE_IN", direction: OUT)
 }
 
 type Season {

@@ -250,7 +250,7 @@ const Season = () => {
                           id="startDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={seasonData?.startDate?.formatted}
                           error={errors.startDate}
                         />
@@ -265,7 +265,7 @@ const Season = () => {
                           id="endDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={seasonData?.endDate?.formatted}
                           error={errors.endDate}
                         />

@@ -374,7 +374,7 @@ const Player = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={playerData?.birthday?.formatted}
                           error={errors.birthday}
                         />

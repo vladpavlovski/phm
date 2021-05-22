@@ -365,7 +365,7 @@ const Venue = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={venueData?.foundDate?.formatted}
                           error={errors.foundDate}
                         />

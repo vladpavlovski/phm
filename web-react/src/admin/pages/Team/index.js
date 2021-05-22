@@ -420,7 +420,7 @@ const Team = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={teamData?.foundDate?.formatted}
                           error={errors?.foundDate}
                         />

@@ -21,8 +21,8 @@ import {
 } from '../../../../utils'
 
 const GET_EVENTS = gql`
-  query getEvents {
-    events: Event {
+  query getEvents($organizationSlug: String!) {
+    events: eventsByOrganization(organizationSlug: $organizationSlug) {
       eventId
       name
       description
@@ -40,6 +40,9 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_EVENTS, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })

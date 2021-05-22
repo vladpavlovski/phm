@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -33,6 +33,7 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderEvent from '../../../img/placeholderEvent.png'
 // import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_EVENT = gql`
   query getEvent($eventId: ID!) {
@@ -67,6 +68,7 @@ const MERGE_EVENT = gql`
     $dateYear: Int
     $timeHour: Int
     $timeMinute: Int
+    $organizationId: ID!
   ) {
     mergeEvent: MergeEvent(
       eventId: $eventId
@@ -87,6 +89,14 @@ const MERGE_EVENT = gql`
         lastName
       }
     }
+    mergeEventOrg: MergeEventOrg(
+      from: { eventId: $eventId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        eventId
+      }
+    }
   }
 `
 
@@ -101,6 +111,7 @@ const DELETE_EVENT = gql`
 const Event = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const { eventId, organizationSlug } = useParams()
   const { user } = useAuth0()
@@ -156,6 +167,7 @@ const Event = () => {
           eventId: checkId(eventId),
           ...decomposeDate(date, 'date'),
           ...decomposeTime(time, 'time'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeEvent({
@@ -307,7 +319,7 @@ const Event = () => {
                         id="date"
                         openTo="year"
                         inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
+                        views={['year', 'month', 'day']}
                         defaultValue={eventData?.date?.formatted}
                         error={errors.date}
                       />

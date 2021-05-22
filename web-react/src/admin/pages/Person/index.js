@@ -376,7 +376,7 @@ const Person = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={personData?.birthday?.formatted}
                           error={errors.birthday}
                         />

@@ -313,7 +313,7 @@ const Competition = () => {
                         openTo="year"
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
+                        views={['year', 'month', 'day']}
                         defaultValue={competitionData?.foundDate?.formatted}
                         error={errors.foundDate}
                       />

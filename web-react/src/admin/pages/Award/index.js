@@ -275,7 +275,7 @@ const Award = () => {
                           id="foundDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={awardData?.foundDate?.formatted}
                           error={errors.foundDate}
                         />

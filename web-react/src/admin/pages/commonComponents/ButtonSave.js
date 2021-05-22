@@ -15,8 +15,8 @@ const ButtonSave = props => {
       color="primary"
       className={clsx(className, classes.submit)}
       startIcon={<SaveIcon />}
-      pending={loading}
-      pendingPosition="start"
+      loading={loading}
+      loadingPosition="start"
     >
       {loading ? 'Saving...' : 'Save'}
     </LoadingButton>
