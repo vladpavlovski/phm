@@ -72,7 +72,7 @@ const Organizations = () => {
                   <DashboardIcon />
                 </Tooltip>
               </LinkButton>
-              <LinkButton icon to={getAdminOrganizationRoute(organizationId)}>
+              <LinkButton icon to={getAdminOrganizationRoute(urlSlug)}>
                 <Tooltip arrow title="Edit" placement="top">
                   <EditIcon />
                 </Tooltip>

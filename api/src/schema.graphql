@@ -119,10 +119,10 @@ type Mutation {
 }
 
 type Query {
-  organizationBySlug(urlSlug: String!): Organization
+  organizationBySlug(organizationSlug: String!): Organization
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $urlSlug})
+      MATCH (organization: Organization {urlSlug: $organizationSlug})
       return organization
       """
     )
