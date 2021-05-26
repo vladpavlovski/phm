@@ -366,8 +366,8 @@ const Positions = props => {
                     onClick={createDefaultPositions}
                     className={classes.submit}
                     startIcon={<CreateIcon />}
-                    pending={queryCreateDefaultLoading}
-                    pendingPosition="start"
+                    loading={queryCreateDefaultLoading}
+                    loadingPosition="start"
                   >
                     {queryCreateDefaultLoading
                       ? 'Creating...'
@@ -563,7 +563,7 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" pending={loadingMergePositionType}>
+          <LoadingButton type="submit" loading={loadingMergePositionType}>
             {loadingMergePositionType ? 'Saving...' : 'Save'}
           </LoadingButton>
         </DialogActions>

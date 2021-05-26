@@ -88,7 +88,7 @@ export const formatDate = date =>
   date === '0000-01-01' ? ' ' : dayjs(date).format('LL')
 
 export const formatTime = time =>
-  time === '00:00:00Z' ? ' ' : time.slice(0, 5)
+  time === '00:00:00Z' ? ' ' : time?.slice(0, 5)
 
 const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
 

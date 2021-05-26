@@ -581,7 +581,7 @@ const FormDialog = props => {
         <LoadingButton
           type="button"
           onClick={handleSubmit(onSubmit)}
-          pending={loadingMergePenaltyType}
+          loading={loadingMergePenaltyType}
         >
           {loadingMergePenaltyType ? 'Saving...' : 'Save'}
         </LoadingButton>
@@ -801,7 +801,7 @@ const SubType = props => {
                       deletePenaltySubType()
                     }}
                     type="button"
-                    pending={mutationLoadingDeletePenaltySubType}
+                    loading={mutationLoadingDeletePenaltySubType}
                   >
                     {mutationLoadingDeletePenaltySubType
                       ? 'Deleting...'
@@ -816,7 +816,7 @@ const SubType = props => {
                     handleSubmit(onSubmit)()
                   }}
                   type="button"
-                  pending={loadingMergePenaltySubType}
+                  loading={loadingMergePenaltySubType}
                 >
                   {loadingMergePenaltySubType ? 'Saving...' : 'Save'}
                 </LoadingButton>

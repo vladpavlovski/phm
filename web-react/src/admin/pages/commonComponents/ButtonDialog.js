@@ -37,7 +37,7 @@ const ButtonDialog = props => {
           setOpenDialog(true)
           onClick && onClick()
         }}
-        pending={loading}
+        loading={loading}
       >
         {loading ? textLoading : text}
       </LoadingButton>
@@ -86,7 +86,7 @@ ButtonDialog.defaultProps = {
   textLoading: 'Loading...',
   type: 'button',
   variant: 'outlined',
-  pendingPosition: 'start',
+  loadingPosition: 'start',
   color: 'secondary',
   dialogTitle: 'Do you really want to delete it?',
   dialogDescription:
@@ -105,7 +105,7 @@ ButtonDialog.propTypes = {
   textLoading: PropTypes.string,
   type: PropTypes.string,
   variant: PropTypes.string,
-  pendingPosition: PropTypes.string,
+  loadingPosition: PropTypes.string,
   color: PropTypes.string,
   dialogTitle: PropTypes.string,
   dialogDescription: PropTypes.string,

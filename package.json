@@ -32,5 +32,8 @@
       "prettier --write",
       "eslint --fix"
     ]
+  },
+  "dependencies": {
+    "react-timer-hook": "^3.0.3"
   }
 }

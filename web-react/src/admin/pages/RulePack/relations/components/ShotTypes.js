@@ -545,7 +545,7 @@ const FormDialog = props => {
             handleSubmit(onSubmit)()
           }}
           type="button"
-          pending={loadingMergeShotType}
+          loading={loadingMergeShotType}
         >
           {loadingMergeShotType ? 'Saving...' : 'Save'}
         </LoadingButton>
@@ -763,7 +763,7 @@ const SubType = props => {
                       deleteShotSubType()
                     }}
                     type="button"
-                    pending={mutationLoadingDeleteShotSubType}
+                    loading={mutationLoadingDeleteShotSubType}
                   >
                     {mutationLoadingDeleteShotSubType
                       ? 'Deleting...'
@@ -778,7 +778,7 @@ const SubType = props => {
                     handleSubmit(onSubmit)()
                   }}
                   type="button"
-                  pending={loadingMergeShotSubType}
+                  loading={loadingMergeShotSubType}
                 >
                   {loadingMergeShotSubType ? 'Saving...' : 'Save'}
                 </LoadingButton>

@@ -7,9 +7,13 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Container, Grid, Paper } from '@material-ui/core'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 
+import { LinkButton } from '../../../components/LinkButton'
 import Toolbar from '@material-ui/core/Toolbar'
+import PlayCircleIcon from '@material-ui/icons/PlayCircle'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -28,7 +32,11 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { getAdminOrgGamesRoute, getAdminOrgGameRoute } from '../../../routes'
+import {
+  getAdminOrgGamesRoute,
+  getAdminOrgGameRoute,
+  getAdminOrgGamePlayRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -235,11 +243,11 @@ const Game = () => {
                 <title>{gameData?.name || 'Game'}</title>
               </Helmet>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
+                <Grid item xs={12} md={8} lg={8}>
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>
-                        <Title>{'Game'}</Title>
+                        <Title sx={{ display: 'inline' }}>{'Game'}</Title>
                       </div>
                       <div>
                         {formState.isDirty && (
@@ -376,6 +384,33 @@ const Game = () => {
                           variant="standard"
                           error={errors?.info}
                         />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Paper className={classes.paper}>
+                    <Toolbar disableGutters className={classes.toolbarForm}>
+                      <div>
+                        <Title>{'Result'}</Title>
+                      </div>
+                    </Toolbar>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <LinkButton
+                          to={getAdminOrgGamePlayRoute(
+                            organizationSlug,
+                            gameId
+                          )}
+                          fullWidth
+                          size="medium"
+                          // target="_blank"
+                          variant={'outlined'}
+                          className={classes.submit}
+                          startIcon={<PlayCircleIcon />}
+                        >
+                          Play
+                        </LinkButton>
                       </Grid>
                     </Grid>
                   </Paper>

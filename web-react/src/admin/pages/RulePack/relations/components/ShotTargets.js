@@ -445,7 +445,7 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" pending={loadingMergeShotTarget}>
+          <LoadingButton type="submit" loading={loadingMergeShotTarget}>
             {loadingMergeShotTarget ? 'Saving...' : 'Save'}
           </LoadingButton>
         </DialogActions>
