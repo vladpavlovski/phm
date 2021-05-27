@@ -30,7 +30,10 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { ADMIN_PLAYERS, getAdminPlayerRoute } from '../../../routes'
+import {
+  getAdminOrgPlayersRoute,
+  getAdminOrgPlayerRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'
@@ -122,7 +125,7 @@ const DELETE_PLAYER = gql`
 const Player = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { playerId } = useParams()
+  const { playerId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
 
@@ -142,7 +145,7 @@ const Player = () => {
     onCompleted: data => {
       if (playerId === 'new') {
         const newPlayerId = data.mergePlayer.playerId
-        history.replace(getAdminPlayerRoute(newPlayerId))
+        history.replace(getAdminOrgPlayerRoute(organizationSlug, newPlayerId))
       }
       enqueueSnackbar(`Player saved!`, {
         variant: 'success',
@@ -157,7 +160,7 @@ const Player = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_PLAYER, {
     onCompleted: () => {
-      history.push(ADMIN_PLAYERS)
+      history.push(getAdminOrgPlayersRoute(organizationSlug))
       enqueueSnackbar(`Player was deleted!`, {
         variant: 'info',
       })
@@ -371,7 +374,7 @@ const Player = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={playerData?.birthday?.formatted}
                           error={errors.birthday}
                         />

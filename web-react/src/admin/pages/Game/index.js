@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -7,9 +7,13 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Container, Grid, Paper } from '@material-ui/core'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 
+import { LinkButton } from '../../../components/LinkButton'
 import Toolbar from '@material-ui/core/Toolbar'
+import PlayCircleIcon from '@material-ui/icons/PlayCircle'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -28,11 +32,16 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_GAMES, getAdminGameRoute } from '../../../routes'
+import {
+  getAdminOrgGamesRoute,
+  getAdminOrgGameRoute,
+  getAdminOrgGamePlayRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 export const GET_GAME = gql`
   query getGame($gameId: ID!) {
@@ -101,6 +110,7 @@ const MERGE_GAME = gql`
     $startTimeMinute: Int
     $endTimeHour: Int
     $endTimeMinute: Int
+    $organizationId: ID!
   ) {
     mergeGame: MergeGame(
       gameId: $gameId
@@ -120,6 +130,14 @@ const MERGE_GAME = gql`
     ) {
       gameId
     }
+    mergeGameOrg: MergeGameOrg(
+      from: { gameId: $gameId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        gameId
+      }
+    }
   }
 `
 
@@ -134,8 +152,9 @@ const DELETE_GAME = gql`
 const Game = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
-  const { gameId } = useParams()
+  const { gameId, organizationSlug } = useParams()
 
   const {
     loading: queryLoading,
@@ -154,7 +173,7 @@ const Game = () => {
     onCompleted: data => {
       if (gameId === 'new') {
         const newId = data.mergeGame.gameId
-        history.replace(getAdminGameRoute(newId))
+        history.replace(getAdminOrgGameRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Game saved!', { variant: 'success' })
     },
@@ -165,7 +184,7 @@ const Game = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_GAME, {
     onCompleted: () => {
-      history.push(ADMIN_GAMES)
+      history.push(getAdminOrgGamesRoute(organizationSlug))
       enqueueSnackbar('Game was deleted!')
     },
   })
@@ -188,6 +207,7 @@ const Game = () => {
           ...decomposeDate(endDate, 'endDate'),
           ...decomposeTime(startTime, 'startTime'),
           ...decomposeTime(endTime, 'endTime'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeGame({
@@ -223,11 +243,11 @@ const Game = () => {
                 <title>{gameData?.name || 'Game'}</title>
               </Helmet>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={12} lg={12}>
+                <Grid item xs={12} md={8} lg={8}>
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>
-                        <Title>{'Game'}</Title>
+                        <Title sx={{ display: 'inline' }}>{'Game'}</Title>
                       </div>
                       <div>
                         {formState.isDirty && (
@@ -290,7 +310,7 @@ const Game = () => {
                           id="startDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={gameData?.startDate?.formatted}
                           error={errors?.startDate}
                         />
@@ -321,7 +341,7 @@ const Game = () => {
                           id="endDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={gameData?.endDate?.formatted}
                           error={errors?.endDate}
                         />
@@ -364,6 +384,33 @@ const Game = () => {
                           variant="standard"
                           error={errors?.info}
                         />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Paper className={classes.paper}>
+                    <Toolbar disableGutters className={classes.toolbarForm}>
+                      <div>
+                        <Title>{'Result'}</Title>
+                      </div>
+                    </Toolbar>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <LinkButton
+                          to={getAdminOrgGamePlayRoute(
+                            organizationSlug,
+                            gameId
+                          )}
+                          fullWidth
+                          size="medium"
+                          // target="_blank"
+                          variant={'outlined'}
+                          className={classes.submit}
+                          startIcon={<PlayCircleIcon />}
+                        >
+                          Play
+                        </LinkButton>
                       </Grid>
                     </Grid>
                   </Paper>

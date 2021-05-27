@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -28,11 +28,12 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_EVENTS, getAdminEventRoute } from '../../../routes'
+import { getAdminOrgEventsRoute, getAdminOrgEventRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderEvent from '../../../img/placeholderEvent.png'
 // import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_EVENT = gql`
   query getEvent($eventId: ID!) {
@@ -67,6 +68,7 @@ const MERGE_EVENT = gql`
     $dateYear: Int
     $timeHour: Int
     $timeMinute: Int
+    $organizationId: ID!
   ) {
     mergeEvent: MergeEvent(
       eventId: $eventId
@@ -87,6 +89,14 @@ const MERGE_EVENT = gql`
         lastName
       }
     }
+    mergeEventOrg: MergeEventOrg(
+      from: { eventId: $eventId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        eventId
+      }
+    }
   }
 `
 
@@ -101,8 +111,9 @@ const DELETE_EVENT = gql`
 const Event = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
-  const { eventId } = useParams()
+  const { eventId, organizationSlug } = useParams()
   const { user } = useAuth0()
 
   const client = useApolloClient()
@@ -123,7 +134,7 @@ const Event = () => {
     onCompleted: data => {
       if (eventId === 'new') {
         const newId = data.mergeEvent.eventId
-        history.replace(getAdminEventRoute(newId))
+        history.replace(getAdminOrgEventRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Event saved!', { variant: 'success' })
     },
@@ -134,7 +145,7 @@ const Event = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_EVENT, {
     onCompleted: () => {
-      history.push(ADMIN_EVENTS)
+      history.push(getAdminOrgEventsRoute(organizationSlug))
       enqueueSnackbar('Event was deleted!')
     },
   })
@@ -156,6 +167,7 @@ const Event = () => {
           eventId: checkId(eventId),
           ...decomposeDate(date, 'date'),
           ...decomposeTime(time, 'time'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeEvent({
@@ -307,7 +319,7 @@ const Event = () => {
                         id="date"
                         openTo="year"
                         inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
+                        views={['year', 'month', 'day']}
                         defaultValue={eventData?.date?.formatted}
                         error={errors.date}
                       />

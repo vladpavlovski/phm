@@ -1,12 +1,13 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminPlayerRoute } from '../../../../routes'
+import { getAdminOrgPlayerRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -19,8 +20,8 @@ import {
 } from '../../../../utils'
 
 export const GET_PLAYERS = gql`
-  query getPlayers {
-    players: Player {
+  query getPlayers($organizationSlug: String!) {
+    players: playersByOrganization(organizationSlug: $organizationSlug) {
       playerId
       firstName
       lastName
@@ -38,8 +39,11 @@ export const GET_PLAYERS = gql`
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_PLAYERS, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
@@ -81,7 +85,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminPlayerRoute(params.value)}
+              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -107,7 +111,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminPlayerRoute('new')}
+                  to={getAdminOrgPlayerRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

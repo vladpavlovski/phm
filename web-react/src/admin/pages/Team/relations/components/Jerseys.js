@@ -335,8 +335,8 @@ const Jerseys = props => {
                     onClick={createJerseys}
                     className={classes.submit}
                     startIcon={<CreateIcon />}
-                    pending={queryCreateLoading}
-                    pendingPosition="start"
+                    loading={queryCreateLoading}
+                    loadingPosition="start"
                   >
                     {queryCreateLoading ? 'Creating...' : 'Create'}
                   </LoadingButton>

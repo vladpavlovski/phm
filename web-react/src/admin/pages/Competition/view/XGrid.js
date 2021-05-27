@@ -1,12 +1,15 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Container, Grid, Paper } from '@material-ui/core'
+import { useParams } from 'react-router-dom'
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminCompetitionRoute } from '../../../../routes'
+import { getAdminOrgCompetitionRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -15,25 +18,25 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_COMPETITIONS = gql`
-  query getOrganizations {
-    competitions: Competition {
+  query getOrganizations($organizationSlug: String!) {
+    competitions: competitionsByOrganization(
+      organizationSlug: $organizationSlug
+    ) {
       competitionId
       name
       nick
     }
-    competitionsCount
   }
 `
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_COMPETITIONS, {
+    variables: { organizationSlug },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
-
-  // console.log('data:', data)
 
   const columns = useMemo(
     () => [
@@ -56,7 +59,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminCompetitionRoute(params.value)}
+              to={getAdminOrgCompetitionRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -64,7 +67,7 @@ const XGridTable = () => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const windowSize = useWindowSize()
@@ -82,7 +85,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminCompetitionRoute('new')}
+                  to={getAdminOrgCompetitionRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

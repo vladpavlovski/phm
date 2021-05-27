@@ -354,8 +354,8 @@ const Occupations = props => {
                     onClick={createDefaultOccupations}
                     className={classes.submit}
                     startIcon={<CreateIcon />}
-                    pending={queryCreateDefaultLoading}
-                    pendingOccupation="start"
+                    loading={queryCreateDefaultLoading}
+                    loadingOccupation="start"
                   >
                     {queryCreateDefaultLoading
                       ? 'Creating...'
@@ -539,7 +539,7 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" pending={loadingMergeOccupationType}>
+          <LoadingButton type="submit" loading={loadingMergeOccupationType}>
             {loadingMergeOccupationType ? 'Saving...' : 'Save'}
           </LoadingButton>
         </DialogActions>

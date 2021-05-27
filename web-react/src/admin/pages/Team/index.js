@@ -24,7 +24,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_TEAMS, getAdminTeamRoute } from '../../../routes'
+import { ADMIN_ORG_TEAMS, getAdminOrgTeamRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
@@ -146,7 +146,7 @@ const Team = () => {
     onCompleted: data => {
       if (teamId === 'new') {
         const newId = data.mergeTeam.teamId
-        history.replace(getAdminTeamRoute(newId))
+        history.replace(getAdminOrgTeamRoute(newId))
       }
       enqueueSnackbar('Team saved!', { variant: 'success' })
     },
@@ -157,7 +157,7 @@ const Team = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_TEAM, {
     onCompleted: () => {
-      history.push(ADMIN_TEAMS)
+      history.push(ADMIN_ORG_TEAMS)
       enqueueSnackbar('Team was deleted!')
     },
   })
@@ -420,7 +420,7 @@ const Team = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={teamData?.foundDate?.formatted}
                           error={errors?.foundDate}
                         />

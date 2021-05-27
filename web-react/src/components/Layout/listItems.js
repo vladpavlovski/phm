@@ -1,4 +1,4 @@
-import React, { useMemo, forwardRef } from 'react'
+import React, { useMemo, forwardRef, useContext } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as ROUTES from '../../routes'
 import createPersistedState from 'use-persisted-state'
@@ -10,6 +10,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import Tooltip from '@material-ui/core/Tooltip'
+import ListSubheader from '@material-ui/core/ListSubheader'
 import Collapse from '@material-ui/core/Collapse'
 import ExpandLess from '@material-ui/icons/ExpandLess'
 import ExpandMore from '@material-ui/icons/ExpandMore'
@@ -31,7 +32,9 @@ import SportsEsportsIcon from '@material-ui/icons/SportsEsports'
 
 import { useStyles } from './styled'
 
-const useGeneralMenuState = createPersistedState('generalMenu')
+import OrganizationContext from '../../context/organization'
+
+const useGeneralMenuState = createPersistedState('HMS-GeneralMenu')
 
 const ListItemLink = props => {
   const { icon, primary, to, className } = props
@@ -55,11 +58,13 @@ const ListItemLink = props => {
 const MainListItems = props => {
   const { open } = props
   const classes = useStyles()
+  const { organizationData } = useContext(OrganizationContext)
   const [generalOpen, setGeneralOpen] = useGeneralMenuState(false)
 
   return (
     <>
       <List>
+        <ListSubheader>System</ListSubheader>
         <ListItemLink
           icon={
             <Tooltip
@@ -75,204 +80,37 @@ const MainListItems = props => {
           primary="Dashboard"
           to={ROUTES.ADMIN_DASHBOARD}
         />
-      </List>
-      <Divider />
-      <List>
-        {/* <ListSubheader inset>PHM Tables</ListSubheader> */}
-        <ListItem
-          button
-          onClick={() => {
-            setGeneralOpen(!generalOpen)
-          }}
-        >
-          <ListItemIcon>
-            <Tooltip
-              arrow
-              title="General"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <SportsHockey />
-            </Tooltip>
-          </ListItemIcon>
-          <ListItemText primary="General" />
-          {generalOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItem>
-        <Collapse in={generalOpen} timeout="auto" unmountOnExit>
-          <List
-            component="div"
-            disablePadding
-            className={open ? classes.menuSubList : classes.menuSubListShift}
-            // sx={{
-            //   '& .MuiListItem-root': {
-            //     paddingLeft: open ? 4 : 3,
-            //   },
-            // }}
-          >
-            {/* <ListItem button className={classes.nested}>
-            <ListItemIcon>
-              <SportsHockey />
-            </ListItemIcon>
-            <ListItemText primary="Starred" />
-          </ListItem> */}
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Organizations"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <GroupWorkIcon />
-                </Tooltip>
-              }
-              primary="Organizations"
-              to={ROUTES.ADMIN_ORGANIZATIONS}
-            />
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Competitions"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <SportsHockey />
-                </Tooltip>
-              }
-              primary="Competitions"
-              to={ROUTES.ADMIN_COMPETITIONS}
-            />
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Sponsors"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <MonetizationOnIcon />
-                </Tooltip>
-              }
-              primary="Sponsors"
-              to={ROUTES.ADMIN_SPONSORS}
-            />
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Seasons"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <DateRangeIcon />
-                </Tooltip>
-              }
-              primary="Seasons"
-              to={ROUTES.ADMIN_SEASONS}
-            />
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Venues"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <ApartmentIcon />
-                </Tooltip>
-              }
-              primary="Venues"
-              to={ROUTES.ADMIN_VENUES}
-            />
-            <ListItemLink
-              className={classes.menuSubListItem}
-              icon={
-                <Tooltip
-                  arrow
-                  title="Awards"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
-                  <EmojiEventsIcon />
-                </Tooltip>
-              }
-              primary="Awards"
-              to={ROUTES.ADMIN_AWARDS}
-            />
-          </List>
-        </Collapse>
+
         <ListItemLink
           icon={
             <Tooltip
               arrow
-              title="Teams"
+              title="Organizations"
               placement="right"
               disableHoverListener={open}
               TransitionComponent={Zoom}
             >
-              <Group />
+              <GroupWorkIcon />
             </Tooltip>
           }
-          primary="Teams"
-          to={ROUTES.ADMIN_TEAMS}
+          primary="Organizations"
+          to={ROUTES.ADMIN_ORGANIZATIONS}
         />
+
         <ListItemLink
           icon={
             <Tooltip
               arrow
-              title="Players"
+              title="System Settings"
               placement="right"
               disableHoverListener={open}
               TransitionComponent={Zoom}
             >
-              <Mood />
+              <SettingsIcon />
             </Tooltip>
           }
-          primary="Players"
-          to={ROUTES.ADMIN_PLAYERS}
-        />
-        <ListItemLink
-          icon={
-            <Tooltip
-              arrow
-              title="Persons"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <Groups />
-            </Tooltip>
-          }
-          primary="Persons"
-          to={ROUTES.ADMIN_PERSONS}
-        />
-        <ListItemLink
-          icon={
-            <Tooltip
-              arrow
-              title="Rule Packs"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <GavelIcon />
-            </Tooltip>
-          }
-          primary="Rule Packs"
-          to={ROUTES.ADMIN_RULEPACKS}
+          primary="System Settings"
+          to={ROUTES.ADMIN_SYSTEM_SETTINGS}
         />
         <ListItemLink
           icon={
@@ -289,59 +127,234 @@ const MainListItems = props => {
           primary="Users"
           to={ROUTES.ADMIN_USERS}
         />
-        <ListItemLink
-          icon={
-            <Tooltip
-              arrow
-              title="Events"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <EventIcon />
-            </Tooltip>
-          }
-          primary="Events"
-          to={ROUTES.ADMIN_EVENTS}
-        />
-        <ListItemLink
-          icon={
-            <Tooltip
-              arrow
-              title="Games"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <SportsEsportsIcon />
-            </Tooltip>
-          }
-          primary="Games"
-          to={ROUTES.ADMIN_GAMES}
-        />
-        <ListItemLink
-          icon={
-            <Tooltip
-              arrow
-              title="System Settings"
-              placement="right"
-              disableHoverListener={open}
-              TransitionComponent={Zoom}
-            >
-              <SettingsIcon />
-            </Tooltip>
-          }
-          primary="System Settings"
-          to={ROUTES.ADMIN_SYSTEM_SETTINGS}
-        />
-
-        {/* <ListItemLink icon={<GridOn />} primary="Link Map" to={ROUTES.LINK_MAP} />
-      <ListItemLink
-        icon={<DoneAll />}
-        primary="Player Merge"
-        to={ROUTES.PLAYER_MERGE}
-      /> */}
       </List>
+      {organizationData?.organizationId && (
+        <>
+          <Divider />
+          <List>
+            <ListSubheader>{`${
+              organizationData?.name || 'Organization'
+            }`}</ListSubheader>
+            <ListItem
+              button
+              onClick={() => {
+                setGeneralOpen(!generalOpen)
+              }}
+            >
+              <ListItemIcon>
+                <Tooltip
+                  arrow
+                  title="General"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <SportsHockey />
+                </Tooltip>
+              </ListItemIcon>
+              <ListItemText primary="General" />
+              {generalOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={generalOpen} timeout="auto" unmountOnExit>
+              <List
+                component="div"
+                disablePadding
+                className={
+                  open ? classes.menuSubList : classes.menuSubListShift
+                }
+                // sx={{
+                //   '& .MuiListItem-root': {
+                //     paddingLeft: open ? 4 : 3,
+                //   },
+                // }}
+              >
+                {/* <ListItem button className={classes.nested}>
+            <ListItemIcon>
+              <SportsHockey />
+            </ListItemIcon>
+            <ListItemText primary="Starred" />
+          </ListItem> */}
+
+                <ListItemLink
+                  className={classes.menuSubListItem}
+                  icon={
+                    <Tooltip
+                      arrow
+                      title="Competitions"
+                      placement="right"
+                      disableHoverListener={open}
+                      TransitionComponent={Zoom}
+                    >
+                      <SportsHockey />
+                    </Tooltip>
+                  }
+                  primary="Competitions"
+                  to={ROUTES.getAdminOrgCompetitionsRoute(
+                    organizationData?.urlSlug
+                  )}
+                />
+                <ListItemLink
+                  className={classes.menuSubListItem}
+                  icon={
+                    <Tooltip
+                      arrow
+                      title="Sponsors"
+                      placement="right"
+                      disableHoverListener={open}
+                      TransitionComponent={Zoom}
+                    >
+                      <MonetizationOnIcon />
+                    </Tooltip>
+                  }
+                  primary="Sponsors"
+                  to={ROUTES.getAdminOrgSponsorsRoute(
+                    organizationData?.urlSlug
+                  )}
+                />
+                <ListItemLink
+                  className={classes.menuSubListItem}
+                  icon={
+                    <Tooltip
+                      arrow
+                      title="Seasons"
+                      placement="right"
+                      disableHoverListener={open}
+                      TransitionComponent={Zoom}
+                    >
+                      <DateRangeIcon />
+                    </Tooltip>
+                  }
+                  primary="Seasons"
+                  to={ROUTES.getAdminOrgSeasonsRoute(organizationData?.urlSlug)}
+                />
+                <ListItemLink
+                  className={classes.menuSubListItem}
+                  icon={
+                    <Tooltip
+                      arrow
+                      title="Venues"
+                      placement="right"
+                      disableHoverListener={open}
+                      TransitionComponent={Zoom}
+                    >
+                      <ApartmentIcon />
+                    </Tooltip>
+                  }
+                  primary="Venues"
+                  to={ROUTES.getAdminOrgVenuesRoute(organizationData?.urlSlug)}
+                />
+                <ListItemLink
+                  className={classes.menuSubListItem}
+                  icon={
+                    <Tooltip
+                      arrow
+                      title="Awards"
+                      placement="right"
+                      disableHoverListener={open}
+                      TransitionComponent={Zoom}
+                    >
+                      <EmojiEventsIcon />
+                    </Tooltip>
+                  }
+                  primary="Awards"
+                  to={ROUTES.getAdminOrgAwardsRoute(organizationData?.urlSlug)}
+                />
+              </List>
+            </Collapse>
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Teams"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <Group />
+                </Tooltip>
+              }
+              primary="Teams"
+              to={ROUTES.getAdminOrgTeamsRoute(organizationData?.urlSlug)}
+            />
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Players"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <Mood />
+                </Tooltip>
+              }
+              primary="Players"
+              to={ROUTES.getAdminOrgPlayersRoute(organizationData?.urlSlug)}
+            />
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Persons"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <Groups />
+                </Tooltip>
+              }
+              primary="Persons"
+              to={ROUTES.getAdminOrgPersonsRoute(organizationData?.urlSlug)}
+            />
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Rule Packs"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <GavelIcon />
+                </Tooltip>
+              }
+              primary="Rule Packs"
+              to={ROUTES.getAdminOrgRulePacksRoute(organizationData?.urlSlug)}
+            />
+
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Events"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <EventIcon />
+                </Tooltip>
+              }
+              primary="Events"
+              to={ROUTES.getAdminOrgEventsRoute(organizationData?.urlSlug)}
+            />
+            <ListItemLink
+              icon={
+                <Tooltip
+                  arrow
+                  title="Games"
+                  placement="right"
+                  disableHoverListener={open}
+                  TransitionComponent={Zoom}
+                >
+                  <SportsEsportsIcon />
+                </Tooltip>
+              }
+              primary="Games"
+              to={ROUTES.getAdminOrgGamesRoute(organizationData?.urlSlug)}
+            />
+          </List>
+        </>
+      )}
     </>
   )
 }

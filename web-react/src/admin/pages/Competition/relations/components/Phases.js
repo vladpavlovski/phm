@@ -531,7 +531,7 @@ const FormDialog = props => {
                       id="startDate"
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'date']}
+                      views={['year', 'month', 'day']}
                       defaultValue={data?.startDate?.formatted}
                       error={errors?.startDate}
                     />
@@ -546,7 +546,7 @@ const FormDialog = props => {
                       id="endDate"
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'date']}
+                      views={['year', 'month', 'day']}
                       defaultValue={data?.endDate?.formatted}
                       error={errors?.endDate}
                     />
@@ -561,7 +561,7 @@ const FormDialog = props => {
           <Button type="button" onClick={handleCloseDialog}>
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" pending={loadingMergePhase}>
+          <LoadingButton type="submit" loading={loadingMergePhase}>
             {loadingMergePhase ? 'Saving...' : 'Save'}
           </LoadingButton>
         </DialogActions>

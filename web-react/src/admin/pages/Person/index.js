@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useContext } from 'react'
 import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
@@ -29,10 +29,14 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { ADMIN_PERSONS, getAdminPersonRoute } from '../../../routes'
+import {
+  getAdminOrgPersonsRoute,
+  getAdminOrgPersonRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'
+import OrganizationContext from '../../../context/organization'
 
 const GET_PERSON = gql`
   query getPerson($personId: ID!) {
@@ -74,6 +78,7 @@ const MERGE_PERSON = gql`
     $country: String
     $city: String
     $avatar: String
+    $organizationId: ID!
   ) {
     mergePerson: MergePerson(
       personId: $personId
@@ -98,6 +103,14 @@ const MERGE_PERSON = gql`
     ) {
       personId
     }
+    mergePersonOrg: MergePersonOrgs(
+      from: { personId: $personId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        personId
+      }
+    }
   }
 `
 
@@ -112,7 +125,8 @@ const DELETE_PERSON = gql`
 const Person = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { personId } = useParams()
+  const { personId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -131,7 +145,7 @@ const Person = () => {
     onCompleted: data => {
       if (personId === 'new') {
         const newPersonId = data.mergePerson.personId
-        history.replace(getAdminPersonRoute(newPersonId))
+        history.replace(getAdminOrgPersonRoute(organizationSlug, newPersonId))
       }
       enqueueSnackbar(`Person saved!`, {
         variant: 'success',
@@ -146,7 +160,7 @@ const Person = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_PERSON, {
     onCompleted: () => {
-      history.push(ADMIN_PERSONS)
+      history.push(getAdminOrgPersonsRoute(organizationSlug))
       enqueueSnackbar(`Person was deleted!`, {
         variant: 'info',
       })
@@ -176,6 +190,7 @@ const Person = () => {
           personId: checkId(personId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
+          organizationId: organizationData?.organizationId,
         }
 
         mergePerson({
@@ -185,7 +200,7 @@ const Person = () => {
         console.error(error)
       }
     },
-    [personId]
+    [personId, organizationData]
   )
 
   const updateAvatar = useCallback(
@@ -361,7 +376,7 @@ const Person = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={personData?.birthday?.formatted}
                           error={errors.birthday}
                         />

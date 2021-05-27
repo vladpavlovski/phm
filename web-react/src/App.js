@@ -16,6 +16,7 @@ import { muiTheme, GlobalStyle } from './styles/global'
 
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
+import { OrganizationProvider } from './context/organization/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import * as ROUTES from './routes'
 import { PrivateRoute } from './components/PrivateRoute'
@@ -33,6 +34,9 @@ const AdminOrganizationsView = Load(() =>
   import('./admin/pages/Organization/view')
 )
 const AdminOrganization = Load(() => import('./admin/pages/Organization'))
+const AdminOrganizationDashboard = Load(() =>
+  import('./admin/pages/Organization/dashboard')
+)
 const AdminCompetitionsView = Load(() =>
   import('./admin/pages/Competition/view')
 )
@@ -57,6 +61,7 @@ const AdminEvent = Load(() => import('./admin/pages/Event'))
 const AdminEventView = Load(() => import('./admin/pages/Event/view'))
 const AdminGame = Load(() => import('./admin/pages/Game'))
 const AdminGameView = Load(() => import('./admin/pages/Game/view'))
+const AdminGamePlay = Load(() => import('./admin/pages/Game/play'))
 
 dayjs.extend(duration)
 dayjs.extend(utc)
@@ -71,164 +76,177 @@ const App = ({ history }) => {
         <ErrorBoundary>
           <Router history={history}>
             <SnackbarProvider maxSnack={5}>
-              <LayoutProvider>
-                <Layout>
-                  <Switch>
-                    <PrivateRoute exact path="/" component={Dashboard} />
-                    <PrivateRoute
-                      exact
-                      path={ROUTES.ADMIN_DASHBOARD}
-                      component={Dashboard}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_PLAYERS}
-                      exact
-                      component={AdminPlayersView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_PLAYER}
-                      exact
-                      component={AdminPlayer}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_TEAMS}
-                      exact
-                      component={AdminTeamsView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_TEAM}
-                      exact
-                      component={AdminTeam}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_ORGANIZATIONS}
-                      exact
-                      component={AdminOrganizationsView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_ORGANIZATION}
-                      exact
-                      component={AdminOrganization}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_COMPETITIONS}
-                      exact
-                      component={AdminCompetitionsView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_COMPETITION}
-                      exact
-                      component={AdminCompetition}
-                    />
+              <OrganizationProvider>
+                <LayoutProvider>
+                  <Layout>
+                    <Switch>
+                      <PrivateRoute exact path="/" component={Dashboard} />
+                      <PrivateRoute
+                        exact
+                        path={ROUTES.ADMIN_DASHBOARD}
+                        component={Dashboard}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_PLAYERS}
+                        exact
+                        component={AdminPlayersView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_PLAYER}
+                        exact
+                        component={AdminPlayer}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_TEAMS}
+                        exact
+                        component={AdminTeamsView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_TEAM}
+                        exact
+                        component={AdminTeam}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORGANIZATIONS}
+                        exact
+                        component={AdminOrganizationsView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORGANIZATION}
+                        exact
+                        component={AdminOrganization}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORGANIZATION_DASHBOARD}
+                        exact
+                        component={AdminOrganizationDashboard}
+                      />
 
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_SPONSORS}
-                      exact
-                      component={AdminSponsorsView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_SPONSOR}
-                      exact
-                      component={AdminSponsor}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_VENUES}
-                      exact
-                      component={AdminVenuesView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_VENUE}
-                      exact
-                      component={AdminVenue}
-                    />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_COMPETITIONS}
+                        exact
+                        component={AdminCompetitionsView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_COMPETITION}
+                        exact
+                        component={AdminCompetition}
+                      />
 
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_SEASONS}
-                      exact
-                      component={AdminSeasonsView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_SEASON}
-                      exact
-                      component={AdminSeason}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_RULEPACKS}
-                      exact
-                      component={AdminRulePacksView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_RULEPACK}
-                      exact
-                      component={AdminRulePack}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_PERSONS}
-                      exact
-                      component={AdminPersonView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_PERSON}
-                      exact
-                      component={AdminPerson}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_USERS}
-                      exact
-                      component={AdminUserView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_USER}
-                      exact
-                      component={AdminUser}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_AWARDS}
-                      exact
-                      component={AdminAwardView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_AWARD}
-                      exact
-                      component={AdminAward}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_SYSTEM_SETTINGS}
-                      exact
-                      component={AdminSystemSettings}
-                    />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_SPONSORS}
+                        exact
+                        component={AdminSponsorsView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_SPONSOR}
+                        exact
+                        component={AdminSponsor}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_VENUES}
+                        exact
+                        component={AdminVenuesView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_VENUE}
+                        exact
+                        component={AdminVenue}
+                      />
 
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_EVENTS}
-                      exact
-                      component={AdminEventView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_EVENT}
-                      exact
-                      component={AdminEvent}
-                    />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_SEASONS}
+                        exact
+                        component={AdminSeasonsView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_SEASON}
+                        exact
+                        component={AdminSeason}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_RULEPACKS}
+                        exact
+                        component={AdminRulePacksView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_RULEPACK}
+                        exact
+                        component={AdminRulePack}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_PERSONS}
+                        exact
+                        component={AdminPersonView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_PERSON}
+                        exact
+                        component={AdminPerson}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_USERS}
+                        exact
+                        component={AdminUserView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_USER}
+                        exact
+                        component={AdminUser}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_AWARDS}
+                        exact
+                        component={AdminAwardView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_AWARD}
+                        exact
+                        component={AdminAward}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_SYSTEM_SETTINGS}
+                        exact
+                        component={AdminSystemSettings}
+                      />
 
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_GAMES}
-                      exact
-                      component={AdminGameView}
-                    />
-                    <PrivateRoute
-                      path={ROUTES.ADMIN_GAME}
-                      exact
-                      component={AdminGame}
-                    />
-                    {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
-                    <Route
-                      path={ROUTES.NETWORK_ERROR}
-                      exact
-                      component={NetworkError}
-                    />
-                    <Route path="*" exact component={NotFound} />
-                  </Switch>
-                </Layout>
-              </LayoutProvider>
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_EVENTS}
+                        exact
+                        component={AdminEventView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_EVENT}
+                        exact
+                        component={AdminEvent}
+                      />
+
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_GAMES}
+                        exact
+                        component={AdminGameView}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_GAME}
+                        exact
+                        component={AdminGame}
+                      />
+                      <PrivateRoute
+                        path={ROUTES.ADMIN_ORG_GAME_PLAY}
+                        exact
+                        component={AdminGamePlay}
+                      />
+                      {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
+                      <Route
+                        path={ROUTES.NETWORK_ERROR}
+                        exact
+                        component={NetworkError}
+                      />
+                      <Route path="*" exact component={NotFound} />
+                    </Switch>
+                  </Layout>
+                </LayoutProvider>
+              </OrganizationProvider>
             </SnackbarProvider>
           </Router>
         </ErrorBoundary>

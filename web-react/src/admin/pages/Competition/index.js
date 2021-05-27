@@ -22,7 +22,10 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_COMPETITIONS, getAdminCompetitionRoute } from '../../../routes'
+import {
+  getAdminOrgCompetitionsRoute,
+  getAdminOrgCompetitionRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
@@ -86,7 +89,7 @@ const Competition = () => {
   const history = useHistory()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const { competitionId } = useParams()
+  const { competitionId, organizationSlug } = useParams()
   const client = useApolloClient()
   const {
     loading: queryLoading,
@@ -105,7 +108,7 @@ const Competition = () => {
     onCompleted: data => {
       if (competitionId === 'new') {
         const newId = data.mergeCompetition.competitionId
-        history.replace(getAdminCompetitionRoute(newId))
+        history.replace(getAdminOrgCompetitionRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Competition saved!', { variant: 'success' })
     },
@@ -116,7 +119,7 @@ const Competition = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_COMPETITION, {
     onCompleted: () => {
-      history.push(ADMIN_COMPETITIONS)
+      history.push(getAdminOrgCompetitionsRoute(organizationSlug))
       enqueueSnackbar('Competition was deleted!')
     },
   })
@@ -310,7 +313,7 @@ const Competition = () => {
                         openTo="year"
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
+                        views={['year', 'month', 'day']}
                         defaultValue={competitionData?.foundDate?.formatted}
                         error={errors.foundDate}
                       />

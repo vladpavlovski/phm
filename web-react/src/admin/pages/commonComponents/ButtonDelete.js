@@ -33,8 +33,8 @@ const ButtonDelete = props => {
         }}
         className={clsx(className, classes.submit)}
         startIcon={<DeleteForever />}
-        pending={loading}
-        pendingPosition="start"
+        loading={loading}
+        loadingPosition="start"
       >
         {loading ? 'Deleting...' : 'Delete'}
       </LoadingButton>

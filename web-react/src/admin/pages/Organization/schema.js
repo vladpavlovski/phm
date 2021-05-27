@@ -7,4 +7,5 @@ export const schema = object().shape({
   status: string(),
   legalName: string(),
   foundDate: date().nullable(),
+  urlSlug: string().required('Url slug is required'),
 })

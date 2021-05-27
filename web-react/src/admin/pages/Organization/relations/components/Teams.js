@@ -24,7 +24,7 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminTeamRoute } from '../../../../../routes'
+import { getAdminOrgTeamRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -32,10 +32,11 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_TEAMS = gql`
-  query getOrganizationTeams($organizationId: ID) {
+  query getOrganizationTeams($organizationId: ID!) {
     organization: Organization(organizationId: $organizationId) {
       organizationId
       name
+      urlSlug
       teams {
         teamId
         name
@@ -93,6 +94,7 @@ const Teams = props => {
   const { organizationId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
+
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
   const handleCloseAddOrganization = useCallback(() => {
@@ -245,7 +247,7 @@ const Teams = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminTeamRoute(params.value)}
+              to={getAdminOrgTeamRoute(organization?.urlSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -286,7 +288,7 @@ const Teams = props => {
         },
       },
     ],
-    []
+    [organization]
   )
 
   const allTeamsColumns = useMemo(
