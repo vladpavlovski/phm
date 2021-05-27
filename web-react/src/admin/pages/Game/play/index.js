@@ -18,7 +18,7 @@ import { formatDate, formatTime } from '../../../../utils'
 
 import { GET_GAME } from '../index'
 
-import { Periods } from './components'
+import { Periods, Timer } from './components'
 
 const Play = () => {
   const classes = useStyles()
@@ -41,7 +41,7 @@ const Play = () => {
   return (
     <Container maxWidth={false} className={classes.container}>
       <Helmet>
-        <title>{`Game Live ${gameData?.name}`}</title>
+        <title>{`Game Live ${gameData?.name || ''}`}</title>
       </Helmet>
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
@@ -95,6 +95,7 @@ const Play = () => {
             <Grid container>
               <Grid item xs={12}>
                 <Periods />
+                <Timer />
               </Grid>
             </Grid>
           </Paper>
