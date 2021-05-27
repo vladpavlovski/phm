@@ -18,7 +18,6 @@ const {
   PRODUCTION_NEO4J_URI,
   PRODUCTION_NEO4J_USER,
   PRODUCTION_NEO4J_PASSWORD,
-  NEO4J_ENCRYPTED,
   NEO4J_DATABASE,
   GRAPHQL_SERVER_PORT,
   GRAPHQL_SERVER_PATH,
@@ -75,10 +74,7 @@ const schema = makeAugmentedSchema({
  */
 const driver = neo4j.driver(
   NEO4J_URI || 'bolt://localhost:7687',
-  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j'),
-  {
-    encrypted: NEO4J_ENCRYPTED ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF',
-  }
+  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
 )
 
 /*
