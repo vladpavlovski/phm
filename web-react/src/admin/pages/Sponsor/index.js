@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
@@ -21,11 +21,15 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_SPONSORS, getAdminSponsorRoute } from '../../../routes'
+import {
+  getAdminOrgSponsorsRoute,
+  getAdminOrgSponsorRoute,
+} from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_SPONSOR = gql`
   query getSponsor($sponsorId: ID!) {
@@ -54,6 +58,7 @@ const MERGE_SPONSOR = gql`
     $web: String
     $description: String
     $logo: String
+    $organizationId: ID!
   ) {
     mergeSponsor: MergeSponsor(
       sponsorId: $sponsorId
@@ -67,6 +72,14 @@ const MERGE_SPONSOR = gql`
       logo: $logo
     ) {
       sponsorId
+    }
+    mergeSponsorOrg: MergeSponsorOrgs(
+      from: { sponsorId: $sponsorId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        sponsorId
+      }
     }
   }
 `
@@ -82,7 +95,8 @@ const DELETE_SPONSOR = gql`
 const Sponsor = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { sponsorId } = useParams()
+  const { sponsorId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -102,7 +116,7 @@ const Sponsor = () => {
     onCompleted: data => {
       if (sponsorId === 'new') {
         const newId = data.mergeSponsor.sponsorId
-        history.replace(getAdminSponsorRoute(newId))
+        history.replace(getAdminOrgSponsorRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Sponsor saved!', { variant: 'success' })
     },
@@ -113,7 +127,7 @@ const Sponsor = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_SPONSOR, {
     onCompleted: () => {
-      history.push(ADMIN_SPONSORS)
+      history.push(getAdminOrgSponsorsRoute(organizationSlug))
       enqueueSnackbar('Sponsor was deleted!')
     },
   })
@@ -130,6 +144,7 @@ const Sponsor = () => {
         const dataToSubmit = {
           ...dataToCheck,
           sponsorId: checkId(sponsorId),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeSponsor({
@@ -139,7 +154,7 @@ const Sponsor = () => {
         console.error(error)
       }
     },
-    [sponsorId]
+    [sponsorId, organizationData]
   )
 
   const updateLogo = useCallback(

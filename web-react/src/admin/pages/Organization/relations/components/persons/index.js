@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -16,7 +17,7 @@ import LinkOffIcon from '@material-ui/icons/LinkOff'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminPersonRoute } from '../../../../../../routes'
+import { getAdminOrgPersonRoute } from '../../../../../../routes'
 import { LinkButton } from '../../../../../../components/LinkButton'
 // import { Loader } from '../../../../../../components/Loader'
 // import { Error } from '../../../../../../components/Error'
@@ -56,7 +57,7 @@ const Persons = props => {
   const { organizationId, organization } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const [
     removeOrganizationPerson,
     { loading: mutationLoadingRemove },
@@ -140,7 +141,7 @@ const Persons = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminPersonRoute(params.value)}
+              to={getAdminOrgPersonRoute(organizationSlug, params.value)}
               target="_blank"
             >
               Profile
@@ -227,7 +228,7 @@ const Persons = props => {
 
                   <LinkButton
                     startIcon={<CreateIcon />}
-                    to={getAdminPersonRoute('new')}
+                    to={getAdminOrgPersonRoute(organizationSlug, 'new')}
                     target="_blank"
                   >
                     Create

@@ -1,12 +1,13 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminTeamRoute } from '../../../../routes'
+import { getAdminOrgTeamRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -15,8 +16,8 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_TEAMS = gql`
-  query getTeams {
-    teams: Team {
+  query getTeams($organizationSlug: String!) {
+    teams: teamsByOrganization(organizationSlug: $organizationSlug) {
       teamId
       name
       logo
@@ -27,8 +28,11 @@ export const GET_TEAMS = gql`
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_TEAMS, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
@@ -70,7 +74,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminTeamRoute(params.value)}
+              to={getAdminOrgTeamRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -96,7 +100,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminTeamRoute('new')}
+                  to={getAdminOrgTeamRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

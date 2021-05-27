@@ -13,8 +13,8 @@ import { Error } from '../../../../components/Error'
 import { useStyles } from '../../commonComponents/styled'
 
 const GET_ORGANIZATION_BY_SLUG = gql`
-  query getOrganizationBySlug($urlSlug: String!) {
-    organization: organizationBySlug(urlSlug: $urlSlug) {
+  query getOrganizationBySlug($organizationSlug: String!) {
+    organization: organizationBySlug(organizationSlug: $organizationSlug) {
       organizationId
       name
       nick
@@ -26,7 +26,7 @@ const GET_ORGANIZATION_BY_SLUG = gql`
 const OrganizationDashboard = () => {
   const theme = useTheme()
   const history = useHistory()
-  const { organizationSlug: urlSlug } = useParams()
+  const { organizationSlug } = useParams()
   const { setBarTitle } = useContext(LayoutContext)
   const { organizationData, setOrganizationData } = useContext(
     OrganizationContext
@@ -36,9 +36,8 @@ const OrganizationDashboard = () => {
     getOrganizationBySlug,
     { loading: queryLoading, error: queryError },
   ] = useLazyQuery(GET_ORGANIZATION_BY_SLUG, {
-    variables: { urlSlug },
+    variables: { organizationSlug },
     onCompleted: ({ organization }) => {
-      console.log(organization)
       if (organization) {
         const { organizationId, urlSlug, name, nick } = organization
         setOrganizationData({
@@ -56,7 +55,7 @@ const OrganizationDashboard = () => {
   useEffect(() => {
     if (
       organizationData?.organizationId &&
-      organizationData?.urlSlug === urlSlug
+      organizationData?.organizationSlug === organizationSlug
     ) {
       setBarTitle(organizationData?.name)
     } else {

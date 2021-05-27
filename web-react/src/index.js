@@ -2,12 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Bugfender } from '@bugfender/sdk'
 import { createBrowserHistory } from 'history'
-
+import './styles/style.css'
 import App from './App'
 // import registerServiceWorker from './registerServiceWorker'
 import { AuthorizedApolloProvider } from './graphql'
 import { Auth0Provider } from '@auth0/auth0-react'
+import { LicenseInfo } from '@material-ui/x-grid'
 import config from './config'
+
+LicenseInfo.setLicenseKey(config.xGridKey)
 
 if (!config.dev) {
   Bugfender.init({

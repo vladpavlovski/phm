@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 
@@ -30,6 +30,41 @@ import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
+import * as ROUTES from '../../../routes'
+import OrganizationContext from '../../../context/organization'
+
+const GET_ORGANIZATION_BY_SLUG = gql`
+  query getOrganizationBySlug($organizationSlug: String!) {
+    organization: organizationBySlug(organizationSlug: $organizationSlug) {
+      organizationId
+      name
+      nick
+      short
+      status
+      legalName
+      logo
+      urlSlug
+      foundDate {
+        formatted
+      }
+      persons {
+        personId
+        firstName
+        lastName
+        name
+        avatar
+        occupations {
+          occupationId
+          name
+        }
+      }
+      occupations {
+        occupationId
+        name
+      }
+    }
+  }
+`
 
 export const GET_ORGANIZATION = gql`
   query getOrganization($organizationId: ID!) {
@@ -109,17 +144,41 @@ const DELETE_ORGANIZATION = gql`
 const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { organizationId } = useParams()
+  const { organizationId, organizationSlug } = useParams()
   const client = useApolloClient()
 
+  const { setOrganizationData } = useContext(OrganizationContext)
+
+  // const {
+  //   loading: queryLoading,
+  //   data: queryData,
+  //   error: queryError,
+  // } = useQuery(GET_ORGANIZATION, {
+  //   fetchPolicy: 'network-only',
+  //   variables: { organizationId },
+  //   skip: organizationId === 'new',
+  // })
+
   const {
-    loading: queryLoading,
     data: queryData,
+    loading: queryLoading,
     error: queryError,
-  } = useQuery(GET_ORGANIZATION, {
-    fetchPolicy: 'network-only',
-    variables: { organizationId },
+  } = useQuery(GET_ORGANIZATION_BY_SLUG, {
+    variables: { organizationSlug },
     skip: organizationId === 'new',
+    onCompleted: ({ organization }) => {
+      if (organization) {
+        const { organizationId, urlSlug, name, nick } = organization
+        setOrganizationData({
+          organizationId,
+          urlSlug,
+          name,
+          nick,
+        })
+      } else {
+        history.replace(ROUTES.NOT_FOUND)
+      }
+    },
   })
 
   const [
@@ -143,7 +202,7 @@ const Organization = () => {
     },
   })
 
-  const organizationData = queryData?.organization[0] || {}
+  const orgData = queryData?.organization || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -208,7 +267,7 @@ const Organization = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(organizationData || organizationId === 'new') &&
+      {(orgData || organizationId === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -219,21 +278,21 @@ const Organization = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{organizationData.name || 'Organization'}</title>
+              <title>{orgData.name || 'Organization'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
                 <Paper className={classes.paper}>
                   <Img
                     placeholder={placeholderOrganization}
-                    src={organizationData.logo}
+                    src={orgData.logo}
                     className={classes.logo}
-                    alt={organizationData.name}
+                    alt={orgData.name}
                   />
 
                   <RHFInput
                     style={{ display: 'none' }}
-                    defaultValue={organizationData.logo}
+                    defaultValue={orgData.logo}
                     control={control}
                     name="logo"
                     label="Logo URL"
@@ -279,7 +338,7 @@ const Organization = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.name}
+                        defaultValue={orgData.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -291,7 +350,7 @@ const Organization = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.legalName}
+                        defaultValue={orgData.legalName}
                         control={control}
                         name="legalName"
                         label="Legal name"
@@ -302,7 +361,7 @@ const Organization = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.nick}
+                        defaultValue={orgData.nick}
                         control={control}
                         name="nick"
                         label="Nick"
@@ -313,7 +372,7 @@ const Organization = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.short}
+                        defaultValue={orgData.short}
                         control={control}
                         name="short"
                         label="Short"
@@ -325,7 +384,7 @@ const Organization = () => {
 
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.urlSlug}
+                        defaultValue={orgData.urlSlug}
                         control={control}
                         name="urlSlug"
                         label="Url Slug"
@@ -337,7 +396,7 @@ const Organization = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={organizationData.status}
+                        defaultValue={orgData.status}
                         control={control}
                         name="status"
                         label="Status"
@@ -358,8 +417,8 @@ const Organization = () => {
                         openTo="year"
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'date']}
-                        defaultValue={organizationData?.foundDate?.formatted}
+                        views={['year', 'month', 'day']}
+                        defaultValue={orgData?.foundDate?.formatted}
                         error={errors?.foundDate}
                       />
                     </Grid>
@@ -368,10 +427,7 @@ const Organization = () => {
               </Grid>
             </Grid>
             {isValidUuid(organizationId) && (
-              <Relations
-                organizationId={organizationId}
-                data={organizationData}
-              />
+              <Relations organizationId={organizationId} data={orgData} />
             )}
           </form>
         )}

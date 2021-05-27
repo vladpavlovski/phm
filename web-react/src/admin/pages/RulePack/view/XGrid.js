@@ -1,12 +1,13 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminRulePackRoute } from '../../../../routes'
+import { getAdminOrgRulePackRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -15,8 +16,8 @@ import { useWindowSize } from '../../../../utils/hooks'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_RULEPACKS = gql`
-  query getRulePacks {
-    rulePacks: RulePack {
+  query getRulePacks($organizationSlug: String!) {
+    rulePacks: rulePacksByOrganization(organizationSlug: $organizationSlug) {
       rulePackId
       name
     }
@@ -25,8 +26,11 @@ export const GET_RULEPACKS = gql`
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_RULEPACKS, {
+    variables: {
+      organizationSlug,
+    },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
@@ -47,7 +51,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminRulePackRoute(params.value)}
+              to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -55,7 +59,7 @@ const XGridTable = () => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const windowSize = useWindowSize()
@@ -73,7 +77,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminRulePackRoute('new')}
+                  to={getAdminOrgRulePackRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

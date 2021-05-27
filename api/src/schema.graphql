@@ -119,53 +119,81 @@ type Mutation {
 }
 
 type Query {
-  organizationBySlug(urlSlug: String!): Organization
+  organizationBySlug(organizationSlug: String!): Organization
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $urlSlug})
+      MATCH (organization: Organization {urlSlug: $organizationSlug})
       return organization
       """
     )
-  playersCount: Int
+  teamsByOrganization(organizationSlug: String!): [Team]
     @cypher(
       statement: """
-      MATCH (p:Player) RETURN count(p)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (team: Team)
+      return team
       """
     )
-  teamsCount: Int
+  playersByOrganization(organizationSlug: String!): [Player]
     @cypher(
       statement: """
-      MATCH (t:Team) RETURN count(t)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
+      return player
       """
     )
-  organizationsCount: Int
+  personsByOrganization(organizationSlug: String!): [Person]
     @cypher(
       statement: """
-      MATCH (a:Organization) RETURN count(a)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (person:Person)
+      return person
       """
     )
-  competitionsCount: Int
+  competitionsByOrganization(organizationSlug: String!): [Competition]
     @cypher(
       statement: """
-      MATCH (c:Competition) RETURN count(c)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition)
+      return competition
       """
     )
-  sponsorsCount: Int
+  sponsorsByOrganization(organizationSlug: String!): [Sponsor]
     @cypher(
       statement: """
-      MATCH (s:Sponsor) RETURN count(s)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
+      return sponsor
       """
     )
-  seasonsCount: Int
+  seasonsByOrganization(organizationSlug: String!): [Season]
     @cypher(
       statement: """
-      MATCH (s:Season) RETURN count(s)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
+      return season
       """
     )
-  venuesCount: Int
+  awardsByOrganization(organizationSlug: String!): [Award]
     @cypher(
       statement: """
-      MATCH (v:Venue) RETURN count(v)
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (award:Award)
+      return award
+      """
+    )
+  rulePacksByOrganization(organizationSlug: String!): [RulePack]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
+      return rulePack
+      """
+    )
+  eventsByOrganization(organizationSlug: String!): [Event]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:CREATE_IN] - (event:Event)
+      return event
+      """
+    )
+  gamesByOrganization(organizationSlug: String!): [Game]
+    @cypher(
+      statement: """
+      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (game:Game)
+      return game
       """
     )
 }
@@ -255,6 +283,7 @@ type Person implements Human {
   payments: [Payment] @relation(name: "INITIATES_PAYMENT", direction: OUT)
   organizations: [Organization]
     @relation(name: "HAS_ORGANIZATION_STAFF", direction: IN)
+  orgs: [Organization] @relation(name: "ENGAGED_IN", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   achievements: [Achievement] @relation(name: "HAS_ACHIEVEMENT", direction: OUT)
@@ -395,6 +424,7 @@ type Game {
   rulePack: RulePack @relation(name: "GUIDED_BY", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   finalResult: FinalResult @relation(name: "COMPOSE_RESULT", direction: OUT)
+  org: Organization @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type GameEvent {
@@ -657,6 +687,12 @@ type Organization {
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   teams: [Team] @relation(name: "PARTICIPATE_IN", direction: IN)
   occupations: [Occupation] @relation(name: "USE_OCCUPATION", direction: OUT)
+  orgPersons: [Person] @relation(name: "ENGAGED_IN", direction: IN)
+  orgSponsors: [Sponsor] @relation(name: "ENGAGED_IN", direction: IN)
+  orgAwards: [Award] @relation(name: "PROVIDED_BY", direction: IN)
+  orgRulePacks: [RulePack] @relation(name: "PROVIDED_BY", direction: IN)
+  orgEvents: [Event] @relation(name: "CREATE_IN", direction: IN)
+  orgGames: [Game] @relation(name: "PROVIDED_BY", direction: IN)
 }
 
 type Sponsor {
@@ -678,6 +714,7 @@ type Sponsor {
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
   phases: [Phase] @relation(name: "SPONSORED_BY", direction: IN)
   groups: [Group] @relation(name: "SPONSORED_BY", direction: IN)
+  orgs: [Organization] @relation(name: "ENGAGED_IN", direction: OUT)
 }
 
 type Venue {
@@ -759,6 +796,7 @@ type Event {
   invitation: Invitation @relation(name: "CREATE_INVITATION", direction: OUT)
   invitationList: InvitationList
     @relation(name: "CREATE_INVITATION_LIST", direction: OUT)
+  org: Organization @relation(name: "CREATE_IN", direction: OUT)
 }
 
 type Season {
@@ -857,6 +895,7 @@ type Award {
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   media: Media @relation(name: "HAS_MEDIA", direction: OUT)
+  orgs: [Organization] @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type Media {
@@ -947,6 +986,7 @@ type RulePack {
   resultPoints: [ResultPoint] @relation(name: "SET_UP", direction: OUT)
   systemSettings: SystemSettings
     @relation(name: "GUIDED_DEFAULT_BY", direction: IN)
+  orgs: [Organization] @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type PenaltyShotStatus {

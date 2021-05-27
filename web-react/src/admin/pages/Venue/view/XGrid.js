@@ -6,7 +6,8 @@ import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminVenueRoute } from '../../../../routes'
+import { useParams } from 'react-router-dom'
+import { getAdminOrgVenueRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -26,8 +27,9 @@ export const GET_VENUES = gql`
 
 const XGridTable = () => {
   const classes = useStyles()
-
+  const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_VENUES, {
+    variables: { organizationSlug },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
@@ -55,7 +57,7 @@ const XGridTable = () => {
           return (
             <LinkButton
               startIcon={<EditIcon />}
-              to={getAdminVenueRoute(params.value)}
+              to={getAdminOrgVenueRoute(organizationSlug, params.value)}
             >
               Edit
             </LinkButton>
@@ -63,7 +65,7 @@ const XGridTable = () => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const windowSize = useWindowSize()
@@ -81,7 +83,7 @@ const XGridTable = () => {
               <div>
                 <LinkButton
                   startIcon={<AddIcon />}
-                  to={getAdminVenueRoute('new')}
+                  to={getAdminOrgVenueRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

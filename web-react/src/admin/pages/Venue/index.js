@@ -23,7 +23,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_VENUES, getAdminVenueRoute } from '../../../routes'
+import { getAdminOrgVenuesRoute, getAdminOrgVenueRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
@@ -106,7 +106,7 @@ const DELETE_VENUE = gql`
 const Venue = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { venueId } = useParams()
+  const { venueId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -126,7 +126,7 @@ const Venue = () => {
     onCompleted: data => {
       if (venueId === 'new') {
         const newId = data.mergeVenue.venueId
-        history.replace(getAdminVenueRoute(newId))
+        history.replace(getAdminOrgVenueRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Venue saved!', { variant: 'success' })
     },
@@ -137,7 +137,7 @@ const Venue = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_VENUE, {
     onCompleted: () => {
-      history.push(ADMIN_VENUES)
+      history.push(getAdminOrgVenuesRoute(organizationSlug))
       enqueueSnackbar('Venue was deleted!')
     },
   })
@@ -365,7 +365,7 @@ const Venue = () => {
                           openTo="year"
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={venueData?.foundDate?.formatted}
                           error={errors.foundDate}
                         />

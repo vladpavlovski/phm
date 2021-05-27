@@ -51,7 +51,6 @@ const UserMenu = () => {
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}
-        getContentAnchorEl={null}
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',

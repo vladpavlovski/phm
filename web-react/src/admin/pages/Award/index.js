@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 
@@ -23,11 +23,12 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_AWARDS, getAdminAwardRoute } from '../../../routes'
+import { getAdminOrgAwardsRoute, getAdminOrgAwardRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
 import { Relations } from './relations'
+import OrganizationContext from '../../../context/organization'
 
 const GET_AWARD = gql`
   query getAward($awardId: ID!) {
@@ -56,6 +57,7 @@ const MERGE_AWARD = gql`
     $foundDateDay: Int
     $foundDateMonth: Int
     $foundDateYear: Int
+    $organizationId: ID!
   ) {
     mergeAward: MergeAward(
       awardId: $awardId
@@ -72,6 +74,14 @@ const MERGE_AWARD = gql`
     ) {
       awardId
     }
+    mergeAwardOrg: MergeAwardOrgs(
+      from: { awardId: $awardId }
+      to: { organizationId: $organizationId }
+    ) {
+      from {
+        awardId
+      }
+    }
   }
 `
 
@@ -86,7 +96,8 @@ const DELETE_AWARD = gql`
 const Award = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { awardId } = useParams()
+  const { awardId, organizationSlug } = useParams()
+  const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -106,7 +117,7 @@ const Award = () => {
     onCompleted: data => {
       if (awardId === 'new') {
         const newId = data.mergeAward.awardId
-        history.replace(getAdminAwardRoute(newId))
+        history.replace(getAdminOrgAwardRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Award saved!', { variant: 'success' })
     },
@@ -117,7 +128,7 @@ const Award = () => {
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_AWARD, {
     onCompleted: () => {
-      history.push(ADMIN_AWARDS)
+      history.push(getAdminOrgAwardsRoute(organizationSlug))
       enqueueSnackbar('Award was deleted!')
     },
   })
@@ -139,6 +150,7 @@ const Award = () => {
           ...rest,
           awardId: checkId(awardId),
           ...decomposeDate(foundDate, 'foundDate'),
+          organizationId: organizationData?.organizationId,
         }
 
         mergeAward({
@@ -148,7 +160,7 @@ const Award = () => {
         console.error(error)
       }
     },
-    [awardId]
+    [awardId, organizationData]
   )
 
   return (
@@ -263,7 +275,7 @@ const Award = () => {
                           id="foundDate"
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'date']}
+                          views={['year', 'month', 'day']}
                           defaultValue={awardData?.foundDate?.formatted}
                           error={errors.foundDate}
                         />

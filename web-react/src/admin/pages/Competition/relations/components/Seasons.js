@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -24,7 +25,7 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminSeasonRoute } from '../../../../../routes'
+import { getAdminOrgSeasonRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -112,6 +113,7 @@ const Seasons = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
+  const { organizationSlug } = useParams()
   const [openAddSeason, setOpenAddSeason] = useState(false)
 
   const handleCloseAddSeason = useCallback(() => {
@@ -283,7 +285,7 @@ const Seasons = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminSeasonRoute(params.value)}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -322,7 +324,7 @@ const Seasons = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
   const allSeasonsColumns = useMemo(
@@ -403,7 +405,7 @@ const Seasons = props => {
 
                 <LinkButton
                   startIcon={<CreateIcon />}
-                  to={getAdminSeasonRoute('new')}
+                  to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>

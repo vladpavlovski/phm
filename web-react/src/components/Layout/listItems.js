@@ -189,7 +189,9 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Competitions"
-                  to={ROUTES.ADMIN_COMPETITIONS}
+                  to={ROUTES.getAdminOrgCompetitionsRoute(
+                    organizationData?.urlSlug
+                  )}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
@@ -205,7 +207,9 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Sponsors"
-                  to={ROUTES.ADMIN_SPONSORS}
+                  to={ROUTES.getAdminOrgSponsorsRoute(
+                    organizationData?.urlSlug
+                  )}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
@@ -221,7 +225,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Seasons"
-                  to={ROUTES.ADMIN_SEASONS}
+                  to={ROUTES.getAdminOrgSeasonsRoute(organizationData?.urlSlug)}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
@@ -237,7 +241,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Venues"
-                  to={ROUTES.ADMIN_VENUES}
+                  to={ROUTES.getAdminOrgVenuesRoute(organizationData?.urlSlug)}
                 />
                 <ListItemLink
                   className={classes.menuSubListItem}
@@ -253,7 +257,7 @@ const MainListItems = props => {
                     </Tooltip>
                   }
                   primary="Awards"
-                  to={ROUTES.ADMIN_AWARDS}
+                  to={ROUTES.getAdminOrgAwardsRoute(organizationData?.urlSlug)}
                 />
               </List>
             </Collapse>
@@ -270,7 +274,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Teams"
-              to={ROUTES.ADMIN_TEAMS}
+              to={ROUTES.getAdminOrgTeamsRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={
@@ -285,7 +289,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Players"
-              to={ROUTES.ADMIN_PLAYERS}
+              to={ROUTES.getAdminOrgPlayersRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={
@@ -300,7 +304,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Persons"
-              to={ROUTES.ADMIN_PERSONS}
+              to={ROUTES.getAdminOrgPersonsRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={
@@ -315,7 +319,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Rule Packs"
-              to={ROUTES.ADMIN_RULEPACKS}
+              to={ROUTES.getAdminOrgRulePacksRoute(organizationData?.urlSlug)}
             />
 
             <ListItemLink
@@ -331,7 +335,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Events"
-              to={ROUTES.ADMIN_EVENTS}
+              to={ROUTES.getAdminOrgEventsRoute(organizationData?.urlSlug)}
             />
             <ListItemLink
               icon={
@@ -346,7 +350,7 @@ const MainListItems = props => {
                 </Tooltip>
               }
               primary="Games"
-              to={ROUTES.ADMIN_GAMES}
+              to={ROUTES.getAdminOrgGamesRoute(organizationData?.urlSlug)}
             />
           </List>
         </>

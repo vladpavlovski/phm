@@ -2,7 +2,6 @@ import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
@@ -13,6 +12,8 @@ import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
 // import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
+import DashboardIcon from '@material-ui/icons/Dashboard'
+import Tooltip from '@material-ui/core/Tooltip'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
@@ -20,6 +21,7 @@ const GET_ORGANIZATIONS = gql`
       organizationId
       name
       nick
+      urlSlug
     }
   }
 `
@@ -31,8 +33,6 @@ const XGridTable = () => {
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
-
-  // console.log('data:', data)
 
   const columns = useMemo(
     () => [
@@ -53,11 +53,10 @@ const XGridTable = () => {
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrganizationRoute(params.value)}
-            >
-              Edit
+            <LinkButton to={getAdminOrganizationRoute(params.row?.urlSlug)}>
+              <Tooltip arrow title="Dashboard" placement="top">
+                <DashboardIcon />
+              </Tooltip>
             </LinkButton>
           )
         },

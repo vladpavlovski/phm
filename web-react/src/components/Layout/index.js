@@ -61,7 +61,7 @@ const Layout = props => {
         open={open}
       >
         <div className={classes.toolbarIcon}>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h4" component="h1" sx={{ flex: 'auto' }}>
             HMS
           </Typography>
           <IconButton
