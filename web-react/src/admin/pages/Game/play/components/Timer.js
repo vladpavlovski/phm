@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import createPersistedState from 'use-persisted-state'
 // import PropTypes from 'prop-types'
-import { useTimer } from 'react-timer-hook'
+import { useTimer, useTime } from 'react-timer-hook'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 import { useExitPrompt } from '../../../../../utils/hooks'
@@ -41,6 +41,12 @@ const Timer = () => {
     onExpire: () => console.warn('onExpire called'),
   })
 
+  const {
+    seconds: timeSeconds,
+    minutes: timeMinutes,
+    hours: timeHours,
+  } = useTime({ format: '' })
+
   useEffect(() => {
     setGamePlayTimerRunning(isRunning)
     const restTimer = minutes * 60 + seconds
@@ -70,10 +76,13 @@ const Timer = () => {
 
   return (
     <div style={{ textAlign: 'center', fontFamily: 'Digital Numbers Regular' }}>
-      <div style={{ fontSize: '100px' }}>
+      <div style={{ fontSize: '6rem' }}>
         <span>{minutes}</span>:<span>{seconds}</span>
       </div>
-      <p>{isRunning ? 'Running' : 'Not running'}</p>
+      <div style={{ fontSize: '2rem' }}>
+        <span>{timeHours}</span>:<span>{timeMinutes}</span>:
+        <span>{timeSeconds}</span>
+      </div>
       <ButtonGroup
         fullWidth
         variant="outlined"
