@@ -35,7 +35,7 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import {
   setIdFromEntityId,
-  showTimeAsMinutes,
+  showTimeAsHms,
   getXGridValueFromArray,
   checkId,
 } from '../../../../../utils'
@@ -66,7 +66,7 @@ const MERGE_RULEPACK_PENALTY_TYPE = gql`
     $penaltyTypeId: ID!
     $name: String
     $code: String
-    $duration: Int
+    $duration: Float
   ) {
     penaltyType: MergePenaltyType(
       penaltyTypeId: $penaltyTypeId
@@ -244,14 +244,14 @@ const PenaltyTypes = props => {
       {
         field: 'code',
         headerName: 'Code',
-        width: 100,
+        width: 120,
       },
       {
         field: 'duration',
         headerName: 'Duration',
-        width: 100,
+        width: 150,
         valueFormatter: params => {
-          return showTimeAsMinutes(params.value)
+          return showTimeAsHms(params.value)
         },
       },
       {
@@ -454,7 +454,7 @@ const FormDialog = props => {
             rulePackId,
             name,
             code,
-            duration: parseInt(duration),
+            duration: parseFloat(duration),
             penaltyTypeId: data?.penaltyTypeId || uuidv4(),
           },
         })
