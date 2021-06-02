@@ -203,7 +203,7 @@ const Organization = props => {
                   name="organization"
                   value={selectedOrganization}
                   getOptionLabel={option => option.name}
-                  getOptionSelected={(option, value) =>
+                  isOptionEqualToValue={(option, value) =>
                     option.organizationId === value.organizationId
                   }
                   options={queryData.organizations}

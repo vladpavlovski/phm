@@ -402,7 +402,7 @@ const Person = () => {
                           //   console.log(option)
                           //   return option
                           // }}
-                          // getOptionSelected={(option, value) => {
+                          // isOptionEqualToValue={(option, value) => {
                           //   console.log(option, value)
                           //   return equals(option, value)
                           // }}

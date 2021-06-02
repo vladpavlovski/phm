@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import createPersistedState from 'use-persisted-state'
-// import PropTypes from 'prop-types'
+import PropTypes from 'prop-types'
 import { useTimer, useTime } from 'react-timer-hook'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
@@ -9,12 +9,13 @@ import { useExitPrompt } from '../../../../../utils/hooks'
 const useGamePlayTimer = createPersistedState('HMS-GamePlayTimer')
 const useGamePlayTimerRunning = createPersistedState('HMS-GamePlayTimerRunning')
 
-const DEFAULT_TIMER = 1200
-const Timer = () => {
+const DEFAULT_TIMER = 1200 // 1200 sec = 20 minutes timer
+const Timer = props => {
+  const { timeInMinutes } = props
   const [timerStarted, setTimerStarted] = useState(false)
   const [expiryTimestampBase, setExpiryTimestamp] = useGamePlayTimer(
-    DEFAULT_TIMER
-  ) // 1200 sec = 20 minutes timer
+    timeInMinutes || DEFAULT_TIMER
+  )
   const [
     gamePlayTimerRunning,
     setGamePlayTimerRunning,
@@ -67,10 +68,10 @@ const Timer = () => {
 
   const handleResetTimer = useCallback(() => {
     setTimerStarted(false)
-    setExpiryTimestamp(DEFAULT_TIMER)
+    setExpiryTimestamp(timeInMinutes || DEFAULT_TIMER)
     setGamePlayTimerRunning(false)
     const time = new Date()
-    time.setSeconds(time.getSeconds() + DEFAULT_TIMER)
+    time.setSeconds(time.getSeconds() + (timeInMinutes || DEFAULT_TIMER))
     restart(time, false)
   }, [])
 
@@ -97,6 +98,8 @@ const Timer = () => {
   )
 }
 
-// Timer.propTypes = {}
+Timer.propTypes = {
+  timeInMinutes: PropTypes.number,
+}
 
 export { Timer }

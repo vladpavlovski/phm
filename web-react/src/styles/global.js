@@ -1,5 +1,5 @@
 import { createGlobalStyle } from 'styled-components'
-import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles'
+import { createTheme, responsiveFontSizes } from '@material-ui/core/styles'
 
 export const GlobalStyle = createGlobalStyle`
   * {
@@ -15,13 +15,13 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 62.5%;
   }
 
-  div[role="tooltip"] {
+  div[role="tooltip"], div[role="presentation"] {
     z-index: 1350;
   }
 
 `
 
-export const muiTheme = createMuiTheme({
+export const muiTheme = createTheme({
   typography: {
     htmlFontSize: 10,
   },
@@ -39,6 +39,9 @@ export const muiTheme = createMuiTheme({
           transitionProperty: 'background-color, color',
         },
       },
+    },
+    MuiAutocomplete: {
+      popper: { zIndex: 1350 },
     },
   },
 })

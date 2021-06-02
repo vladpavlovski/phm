@@ -56,6 +56,7 @@ export const GET_GAME = gql`
         team {
           teamId
           name
+          nick
           logo
         }
         host

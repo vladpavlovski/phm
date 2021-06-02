@@ -50,6 +50,10 @@ const useStyles = makeStyles(theme => ({
     maxWidth: '30rem',
     maxHeight: '25rem',
   },
+  gamePlayTeamLogo: {
+    width: '15rem',
+    height: '15rem',
+  },
 }))
 
 export { useStyles }

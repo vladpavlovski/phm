@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import { Helmet } from 'react-helmet'
 
 import Container from '@material-ui/core/Container'
@@ -8,17 +8,151 @@ import Paper from '@material-ui/core/Paper'
 import { Grid } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
 import Toolbar from '@material-ui/core/Toolbar'
+import Img from 'react-cool-img'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Title } from '../../../../components/Title'
 import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
 
+import placeholderPerson from '../../../../img/placeholderPerson.jpg'
+
 import { formatDate, formatTime } from '../../../../utils'
 
-import { GET_GAME } from '../index'
+// import { GET_GAME } from '../index'
 
-import { Periods, Timer } from './components'
+import { Periods, GameEventWizard } from './components'
+
+import { GameEventFormProvider } from './context/Provider'
+
+export const GET_GAME_PLAY = gql`
+  query getGame($gameId: ID!) {
+    game: Game(gameId: $gameId) {
+      gameId
+      name
+      type
+      info
+      foreignId
+      description
+      teams {
+        team {
+          teamId
+          name
+          nick
+          logo
+        }
+        host
+      }
+      players {
+        player {
+          avatar
+          playerId
+          name
+          firstName
+          lastName
+          meta {
+            metaPlayerId
+          }
+        }
+        host
+        jersey
+        position
+      }
+      startDate {
+        formatted
+      }
+      endDate {
+        formatted
+      }
+      startTime {
+        formatted
+      }
+      endTime {
+        formatted
+      }
+      event {
+        eventId
+        name
+      }
+      gameEventsSimple {
+        gameEventSimpleId
+        timestamp
+        period
+        remainingTime
+        eventType
+        type
+        subType
+        duration
+        description
+        # scoredBy
+        # allowedBy {
+
+        # }
+        # firstAssist
+        # secondAssist
+        # lostBy
+        # wonBy
+      }
+    }
+    systemSettings: SystemSettings(systemSettingsId: "system-settings") {
+      rulePack {
+        name
+        periods {
+          periodId
+          name
+          code
+          duration
+          priority
+        }
+        shotTargets {
+          shotTargetId
+          name
+          code
+        }
+        shotStyles {
+          shotStyleId
+          name
+          code
+        }
+        shotTypes {
+          shotTypeId
+          name
+          code
+          subTypes {
+            shotSubTypeId
+            name
+            code
+          }
+        }
+        goalTypes {
+          goalTypeId
+          name
+          code
+          subTypes {
+            goalSubTypeId
+            name
+            code
+          }
+        }
+        penaltyTypes {
+          penaltyTypeId
+          name
+          code
+          duration
+          subTypes {
+            penaltySubTypeId
+            name
+            code
+          }
+        }
+        injuryTypes {
+          injuryTypeId
+          name
+        }
+      }
+    }
+  }
+`
 
 const Play = () => {
   const classes = useStyles()
@@ -28,90 +162,180 @@ const Play = () => {
     loading: queryLoading,
     data: queryData,
     error: queryError,
-  } = useQuery(GET_GAME, {
+  } = useQuery(GET_GAME_PLAY, {
     fetchPolicy: 'network-only',
     variables: { gameId },
     skip: gameId === 'new',
   })
 
   const gameData = queryData?.game[0] || {}
-  useEffect(() => {
-    console.log('gameData:', gameData)
-  }, [gameData])
-  return (
-    <Container maxWidth={false} className={classes.container}>
-      <Helmet>
-        <title>{`Game Live ${gameData?.name || ''}`}</title>
-      </Helmet>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
+  const gameSettings = queryData?.systemSettings[0]?.rulePack || {}
 
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Paper className={classes.paper}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                flexShrink: 3,
-              }}
-            >
-              <Typography variant="h6" component="div">
-                {gameData?.name}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {gameData?.type}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {formatDate(gameData?.startDate?.formatted)} -{' '}
-                {formatDate(gameData?.endDate?.formatted)}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {formatTime(gameData?.startTime?.formatted)} -{' '}
-                {formatTime(gameData?.endTime?.formatted)}
-              </Typography>
-            </div>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} lg={4}>
-          <Paper className={classes.paper}>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div>
-                <Title>{'Host team'}</Title>
+  const teamHost = React.useMemo(
+    () => gameData.teams?.find(t => t.host)?.team,
+    [gameData]
+  )
+  const teamGuest = React.useMemo(
+    () => gameData.teams?.find(t => !t.host)?.team,
+    [gameData]
+  )
+
+  const playersHost = React.useMemo(
+    () => gameData.players?.filter(t => t.host),
+    [gameData]
+  )
+  const playersGuest = React.useMemo(
+    () => gameData.players?.filter(t => !t.host),
+    [gameData]
+  )
+
+  React.useEffect(() => {
+    console.log('gameData:', gameData)
+    console.log('gameSettings:', gameSettings)
+  }, [gameData])
+
+  return (
+    <GameEventFormProvider>
+      <Container maxWidth={false} className={classes.container}>
+        <Helmet>
+          <title>{`Game Live ${gameData?.name || ''}`}</title>
+        </Helmet>
+        {queryLoading && !queryError && <Loader />}
+        {queryError && !queryLoading && <Error message={queryError.message} />}
+
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Paper className={classes.paper}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  flexShrink: 3,
+                }}
+              >
+                <Typography variant="h6" component="div">
+                  {gameData?.name}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {gameData?.type}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {formatDate(gameData?.startDate?.formatted)} -{' '}
+                  {formatDate(gameData?.endDate?.formatted)}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {formatTime(gameData?.startTime?.formatted)} -{' '}
+                  {formatTime(gameData?.endTime?.formatted)}
+                </Typography>
               </div>
-              <div></div>
-            </Toolbar>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} lg={4}>
-          <Paper className={classes.paper}>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div>
-                <Title>{'Live game'}</Title>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} lg={8}>
+            <Paper className={classes.paper}>
+              <Toolbar disableGutters className={classes.toolbarForm}>
+                <div>
+                  <Title>{teamHost?.name ?? 'Host team'}</Title>
+                </div>
+                <div>
+                  <Title>{teamGuest?.name ?? 'Guest team'}</Title>
+                </div>
+              </Toolbar>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamHost?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamHost?.name}
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      fontFamily: 'Digital Numbers Regular',
+                    }}
+                  >
+                    <div style={{ fontSize: '100px' }}>
+                      <span>{2}</span>:<span>{2}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamGuest?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamGuest?.name}
+                  />
+                </div>
               </div>
-              <div></div>
-            </Toolbar>
-            <Grid container>
-              <Grid item xs={12}>
-                <Periods />
-                <Timer />
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <GameEventWizard
+                    team={teamHost}
+                    players={playersHost}
+                    gameSettings={gameSettings}
+                  />
+                </div>
+                <div></div>
+                <div>
+                  <GameEventWizard
+                    team={teamGuest}
+                    players={playersGuest}
+                    gameSettings={gameSettings}
+                  />
+                </div>
+              </div>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} lg={4}>
+            <Paper className={classes.paper}>
+              <Toolbar disableGutters className={classes.toolbarForm}>
+                <div>
+                  <Title>{'Live game'}</Title>
+                </div>
+                <div></div>
+              </Toolbar>
+              <Grid container>
+                <Grid item xs={12}>
+                  <Periods gameSettings={gameSettings} />
+                </Grid>
               </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} lg={4}>
-          <Paper className={classes.paper}>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div>
-                <Title>{'Guest team'}</Title>
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper className={classes.paper}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  flexShrink: 3,
+                }}
+              >
+                <Typography variant="h6" component="div">
+                  {'Events table'}
+                </Typography>
               </div>
-              <div></div>
-            </Toolbar>
-          </Paper>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </GameEventFormProvider>
   )
 }
 

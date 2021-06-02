@@ -118,6 +118,32 @@ type Mutation {
     )
 }
 
+# CreateGoalGameEventSimple
+# MATCH (game: Game {gameId: '725f4bb8-0d12-4b08-9df9-a9bfbf399b10'})
+# MATCH (team: Team {teamId: '8c798530-f57a-4c6f-bbac-1e7e40e4cfa8'})
+# MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: '158df0f3-bbfe-4572-9321-7557ea6f9650'})
+# MATCH (metaPlayerAllowedBy: MetaPlayer {metaPlayerId: ''})
+# MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: ''})
+# MATCH (metaPlayerSecondAssist: MetaPlayer {metaPlayerId: ''})
+
+# CREATE (ges: GameEventSimple, {
+#     gameEventSimpleId: 'ges1',
+#     eventType: 'goal',
+#     timestamp: '2021-06-01T22:18:03+02:00',
+#     period: '1',
+#     remainingTime: '14:32',
+#     type: 'cool',
+#     subType: 'subCool',
+# })
+# CREATE (ges) <- [:INITIATES_SIMPLE] - (game)
+# CREATE (team) <- [:CREATED_BY] - (ges)
+# CREATE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
+# CREATE (metaPlayerAllowedBy) <- [:ALLOWED_BY] - (ges)
+# CREATE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
+# CREATE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
+
+# return ges,
+
 type Query {
   organizationBySlug(organizationSlug: String!): Organization
     @cypher(
@@ -352,6 +378,8 @@ type Team {
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   gameEvents: [GameEvent] @relation(name: "CREATED_BY", direction: IN)
+  gameEventsSimple: [GameEventSimple]
+    @relation(name: "CREATED_BY", direction: IN)
   transfersFrom: [Transfer] @relation(name: "FROM_TEAM", direction: OUT)
   transfersTo: [Transfer] @relation(name: "TO_TEAM", direction: IN)
   competitions: [Competition] @relation(name: "PARTICIPATE_IN", direction: OUT)
@@ -413,6 +441,9 @@ type Game {
   description: String
   teams: [TeamGame]
   players: [TakingPartIn]
+  gameEvents: [GameEvent] @relation(name: "INITIATES", direction: OUT)
+  gameEventsSimple: [GameEventSimple]
+    @relation(name: "INITIATES_SIMPLE", direction: OUT)
   awards: [Award] @relation(name: "WIN_AN_AWARD", direction: OUT)
   # lineup: Lineup @relation(name: "GENERATES", direction: IN)
   persons: [Person] @relation(name: "HAS_GAME_STAFF", direction: OUT)
@@ -429,9 +460,11 @@ type Game {
 
 type GameEvent {
   gameEventId: ID! @id
-  timestamp: DateTime!
+  timestamp: String!
   location: String
   period: String
+  remainingTime: String
+  game: Game @relation(name: "INITIATES", direction: IN)
   goals: [Goal] @relation(name: "CREATE_GOAL", direction: OUT)
   penalties: [Penalty] @relation(name: "CREATE_PENALTY", direction: OUT)
   faceOffs: [FaceOff] @relation(name: "CREATE_FACEOFF", direction: OUT)
@@ -455,6 +488,35 @@ type GameEvent {
   previousGameEvent: GameEvent
     @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)
   nextGameEvent: GameEvent @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
+}
+
+type GameEventSimple {
+  gameEventSimpleId: ID! @id
+  timestamp: String!
+  location: String
+  period: String
+  remainingTime: String
+  eventType: String
+  game: Game @relation(name: "INITIATES_SIMPLE", direction: IN)
+  # universal properties:
+  # goal / shot / penalty / injury
+  type: String
+  subType: String
+  duration: Float
+  description: String
+  # goal:
+  scoredBy: MetaPlayer @relation(name: "SCORED_BY", direction: OUT)
+  allowedBy: MetaPlayer @relation(name: "ALLOWED_BY", direction: OUT)
+  firstAssist: MetaPlayer @relation(name: "FIRST_ASSIST_BY", direction: OUT)
+  secondAssist: MetaPlayer @relation(name: "SECOND_ASSIST_BY", direction: OUT)
+  # faceOff
+  lostBy: Player @relation(name: "LOST_BY", direction: OUT)
+  wonBy: Player @relation(name: "WON_BY", direction: OUT)
+
+  previousGameEvent: GameEventSimple
+    @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)
+  nextGameEvent: GameEventSimple
+    @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
 }
 
 type Save {
@@ -549,7 +611,7 @@ type Penalty {
   penaltyId: ID! @id
   type: String
   subType: String
-  duration: Int
+  duration: Float
   gameEvent: GameEvent @relation(name: "CREATE_PENALTY", direction: IN)
   penalized: Player @relation(name: "PENALIZED", direction: OUT)
   penaltyShot: PenaltyShot @relation(name: "CREATED_BY", direction: IN)
@@ -559,7 +621,7 @@ type Penalty {
 type IntervalOnIce {
   intervalOnIceId: ID! @id
   endTime: DateTime
-  duration: Int
+  duration: Float
   gameEvent: GameEvent @relation(name: "CREATE_INTERVAL_ON_ICE", direction: IN)
   spentBy: Player @relation(name: "SPENT_BY", direction: OUT)
 }
@@ -1000,7 +1062,8 @@ type Period {
   periodId: ID! @id
   name: String!
   code: String
-  duration: Int!
+  duration: Float!
+  priority: Int
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
 }
 
@@ -1052,7 +1115,7 @@ type PenaltyType {
   penaltyTypeId: ID! @id
   name: String!
   code: String!
-  duration: Int!
+  duration: Float!
   rulePack: RulePack @relation(name: "SET_UP", direction: IN)
   subTypes: [PenaltySubType] @relation(name: "SET_UP", direction: OUT)
 }

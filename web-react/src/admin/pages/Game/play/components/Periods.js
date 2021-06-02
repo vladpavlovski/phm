@@ -2,10 +2,10 @@ import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
-
+import { Timer } from './Timer'
 const Periods = props => {
-  const { gameId } = props
-  console.log(gameId)
+  const { gameSettings } = props
+
   const [activePeriod, setActivePeriod] = useState()
 
   const handleButtonClick = useCallback(period => {
@@ -20,49 +20,41 @@ const Periods = props => {
   )
 
   return (
-    <ButtonGroup
-      fullWidth
-      variant="outlined"
-      aria-label="outlined primary button group"
-    >
-      <Button
-        onClick={() => {
-          handleButtonClick(1)
-        }}
-        variant={getButtonVariant(1)}
+    <>
+      <ButtonGroup
+        fullWidth
+        variant="outlined"
+        aria-label="outlined primary button group"
       >
-        First
-      </Button>
-      <Button
-        onClick={() => {
-          handleButtonClick(2)
-        }}
-        variant={getButtonVariant(2)}
-      >
-        Second
-      </Button>
-      <Button
-        onClick={() => {
-          handleButtonClick(3)
-        }}
-        variant={getButtonVariant(3)}
-      >
-        Third
-      </Button>
-      <Button
-        onClick={() => {
-          handleButtonClick(4)
-        }}
-        variant={getButtonVariant(4)}
-      >
-        OT
-      </Button>
-    </ButtonGroup>
+        {gameSettings?.periods
+          ?.slice()
+          ?.sort((a, b) => (a.priority > b.priority ? 1 : -1))
+          ?.map(period => {
+            return (
+              <Button
+                key={period?.periodId}
+                onClick={() => {
+                  handleButtonClick(period?.name)
+                }}
+                variant={getButtonVariant(period?.name)}
+              >
+                {period?.name}
+              </Button>
+            )
+          })}
+      </ButtonGroup>
+      <Timer
+        timeInMinutes={
+          gameSettings?.periods?.find(p => p.name === activePeriod)?.duration ||
+          0 * 60
+        }
+      />
+    </>
   )
 }
 
 Periods.propTypes = {
-  gameId: PropTypes.string,
+  gameSettings: PropTypes.object,
 }
 
 export { Periods }
