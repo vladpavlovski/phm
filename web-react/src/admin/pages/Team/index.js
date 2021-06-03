@@ -126,7 +126,7 @@ const DELETE_TEAM = gql`
 const Team = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { teamId } = useParams()
+  const { teamId, organizationSlug } = useParams()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -146,7 +146,7 @@ const Team = () => {
     onCompleted: data => {
       if (teamId === 'new') {
         const newId = data.mergeTeam.teamId
-        history.replace(getAdminOrgTeamRoute(newId))
+        history.replace(getAdminOrgTeamRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Team saved!', { variant: 'success' })
     },

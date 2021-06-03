@@ -31,6 +31,7 @@ export const GET_ALL_TEAMS = gql`
     teams: Team {
       teamId
       name
+      logo
     }
   }
 `
@@ -161,6 +162,22 @@ const Teams = props => {
 
   const allTeamsColumns = useMemo(
     () => [
+      {
+        field: 'logo',
+        headerName: 'Logo',
+        width: 70,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <img
+              className={classes.teamLogoView}
+              src={params.value}
+              alt={params.row.name}
+              loading="lazy"
+            />
+          )
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',

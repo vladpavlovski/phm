@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import createPersistedState from 'use-persisted-state'
-// import PropTypes from 'prop-types'
-import { useTimer } from 'react-timer-hook'
+import PropTypes from 'prop-types'
+import { useTimer, useTime } from 'react-timer-hook'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 import { useExitPrompt } from '../../../../../utils/hooks'
 const useGamePlayTimer = createPersistedState('HMS-GamePlayTimer')
 const useGamePlayTimerRunning = createPersistedState('HMS-GamePlayTimerRunning')
 
-const DEFAULT_TIMER = 1200
-const Timer = () => {
+const DEFAULT_TIMER = 1200 // 1200 sec = 20 minutes timer
+const Timer = props => {
+  const { timeInMinutes } = props
   const [timerStarted, setTimerStarted] = useState(false)
   const [expiryTimestampBase, setExpiryTimestamp] = useGamePlayTimer(
-    DEFAULT_TIMER
-  ) // 1200 sec = 20 minutes timer
+    timeInMinutes || DEFAULT_TIMER
+  )
   const [
     gamePlayTimerRunning,
     setGamePlayTimerRunning,
@@ -41,6 +42,12 @@ const Timer = () => {
     onExpire: () => console.warn('onExpire called'),
   })
 
+  const {
+    seconds: timeSeconds,
+    minutes: timeMinutes,
+    hours: timeHours,
+  } = useTime({ format: '' })
+
   useEffect(() => {
     setGamePlayTimerRunning(isRunning)
     const restTimer = minutes * 60 + seconds
@@ -61,19 +68,22 @@ const Timer = () => {
 
   const handleResetTimer = useCallback(() => {
     setTimerStarted(false)
-    setExpiryTimestamp(DEFAULT_TIMER)
+    setExpiryTimestamp(timeInMinutes || DEFAULT_TIMER)
     setGamePlayTimerRunning(false)
     const time = new Date()
-    time.setSeconds(time.getSeconds() + DEFAULT_TIMER)
+    time.setSeconds(time.getSeconds() + (timeInMinutes || DEFAULT_TIMER))
     restart(time, false)
   }, [])
 
   return (
     <div style={{ textAlign: 'center', fontFamily: 'Digital Numbers Regular' }}>
-      <div style={{ fontSize: '100px' }}>
+      <div style={{ fontSize: '6rem' }}>
         <span>{minutes}</span>:<span>{seconds}</span>
       </div>
-      <p>{isRunning ? 'Running' : 'Not running'}</p>
+      <div style={{ fontSize: '2rem' }}>
+        <span>{timeHours}</span>:<span>{timeMinutes}</span>:
+        <span>{timeSeconds}</span>
+      </div>
       <ButtonGroup
         fullWidth
         variant="outlined"
@@ -88,6 +98,8 @@ const Timer = () => {
   )
 }
 
-// Timer.propTypes = {}
+Timer.propTypes = {
+  timeInMinutes: PropTypes.number,
+}
 
 export { Timer }

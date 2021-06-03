@@ -45,6 +45,7 @@ const GET_PERIODS = gql`
         name
         code
         duration
+        priority
       }
     }
   }
@@ -57,12 +58,14 @@ const MERGE_RULEPACK_PERIOD = gql`
     $name: String
     $code: String
     $duration: Int
+    $priority: Int!
   ) {
     period: MergePeriod(
       periodId: $periodId
       name: $name
       code: $code
       duration: $duration
+      priority: $priority
     ) {
       periodId
       name
@@ -79,6 +82,7 @@ const MERGE_RULEPACK_PERIOD = gql`
         name
         code
         duration
+        priority
       }
     }
   }
@@ -96,6 +100,7 @@ const schema = object().shape({
   name: string().required('Name is required'),
   code: string(),
   duration: number().integer().positive().required('Duration is required'),
+  priority: number().integer().positive().required('Priority is required'),
 })
 
 const Periods = props => {
@@ -194,10 +199,15 @@ const Periods = props => {
       {
         field: 'duration',
         headerName: 'Duration',
-        width: 200,
+        width: 120,
         valueFormatter: params => {
           return showTimeAsMinutes(params.value)
         },
+      },
+      {
+        field: 'priority',
+        headerName: 'Priority',
+        width: 100,
       },
       {
         field: 'periodId',
@@ -378,7 +388,7 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, duration, code } = dataToCheck
+        const { name, duration, code, priority } = dataToCheck
 
         mergeRulePackPeriod({
           variables: {
@@ -386,6 +396,7 @@ const FormDialog = props => {
             name,
             code,
             duration: !isNaN(parseInt(duration)) && parseInt(duration),
+            priority: !isNaN(parseInt(priority)) && parseInt(priority),
             periodId: data?.periodId || uuidv4(),
           },
         })
@@ -450,6 +461,18 @@ const FormDialog = props => {
                       fullWidth
                       variant="standard"
                       error={errors?.duration}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.priority || ''}
+                      name="priority"
+                      label="Priority in minutes"
+                      required
+                      fullWidth
+                      variant="standard"
+                      error={errors?.priority}
                     />
                   </Grid>
                 </Grid>

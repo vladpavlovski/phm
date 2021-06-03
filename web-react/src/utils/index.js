@@ -69,6 +69,15 @@ export const showTimeAsMinutes = (minutes = 0) => {
   return dayjs.utc(duration.asMilliseconds()).format('HH:mm')
 }
 
+export const showTimeAsHms = (minutes = 0) => {
+  // Transform integer minutes into time format 00:00:oo
+
+  const time = dayjs().subtract(minutes, 'minute')
+  const duration = dayjs.duration(dayjs().diff(time))
+
+  return dayjs.utc(duration.asMilliseconds()).format('HH:mm:ss')
+}
+
 export const decomposeDate = (date, fieldName) => ({
   [`${fieldName}Day`]: dayjs(date).date(),
   [`${fieldName}Month`]: dayjs(date).month() + 1,
@@ -89,6 +98,8 @@ export const formatDate = date =>
 
 export const formatTime = time =>
   time === '00:00:00Z' ? ' ' : time?.slice(0, 5)
+
+export const formatTimeFull = time => (time === '00:00:00Z' ? ' ' : time)
 
 const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
 

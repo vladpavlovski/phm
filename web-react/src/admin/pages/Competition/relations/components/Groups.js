@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { v4 as uuidv4 } from 'uuid'
@@ -21,7 +22,8 @@ import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
-
+import Autocomplete from '@material-ui/core/Autocomplete'
+import TextField from '@material-ui/core/TextField'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
 import LoadingButton from '@material-ui/lab/LoadingButton'
@@ -35,7 +37,7 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, decomposeNumber } from '../../../../../utils'
 
 const GET_GROUPS = gql`
-  query getCompetition($competitionId: ID) {
+  query getCompetition($competitionId: ID, $organizationSlug: String!) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
       name
@@ -45,7 +47,15 @@ const GET_GROUPS = gql`
         nick
         short
         teamsLimit
+        season {
+          seasonId
+          name
+        }
       }
+    }
+    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
+      seasonId
+      name
     }
   }
 `
@@ -95,6 +105,55 @@ const DELETE_GROUP = gql`
   }
 `
 
+const MERGE_GROUP_SEASON = gql`
+  mutation mergeGroupSeason($groupId: ID!, $seasonId: ID!) {
+    mergeGroupSeason: MergeGroupSeason(
+      from: { groupId: $groupId }
+      to: { seasonId: $seasonId }
+    ) {
+      from {
+        groupId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+  }
+`
+const REMOVE_MERGE_GROUP_SEASON = gql`
+  mutation removeMergeGroupSeason(
+    $groupId: ID!
+    $seasonIdToRemove: ID!
+    $seasonIdToMerge: ID!
+  ) {
+    removeGroupSeason: RemoveGroupSeason(
+      from: { groupId: $groupId }
+      to: { seasonId: $seasonIdToRemove }
+    ) {
+      from {
+        groupId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+    mergeGroupSeason: MergeGroupSeason(
+      from: { groupId: $groupId }
+      to: { seasonId: $seasonIdToMerge }
+    ) {
+      from {
+        groupId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+  }
+`
+
 const schema = object().shape({
   name: string().required('Name is required'),
   nick: string(),
@@ -104,7 +163,7 @@ const schema = object().shape({
 
 const Groups = props => {
   const { competitionId } = props
-
+  const { organizationSlug } = useParams()
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -119,6 +178,7 @@ const Groups = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GROUPS, {
+    variables: { competitionId, organizationSlug },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -126,7 +186,7 @@ const Groups = props => {
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData()
     }
   }, [])
 
@@ -194,17 +254,23 @@ const Groups = props => {
       {
         field: 'nick',
         headerName: 'Nick',
-        width: 100,
+        width: 120,
       },
       {
         field: 'short',
         headerName: 'Short',
-        width: 100,
+        width: 120,
       },
       {
         field: 'teamsLimit',
-        headerName: 'Teams Limit',
+        headerName: 'Limit',
+        width: 120,
+      },
+      {
+        field: 'season',
+        headerName: 'Season',
         width: 150,
+        valueGetter: params => params.row.season.name,
       },
       {
         field: 'groupId',
@@ -293,6 +359,12 @@ const Groups = props => {
                 components={{
                   Toolbar: GridToolbar,
                 }}
+                sortModel={[
+                  {
+                    field: 'season',
+                    sort: 'desc',
+                  },
+                ]}
               />
             </div>
           </>
@@ -302,6 +374,7 @@ const Groups = props => {
       <FormDialog
         competition={competition}
         competitionId={competitionId}
+        seasons={queryData?.seasons}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
@@ -314,17 +387,24 @@ const FormDialog = props => {
   const {
     competition,
     competitionId,
+    seasons,
     openDialog,
     handleCloseDialog,
     data,
   } = props
-
+  const [selectedSeason, setSelectedSeason] = useState()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
+
+  React.useEffect(() => {
+    if (data?.season) {
+      setSelectedSeason(data?.season)
+    }
+  }, [data])
 
   const [mergeCompetitionGroup, { loading: loadingMergeGroup }] = useMutation(
     MERGE_COMPETITION_GROUP,
@@ -338,8 +418,8 @@ const FormDialog = props => {
             },
           })
 
-          const existingData = queryResult.competition[0].groups
-          const newItem = groupCompetition.to
+          const existingData = queryResult?.competition?.[0]?.groups
+          const newItem = groupCompetition?.to
           let updatedData = []
           if (existingData.find(ed => ed.groupId === newItem.groupId)) {
             // replace if item exist in array
@@ -386,6 +466,52 @@ const FormDialog = props => {
         console.error(error)
       },
     }
+  )
+
+  const [removeMergeGroupSeason] = useMutation(REMOVE_MERGE_GROUP_SEASON, {
+    onCompleted: data => {
+      setSelectedSeason(data?.mergeGroupSeason?.to)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const [mergeGroupSeason] = useMutation(MERGE_GROUP_SEASON, {
+    onCompleted: data => {
+      setSelectedSeason(data?.mergeGroupSeason?.to)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const handleSeasonChange = useCallback(
+    selected => {
+      if (selectedSeason && selectedSeason?.seasonId !== selected?.seasonId) {
+        removeMergeGroupSeason({
+          variables: {
+            groupId: data?.groupId,
+            seasonIdToRemove: selectedSeason.seasonId,
+            seasonIdToMerge: selected.seasonId,
+          },
+        })
+      } else {
+        mergeGroupSeason({
+          variables: {
+            groupId: data?.groupId,
+            seasonIdToMerge: selected.seasonId,
+          },
+        })
+      }
+    },
+    [selectedSeason, data]
   )
 
   const onSubmit = useCallback(
@@ -476,6 +602,41 @@ const FormDialog = props => {
                       error={errors?.teamsLimit}
                     />
                   </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    {data && (
+                      <Autocomplete
+                        id="group-season-select"
+                        name="season"
+                        value={selectedSeason}
+                        disableClearable
+                        getOptionLabel={option => option.name}
+                        isOptionEqualToValue={(option, value) =>
+                          option?.seasonId === value?.seasonId
+                        }
+                        options={[...seasons].sort(sortByName)}
+                        onChange={(_, data) => {
+                          handleSeasonChange(data)
+                        }}
+                        renderOption={(props, option) => (
+                          <li {...props} key={option?.seasonId}>
+                            {option?.name}
+                          </li>
+                        )}
+                        renderInput={params => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            label="Season"
+                            variant="standard"
+                            inputProps={{
+                              ...params.inputProps,
+                              autoComplete: 'new-password',
+                            }}
+                          />
+                        )}
+                      />
+                    )}
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
@@ -493,6 +654,16 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
+}
+
+const sortByName = (a, b) => {
+  if (a?.name < b?.name) {
+    return 1
+  }
+  if (a?.name > b?.name) {
+    return -1
+  }
+  return 0
 }
 
 Groups.propTypes = {
