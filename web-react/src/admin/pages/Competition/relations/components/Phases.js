@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { v4 as uuidv4 } from 'uuid'
@@ -21,9 +22,10 @@ import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
-
+import Autocomplete from '@material-ui/core/Autocomplete'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
+import TextField from '@material-ui/core/TextField'
 import LoadingButton from '@material-ui/lab/LoadingButton'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
@@ -40,7 +42,7 @@ import {
 } from '../../../../../utils'
 
 const GET_PHASES = gql`
-  query getCompetition($competitionId: ID) {
+  query getCompetition($competitionId: ID, $organizationSlug: String!) {
     competition: Competition(competitionId: $competitionId) {
       competitionId
       name
@@ -56,7 +58,15 @@ const GET_PHASES = gql`
         endDate {
           formatted
         }
+        season {
+          seasonId
+          name
+        }
       }
+    }
+    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
+      seasonId
+      name
     }
   }
 `
@@ -124,6 +134,55 @@ const DELETE_PHASE = gql`
   }
 `
 
+const MERGE_PHASE_SEASON = gql`
+  mutation mergePhaseSeason($phaseId: ID!, $seasonId: ID!) {
+    mergePhaseSeason: MergePhaseSeason(
+      from: { phaseId: $phaseId }
+      to: { seasonId: $seasonId }
+    ) {
+      from {
+        phaseId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+  }
+`
+const REMOVE_MERGE_PHASE_SEASON = gql`
+  mutation removeMergePhaseSeason(
+    $phaseId: ID!
+    $seasonIdToRemove: ID!
+    $seasonIdToMerge: ID!
+  ) {
+    removePhaseSeason: RemovePhaseSeason(
+      from: { phaseId: $phaseId }
+      to: { seasonId: $seasonIdToRemove }
+    ) {
+      from {
+        phaseId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+    mergePhaseSeason: MergePhaseSeason(
+      from: { phaseId: $phaseId }
+      to: { seasonId: $seasonIdToMerge }
+    ) {
+      from {
+        phaseId
+      }
+      to {
+        seasonId
+        name
+      }
+    }
+  }
+`
+
 const schema = object().shape({
   name: string().required('Name is required'),
   nick: string(),
@@ -135,7 +194,7 @@ const schema = object().shape({
 
 const Phases = props => {
   const { competitionId } = props
-
+  const { organizationSlug } = useParams()
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -150,6 +209,7 @@ const Phases = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_PHASES, {
+    variables: { competitionId, organizationSlug },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -157,7 +217,7 @@ const Phases = props => {
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData()
     }
   }, [])
 
@@ -225,17 +285,17 @@ const Phases = props => {
       {
         field: 'nick',
         headerName: 'Nick',
-        width: 100,
+        width: 120,
       },
       {
         field: 'short',
         headerName: 'Short',
-        width: 100,
+        width: 120,
       },
       {
         field: 'status',
         headerName: 'Status',
-        width: 200,
+        width: 120,
       },
       {
         field: 'startDate',
@@ -250,6 +310,12 @@ const Phases = props => {
         width: 180,
         valueGetter: params => params.row.endDate.formatted,
         valueFormatter: params => formatDate(params.value),
+      },
+      {
+        field: 'season',
+        headerName: 'Season',
+        width: 150,
+        valueGetter: params => params.row.season.name,
       },
       {
         field: 'phaseId',
@@ -338,6 +404,12 @@ const Phases = props => {
                 components={{
                   Toolbar: GridToolbar,
                 }}
+                sortModel={[
+                  {
+                    field: 'startDate',
+                    sort: 'desc',
+                  },
+                ]}
               />
             </div>
           </>
@@ -347,6 +419,7 @@ const Phases = props => {
       <FormDialog
         competition={competition}
         competitionId={competitionId}
+        seasons={queryData?.seasons}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
@@ -359,17 +432,24 @@ const FormDialog = props => {
   const {
     competition,
     competitionId,
+    seasons,
     openDialog,
     handleCloseDialog,
     data,
   } = props
-
+  const [selectedSeason, setSelectedSeason] = useState()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
+
+  React.useEffect(() => {
+    if (data?.season) {
+      setSelectedSeason(data?.season)
+    }
+  }, [data])
 
   const [mergeCompetitionPhase, { loading: loadingMergePhase }] = useMutation(
     MERGE_COMPETITION_PHASE,
@@ -383,8 +463,8 @@ const FormDialog = props => {
             },
           })
 
-          const existingData = queryResult.competition[0].phases
-          const newItem = phaseCompetition.to
+          const existingData = queryResult?.competition?.[0]?.phases
+          const newItem = phaseCompetition?.to
           let updatedData = []
           if (existingData.find(ed => ed.phaseId === newItem.phaseId)) {
             // replace if item exist in array
@@ -423,6 +503,7 @@ const FormDialog = props => {
           }
         )
         handleCloseDialog()
+        setSelectedSeason(null)
       },
       onError: error => {
         enqueueSnackbar(`Error happened :( ${error}`, {
@@ -431,6 +512,52 @@ const FormDialog = props => {
         console.error(error)
       },
     }
+  )
+
+  const [removeMergePhaseSeason] = useMutation(REMOVE_MERGE_PHASE_SEASON, {
+    onCompleted: data => {
+      setSelectedSeason(data?.mergePhaseSeason?.to)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const [mergePhaseSeason] = useMutation(MERGE_PHASE_SEASON, {
+    onCompleted: data => {
+      setSelectedSeason(data?.mergePhaseSeason?.to)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const handleSeasonChange = useCallback(
+    selected => {
+      if (selectedSeason && selectedSeason?.seasonId !== selected?.seasonId) {
+        removeMergePhaseSeason({
+          variables: {
+            phaseId: data?.phaseId,
+            seasonIdToRemove: selectedSeason.seasonId,
+            seasonIdToMerge: selected.seasonId,
+          },
+        })
+      } else {
+        mergePhaseSeason({
+          variables: {
+            phaseId: data?.phaseId,
+            seasonIdToMerge: selected.seasonId,
+          },
+        })
+      }
+    },
+    [selectedSeason, data]
   )
 
   const onSubmit = useCallback(
@@ -469,7 +596,9 @@ const FormDialog = props => {
         noValidate
         autoComplete="off"
       >
-        <DialogTitle id="alert-dialog-title">{`Add new phase to ${competition?.name}`}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{`${
+          data?.phaseId ? 'Edit phase in' : 'Add new phase to'
+        } ${competition?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -551,6 +680,41 @@ const FormDialog = props => {
                       error={errors?.endDate}
                     />
                   </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    {data && (
+                      <Autocomplete
+                        id="phase-season-select"
+                        name="season"
+                        value={selectedSeason}
+                        disableClearable
+                        getOptionLabel={option => option.name}
+                        isOptionEqualToValue={(option, value) =>
+                          option?.seasonId === value?.seasonId
+                        }
+                        options={[...seasons].sort(sortByName)}
+                        onChange={(_, data) => {
+                          handleSeasonChange(data)
+                        }}
+                        renderOption={(props, option) => (
+                          <li {...props} key={option?.seasonId}>
+                            {option?.name}
+                          </li>
+                        )}
+                        renderInput={params => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            label="Season"
+                            variant="standard"
+                            inputProps={{
+                              ...params.inputProps,
+                              autoComplete: 'new-password',
+                            }}
+                          />
+                        )}
+                      />
+                    )}
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
@@ -568,6 +732,16 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
+}
+
+const sortByName = (a, b) => {
+  if (a?.name < b?.name) {
+    return 1
+  }
+  if (a?.name > b?.name) {
+    return -1
+  }
+  return 0
 }
 
 Phases.propTypes = {
