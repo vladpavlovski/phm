@@ -116,9 +116,122 @@ type Mutation {
       return newPosition
       """
     )
+  CreateGoalGameEventSimple(
+    teamId: ID!
+    gameId: ID!
+    gameEventSimpleId: ID!
+    gameEventSimplePreviousId: ID
+    metaPlayerScoredById: ID
+    metaPlayerAllowedById: ID
+    metaPlayerFirstAssistId: ID
+    metaPlayerSecondAssistId: ID
+    eventType: String
+    timestamp: String
+    period: String
+    remainingTime: String
+    type: String
+    subType: String
+  ): GameEventSimple!
+    @cypher(
+      statement: """
+      MATCH (game: Game {gameId: $gameId})
+      MATCH (team: Team {teamId: $teamId})
+      CREATE (ges: GameEventSimple {
+          gameEventSimpleId: $gameEventSimpleId,
+          eventType: $eventType,
+          timestamp: $timestamp,
+          period: $period,
+          remainingTime: $remainingTime,
+          type: $type,
+          subType: $subType,
+      })
+      CREATE (ges) <- [:INITIATES_SIMPLE] - (game)
+      CREATE (team) <- [:CREATED_BY] - (ges)
+
+      WITH ges, team, game, $metaPlayerScoredById as metaPlayerScoredById, $metaPlayerFirstAssistId as metaPlayerFirstAssistId, $metaPlayerSecondAssistId as metaPlayerSecondAssistId, $metaPlayerAllowedById as metaPlayerAllowedById, $previousGameEventSimpleId as previousGameEventSimpleId
+      CALL apoc.do.when(
+          $metaPlayerScoredById <> null,
+          "MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
+          CREATE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
+          RETURN metaPlayerScoredBy
+          ",
+          '',
+          {
+            ges: ges,
+            metaPlayerScoredById: $metaPlayerScoredById
+          }
+      )
+      YIELD value as metaPlayerScoredBy
+
+      WITH team, game, ges, metaPlayerScoredBy, metaPlayerFirstAssistId, metaPlayerSecondAssistId, metaPlayerAllowedById, previousGameEventSimpleId
+
+      CALL apoc.do.when(
+          metaPlayerFirstAssistId <> '',
+          "MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: metaPlayerFirstAssistId})
+          CREATE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
+          RETURN metaPlayerFirstAssist
+          ",
+          '',
+          {
+              ges: ges,
+              metaPlayerFirstAssistId: metaPlayerFirstAssistId
+          }
+      )
+      YIELD value as metaPlayerFirstAssist
+
+      WITH team, game, ges, metaPlayerScoredBy, metaPlayerFirstAssist, metaPlayerSecondAssistId, metaPlayerAllowedById, previousGameEventSimpleId
+
+      CALL apoc.do.when(
+          metaPlayerSecondAssistId <> '',
+          "MATCH (metaPlayerSecondAssist: MetaPlayer {metaPlayerId: metaPlayerSecondAssistId})
+          CREATE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
+          RETURN metaPlayerSecondAssist
+          ",
+          '',
+          {
+              ges: ges,
+              metaPlayerSecondAssistId: metaPlayerSecondAssistId
+          }
+      )
+      YIELD value as metaPlayerSecondAssist
+
+      WITH team, game, ges, metaPlayerScoredBy, metaPlayerFirstAssist, metaPlayerSecondAssist, metaPlayerAllowedById, previousGameEventSimpleId
+
+      CALL apoc.do.when(
+          metaPlayerAllowedById <> '',
+          "MATCH (metaPlayerAllowedBy: MetaPlayer {metaPlayerId: metaPlayerAllowedById})
+          CREATE (metaPlayerAllowedBy) <- [:ALLOWED_BY] - (ges)
+          RETURN metaPlayerAllowedBy
+          ",
+          '',
+          {
+              ges: ges,
+              metaPlayerAllowedById: metaPlayerAllowedById
+          }
+      )
+      YIELD value as metaPlayerAllowedBy
+
+      WITH team, game, ges, metaPlayerScoredBy, metaPlayerFirstAssist, metaPlayerSecondAssist, metaPlayerAllowedBy, previousGameEventSimpleId
+
+      CALL apoc.do.when(
+          previousGameEventSimpleId <> '',
+          "MATCH (previousGameEventSimple: GameEventSimple {gameEventSimpleId: previousGameEventSimpleId})
+          CREATE (previousGameEventSimple) <- [:PREVIOUS_GAME_EVENT] - (ges)
+          RETURN previousGameEventSimple
+          ",
+          '',
+          {
+              ges: ges,
+              previousGameEventSimpleId: previousGameEventSimpleId
+          }
+      )
+      YIELD value as previousGameEventSimple
+
+      RETURN ges, team, game, metaPlayerScoredBy, metaPlayerFirstAssist, metaPlayerSecondAssist, metaPlayerAllowedBy, previousGameEventSimple
+      """
+    )
 }
 
-# CreateGoalGameEventSimple
 # MATCH (game: Game {gameId: '725f4bb8-0d12-4b08-9df9-a9bfbf399b10'})
 # MATCH (team: Team {teamId: '8c798530-f57a-4c6f-bbac-1e7e40e4cfa8'})
 # MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: '158df0f3-bbfe-4572-9321-7557ea6f9650'})
@@ -142,7 +255,56 @@ type Mutation {
 # CREATE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
 # CREATE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
 
-# return ges,
+# return ges
+
+# MATCH (game: Game {gameId: '725f4bb8-0d12-4b08-9df9-a9bfbf399b10'})
+# MATCH (team: Team {teamId: '8c798530-f57a-4c6f-bbac-1e7e40e4cfa8'})
+# CREATE (ges: GameEventSimple {
+#     gameEventSimpleId: 'ges1',
+#     eventType: 'goal',
+#     timestamp: '2021-06-01T22:18:03+02:00',
+#     period: '1',
+#     remainingTime: '14:32',
+#     type: 'cool',
+#     subType: 'subCool'
+# })
+
+# CREATE (ges) <- [:INITIATES_SIMPLE] - (game)
+# CREATE (team) <- [:CREATED_BY] - (ges)
+# WITH ges, team, game
+# unwind '158df0f3-bbfe-4572-9321-7557ea6f9650' as metaPlayerScoredById
+# unwind 'f25916a4-df52-447f-9583-d5c25ae235f0' as metaPlayerFirstAssistId
+# WITH  ges, metaPlayerScoredById, team, game, metaPlayerFirstAssistId
+# CALL apoc.do.when(
+#     metaPlayerScoredById <> '',
+#     "MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
+#     CREATE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
+#     return metaPlayerScoredBy
+#     ",
+#     '',
+#     {
+#         ges: ges,
+#         metaPlayerScoredById: metaPlayerScoredById
+#     }
+# )
+# YIELD value as metaPlayerScoredBy
+
+# WITH  ges, metaPlayerScoredBy, team, game, metaPlayerFirstAssistId
+# CALL apoc.do.when(
+#     metaPlayerFirstAssistId <> '',
+#     "MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: metaPlayerFirstAssistId})
+#     CREATE (metaPlayerFirstAssist) <- [:ALLOWED_BY] - (ges)
+#     return metaPlayerFirstAssist
+#     ",
+#     '',
+#     {
+#         ges: ges,
+#         metaPlayerFirstAssistId: metaPlayerFirstAssistId
+#     }
+# )
+# YIELD value as metaPlayerFirstAssist
+
+# return ges, metaPlayerScoredBy, metaPlayerFirstAssist, team, game
 
 type Query {
   organizationBySlug(organizationSlug: String!): Organization
@@ -253,6 +415,15 @@ type MetaPlayer {
   richedTakeOvers: [TakeOver] @relation(name: "RICHED_BY", direction: IN)
   hits: [Hit] @relation(name: "GIVE_BY", direction: IN)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
+  eventsGoal: [GameEventSimple] @relation(name: "SCORED_BY", direction: IN)
+  eventsAllowedGoal: [GameEventSimple]
+    @relation(name: "ALLOWED_BY", direction: IN)
+  eventsFirstAssist: [GameEventSimple]
+    @relation(name: "FIRST_ASSIST_BY", direction: IN)
+  eventsSecondAssist: [GameEventSimple]
+    @relation(name: "SECOND_ASSIST_BY", direction: IN)
+  eventsLostBy: [GameEventSimple] @relation(name: "LOST_BY", direction: IN)
+  eventsWonBy: [GameEventSimple] @relation(name: "WON_BY", direction: IN)
 }
 
 type MetaHistory {
