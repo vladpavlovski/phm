@@ -79,9 +79,11 @@ const GameEventWizard = props => {
   const { onSave, team, players, gameSettings, gameData } = props
   const [openDialog, setOpenDialog] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
-  const { nextButtonDisabled, setNextButtonDisabled } = React.useContext(
-    GameEventFormContext
-  )
+  const {
+    nextButtonDisabled,
+    setNextButtonDisabled,
+    period,
+  } = React.useContext(GameEventFormContext)
 
   const [gameEventSettings, setGameEventSettings] = React.useState()
   const [gameEventData, setGameEventData] = React.useState()
@@ -113,7 +115,7 @@ const GameEventWizard = props => {
       metaPlayerWonById: null,
       eventType: gameEventSettings?.name || null,
       timestamp: gameEventData?.timestamp || null,
-      period: null,
+      period: period || null,
       remainingTime: gameEventData?.remainingTime || null,
       goalType: gameEventData?.goalType?.name || null,
       goalSubType: gameEventData?.goalSubType?.name || null,

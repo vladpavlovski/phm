@@ -1,22 +1,18 @@
-import React, { useState, useCallback } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 import { Timer } from './Timer'
+import GameEventFormContext from '../context'
+
 const Periods = props => {
   const { gameSettings } = props
 
-  const [activePeriod, setActivePeriod] = useState()
+  const { period, setPeriod } = React.useContext(GameEventFormContext)
 
-  const handleButtonClick = useCallback(period => {
-    setActivePeriod(period)
-  }, [])
-
-  const getButtonVariant = useCallback(
-    value => {
-      return activePeriod === value ? 'contained' : 'outlined'
-    },
-    [activePeriod]
+  const getButtonVariant = React.useCallback(
+    value => (period === value ? 'contained' : 'outlined'),
+    [period]
   )
 
   return (
@@ -34,7 +30,7 @@ const Periods = props => {
               <Button
                 key={period?.periodId}
                 onClick={() => {
-                  handleButtonClick(period?.name)
+                  setPeriod(period?.name)
                 }}
                 variant={getButtonVariant(period?.name)}
               >
@@ -45,7 +41,7 @@ const Periods = props => {
       </ButtonGroup>
       <Timer
         timeInMinutes={
-          gameSettings?.periods?.find(p => p.name === activePeriod)?.duration ||
+          gameSettings?.periods?.find(p => p.name === period)?.duration ||
           0 * 60
         }
       />
@@ -56,5 +52,4 @@ const Periods = props => {
 Periods.propTypes = {
   gameSettings: PropTypes.object,
 }
-
 export { Periods }
