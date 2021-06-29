@@ -315,7 +315,7 @@ const Phases = props => {
         field: 'season',
         headerName: 'Season',
         width: 150,
-        valueGetter: params => params.row.season.name,
+        valueGetter: params => params.row?.season?.name,
       },
       {
         field: 'phaseId',
@@ -708,7 +708,7 @@ const FormDialog = props => {
                             variant="standard"
                             inputProps={{
                               ...params.inputProps,
-                              autoComplete: 'new-password',
+                              autoComplete: 'off',
                             }}
                           />
                         )}

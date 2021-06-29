@@ -138,7 +138,9 @@ const GoalForm = props => {
       {activeStep === 2 && (
         <Grid item xs={12}>
           <PlayerSelect
-            players={players}
+            players={players.filter(
+              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
+            )}
             onClick={firstAssist => {
               setGameEventData(state => ({ ...state, firstAssist }))
             }}
@@ -149,7 +151,9 @@ const GoalForm = props => {
       {activeStep === 3 && (
         <Grid item xs={12}>
           <PlayerSelect
-            players={players}
+            players={players.filter(
+              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
+            )}
             onClick={secondAssist => {
               setGameEventData(state => ({ ...state, secondAssist }))
             }}
@@ -161,7 +165,8 @@ const GoalForm = props => {
         <>
           <Grid item xs={6}>
             <Autocomplete
-              disablePortal
+              // disablePortal
+              disableClearable
               id="combo-box-goal-type"
               options={gameSettings?.goalTypes}
               value={gameEventData?.goalType}
@@ -181,7 +186,8 @@ const GoalForm = props => {
           {gameEventData?.goalType?.subTypes?.length > 0 && (
             <Grid item xs={6}>
               <Autocomplete
-                disablePortal
+                // disablePortal
+                disableClearable
                 id="combo-box-goal-sub-type"
                 options={gameEventData?.goalType?.subTypes}
                 value={gameEventData?.goalSubType}
@@ -204,7 +210,8 @@ const GoalForm = props => {
         <>
           <Grid item xs={6}>
             <Autocomplete
-              disablePortal
+              // disablePortal
+              disableClearable
               id="combo-box-shot-type"
               options={gameSettings?.shotTypes}
               value={gameEventData?.shotType}
@@ -224,7 +231,8 @@ const GoalForm = props => {
           {gameEventData?.shotType?.subTypes?.length > 0 && (
             <Grid item xs={6}>
               <Autocomplete
-                disablePortal
+                // disablePortal
+                disableClearable
                 id="combo-box-shot-sub-type"
                 options={gameEventData?.shotType?.subTypes}
                 value={gameEventData?.shotSubType}

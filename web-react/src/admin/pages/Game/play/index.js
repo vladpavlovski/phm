@@ -289,6 +289,7 @@ const Play = () => {
                     team={teamHost}
                     players={playersHost}
                     gameSettings={gameSettings}
+                    gameData={gameData}
                   />
                 </div>
                 <div></div>
@@ -297,6 +298,7 @@ const Play = () => {
                     team={teamGuest}
                     players={playersGuest}
                     gameSettings={gameSettings}
+                    gameData={gameData}
                   />
                 </div>
               </div>

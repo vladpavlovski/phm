@@ -1,19 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-// import { gql, useMutation } from '@apollo/client'
+import { useSnackbar } from 'notistack'
+import { gql, useMutation } from '@apollo/client'
 
 import Button from '@material-ui/core/Button'
 import AddTaskIcon from '@material-ui/icons/AddTask'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-// import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Box from '@material-ui/core/Box'
 import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
 import Typography from '@material-ui/core/Typography'
+import { v4 as uuidv4 } from 'uuid'
 
 import { GameEventTypes } from './GameEventTypes'
 import { getEventData } from './gameEvents'
@@ -21,38 +22,63 @@ import { EventTypeForm } from './eventTypeForms'
 
 import GameEventFormContext from '../context'
 
-// const MERGE_GAME_EVENT_SIMPLE = gql`
-//   mutation mergeGameEventSimple(
-//     gameEventSimpleId: ID!
-//     timestamp: String
-//     location: String
-//     period: String
-//     remainingTime: String
-//     eventType: String
-//     type: String
-//     subType: String
-//     duration: Float
-//     description: String
-//   ) {
-//     mergeGameEventSimple: MergeGameEventSimple (
-//       gameEventSimpleId: $gameEventSimpleId
-//       timestamp: $timestamp
-//       location: $location
-//       location: $location
-//       remainingTime: $remainingTime
-//       eventType: $eventType
-//       type: $type
-//       subType: $subType
-//       duration: $duration
-//       description: $description
-//     )
-//   }
-// `
+const MERGE_GAME_EVENT_SIMPLE = gql`
+  mutation mergeGameEventSimple(
+    $teamId: ID!
+    $gameId: ID!
+    $gameEventSimpleId: ID!
+    $previousGameEventSimpleId: ID
+    $metaPlayerScoredById: ID
+    $metaPlayerAllowedById: ID
+    $metaPlayerFirstAssistId: ID
+    $metaPlayerSecondAssistId: ID
+    $metaPlayerSavedById: ID
+    $metaPlayerLostById: ID
+    $metaPlayerWonById: ID
+    $eventType: String
+    $timestamp: String
+    $period: String
+    $remainingTime: String
+    $goalType: String
+    $goalSubType: String
+    $shotType: String
+    $shotSubType: String
+  ) {
+    gameEventSimple: CreateGameEventSimple(
+      teamId: $teamId
+      gameId: $gameId
+      gameEventSimpleId: $gameEventSimpleId
+      previousGameEventSimpleId: $previousGameEventSimpleId
+      metaPlayerScoredById: $metaPlayerScoredById
+      metaPlayerAllowedById: $metaPlayerAllowedById
+      metaPlayerFirstAssistId: $metaPlayerFirstAssistId
+      metaPlayerSecondAssistId: $metaPlayerSecondAssistId
+      metaPlayerSavedById: $metaPlayerSavedById
+      metaPlayerLostById: $metaPlayerLostById
+      metaPlayerWonById: $metaPlayerWonById
+      eventType: $eventType
+      timestamp: $timestamp
+      period: $period
+      remainingTime: $remainingTime
+      goalType: $goalType
+      goalSubType: $goalSubType
+      shotType: $shotType
+      shotSubType: $shotSubType
+    ) {
+      gameEventSimpleId
+      eventType
+      game {
+        gameId
+        name
+      }
+    }
+  }
+`
 
 const GameEventWizard = props => {
-  const { onSave, team, players, gameSettings } = props
+  const { onSave, team, players, gameSettings, gameData } = props
   const [openDialog, setOpenDialog] = React.useState(false)
-
+  const { enqueueSnackbar } = useSnackbar()
   const { nextButtonDisabled, setNextButtonDisabled } = React.useContext(
     GameEventFormContext
   )
@@ -60,8 +86,54 @@ const GameEventWizard = props => {
   const [gameEventSettings, setGameEventSettings] = React.useState()
   const [gameEventData, setGameEventData] = React.useState()
 
+  const previousGameEventSimpleId = React.useRef()
+
   const [activeStep, setActiveStep] = React.useState(0)
   const [skipped, setSkipped] = React.useState(new Set())
+
+  const [
+    createGameEventSimple,
+    // { loading: loadingGameEventSimple, error: errorGameEventSimple },
+  ] = useMutation(MERGE_GAME_EVENT_SIMPLE, {
+    variables: {
+      teamId: team?.teamId,
+      gameId: gameData?.gameId,
+      gameEventSimpleId: uuidv4(),
+      previousGameEventSimpleId: previousGameEventSimpleId.current || null,
+      metaPlayerScoredById:
+        gameEventData?.scoredBy?.player?.meta?.metaPlayerId || null,
+      metaPlayerAllowedById:
+        gameEventData?.allowedBy?.player?.meta?.metaPlayerId || null,
+      metaPlayerFirstAssistId:
+        gameEventData?.firstAssist?.player?.meta?.metaPlayerId || null,
+      metaPlayerSecondAssistId:
+        gameEventData?.secondAssist?.player?.meta?.metaPlayerId || null,
+      metaPlayerSavedById: null,
+      metaPlayerLostById: null,
+      metaPlayerWonById: null,
+      eventType: gameEventSettings?.name || null,
+      timestamp: gameEventData?.timestamp || null,
+      period: null,
+      remainingTime: gameEventData?.remainingTime || null,
+      goalType: gameEventData?.goalType?.name || null,
+      goalSubType: gameEventData?.goalSubType?.name || null,
+      shotType: gameEventData?.shotType?.name || null,
+      shotSubType: gameEventData?.shotSubType?.name || null,
+    },
+    onCompleted: data => {
+      previousGameEventSimpleId.current =
+        data?.gameEventSimple?.gameEventSimpleId
+      enqueueSnackbar(`${data?.eventType} event created 🏒`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
 
   const isStepOptional = React.useCallback(
     step => {
@@ -214,20 +286,20 @@ const GameEventWizard = props => {
                   : 'Next'}
               </Button>
             )}
-
-            <Button color="secondary" onClick={handleClose}>
-              Cancel
-            </Button>
             {activeStep === gameEventSettings?.steps.length && (
               <Button
                 onClick={() => {
                   handleClose()
                   onSave && onSave()
+                  createGameEventSimple()
                 }}
               >
                 Save
               </Button>
             )}
+            <Button color="secondary" onClick={handleClose}>
+              Cancel
+            </Button>
           </Box>
         </DialogActions>
       </Dialog>
