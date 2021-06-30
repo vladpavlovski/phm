@@ -228,130 +228,131 @@ const Play = () => {
       </Helmet>
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
-
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Paper className={classes.paper}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                flexShrink: 3,
-              }}
-            >
-              <Typography variant="h6" component="div">
-                {gameData?.name}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {gameData?.type}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {formatDate(gameData?.startDate?.formatted)} -{' '}
-                {formatDate(gameData?.endDate?.formatted)}
-              </Typography>
-              <Typography variant="h6" component="div">
-                {formatTime(gameData?.startTime?.formatted)} -{' '}
-                {formatTime(gameData?.endTime?.formatted)}
-              </Typography>
-            </div>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} lg={8}>
-          <Paper className={classes.paper}>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div>
-                <Title>{teamHost?.name ?? 'Host team'}</Title>
+      {gameData && (
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Paper className={classes.paper}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  flexShrink: 3,
+                }}
+              >
+                <Typography variant="h6" component="div">
+                  {gameData?.name}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {gameData?.type}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {formatDate(gameData?.startDate?.formatted)} -{' '}
+                  {formatDate(gameData?.endDate?.formatted)}
+                </Typography>
+                <Typography variant="h6" component="div">
+                  {formatTime(gameData?.startTime?.formatted)} -{' '}
+                  {formatTime(gameData?.endTime?.formatted)}
+                </Typography>
               </div>
-              <div>
-                <Title>{teamGuest?.name ?? 'Guest team'}</Title>
-              </div>
-            </Toolbar>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div>
-                <Img
-                  placeholder={placeholderPerson}
-                  src={teamHost?.logo}
-                  className={classes.gamePlayTeamLogo}
-                  alt={teamHost?.name}
-                />
-              </div>
-              <div>
-                <div
-                  style={{
-                    textAlign: 'center',
-                    fontFamily: 'Digital Numbers Regular',
-                  }}
-                >
-                  {goalsCounter?.loaded && (
-                    <div style={{ fontSize: '100px' }}>
-                      <span>{goalsCounter?.host}</span>:
-                      <span>{goalsCounter?.guest}</span>
-                    </div>
-                  )}
+            </Paper>
+          </Grid>
+          <Grid item xs={12} lg={8}>
+            <Paper className={classes.paper}>
+              <Toolbar disableGutters className={classes.toolbarForm}>
+                <div>
+                  <Title>{teamHost?.name ?? 'Host team'}</Title>
+                </div>
+                <div>
+                  <Title>{teamGuest?.name ?? 'Guest team'}</Title>
+                </div>
+              </Toolbar>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamHost?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamHost?.name}
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      fontFamily: 'Digital Numbers Regular',
+                    }}
+                  >
+                    {goalsCounter?.loaded && (
+                      <div style={{ fontSize: '100px' }}>
+                        <span>{goalsCounter?.host}</span>:
+                        <span>{goalsCounter?.guest}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamGuest?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamGuest?.name}
+                  />
                 </div>
               </div>
-              <div>
-                <Img
-                  placeholder={placeholderPerson}
-                  src={teamGuest?.logo}
-                  className={classes.gamePlayTeamLogo}
-                  alt={teamGuest?.name}
-                />
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <GameEventWizard
+                    team={teamHost}
+                    players={playersHost}
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
+                </div>
+                <div></div>
+                <div>
+                  <GameEventWizard
+                    team={teamGuest}
+                    players={playersGuest}
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
+                </div>
               </div>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div>
-                <GameEventWizard
-                  team={teamHost}
-                  players={playersHost}
-                  gameSettings={gameSettings}
-                  gameData={gameData}
-                />
-              </div>
-              <div></div>
-              <div>
-                <GameEventWizard
-                  team={teamGuest}
-                  players={playersGuest}
-                  gameSettings={gameSettings}
-                  gameData={gameData}
-                />
-              </div>
-            </div>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} lg={4}>
-          <Paper className={classes.paper}>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div>
-                <Title>{'Live game'}</Title>
-              </div>
-              <div></div>
-            </Toolbar>
-            <Grid container>
-              <Grid item xs={12}>
-                <Periods gameSettings={gameSettings} />
+            </Paper>
+          </Grid>
+          <Grid item xs={12} lg={4}>
+            <Paper className={classes.paper}>
+              <Toolbar disableGutters className={classes.toolbarForm}>
+                <div>
+                  <Title>{'Live game'}</Title>
+                </div>
+                <div></div>
+              </Toolbar>
+              <Grid container>
+                <Grid item xs={12}>
+                  <Periods gameSettings={gameSettings} />
+                </Grid>
               </Grid>
-            </Grid>
-          </Paper>
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <EventsTable gameData={gameData} />
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <EventsTable gameData={gameData} />
-        </Grid>
-      </Grid>
+      )}
     </Container>
   )
 }

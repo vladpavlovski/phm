@@ -105,6 +105,7 @@ const EventsTable = props => {
     variables: {
       gameId: gameData?.gameId,
     },
+    // skip: !!gameData?.gameId,
   })
 
   React.useEffect(async () => {
