@@ -15,7 +15,7 @@ import { setIdFromEntityId } from '../../../../../utils'
 
 import GameEventFormContext from '../context'
 
-const GET_GAME_EVENTS_SIMPLE = gql`
+export const GET_GAME_EVENTS_SIMPLE = gql`
   query getGameEventsSimple($gameId: ID!) {
     gameEventsSimple: gameEventsSimpleByGameId(gameId: $gameId) {
       gameEventSimpleId
@@ -98,16 +98,19 @@ const EventsTable = props => {
   const { gameData } = props
   const classes = useStyles()
 
-  const { eventsTableUpdate } = React.useContext(GameEventFormContext)
+  const { eventsTableUpdate, setGoalsEventsCounter } = React.useContext(
+    GameEventFormContext
+  )
   const { data, error, loading, refetch } = useQuery(GET_GAME_EVENTS_SIMPLE, {
     variables: {
       gameId: gameData?.gameId,
     },
   })
 
-  React.useEffect(() => {
-    if (gameData?.gameId) {
-      refetch()
+  React.useEffect(async () => {
+    if (gameData?.gameId && eventsTableUpdate) {
+      await refetch()
+      setGoalsEventsCounter(g => g + 1)
     }
   }, [gameData?.gameId, eventsTableUpdate])
 

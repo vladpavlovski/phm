@@ -12,6 +12,7 @@ const GameEventFormProvider = props => {
   const [time, setTime] = React.useState(initialContextState.time)
 
   const [eventsTableUpdate, setEventsTableUpdate] = React.useState(0)
+  const [goalsEventsCounter, setGoalsEventsCounter] = React.useState(0)
   return (
     <GameEventFormContext.Provider
       value={{
@@ -23,6 +24,8 @@ const GameEventFormProvider = props => {
         setTime,
         eventsTableUpdate,
         setEventsTableUpdate,
+        goalsEventsCounter,
+        setGoalsEventsCounter,
       }}
     >
       {props.children}
