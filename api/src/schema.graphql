@@ -448,6 +448,13 @@ type Query {
       return game
       """
     )
+  gameEventsSimpleByGameId(gameId: ID!): [GameEventSimple]
+    @cypher(
+      statement: """
+      MATCH (Game { gameId: $gameId }) - [:INITIATES_SIMPLE] -> (ges: GameEventSimple)
+      return ges
+      """
+    )
 }
 
 type MetaPlayer {
@@ -733,10 +740,13 @@ type GameEventSimple {
   remainingTime: String
   eventType: String
   game: Game @relation(name: "INITIATES_SIMPLE", direction: IN)
+  team: Team @relation(name: "CREATED_BY", direction: OUT)
   # universal properties:
   # goal / shot / penalty / injury
-  type: String
-  subType: String
+  goalType: String
+  goalSubType: String
+  shotType: String
+  shotSubType: String
   duration: Float
   description: String
   # goal:

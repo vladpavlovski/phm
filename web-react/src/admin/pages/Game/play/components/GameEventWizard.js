@@ -83,6 +83,7 @@ const GameEventWizard = props => {
     nextButtonDisabled,
     setNextButtonDisabled,
     period,
+    setEventsTableUpdate,
   } = React.useContext(GameEventFormContext)
 
   const [gameEventSettings, setGameEventSettings] = React.useState()
@@ -125,9 +126,11 @@ const GameEventWizard = props => {
     onCompleted: data => {
       previousGameEventSimpleId.current =
         data?.gameEventSimple?.gameEventSimpleId
-      enqueueSnackbar(`${data?.eventType} event created 🏒`, {
+
+      enqueueSnackbar(`${data?.gameEventSimple?.eventType} event created 🏒`, {
         variant: 'success',
       })
+      setEventsTableUpdate(val => val + 1)
     },
     onError: error => {
       enqueueSnackbar(`${error}`, {

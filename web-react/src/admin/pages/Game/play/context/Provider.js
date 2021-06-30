@@ -10,6 +10,8 @@ const GameEventFormProvider = props => {
 
   const [period, setPeriod] = React.useState(initialContextState.period)
   const [time, setTime] = React.useState(initialContextState.time)
+
+  const [eventsTableUpdate, setEventsTableUpdate] = React.useState(0)
   return (
     <GameEventFormContext.Provider
       value={{
@@ -19,6 +21,8 @@ const GameEventFormProvider = props => {
         setPeriod,
         time,
         setTime,
+        eventsTableUpdate,
+        setEventsTableUpdate,
       }}
     >
       {props.children}

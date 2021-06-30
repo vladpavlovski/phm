@@ -21,7 +21,7 @@ import { formatDate, formatTime } from '../../../../utils'
 
 // import { GET_GAME } from '../index'
 
-import { Periods, GameEventWizard } from './components'
+import { Periods, GameEventWizard, EventsTable } from './components'
 
 import { GameEventFormProvider } from './context/Provider'
 
@@ -74,25 +74,25 @@ export const GET_GAME_PLAY = gql`
         eventId
         name
       }
-      gameEventsSimple {
-        gameEventSimpleId
-        timestamp
-        period
-        remainingTime
-        eventType
-        type
-        subType
-        duration
-        description
-        # scoredBy
-        # allowedBy {
+      # gameEventsSimple {
+      #   gameEventSimpleId
+      #   timestamp
+      #   period
+      #   remainingTime
+      #   eventType
+      #   type
+      #   subType
+      #   duration
+      #   description
+      #   # scoredBy
+      #   # allowedBy {
 
-        # }
-        # firstAssist
-        # secondAssist
-        # lostBy
-        # wonBy
-      }
+      #   # }
+      #   # firstAssist
+      #   # secondAssist
+      #   # lostBy
+      #   # wonBy
+      # }
     }
     systemSettings: SystemSettings(systemSettingsId: "system-settings") {
       rulePack {
@@ -320,20 +320,7 @@ const Play = () => {
             </Paper>
           </Grid>
           <Grid item xs={12}>
-            <Paper className={classes.paper}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  flexShrink: 3,
-                }}
-              >
-                <Typography variant="h6" component="div">
-                  {'Events table'}
-                </Typography>
-              </div>
-            </Paper>
+            <EventsTable gameData={gameData} />
           </Grid>
         </Grid>
       </Container>
