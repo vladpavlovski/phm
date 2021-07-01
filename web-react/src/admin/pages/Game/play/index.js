@@ -317,6 +317,8 @@ const Play = () => {
                   <GameEventWizard
                     team={teamHost}
                     players={playersHost}
+                    teamRival={teamGuest}
+                    playersRival={playersGuest}
                     gameSettings={gameSettings}
                     gameData={gameData}
                   />
@@ -326,6 +328,8 @@ const Play = () => {
                   <GameEventWizard
                     team={teamGuest}
                     players={playersGuest}
+                    teamRival={teamHost}
+                    playersRival={playersHost}
                     gameSettings={gameSettings}
                     gameData={gameData}
                   />

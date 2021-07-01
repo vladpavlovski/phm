@@ -3,9 +3,7 @@ import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
 import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
 import Autocomplete from '@material-ui/core/Autocomplete'
-// import Popper from '@material-ui/core/Popper'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
@@ -15,41 +13,8 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 
+import { PlayerSelect } from './components'
 import GameEventFormContext from '../../context'
-
-const PlayerSelect = props => {
-  const { players, onClick, selected } = props
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        minWidth: 300,
-        width: '100%',
-        justifyContent: 'space-evenly',
-      }}
-    >
-      {players.map(p => {
-        return (
-          <Button
-            type="button"
-            size="large"
-            style={{ width: '10%' }}
-            key={p.player.playerId}
-            variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
-            color="primary"
-            onClick={() => {
-              onClick(p)
-            }}
-          >
-            {p.jersey || 'not defined'}
-          </Button>
-        )
-      })}
-    </div>
-  )
-}
 
 const goalFormInitialState = {
   remainingTime: '00:00',

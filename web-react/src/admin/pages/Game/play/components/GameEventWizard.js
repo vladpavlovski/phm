@@ -76,7 +76,15 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
 `
 
 const GameEventWizard = props => {
-  const { onSave, team, players, gameSettings, gameData } = props
+  const {
+    onSave,
+    team,
+    teamRival,
+    players,
+    playersRival,
+    gameSettings,
+    gameData,
+  } = props
   const [openDialog, setOpenDialog] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
   const {
@@ -111,9 +119,12 @@ const GameEventWizard = props => {
         gameEventData?.firstAssist?.player?.meta?.metaPlayerId || null,
       metaPlayerSecondAssistId:
         gameEventData?.secondAssist?.player?.meta?.metaPlayerId || null,
-      metaPlayerSavedById: null,
-      metaPlayerLostById: null,
-      metaPlayerWonById: null,
+      metaPlayerSavedById:
+        gameEventData?.savedBy?.player?.meta?.metaPlayerId || null,
+      metaPlayerWonById:
+        gameEventData?.wonBy?.player?.meta?.metaPlayerId || null,
+      metaPlayerLostById:
+        gameEventData?.lostBy?.player?.meta?.metaPlayerId || null,
       eventType: gameEventSettings?.name || null,
       timestamp: gameEventData?.timestamp || null,
       period: period || null,
@@ -131,6 +142,7 @@ const GameEventWizard = props => {
         variant: 'success',
       })
       setEventsTableUpdate(val => val + 1)
+      setGameEventData(null)
     },
     onError: error => {
       enqueueSnackbar(`${error}`, {
@@ -257,7 +269,9 @@ const GameEventWizard = props => {
                 gameEventSettings={gameEventSettings}
                 activeStep={activeStep}
                 team={team}
+                teamRival={teamRival}
                 players={players}
+                playersRival={playersRival}
                 gameSettings={gameSettings}
                 gameEventData={gameEventData}
                 setGameEventData={setGameEventData}

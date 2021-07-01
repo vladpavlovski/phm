@@ -19,12 +19,28 @@ export const eventTypes = [
   //   color: '#EF3054',
   //   steps: [],
   // },
-  // {
-  //   type: 'faceOff',
-  //   name: 'Face Off',
-  //   color: '#688B58',
-  //   steps: [],
-  // },
+  {
+    type: 'faceOff',
+    name: 'Face Off',
+    color: '#688B58',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Won By',
+        optional: false,
+        field: 'wonBy',
+      },
+      {
+        name: 'Lost By',
+        optional: false,
+        field: 'lostBy',
+      },
+    ],
+  },
   // {
   //   type: 'fight',
   //   name: 'Fight',
