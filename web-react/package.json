@@ -39,6 +39,7 @@
     "styled-components": "^5.2.3",
     "use-persisted-state": "^0.3.3",
     "uuid": "^8.3.2",
+    "webfontloader": "^1.6.28",
     "yup": "^0.32.9"
   },
   "scripts": {
