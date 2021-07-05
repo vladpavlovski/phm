@@ -81,12 +81,23 @@ export const eventTypes = [
   //   color: '#A26769',
   //   steps: [],
   // },
-  // {
-  //   type: 'save',
-  //   name: 'Save',
-  //   color: '#291528',
-  //   steps: [],
-  // },
+  {
+    type: 'save',
+    name: 'Save',
+    color: '#291528',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Saved by',
+        optional: true,
+        field: 'savedBy',
+      },
+    ],
+  },
   {
     type: 'penaltyShot',
     name: 'Penalty Shot',

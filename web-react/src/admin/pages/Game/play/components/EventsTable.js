@@ -130,6 +130,15 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
           lastName
         }
       }
+      savedBy {
+        metaPlayerId
+        player {
+          playerId
+          name
+          firstName
+          lastName
+        }
+      }
     }
   }
 `
@@ -352,6 +361,15 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
+      },
+      {
+        field: 'savedBy',
+        headerName: 'Saved By',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+        valueGetter: params => params?.row?.savedBy?.player?.name,
       },
       {
         field: 'timestamp',

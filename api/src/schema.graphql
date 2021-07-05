@@ -586,6 +586,7 @@ type MetaPlayer {
   eventsFacedPenaltyShots: [GameEventSimple]
     @relation(name: "FACED_AGAINST", direction: IN)
   eventsInjuries: [GameEventSimple] @relation(name: "SUFFERED", direction: IN)
+  eventsSavedBy: [GameEventSimple] @relation(name: "SAVED_BY", direction: IN)
 }
 
 type MetaHistory {
@@ -868,6 +869,9 @@ type GameEventSimple {
   description: String
   injuryType: String
   suffered: MetaPlayer @relation(name: "SUFFERED", direction: OUT)
+
+  # save
+  savedBy: MetaPlayer @relation(name: "SAVED_BY", direction: OUT)
 }
 
 type Save {
