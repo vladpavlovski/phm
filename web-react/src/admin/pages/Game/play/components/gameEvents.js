@@ -53,12 +53,28 @@ export const eventTypes = [
   //   color: '#9649CB',
   //   steps: [],
   // },
-  // {
-  //   type: 'penalty',
-  //   name: 'Penalty',
-  //   color: '#FE5F55',
-  //   steps: [],
-  // },
+  {
+    type: 'penalty',
+    name: 'Penalty',
+    color: '#FE5F55',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Penalized',
+        optional: false,
+        field: 'penalized',
+      },
+      {
+        name: 'Penalty type',
+        optional: false,
+        field: 'penaltyType',
+      },
+    ],
+  },
   // {
   //   type: 'timeout',
   //   name: 'Timeout',

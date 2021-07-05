@@ -43,6 +43,10 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $goalSubType: String
     $shotType: String
     $shotSubType: String
+    $penaltyType: String
+    $penaltySubType: String
+    $duration: Float
+    $metaPlayerPenalizedId: ID
   ) {
     gameEventSimple: CreateGameEventSimple(
       teamId: $teamId
@@ -64,6 +68,10 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
       goalSubType: $goalSubType
       shotType: $shotType
       shotSubType: $shotSubType
+      penaltyType: $penaltyType
+      penaltySubType: $penaltySubType
+      duration: $duration
+      metaPlayerPenalizedId: $metaPlayerPenalizedId
     ) {
       gameEventSimpleId
       eventType
@@ -133,6 +141,13 @@ const GameEventWizard = props => {
       goalSubType: gameEventData?.goalSubType?.name || null,
       shotType: gameEventData?.shotType?.name || null,
       shotSubType: gameEventData?.shotSubType?.name || null,
+      penaltyType: gameEventData?.penaltyType?.name || null,
+      penaltySubType: gameEventData?.penaltySubType?.name || null,
+      duration: gameEventData?.duration
+        ? parseFloat(gameEventData?.duration)
+        : null,
+      metaPlayerPenalizedId:
+        gameEventData?.penalized?.player?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =
@@ -264,7 +279,7 @@ const GameEventWizard = props => {
                   )
                 })}
               </Stepper>
-
+              <br />
               <EventTypeForm
                 gameEventSettings={gameEventSettings}
                 activeStep={activeStep}

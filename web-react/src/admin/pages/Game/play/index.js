@@ -187,8 +187,8 @@ const Play = () => {
   )
 
   React.useEffect(() => {
-    // console.log('gameData:', gameData)
-    // console.log('gameSettings:', gameSettings)
+    console.log('gameData:', gameData)
+    console.log('gameSettings:', gameSettings)
     if (gameData) {
       const allGoals = gameData?.gameEventsSimple?.filter(
         ges => ges.eventType.toLowerCase() === 'goal'

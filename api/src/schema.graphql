@@ -144,6 +144,10 @@ type Mutation {
     goalSubType: String
     shotType: String
     shotSubType: String
+    penaltyType: String
+    penaltySubType: String
+    duration: Float
+    metaPlayerPenalizedId: ID
   ): GameEventSimple!
     @cypher(
       statement: """
@@ -158,12 +162,27 @@ type Mutation {
           goalType: $goalType,
           goalSubType: $goalSubType,
           shotType: $shotType,
-          shotSubType: $shotSubType
+          shotSubType: $shotSubType,
+          penaltyType: $penaltyType,
+          penaltySubType: $penaltySubType,
+          duration: $duration
       })
       CREATE (ges) <- [:INITIATES_SIMPLE] - (game)
       CREATE (team) <- [:CREATED_BY] - (ges)
 
-      WITH ges, team, game, $metaPlayerScoredById as metaPlayerScoredById, $metaPlayerFirstAssistId as metaPlayerFirstAssistId, $metaPlayerSecondAssistId as metaPlayerSecondAssistId, $metaPlayerAllowedById as metaPlayerAllowedById, $previousGameEventSimpleId as previousGameEventSimpleId, $metaPlayerSavedById as metaPlayerSavedById, $metaPlayerLostById as metaPlayerLostById, $metaPlayerWonById as metaPlayerWonById
+      WITH ges,
+      team,
+      game,
+      $metaPlayerScoredById as metaPlayerScoredById,
+      $metaPlayerFirstAssistId as metaPlayerFirstAssistId,
+      $metaPlayerSecondAssistId as metaPlayerSecondAssistId,
+      $metaPlayerAllowedById as metaPlayerAllowedById,
+      $previousGameEventSimpleId as previousGameEventSimpleId,
+      $metaPlayerSavedById as metaPlayerSavedById,
+      $metaPlayerLostById as metaPlayerLostById,
+      $metaPlayerWonById as metaPlayerWonById,
+      $metaPlayerPenalizedId as metaPlayerPenalizedId
+
       CALL apoc.do.when(
           $metaPlayerScoredById IS NOT NULL,
           "MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
@@ -178,7 +197,15 @@ type Mutation {
       )
       YIELD value as metaPlayerScoredBy
 
-      WITH ges, metaPlayerFirstAssistId, metaPlayerSecondAssistId, metaPlayerAllowedById, previousGameEventSimpleId, metaPlayerSavedById, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      metaPlayerFirstAssistId,
+      metaPlayerSecondAssistId,
+      metaPlayerAllowedById,
+      previousGameEventSimpleId,
+      metaPlayerSavedById,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerFirstAssistId IS NOT NULL,
@@ -194,7 +221,14 @@ type Mutation {
       )
       YIELD value as metaPlayerFirstAssist
 
-      WITH ges, metaPlayerSecondAssistId, metaPlayerAllowedById, previousGameEventSimpleId, metaPlayerSavedById, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      metaPlayerSecondAssistId,
+      metaPlayerAllowedById,
+      previousGameEventSimpleId,
+      metaPlayerSavedById,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerSecondAssistId IS NOT NULL,
@@ -210,7 +244,13 @@ type Mutation {
       )
       YIELD value as metaPlayerSecondAssist
 
-      WITH ges, metaPlayerAllowedById, previousGameEventSimpleId, metaPlayerSavedById, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      metaPlayerAllowedById,
+      previousGameEventSimpleId,
+      metaPlayerSavedById,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerAllowedById IS NOT NULL,
@@ -226,7 +266,12 @@ type Mutation {
       )
       YIELD value as metaPlayerAllowedBy
 
-      WITH ges, previousGameEventSimpleId, metaPlayerSavedById, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      previousGameEventSimpleId,
+      metaPlayerSavedById,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerSavedById IS NOT NULL,
@@ -242,7 +287,11 @@ type Mutation {
       )
       YIELD value as metaPlayerSavedBy
 
-      WITH ges, previousGameEventSimpleId, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      previousGameEventSimpleId,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           previousGameEventSimpleId IS NOT NULL,
@@ -258,7 +307,10 @@ type Mutation {
       )
       YIELD value as previousGameEventSimple
 
-      WITH ges, metaPlayerWonById, metaPlayerLostById
+      WITH ges,
+      metaPlayerWonById,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerWonById IS NOT NULL,
@@ -274,7 +326,9 @@ type Mutation {
       )
       YIELD value as metaPlayerWonBy
 
-      WITH ges, metaPlayerLostById
+      WITH ges,
+      metaPlayerLostById,
+      metaPlayerPenalizedId
 
       CALL apoc.do.when(
           metaPlayerLostById IS NOT NULL,
@@ -289,6 +343,24 @@ type Mutation {
           }
       )
       YIELD value as metaPlayerLostBy
+
+      WITH ges,
+      metaPlayerPenalizedId
+
+      CALL apoc.do.when(
+          metaPlayerPenalizedId IS NOT NULL,
+          "MATCH (metaPlayerPenalized: MetaPlayer { metaPlayerId: metaPlayerPenalizedId })
+          CREATE (metaPlayerPenalized) <- [:PENALIZED] - (ges)
+          RETURN metaPlayerPenalized
+          ",
+          '',
+          {
+            ges: ges,
+            metaPlayerPenalizedId: metaPlayerPenalizedId
+          }
+      )
+      YIELD value as metaPlayerPenalized
+
 
       RETURN ges
       """
@@ -420,6 +492,7 @@ type MetaPlayer {
     @relation(name: "SECOND_ASSIST_BY", direction: IN)
   eventsLostBy: [GameEventSimple] @relation(name: "LOST_BY", direction: IN)
   eventsWonBy: [GameEventSimple] @relation(name: "WON_BY", direction: IN)
+  eventsPenalties: [GameEventSimple] @relation(name: "PENALIZED", direction: IN)
 }
 
 type MetaHistory {
@@ -668,20 +741,28 @@ type GameEventSimple {
   team: Team @relation(name: "CREATED_BY", direction: OUT)
   # universal properties:
   # goal / shot / penalty / injury
-  goalType: String
-  goalSubType: String
-  shotType: String
-  shotSubType: String
-  duration: Float
+
   description: String
+
   # goal:
   scoredBy: MetaPlayer @relation(name: "SCORED_BY", direction: OUT)
   allowedBy: MetaPlayer @relation(name: "ALLOWED_BY", direction: OUT)
   firstAssist: MetaPlayer @relation(name: "FIRST_ASSIST_BY", direction: OUT)
   secondAssist: MetaPlayer @relation(name: "SECOND_ASSIST_BY", direction: OUT)
+  goalType: String
+  goalSubType: String
+  shotType: String
+  shotSubType: String
+
   # faceOff
   lostBy: MetaPlayer @relation(name: "LOST_BY", direction: OUT)
   wonBy: MetaPlayer @relation(name: "WON_BY", direction: OUT)
+
+  # penalty
+  penaltyType: String
+  penaltySubType: String
+  duration: Float
+  penalized: MetaPlayer @relation(name: "PENALIZED", direction: OUT)
 
   previousGameEvent: GameEventSimple
     @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)

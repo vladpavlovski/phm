@@ -27,6 +27,9 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
       goalSubType
       shotType
       shotSubType
+      penaltyType
+      penaltySubType
+      duration
       team {
         teamId
         nick
@@ -82,6 +85,15 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
         }
       }
       wonBy {
+        metaPlayerId
+        player {
+          playerId
+          name
+          firstName
+          lastName
+        }
+      }
+      penalized {
         metaPlayerId
         player {
           playerId
@@ -244,6 +256,39 @@ const EventsTable = props => {
         resizable: false,
         sortable: false,
         valueGetter: params => params?.row?.lostBy?.player?.name,
+      },
+      {
+        field: 'penalized',
+        headerName: 'Penalized',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+        valueGetter: params => params?.row?.penalized?.player?.name,
+      },
+      {
+        field: 'penaltyType',
+        headerName: 'Penalty Type',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+      {
+        field: 'penaltySubType',
+        headerName: 'Penalty SubType',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+      {
+        field: 'duration',
+        headerName: 'Duration',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
       },
       {
         field: 'timestamp',
