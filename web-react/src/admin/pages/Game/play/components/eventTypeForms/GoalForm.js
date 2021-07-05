@@ -130,13 +130,12 @@ const GoalForm = props => {
         <>
           <Grid item xs={6}>
             <Autocomplete
-              // disablePortal
               disableClearable
               id="combo-box-goal-type"
               options={gameSettings?.goalTypes}
               value={gameEventData?.goalType}
               renderInput={params => (
-                <TextField {...params} label="Goal type" />
+                <TextField {...params} autoFocus label="Goal type" />
               )}
               getOptionLabel={option => option.name}
               isOptionEqualToValue={(option, value) =>
@@ -175,13 +174,12 @@ const GoalForm = props => {
         <>
           <Grid item xs={6}>
             <Autocomplete
-              // disablePortal
               disableClearable
               id="combo-box-shot-type"
               options={gameSettings?.shotTypes}
               value={gameEventData?.shotType}
               renderInput={params => (
-                <TextField {...params} label="Shot type" />
+                <TextField {...params} autoFocus label="Shot type" />
               )}
               getOptionLabel={option => option.name}
               isOptionEqualToValue={(option, value) =>
