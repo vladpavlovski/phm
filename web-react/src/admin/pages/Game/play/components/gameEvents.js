@@ -31,12 +31,12 @@ export const eventTypes = [
       },
       {
         name: 'Won By',
-        optional: false,
+        optional: true,
         field: 'wonBy',
       },
       {
         name: 'Lost By',
-        optional: false,
+        optional: true,
         field: 'lostBy',
       },
     ],
@@ -87,12 +87,28 @@ export const eventTypes = [
   //   color: '#291528',
   //   steps: [],
   // },
-  // {
-  //   type: 'penaltyShot',
-  //   name: 'Penalty Shot',
-  //   color: '#DB995A',
-  //   steps: [],
-  // },
+  {
+    type: 'penaltyShot',
+    name: 'Penalty Shot',
+    color: '#DB995A',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Executed By',
+        optional: true,
+        field: 'executedBy',
+      },
+      {
+        name: 'Faced Against',
+        optional: true,
+        field: 'facedAgainst',
+      },
+    ],
+  },
   // {
   //   type: 'shot',
   //   name: 'Shot',

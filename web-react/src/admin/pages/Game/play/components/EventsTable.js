@@ -102,6 +102,24 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
           lastName
         }
       }
+      executedBy {
+        metaPlayerId
+        player {
+          playerId
+          name
+          firstName
+          lastName
+        }
+      }
+      facedAgainst {
+        metaPlayerId
+        player {
+          playerId
+          name
+          firstName
+          lastName
+        }
+      }
     }
   }
 `
@@ -172,7 +190,7 @@ const EventsTable = props => {
       {
         field: 'eventType',
         headerName: 'Event',
-        width: 100,
+        width: 120,
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
@@ -285,10 +303,28 @@ const EventsTable = props => {
       {
         field: 'duration',
         headerName: 'Duration',
+        width: 100,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+      {
+        field: 'executedBy',
+        headerName: 'Executed By',
         width: 180,
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
+        valueGetter: params => params?.row?.executedBy?.player?.name,
+      },
+      {
+        field: 'facedAgainst',
+        headerName: 'Faced Against',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+        valueGetter: params => params?.row?.facedAgainst?.player?.name,
       },
       {
         field: 'timestamp',

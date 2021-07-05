@@ -47,6 +47,8 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $penaltySubType: String
     $duration: Float
     $metaPlayerPenalizedId: ID
+    $metaPlayerExecutedById: ID
+    $metaPlayerFacedAgainstId: ID
   ) {
     gameEventSimple: CreateGameEventSimple(
       teamId: $teamId
@@ -72,6 +74,8 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
       penaltySubType: $penaltySubType
       duration: $duration
       metaPlayerPenalizedId: $metaPlayerPenalizedId
+      metaPlayerExecutedById: $metaPlayerExecutedById
+      metaPlayerFacedAgainstId: $metaPlayerFacedAgainstId
     ) {
       gameEventSimpleId
       eventType
@@ -148,6 +152,10 @@ const GameEventWizard = props => {
         : null,
       metaPlayerPenalizedId:
         gameEventData?.penalized?.player?.meta?.metaPlayerId || null,
+      metaPlayerExecutedById:
+        gameEventData?.executedBy?.player?.meta?.metaPlayerId || null,
+      metaPlayerFacedAgainstId:
+        gameEventData?.facedAgainst?.player?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =

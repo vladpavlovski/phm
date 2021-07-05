@@ -2,6 +2,7 @@ import React from 'react'
 import { GoalForm } from './GoalForm'
 import { FaceOffForm } from './FaceOffForm'
 import { PenaltyForm } from './PenaltyForm'
+import { PenaltyShotForm } from './PenaltyShotForm'
 
 export const EventTypeForm = props => {
   const { gameEventSettings } = props
@@ -12,6 +13,8 @@ export const EventTypeForm = props => {
       return <FaceOffForm {...props} />
     case 'penalty':
       return <PenaltyForm {...props} />
+    case 'penaltyShot':
+      return <PenaltyShotForm {...props} />
     default:
       return null
   }

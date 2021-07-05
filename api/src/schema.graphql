@@ -78,8 +78,8 @@ type Player implements Human {
   games: [TakingPartIn]
 }
 
-# Faceoff
-# Goal + Assistence/Pass
+# FaceOff
+# Goal + Assistance/Pass
 # GoalShots
 # Penalty
 # Penalty shots
@@ -148,6 +148,8 @@ type Mutation {
     penaltySubType: String
     duration: Float
     metaPlayerPenalizedId: ID
+    metaPlayerExecutedById: ID
+    metaPlayerFacedAgainstId: ID
   ): GameEventSimple!
     @cypher(
       statement: """
@@ -181,7 +183,10 @@ type Mutation {
       $metaPlayerSavedById as metaPlayerSavedById,
       $metaPlayerLostById as metaPlayerLostById,
       $metaPlayerWonById as metaPlayerWonById,
-      $metaPlayerPenalizedId as metaPlayerPenalizedId
+      $metaPlayerPenalizedId as metaPlayerPenalizedId,
+      $metaPlayerExecutedById as metaPlayerExecutedById,
+      $metaPlayerFacedAgainstId as metaPlayerFacedAgainstId
+
 
       CALL apoc.do.when(
           $metaPlayerScoredById IS NOT NULL,
@@ -205,7 +210,9 @@ type Mutation {
       metaPlayerSavedById,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerFirstAssistId IS NOT NULL,
@@ -228,7 +235,9 @@ type Mutation {
       metaPlayerSavedById,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerSecondAssistId IS NOT NULL,
@@ -250,7 +259,9 @@ type Mutation {
       metaPlayerSavedById,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerAllowedById IS NOT NULL,
@@ -271,7 +282,9 @@ type Mutation {
       metaPlayerSavedById,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerSavedById IS NOT NULL,
@@ -291,7 +304,9 @@ type Mutation {
       previousGameEventSimpleId,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           previousGameEventSimpleId IS NOT NULL,
@@ -310,7 +325,9 @@ type Mutation {
       WITH ges,
       metaPlayerWonById,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerWonById IS NOT NULL,
@@ -328,7 +345,9 @@ type Mutation {
 
       WITH ges,
       metaPlayerLostById,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerLostById IS NOT NULL,
@@ -345,7 +364,9 @@ type Mutation {
       YIELD value as metaPlayerLostBy
 
       WITH ges,
-      metaPlayerPenalizedId
+      metaPlayerPenalizedId,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
 
       CALL apoc.do.when(
           metaPlayerPenalizedId IS NOT NULL,
@@ -361,6 +382,40 @@ type Mutation {
       )
       YIELD value as metaPlayerPenalized
 
+      WITH ges,
+      metaPlayerExecutedById,
+      metaPlayerFacedAgainstId
+
+      CALL apoc.do.when(
+          metaPlayerExecutedById IS NOT NULL,
+          "MATCH (metaPlayerExecutedBy: MetaPlayer { metaPlayerId: metaPlayerExecutedById })
+          CREATE (metaPlayerExecutedBy) <- [:EXECUTED_BY] - (ges)
+          RETURN metaPlayerExecutedBy
+          ",
+          '',
+          {
+            ges: ges,
+            metaPlayerExecutedById: metaPlayerExecutedById
+          }
+      )
+      YIELD value as metaPlayerExecutedBy
+
+      WITH ges,
+      metaPlayerFacedAgainstId
+
+      CALL apoc.do.when(
+          metaPlayerFacedAgainstId IS NOT NULL,
+          "MATCH (metaPlayerFacedAgainst: MetaPlayer { metaPlayerId: metaPlayerFacedAgainstId })
+          CREATE (metaPlayerFacedAgainst) <- [:FACED_AGAINST] - (ges)
+          RETURN metaPlayerFacedAgainst
+          ",
+          '',
+          {
+            ges: ges,
+            metaPlayerFacedAgainstId: metaPlayerFacedAgainstId
+          }
+      )
+      YIELD value as metaPlayerFacedAgainst
 
       RETURN ges
       """
@@ -493,6 +548,10 @@ type MetaPlayer {
   eventsLostBy: [GameEventSimple] @relation(name: "LOST_BY", direction: IN)
   eventsWonBy: [GameEventSimple] @relation(name: "WON_BY", direction: IN)
   eventsPenalties: [GameEventSimple] @relation(name: "PENALIZED", direction: IN)
+  eventsExecutedPenaltyShots: [PenaltyShot]
+    @relation(name: "EXECUTED_BY", direction: IN)
+  eventsFacedPenaltyShots: [PenaltyShot]
+    @relation(name: "FACED_AGAINST", direction: IN)
 }
 
 type MetaHistory {
@@ -739,9 +798,12 @@ type GameEventSimple {
   eventType: String
   game: Game @relation(name: "INITIATES_SIMPLE", direction: IN)
   team: Team @relation(name: "CREATED_BY", direction: OUT)
-  # universal properties:
-  # goal / shot / penalty / injury
+  previousGameEvent: GameEventSimple
+    @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)
+  nextGameEvent: GameEventSimple
+    @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
 
+  # universal properties:
   description: String
 
   # goal:
@@ -764,10 +826,10 @@ type GameEventSimple {
   duration: Float
   penalized: MetaPlayer @relation(name: "PENALIZED", direction: OUT)
 
-  previousGameEvent: GameEventSimple
-    @relation(name: "PREVIOUS_GAME_EVENT", direction: OUT)
-  nextGameEvent: GameEventSimple
-    @relation(name: "PREVIOUS_GAME_EVENT", direction: IN)
+  # penaltyShot
+
+  facedAgainst: MetaPlayer @relation(name: "FACED_AGAINST", direction: OUT)
+  executedBy: MetaPlayer @relation(name: "EXECUTED_BY", direction: OUT)
 }
 
 type Save {
@@ -834,8 +896,8 @@ type PenaltyShot {
   penaltyShotId: ID! @id
   gameEvent: GameEvent @relation(name: "CREATE_PENALTY_SHOT", direction: IN)
   penalty: Penalty @relation(name: "CREATED_BY", direction: OUT)
-  facedAgainst: Player @relation(name: "FACED_AGAINST", direction: OUT)
-  executedBy: Player @relation(name: "EXECUTED_BY", direction: OUT)
+  facedAgainst: MetaPlayer @relation(name: "FACED_AGAINST", direction: OUT)
+  executedBy: MetaPlayer @relation(name: "EXECUTED_BY", direction: OUT)
   shot: Shot @relation(name: "CREATED_BY", direction: IN)
   checkedBy: Revision @relation(name: "CHECKED_BY", direction: OUT)
   canceledBy: Revision @relation(name: "CANCELED_BY", direction: OUT)
