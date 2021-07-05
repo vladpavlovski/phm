@@ -30,12 +30,12 @@ export const eventTypes = [
         field: 'remainingTime',
       },
       {
-        name: 'Won By',
+        name: 'Won by',
         optional: true,
         field: 'wonBy',
       },
       {
-        name: 'Lost By',
+        name: 'Lost by',
         optional: true,
         field: 'lostBy',
       },
@@ -98,12 +98,12 @@ export const eventTypes = [
         field: 'remainingTime',
       },
       {
-        name: 'Executed By',
+        name: 'Executed by',
         optional: true,
         field: 'executedBy',
       },
       {
-        name: 'Faced Against',
+        name: 'Faced against',
         optional: true,
         field: 'facedAgainst',
       },
@@ -149,6 +149,28 @@ export const eventTypes = [
         name: 'Shot type',
         optional: true,
         field: 'shotType',
+      },
+    ],
+  },
+  {
+    type: 'injury',
+    name: 'Injury',
+    color: '#D62839',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Suffered',
+        optional: false,
+        field: 'suffered',
+      },
+      {
+        name: 'Injury type',
+        optional: true,
+        field: 'injuryType',
       },
     ],
   },

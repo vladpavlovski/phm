@@ -30,6 +30,7 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
       penaltyType
       penaltySubType
       duration
+      injuryType
       team {
         teamId
         nick
@@ -112,6 +113,15 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
         }
       }
       facedAgainst {
+        metaPlayerId
+        player {
+          playerId
+          name
+          firstName
+          lastName
+        }
+      }
+      suffered {
         metaPlayerId
         player {
           playerId
@@ -325,6 +335,23 @@ const EventsTable = props => {
         resizable: false,
         sortable: false,
         valueGetter: params => params?.row?.facedAgainst?.player?.name,
+      },
+      {
+        field: 'suffered',
+        headerName: 'Suffered',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+        valueGetter: params => params?.row?.suffered?.player?.name,
+      },
+      {
+        field: 'injuryType',
+        headerName: 'Injury Type',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
       },
       {
         field: 'timestamp',

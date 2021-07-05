@@ -49,6 +49,9 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $metaPlayerPenalizedId: ID
     $metaPlayerExecutedById: ID
     $metaPlayerFacedAgainstId: ID
+    $description: String
+    $injuryType: String
+    $metaPlayerSufferedId: ID
   ) {
     gameEventSimple: CreateGameEventSimple(
       teamId: $teamId
@@ -76,6 +79,9 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
       metaPlayerPenalizedId: $metaPlayerPenalizedId
       metaPlayerExecutedById: $metaPlayerExecutedById
       metaPlayerFacedAgainstId: $metaPlayerFacedAgainstId
+      description: $description
+      injuryType: $injuryType
+      metaPlayerSufferedId: $metaPlayerSufferedId
     ) {
       gameEventSimpleId
       eventType
@@ -156,6 +162,10 @@ const GameEventWizard = props => {
         gameEventData?.executedBy?.player?.meta?.metaPlayerId || null,
       metaPlayerFacedAgainstId:
         gameEventData?.facedAgainst?.player?.meta?.metaPlayerId || null,
+      description: gameEventData?.description || null,
+      injuryType: gameEventData?.injuryType?.name || null,
+      metaPlayerSufferedId:
+        gameEventData?.suffered?.player?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =
