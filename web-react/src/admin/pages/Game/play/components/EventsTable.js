@@ -189,6 +189,38 @@ const EventsTable = props => {
   })
 
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
+    update(cache) {
+      try {
+        console.log(
+          'gameEventSimpleIdToDelete.current:',
+          gameEventSimpleIdToDelete.current
+        )
+        const queryResult = cache.readQuery({
+          query: GET_GAME_EVENTS_SIMPLE,
+          variables: {
+            gameId: gameData?.gameId,
+          },
+        })
+        console.log('queryResult:', queryResult)
+        const updatedEvents = queryResult?.gameEventsSimple?.filter(
+          ges => ges?.gameEventSimpleId !== gameEventSimpleIdToDelete.current
+        )
+        console.log('updatedEvents:', updatedEvents)
+        const updatedResult = {
+          gameEventsSimple: [...updatedEvents],
+        }
+        console.log('updatedResult:', updatedResult)
+        cache.writeQuery({
+          query: GET_GAME_EVENTS_SIMPLE,
+          data: updatedResult,
+          variables: {
+            gameId: gameData?.gameId,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
     onCompleted: () => {
       gameEventSimpleIdToDelete.current = null
       enqueueSnackbar(`Game event was deleted`, {
