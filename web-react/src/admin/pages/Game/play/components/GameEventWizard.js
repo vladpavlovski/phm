@@ -36,6 +36,7 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $metaPlayerLostById: ID
     $metaPlayerWonById: ID
     $eventType: String
+    $eventTypeCode: String
     $timestamp: String
     $period: String
     $remainingTime: String
@@ -66,6 +67,7 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
       metaPlayerLostById: $metaPlayerLostById
       metaPlayerWonById: $metaPlayerWonById
       eventType: $eventType
+      eventTypeCode: $eventTypeCode
       timestamp: $timestamp
       period: $period
       remainingTime: $remainingTime
@@ -95,7 +97,7 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
 
 const GameEventWizard = props => {
   const {
-    onSave,
+    host,
     team,
     teamRival,
     players,
@@ -103,17 +105,19 @@ const GameEventWizard = props => {
     gameSettings,
     gameData,
   } = props
-  const [openDialog, setOpenDialog] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
   const {
     nextButtonDisabled,
     setNextButtonDisabled,
     period,
     setEventsTableUpdate,
+    openGameEventDialog,
+    setOpenGameEventDialog,
+    gameEventSettings,
+    setGameEventSettings,
+    gameEventData,
+    setGameEventData,
   } = React.useContext(GameEventFormContext)
-
-  const [gameEventSettings, setGameEventSettings] = React.useState()
-  const [gameEventData, setGameEventData] = React.useState()
 
   const previousGameEventSimpleId = React.useRef()
 
@@ -144,6 +148,7 @@ const GameEventWizard = props => {
       metaPlayerLostById:
         gameEventData?.lostBy?.player?.meta?.metaPlayerId || null,
       eventType: gameEventSettings?.name || null,
+      eventTypeCode: gameEventSettings?.type || null,
       timestamp: gameEventData?.timestamp || null,
       period: period || null,
       remainingTime: gameEventData?.remainingTime || null,
@@ -184,7 +189,6 @@ const GameEventWizard = props => {
       console.error(error)
     },
   })
-
   const isStepOptional = React.useCallback(
     step => {
       return gameEventSettings?.steps?.[step]?.optional
@@ -228,10 +232,11 @@ const GameEventWizard = props => {
     setActiveStep(0)
     setGameEventSettings(null)
     setNextButtonDisabled(false)
+    setGameEventData(null)
   }, [])
 
   const handleClose = React.useCallback(() => {
-    setOpenDialog(false)
+    setOpenGameEventDialog(false)
     handleReset()
   }, [])
 
@@ -242,7 +247,7 @@ const GameEventWizard = props => {
         variant="contained"
         color="primary"
         onClick={() => {
-          setOpenDialog(true)
+          setOpenGameEventDialog(host ? 'host' : 'guest')
         }}
         startIcon={<AddTaskIcon />}
       >
@@ -252,7 +257,11 @@ const GameEventWizard = props => {
         fullWidth
         disableEscapeKeyDown
         maxWidth="lg"
-        open={openDialog}
+        open={
+          host
+            ? openGameEventDialog === 'host'
+            : openGameEventDialog === 'guest'
+        }
         onClose={(event, reason) => {
           if (reason !== 'backdropClick') {
             handleClose(event, reason)
@@ -262,7 +271,7 @@ const GameEventWizard = props => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {`Create new game event for ${team?.name}`}
+          {`Game event. ${team?.name}`}
         </DialogTitle>
         <DialogContent>
           {/* <DialogContentText id="alert-dialog-description">
@@ -306,8 +315,6 @@ const GameEventWizard = props => {
                 players={players}
                 playersRival={playersRival}
                 gameSettings={gameSettings}
-                gameEventData={gameEventData}
-                setGameEventData={setGameEventData}
               />
             </Box>
           )}
@@ -342,7 +349,6 @@ const GameEventWizard = props => {
               <Button
                 onClick={() => {
                   handleClose()
-                  onSave && onSave()
                   createGameEventSimple()
                 }}
               >
@@ -360,12 +366,10 @@ const GameEventWizard = props => {
 }
 
 GameEventWizard.defaultProps = {
-  onSave: null,
   team: null,
 }
 
 GameEventWizard.propTypes = {
-  onSave: PropTypes.func,
   team: PropTypes.object,
 }
 export { GameEventWizard }

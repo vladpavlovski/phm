@@ -16,7 +16,7 @@ import TableRow from '@material-ui/core/TableRow'
 import { PlayerSelect } from './components'
 import GameEventFormContext from '../../context'
 
-const goalFormInitialState = {
+const formInitialState = {
   remainingTime: '00:00',
   scoredBy: null,
   firstAssist: null,
@@ -28,24 +28,22 @@ const goalFormInitialState = {
 }
 
 const GoalForm = props => {
+  const { gameEventSettings, activeStep, players, gameSettings } = props
+
   const {
-    gameEventSettings,
-    activeStep,
-    players,
-    gameSettings,
+    setNextButtonDisabled,
     gameEventData,
     setGameEventData,
-  } = props
-
-  const { setNextButtonDisabled } = React.useContext(GameEventFormContext)
+  } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
     [gameEventSettings, activeStep]
   )
-
+  // console.log('GF~ gameEventData:', gameEventData)
   React.useEffect(() => {
-    setGameEventData({ ...goalFormInitialState, timestamp: dayjs().format() })
+    if (!gameEventData)
+      setGameEventData({ ...formInitialState, timestamp: dayjs().format() })
   }, [])
 
   React.useEffect(() => {
@@ -150,7 +148,6 @@ const GoalForm = props => {
           {gameEventData?.goalType?.subTypes?.length > 0 && (
             <Grid item xs={6}>
               <Autocomplete
-                // disablePortal
                 disableClearable
                 id="combo-box-goal-sub-type"
                 options={gameEventData?.goalType?.subTypes}

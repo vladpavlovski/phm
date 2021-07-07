@@ -172,11 +172,11 @@ const Play = () => {
     () => gameData?.teams?.find(t => t.host)?.team,
     [gameData]
   )
+
   const teamGuest = React.useMemo(
     () => gameData?.teams?.find(t => !t.host)?.team,
     [gameData]
   )
-
   const playersHost = React.useMemo(
     () => gameData?.players?.filter(t => t.host),
     [gameData]
@@ -315,6 +315,7 @@ const Play = () => {
               >
                 <div>
                   <GameEventWizard
+                    host={true}
                     team={teamHost}
                     players={playersHost}
                     teamRival={teamGuest}
@@ -326,6 +327,7 @@ const Play = () => {
                 <div></div>
                 <div>
                   <GameEventWizard
+                    host={false}
                     team={teamGuest}
                     players={playersGuest}
                     teamRival={teamHost}
@@ -353,7 +355,12 @@ const Play = () => {
             </Paper>
           </Grid>
           <Grid item xs={12}>
-            <EventsTable gameData={gameData} />
+            <EventsTable
+              teams={gameData?.teams}
+              players={gameData?.players}
+              gameData={gameData}
+              gameSettings={gameSettings}
+            />
           </Grid>
         </Grid>
       )}

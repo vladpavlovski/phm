@@ -1,16 +1,28 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import dayjs from 'dayjs'
 import Img from 'react-cool-img'
+import { useSnackbar } from 'notistack'
 
+import EditIcon from '@material-ui/icons/Edit'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import Tooltip from '@material-ui/core/Tooltip'
+import Button from '@material-ui/core/Button'
+import IconButton from '@material-ui/core/IconButton'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
+import Dialog from '@material-ui/core/Dialog'
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogTitle from '@material-ui/core/DialogTitle'
+
 import { XGrid } from '@material-ui/x-grid'
 
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-
+import { getEventData } from './gameEvents'
 import { setIdFromEntityId } from '../../../../../utils'
 
 import GameEventFormContext from '../context'
@@ -23,6 +35,7 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
       period
       remainingTime
       eventType
+      eventTypeCode
       goalType
       goalSubType
       shotType
@@ -143,18 +156,51 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
   }
 `
 
-const EventsTable = props => {
-  const { gameData } = props
-  const classes = useStyles()
+const DELETE_GAME_EVENT_SIMPLE = gql`
+  mutation deleteGameEventSimple($gameEventSimpleId: ID!) {
+    DeleteGameEventSimple(gameEventSimpleId: $gameEventSimpleId) {
+      gameEventSimpleId
+    }
+  }
+`
 
-  const { eventsTableUpdate, setGoalsEventsCounter } = React.useContext(
-    GameEventFormContext
+const EventsTable = props => {
+  const { gameData, gameSettings, players, teams } = props
+  const classes = useStyles()
+  const { enqueueSnackbar } = useSnackbar()
+  const [openDeleteEventDialog, setOpenDeleteEventDialog] = React.useState(
+    false
   )
+
+  const gameEventSimpleIdToDelete = React.useRef()
+
+  const {
+    eventsTableUpdate,
+    setGoalsEventsCounter,
+    setGameEventSettings,
+    setGameEventData,
+    setOpenGameEventDialog,
+  } = React.useContext(GameEventFormContext)
   const { data, error, loading, refetch } = useQuery(GET_GAME_EVENTS_SIMPLE, {
     variables: {
       gameId: gameData?.gameId,
     },
     // skip: !!gameData?.gameId,
+  })
+
+  const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
+    onCompleted: () => {
+      gameEventSimpleIdToDelete.current = null
+      enqueueSnackbar(`Game event was deleted`, {
+        variant: 'info',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
   })
 
   React.useEffect(async () => {
@@ -173,6 +219,156 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
+      },
+      {
+        field: 'actions',
+        headerName: 'Actions',
+        width: 100,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <>
+              <IconButton
+                type="button"
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  // find and set gameEventSettings based on eventTypeCode
+                  const data = getEventData(params.row?.eventTypeCode)
+                  setGameEventSettings(data)
+
+                  // compose gameEventData object
+                  const gameEventDataObject = {
+                    ...params.row,
+                    goalType:
+                      gameSettings?.goalTypes?.find(
+                        gt => gt.name === params.row?.goalType
+                      ) || null,
+                    goalSubType:
+                      gameSettings?.goalTypes
+                        ?.find(gt => gt.name === params.row?.goalType)
+                        ?.subTypes?.find(
+                          gst => gst.name === params.row?.goalSubType
+                        ) || null,
+                    shotType:
+                      gameSettings?.shotTypes?.find(
+                        st => st.name === params.row?.shotType
+                      ) || null,
+                    shotSubType:
+                      gameSettings?.shotTypes
+                        ?.find(st => st.name === params.row?.shotType)
+                        ?.subTypes?.find(
+                          sst => sst.name === params.row?.shotSubType
+                        ) || null,
+                    injuryType:
+                      gameSettings?.injuryTypes?.find(
+                        it => it.name === params.row?.injuryType
+                      ) || null,
+                    penaltyType:
+                      gameSettings?.penaltyTypes?.find(
+                        pt => pt.name === params.row?.penaltyType
+                      ) || null,
+                    penaltySubType:
+                      gameSettings?.penaltyTypes
+                        ?.find(pt => pt.name === params.row?.penaltyType)
+                        ?.subTypes?.find(
+                          pst => pst.name === params.row?.penaltySubType
+                        ) || null,
+                    scoredBy:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.scoredBy?.player?.playerId
+                      ) || null,
+                    firstAssist:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.firstAssist?.player?.playerId
+                      ) || null,
+                    secondAssist:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.secondAssist?.player?.playerId
+                      ) || null,
+                    wonBy:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.wonBy?.player?.playerId
+                      ) || null,
+                    lostBy:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.lostBy?.player?.playerId
+                      ) || null,
+                    suffered:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.suffered?.player?.playerId
+                      ) || null,
+                    penalized:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.penalized?.player?.playerId
+                      ) || null,
+                    executedBy:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.executedBy?.player?.playerId
+                      ) || null,
+                    facedAgainst:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.facedAgainst?.player?.playerId
+                      ) || null,
+                    savedBy:
+                      players?.find(
+                        p =>
+                          p?.player?.playerId ===
+                          params.row?.savedBy?.player?.playerId
+                      ) || null,
+                  }
+
+                  // set setGameEventData
+                  setGameEventData(gameEventDataObject)
+                  // detect host/guest team
+                  const isHost = teams?.find(
+                    t => t?.team?.teamId === params.row?.team?.teamId
+                  )?.host
+                  // open eventType dialog
+                  setOpenGameEventDialog(isHost ? 'host' : 'guest')
+                }}
+              >
+                <Tooltip arrow title="Edit" placement="top">
+                  <EditIcon />
+                </Tooltip>
+              </IconButton>
+              <IconButton
+                type="button"
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  gameEventSimpleIdToDelete.current =
+                    params.row?.gameEventSimpleId
+                  setOpenDeleteEventDialog(true)
+                }}
+              >
+                <Tooltip arrow title="Delete" placement="top">
+                  <DeleteForeverIcon />
+                </Tooltip>
+              </IconButton>
+            </>
+          )
+        },
       },
       {
         field: 'remainingTime',
@@ -222,7 +418,14 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.scoredBy?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId === params.row?.scoredBy?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.scoredBy?.player?.name} (${jersey})`
+        },
       },
 
       {
@@ -232,7 +435,17 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.firstAssist?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId ===
+                params.row?.firstAssist?.player?.playerId
+            )?.jersey || null
+          return (
+            jersey && `${params?.row?.firstAssist?.player?.name} (${jersey})`
+          )
+        },
       },
 
       {
@@ -242,7 +455,17 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.secondAssist?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId ===
+                params.row?.secondAssist?.player?.playerId
+            )?.jersey || null
+          return (
+            jersey && `${params?.row?.secondAssist?.player?.name} (${jersey})`
+          )
+        },
       },
       {
         field: 'goalType',
@@ -283,7 +506,13 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.wonBy?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p => p?.player?.playerId === params.row?.wonBy?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.wonBy?.player?.name} (${jersey})`
+        },
       },
       {
         field: 'lostBy',
@@ -292,7 +521,13 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.lostBy?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p => p?.player?.playerId === params.row?.lostBy?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.lostBy?.player?.name} (${jersey})`
+        },
       },
       {
         field: 'penalized',
@@ -301,7 +536,14 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.penalized?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId === params.row?.penalized?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.penalized?.player?.name} (${jersey})`
+        },
       },
       {
         field: 'penaltyType',
@@ -334,7 +576,16 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.executedBy?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId === params.row?.executedBy?.player?.playerId
+            )?.jersey || null
+          return (
+            jersey && `${params?.row?.executedBy?.player?.name} (${jersey})`
+          )
+        },
       },
       {
         field: 'facedAgainst',
@@ -343,7 +594,17 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.facedAgainst?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId ===
+                params.row?.facedAgainst?.player?.playerId
+            )?.jersey || null
+          return (
+            jersey && `${params?.row?.facedAgainst?.player?.name} (${jersey})`
+          )
+        },
       },
       {
         field: 'suffered',
@@ -352,7 +613,14 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.suffered?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p =>
+                p?.player?.playerId === params.row?.suffered?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.suffered?.player?.name} (${jersey})`
+        },
       },
       {
         field: 'injuryType',
@@ -369,7 +637,13 @@ const EventsTable = props => {
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
-        valueGetter: params => params?.row?.savedBy?.player?.name,
+        valueGetter: params => {
+          const jersey =
+            players?.find(
+              p => p?.player?.playerId === params.row?.savedBy?.player?.playerId
+            )?.jersey || null
+          return jersey && `${params?.row?.savedBy?.player?.name} (${jersey})`
+        },
       },
       {
         field: 'timestamp',
@@ -380,7 +654,7 @@ const EventsTable = props => {
         valueFormatter: params => dayjs(params?.value).format('HH:mm:ss'),
       },
     ],
-    []
+    [players, teams]
   )
 
   return (
@@ -419,6 +693,46 @@ const EventsTable = props => {
           />
         </div>
       )}
+      <Dialog
+        open={openDeleteEventDialog}
+        onClose={() => {
+          setOpenDeleteEventDialog(false)
+          gameEventSimpleIdToDelete.current = null
+        }}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {'Do you really want to delete it?'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This action will permanently delete this entity. Are you sure?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenDeleteEventDialog(false)
+              gameEventSimpleIdToDelete.current = null
+            }}
+          >
+            No, leave it
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenDeleteEventDialog(false)
+              deleteGameEventSimple({
+                variables: {
+                  gameEventSimpleId: gameEventSimpleIdToDelete.current,
+                },
+              })
+            }}
+          >
+            Sure, delete it!
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 }

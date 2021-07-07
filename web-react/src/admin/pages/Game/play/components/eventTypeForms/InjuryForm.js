@@ -16,7 +16,7 @@ import TableRow from '@material-ui/core/TableRow'
 import { PlayerSelect } from './components'
 import GameEventFormContext from '../../context'
 
-const goalFormInitialState = {
+const formInitialState = {
   remainingTime: '00:00',
   suffered: null,
   injuryType: null,
@@ -24,16 +24,13 @@ const goalFormInitialState = {
 }
 
 const InjuryForm = props => {
+  const { gameEventSettings, activeStep, players, gameSettings } = props
+
   const {
-    gameEventSettings,
-    activeStep,
-    players,
-    gameSettings,
+    setNextButtonDisabled,
     gameEventData,
     setGameEventData,
-  } = props
-
-  const { setNextButtonDisabled } = React.useContext(GameEventFormContext)
+  } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
@@ -41,7 +38,8 @@ const InjuryForm = props => {
   )
 
   React.useEffect(() => {
-    setGameEventData({ ...goalFormInitialState, timestamp: dayjs().format() })
+    if (!gameEventData)
+      setGameEventData({ ...formInitialState, timestamp: dayjs().format() })
   }, [])
 
   React.useEffect(() => {

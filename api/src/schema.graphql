@@ -124,6 +124,13 @@ type Mutation {
       return newPosition
       """
     )
+  DeleteGameEventSimple(gameEventSimpleId: ID!): GameEventSimple
+    @cypher(
+      statement: """
+      MATCH (ges: GameEventSimple { gameEventSimpleId: $gameEventSimpleId })
+      detach delete ges
+      """
+    )
   CreateGameEventSimple(
     teamId: ID!
     gameId: ID!
@@ -137,6 +144,7 @@ type Mutation {
     metaPlayerLostById: ID
     metaPlayerWonById: ID
     eventType: String
+    eventTypeCode: String
     timestamp: String
     period: String
     remainingTime: String
@@ -161,6 +169,7 @@ type Mutation {
       CREATE (ges: GameEventSimple {
           gameEventSimpleId: $gameEventSimpleId,
           eventType: $eventType,
+          eventTypeCode: $eventTypeCode,
           timestamp: $timestamp,
           period: $period,
           remainingTime: $remainingTime,
@@ -831,6 +840,7 @@ type GameEventSimple {
   period: String
   remainingTime: String
   eventType: String
+  eventTypeCode: String
   game: Game @relation(name: "INITIATES_SIMPLE", direction: IN)
   team: Team @relation(name: "CREATED_BY", direction: OUT)
   previousGameEvent: GameEventSimple

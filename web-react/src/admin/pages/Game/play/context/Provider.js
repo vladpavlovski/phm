@@ -16,6 +16,10 @@ const GameEventFormProvider = props => {
 
   const [eventsTableUpdate, setEventsTableUpdate] = React.useState(0)
   const [goalsEventsCounter, setGoalsEventsCounter] = React.useState(0)
+
+  const [openGameEventDialog, setOpenGameEventDialog] = React.useState(false)
+  const [gameEventSettings, setGameEventSettings] = React.useState()
+  const [gameEventData, setGameEventData] = React.useState()
   return (
     <GameEventFormContext.Provider
       value={{
@@ -29,6 +33,12 @@ const GameEventFormProvider = props => {
         setEventsTableUpdate,
         goalsEventsCounter,
         setGoalsEventsCounter,
+        openGameEventDialog,
+        setOpenGameEventDialog,
+        gameEventSettings,
+        setGameEventSettings,
+        gameEventData,
+        setGameEventData,
       }}
     >
       {props.children}
