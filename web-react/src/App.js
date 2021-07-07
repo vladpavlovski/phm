@@ -22,6 +22,9 @@ import * as ROUTES from './routes'
 import { PrivateRoute } from './components/PrivateRoute'
 
 import Dashboard from './admin/pages/Dashboard/Dashboard'
+
+import { GameEventFormProvider } from './admin/pages/Game/play/context/Provider'
+
 const Layout = Load(() => import('./components/Layout'))
 const NotFound = Load(() => import('./pages/NotFound'))
 const NetworkError = Load(() => import('./pages/NetworkError'))
@@ -231,11 +234,13 @@ const App = ({ history }) => {
                         exact
                         component={AdminGame}
                       />
-                      <PrivateRoute
-                        path={ROUTES.ADMIN_ORG_GAME_PLAY}
-                        exact
-                        component={AdminGamePlay}
-                      />
+                      <GameEventFormProvider>
+                        <PrivateRoute
+                          path={ROUTES.ADMIN_ORG_GAME_PLAY}
+                          exact
+                          component={AdminGamePlay}
+                        />
+                      </GameEventFormProvider>
                       {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                       <Route
                         path={ROUTES.NETWORK_ERROR}

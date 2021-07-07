@@ -8,6 +8,7 @@ export const initializeDatabase = driver => {
     Lineup: ["lineupId"],
     Game: ["gameId"],
     GameEvent: ["gameEventId"],
+    GameEventSimple: ["gameEventSimpleId"],
     Save: ["saveId"],
     Star: ["starId"],
     Pass: ["passId"],

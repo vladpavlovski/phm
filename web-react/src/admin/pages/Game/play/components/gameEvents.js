@@ -19,12 +19,28 @@ export const eventTypes = [
   //   color: '#EF3054',
   //   steps: [],
   // },
-  // {
-  //   type: 'faceOff',
-  //   name: 'Face Off',
-  //   color: '#688B58',
-  //   steps: [],
-  // },
+  {
+    type: 'faceOff',
+    name: 'Face Off',
+    color: '#688B58',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Won by',
+        optional: true,
+        field: 'wonBy',
+      },
+      {
+        name: 'Lost by',
+        optional: true,
+        field: 'lostBy',
+      },
+    ],
+  },
   // {
   //   type: 'fight',
   //   name: 'Fight',
@@ -37,30 +53,73 @@ export const eventTypes = [
   //   color: '#9649CB',
   //   steps: [],
   // },
-  // {
-  //   type: 'penalty',
-  //   name: 'Penalty',
-  //   color: '#FE5F55',
-  //   steps: [],
-  // },
+  {
+    type: 'penalty',
+    name: 'Penalty',
+    color: '#FE5F55',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Penalized',
+        optional: false,
+        field: 'penalized',
+      },
+      {
+        name: 'Penalty type',
+        optional: false,
+        field: 'penaltyType',
+      },
+    ],
+  },
   // {
   //   type: 'timeout',
   //   name: 'Timeout',
   //   color: '#A26769',
   //   steps: [],
   // },
-  // {
-  //   type: 'save',
-  //   name: 'Save',
-  //   color: '#291528',
-  //   steps: [],
-  // },
-  // {
-  //   type: 'penaltyShot',
-  //   name: 'Penalty Shot',
-  //   color: '#DB995A',
-  //   steps: [],
-  // },
+  {
+    type: 'save',
+    name: 'Save',
+    color: '#291528',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Saved by',
+        optional: true,
+        field: 'savedBy',
+      },
+    ],
+  },
+  {
+    type: 'penaltyShot',
+    name: 'Penalty Shot',
+    color: '#DB995A',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Executed by',
+        optional: true,
+        field: 'executedBy',
+      },
+      {
+        name: 'Faced against',
+        optional: true,
+        field: 'facedAgainst',
+      },
+    ],
+  },
   // {
   //   type: 'shot',
   //   name: 'Shot',
@@ -101,6 +160,28 @@ export const eventTypes = [
         name: 'Shot type',
         optional: true,
         field: 'shotType',
+      },
+    ],
+  },
+  {
+    type: 'injury',
+    name: 'Injury',
+    color: '#D62839',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Suffered',
+        optional: false,
+        field: 'suffered',
+      },
+      {
+        name: 'Injury type',
+        optional: true,
+        field: 'injuryType',
       },
     ],
   },

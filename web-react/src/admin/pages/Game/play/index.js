@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useApolloClient } from '@apollo/client'
 import { Helmet } from 'react-helmet'
 
 import Container from '@material-ui/core/Container'
@@ -19,11 +19,11 @@ import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
 import { formatDate, formatTime } from '../../../../utils'
 
-// import { GET_GAME } from '../index'
+import { GET_GAME_EVENTS_SIMPLE } from './components/EventsTable'
 
-import { Periods, GameEventWizard } from './components'
+import { Periods, GameEventWizard, EventsTable } from './components'
 
-import { GameEventFormProvider } from './context/Provider'
+import GameEventFormContext from './context'
 
 export const GET_GAME_PLAY = gql`
   query getGame($gameId: ID!) {
@@ -76,22 +76,10 @@ export const GET_GAME_PLAY = gql`
       }
       gameEventsSimple {
         gameEventSimpleId
-        timestamp
-        period
-        remainingTime
         eventType
-        type
-        subType
-        duration
-        description
-        # scoredBy
-        # allowedBy {
-
-        # }
-        # firstAssist
-        # secondAssist
-        # lostBy
-        # wonBy
+        team {
+          teamId
+        }
       }
     }
     systemSettings: SystemSettings(systemSettingsId: "system-settings") {
@@ -158,6 +146,15 @@ const Play = () => {
   const classes = useStyles()
   const { gameId } = useParams()
 
+  const client = useApolloClient()
+  const { goalsEventsCounter } = React.useContext(GameEventFormContext)
+
+  const [goalsCounter, setGoalsCounter] = React.useState({
+    host: 0,
+    guest: 0,
+    loaded: false,
+  })
+
   const {
     loading: queryLoading,
     data: queryData,
@@ -168,41 +165,70 @@ const Play = () => {
     skip: gameId === 'new',
   })
 
-  const gameData = queryData?.game[0] || {}
-  const gameSettings = queryData?.systemSettings[0]?.rulePack || {}
+  const gameData = queryData?.game?.[0] || null
+  const gameSettings = queryData?.systemSettings[0]?.rulePack || null
 
   const teamHost = React.useMemo(
-    () => gameData.teams?.find(t => t.host)?.team,
-    [gameData]
-  )
-  const teamGuest = React.useMemo(
-    () => gameData.teams?.find(t => !t.host)?.team,
+    () => gameData?.teams?.find(t => t.host)?.team,
     [gameData]
   )
 
+  const teamGuest = React.useMemo(
+    () => gameData?.teams?.find(t => !t.host)?.team,
+    [gameData]
+  )
   const playersHost = React.useMemo(
-    () => gameData.players?.filter(t => t.host),
+    () => gameData?.players?.filter(t => t.host),
     [gameData]
   )
   const playersGuest = React.useMemo(
-    () => gameData.players?.filter(t => !t.host),
+    () => gameData?.players?.filter(t => !t.host),
     [gameData]
   )
 
   React.useEffect(() => {
     console.log('gameData:', gameData)
     console.log('gameSettings:', gameSettings)
+    if (gameData) {
+      const allGoals = gameData?.gameEventsSimple?.filter(
+        ges => ges.eventType.toLowerCase() === 'goal'
+      )
+      const goalsHost =
+        allGoals?.filter(g => g.team.teamId === teamHost.teamId)?.length || 0
+      const goalsGuest =
+        allGoals?.filter(g => g.team.teamId === teamGuest.teamId)?.length || 0
+      setGoalsCounter({ host: goalsHost, guest: goalsGuest, loaded: true })
+    }
   }, [gameData])
 
-  return (
-    <GameEventFormProvider>
-      <Container maxWidth={false} className={classes.container}>
-        <Helmet>
-          <title>{`Game Live ${gameData?.name || ''}`}</title>
-        </Helmet>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+  React.useEffect(() => {
+    if (goalsEventsCounter) {
+      const { gameEventsSimple } = client.readQuery({
+        query: GET_GAME_EVENTS_SIMPLE,
+        variables: {
+          gameId,
+        },
+      })
 
+      const allGoals = gameEventsSimple?.filter(
+        ges => ges.eventType.toLowerCase() === 'goal'
+      )
+      const goalsHost =
+        allGoals?.filter(g => g.team.teamId === teamHost.teamId)?.length || 0
+      const goalsGuest =
+        allGoals?.filter(g => g.team.teamId === teamGuest.teamId)?.length || 0
+      setGoalsCounter({ host: goalsHost, guest: goalsGuest, loaded: true })
+    }
+  }, [goalsEventsCounter])
+
+  return (
+    <Container maxWidth={false} className={classes.container}>
+      <Helmet>
+        <title>{`Game Live ${gameData?.name || ''}`}</title>
+      </Helmet>
+      {queryLoading && !queryError && <Loader />}
+      {queryError && !queryLoading && <Error message={queryError.message} />}
+      {gameData && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Paper className={classes.paper}>
@@ -263,9 +289,12 @@ const Play = () => {
                       fontFamily: 'Digital Numbers Regular',
                     }}
                   >
-                    <div style={{ fontSize: '100px' }}>
-                      <span>{2}</span>:<span>{2}</span>
-                    </div>
+                    {goalsCounter?.loaded && (
+                      <div style={{ fontSize: '100px' }}>
+                        <span>{goalsCounter?.host}</span>:
+                        <span>{goalsCounter?.guest}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -286,17 +315,25 @@ const Play = () => {
               >
                 <div>
                   <GameEventWizard
+                    host={true}
                     team={teamHost}
                     players={playersHost}
+                    teamRival={teamGuest}
+                    playersRival={playersGuest}
                     gameSettings={gameSettings}
+                    gameData={gameData}
                   />
                 </div>
                 <div></div>
                 <div>
                   <GameEventWizard
+                    host={false}
                     team={teamGuest}
                     players={playersGuest}
+                    teamRival={teamHost}
+                    playersRival={playersHost}
                     gameSettings={gameSettings}
+                    gameData={gameData}
                   />
                 </div>
               </div>
@@ -318,24 +355,16 @@ const Play = () => {
             </Paper>
           </Grid>
           <Grid item xs={12}>
-            <Paper className={classes.paper}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  flexShrink: 3,
-                }}
-              >
-                <Typography variant="h6" component="div">
-                  {'Events table'}
-                </Typography>
-              </div>
-            </Paper>
+            <EventsTable
+              teams={gameData?.teams}
+              players={gameData?.players}
+              gameData={gameData}
+              gameSettings={gameSettings}
+            />
           </Grid>
         </Grid>
-      </Container>
-    </GameEventFormProvider>
+      )}
+    </Container>
   )
 }
 

@@ -18,16 +18,13 @@ import GameEventFormContext from '../../context'
 
 const formInitialState = {
   remainingTime: '00:00',
-  scoredBy: null,
-  firstAssist: null,
-  secondAssist: null,
-  goalType: null,
-  goalSubType: null,
-  shotType: null,
-  shotSubType: null,
+  penalized: null,
+  penaltyType: null,
+  penaltySubType: null,
+  duration: '',
 }
 
-const GoalForm = props => {
+const PenaltyForm = props => {
   const { gameEventSettings, activeStep, players, gameSettings } = props
 
   const {
@@ -40,7 +37,7 @@ const GoalForm = props => {
     () => gameEventSettings.steps[activeStep],
     [gameEventSettings, activeStep]
   )
-  // console.log('GF~ gameEventData:', gameEventData)
+
   React.useEffect(() => {
     if (!gameEventData)
       setGameEventData({ ...formInitialState, timestamp: dayjs().format() })
@@ -52,7 +49,7 @@ const GoalForm = props => {
         setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
       case 1:
-        setNextButtonDisabled(!gameEventData?.scoredBy)
+        setNextButtonDisabled(!gameEventData?.penalized)
         break
     }
   }, [gameEventData, activeStep])
@@ -91,67 +88,72 @@ const GoalForm = props => {
         <Grid item xs={12}>
           <PlayerSelect
             players={players}
-            onClick={scoredBy => {
-              setGameEventData(state => ({ ...state, scoredBy }))
+            onClick={penalized => {
+              setGameEventData(state => ({ ...state, penalized }))
             }}
-            selected={gameEventData?.scoredBy}
+            selected={gameEventData?.penalized}
           />
         </Grid>
       )}
+
       {activeStep === 2 && (
-        <Grid item xs={12}>
-          <PlayerSelect
-            players={players.filter(
-              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
-            )}
-            onClick={firstAssist => {
-              setGameEventData(state => ({ ...state, firstAssist }))
-            }}
-            selected={gameEventData?.firstAssist}
-          />
-        </Grid>
-      )}
-      {activeStep === 3 && (
-        <Grid item xs={12}>
-          <PlayerSelect
-            players={players.filter(
-              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
-            )}
-            onClick={secondAssist => {
-              setGameEventData(state => ({ ...state, secondAssist }))
-            }}
-            selected={gameEventData?.secondAssist}
-          />
-        </Grid>
-      )}
-      {activeStep === 4 && (
         <>
-          <Grid item xs={6}>
+          <Grid item xs={4}>
             <Autocomplete
               disableClearable
-              id="combo-box-goal-type"
-              options={gameSettings?.goalTypes}
-              value={gameEventData?.goalType}
+              id="combo-box-penalty-type"
+              options={gameSettings?.penaltyTypes}
+              value={gameEventData?.penaltyType}
               renderInput={params => (
-                <TextField {...params} autoFocus label="Goal type" />
+                <TextField {...params} autoFocus label="Penalty type" />
               )}
               getOptionLabel={option => option.name}
               isOptionEqualToValue={(option, value) =>
                 option.type === value.type
               }
-              onChange={(_, goalType) => {
-                setGameEventData(state => ({ ...state, goalType }))
+              onChange={(_, penaltyType) => {
+                setGameEventData(state => ({
+                  ...state,
+                  penaltyType,
+                  duration: penaltyType.duration,
+                }))
               }}
             />
           </Grid>
 
-          {gameEventData?.goalType?.subTypes?.length > 0 && (
-            <Grid item xs={6}>
+          <Grid item xs={4}>
+            <TextField
+              placeholder="Duration"
+              label="Duration"
+              name="Duration"
+              variant="standard"
+              value={gameEventData?.duration}
+              onChange={e => {
+                setGameEventData(state => ({
+                  ...state,
+                  duration: e.target.value,
+                }))
+              }}
+              fullWidth
+              // error={!gameEventData?.remainingTime}
+              // helperText={
+              //   !gameEventData?.remainingTime &&
+              //   'Remaining time should be defined'
+              // }
+              inputProps={{
+                autoComplete: 'off',
+              }}
+            />
+          </Grid>
+
+          {gameEventData?.penaltyType?.subTypes?.length > 0 && (
+            <Grid item xs={4}>
               <Autocomplete
+                // disablePortal
                 disableClearable
-                id="combo-box-goal-sub-type"
-                options={gameEventData?.goalType?.subTypes}
-                value={gameEventData?.goalSubType}
+                id="combo-box-penalty-sub-type"
+                options={gameEventData?.penaltyType?.subTypes}
+                value={gameEventData?.penaltySubType}
                 renderInput={params => (
                   <TextField {...params} label="Goal Sub type" />
                 )}
@@ -159,58 +161,15 @@ const GoalForm = props => {
                 isOptionEqualToValue={(option, value) =>
                   option.type === value.type
                 }
-                onChange={(_, goalSubType) => {
-                  setGameEventData(state => ({ ...state, goalSubType }))
+                onChange={(_, penaltySubType) => {
+                  setGameEventData(state => ({ ...state, penaltySubType }))
                 }}
               />
             </Grid>
           )}
         </>
       )}
-      {activeStep === 5 && (
-        <>
-          <Grid item xs={6}>
-            <Autocomplete
-              disableClearable
-              id="combo-box-shot-type"
-              options={gameSettings?.shotTypes}
-              value={gameEventData?.shotType}
-              renderInput={params => (
-                <TextField {...params} autoFocus label="Shot type" />
-              )}
-              getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.type === value.type
-              }
-              onChange={(_, shotType) => {
-                setGameEventData(state => ({ ...state, shotType }))
-              }}
-            />
-          </Grid>
 
-          {gameEventData?.shotType?.subTypes?.length > 0 && (
-            <Grid item xs={6}>
-              <Autocomplete
-                // disablePortal
-                disableClearable
-                id="combo-box-shot-sub-type"
-                options={gameEventData?.shotType?.subTypes}
-                value={gameEventData?.shotSubType}
-                renderInput={params => (
-                  <TextField {...params} label="Shot Sub type" />
-                )}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) =>
-                  option.type === value.type
-                }
-                onChange={(_, shotSubType) => {
-                  setGameEventData(state => ({ ...state, shotSubType }))
-                }}
-              />
-            </Grid>
-          )}
-        </>
-      )}
       {activeStep === gameEventSettings?.steps.length && (
         <Grid item xs={12}>
           <Typography sx={{ mt: 2, mb: 1 }}>
@@ -225,13 +184,10 @@ const GoalForm = props => {
                 <TableRow>
                   <TableCell>Event</TableCell>
                   <TableCell align="right">Remaining Time</TableCell>
-                  <TableCell align="right">Scored By</TableCell>
-                  <TableCell align="right">First Assist</TableCell>
-                  <TableCell align="right">Second Assist</TableCell>
-                  <TableCell align="right">Goal Type</TableCell>
-                  <TableCell align="right">Goal SubType</TableCell>
-                  <TableCell align="right">Shot Type</TableCell>
-                  <TableCell align="right">Shot SubType</TableCell>
+                  <TableCell align="right">Penalized</TableCell>
+                  <TableCell align="right">Penalty Type</TableCell>
+                  <TableCell align="right">Penalty SubType</TableCell>
+                  <TableCell align="right">Duration</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -245,26 +201,15 @@ const GoalForm = props => {
                     {gameEventData?.remainingTime}
                   </TableCell>
                   <TableCell align="right">
-                    {gameEventData?.scoredBy?.jersey}
+                    {`${gameEventData?.penalized?.player?.name} (${gameEventData?.penalized?.jersey})`}
                   </TableCell>
                   <TableCell align="right">
-                    {gameEventData?.firstAssist?.jersey}
+                    {gameEventData?.penaltyType?.name}
                   </TableCell>
                   <TableCell align="right">
-                    {gameEventData?.secondAssist?.jersey}
+                    {gameEventData?.penaltySubType?.name}
                   </TableCell>
-                  <TableCell align="right">
-                    {gameEventData?.goalType?.name}
-                  </TableCell>
-                  <TableCell align="right">
-                    {gameEventData?.goalSubType?.name}
-                  </TableCell>
-                  <TableCell align="right">
-                    {gameEventData?.shotType?.name}
-                  </TableCell>
-                  <TableCell align="right">
-                    {gameEventData?.shotSubType?.name}
-                  </TableCell>
+                  <TableCell align="right">{gameEventData?.duration}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -275,9 +220,9 @@ const GoalForm = props => {
   ) : null
 }
 
-GoalForm.propTypes = {
+PenaltyForm.propTypes = {
   gameEventSettings: PropTypes.object,
   activeStep: PropTypes.number,
 }
 
-export { GoalForm }
+export { PenaltyForm }
