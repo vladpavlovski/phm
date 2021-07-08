@@ -109,6 +109,7 @@ const server = new ApolloServer({
       req,
       neo4jDatabase: NEO4J_DATABASE,
       cypherParams: {
+        user: req?.user,
         userAuthId: req?.user?.sub,
       },
     }
