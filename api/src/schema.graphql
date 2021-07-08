@@ -1105,6 +1105,7 @@ type Organization {
   legalName: String
   logo: String
   urlSlug: String
+  ownerId: ID
   sponsors: [Sponsor] @relation(name: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relation(name: "HAS_DISCUSSION", direction: OUT)
   persons: [Person] @relation(name: "HAS_ORGANIZATION_STAFF", direction: OUT)

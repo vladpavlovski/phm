@@ -1,13 +1,12 @@
 import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-
+import { useAuth0 } from '@auth0/auth0-react'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
@@ -20,7 +19,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
+import { decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -44,6 +43,7 @@ const GET_ORGANIZATION_BY_SLUG = gql`
       legalName
       logo
       urlSlug
+      ownerId
       foundDate {
         formatted
       }
@@ -77,6 +77,7 @@ export const GET_ORGANIZATION = gql`
       legalName
       logo
       urlSlug
+      ownerId
       foundDate {
         formatted
       }
@@ -112,6 +113,7 @@ const MERGE_ORGANIZATION = gql`
     $foundDateYear: Int
     $logo: String
     $urlSlug: String!
+    $ownerId: ID
   ) {
     mergeOrganization: MergeOrganization(
       organizationId: $organizationId
@@ -122,6 +124,7 @@ const MERGE_ORGANIZATION = gql`
       status: $status
       logo: $logo
       urlSlug: $urlSlug
+      ownerId: $ownerId
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -144,20 +147,10 @@ const DELETE_ORGANIZATION = gql`
 const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { organizationId, organizationSlug } = useParams()
+  const { organizationSlug } = useParams()
   const client = useApolloClient()
-
+  const { user } = useAuth0()
   const { setOrganizationData } = useContext(OrganizationContext)
-
-  // const {
-  //   loading: queryLoading,
-  //   data: queryData,
-  //   error: queryError,
-  // } = useQuery(GET_ORGANIZATION, {
-  //   fetchPolicy: 'network-only',
-  //   variables: { organizationId },
-  //   skip: organizationId === 'new',
-  // })
 
   const {
     data: queryData,
@@ -165,7 +158,7 @@ const Organization = () => {
     error: queryError,
   } = useQuery(GET_ORGANIZATION_BY_SLUG, {
     variables: { organizationSlug },
-    skip: organizationId === 'new',
+    skip: organizationSlug === 'new',
     onCompleted: ({ organization }) => {
       if (organization) {
         const { organizationId, urlSlug, name, nick } = organization
@@ -186,7 +179,7 @@ const Organization = () => {
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
   ] = useMutation(MERGE_ORGANIZATION, {
     onCompleted: data => {
-      if (organizationId === 'new') {
+      if (organizationSlug === 'new') {
         const newId = data.mergeOrganization.organizationId
         history.replace(getAdminOrganizationRoute(newId))
       }
@@ -215,7 +208,8 @@ const Organization = () => {
 
         const dataToSubmit = {
           ...rest,
-          organizationId: organizationId === 'new' ? uuidv4() : organizationId,
+          ownerId: orgData?.ownerId || user?.sub,
+          organizationId: checkId(orgData.organizationId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
@@ -226,7 +220,7 @@ const Organization = () => {
         console.error(error)
       }
     },
-    [organizationId]
+    [orgData]
   )
 
   const updateLogo = useCallback(
@@ -236,7 +230,7 @@ const Organization = () => {
       const queryResult = client.readQuery({
         query: GET_ORGANIZATION,
         variables: {
-          organizationId,
+          organizationId: orgData.organizationId,
         },
       })
 
@@ -251,12 +245,12 @@ const Organization = () => {
           ],
         },
         variables: {
-          organizationId,
+          organizationId: orgData.organizationId,
         },
       })
       handleSubmit(onSubmit)()
     },
-    [client, organizationId]
+    [client, orgData]
   )
 
   return (
@@ -267,7 +261,7 @@ const Organization = () => {
       {mutationErrorMerge && !mutationLoadingMerge && (
         <Error message={mutationErrorMerge.message} />
       )}
-      {(orgData || organizationId === 'new') &&
+      {(orgData || organizationSlug === 'new') &&
         !queryLoading &&
         !queryError &&
         !mutationErrorMerge && (
@@ -302,7 +296,7 @@ const Organization = () => {
                     error={errors.logo}
                   />
 
-                  {isValidUuid(organizationId) && (
+                  {isValidUuid(orgData.organizationId) && (
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
@@ -322,12 +316,14 @@ const Organization = () => {
                       {formState.isDirty && (
                         <ButtonSave loading={mutationLoadingMerge} />
                       )}
-                      {organizationId !== 'new' && (
+                      {organizationSlug !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
                             deleteOrganization({
-                              variables: { organizationId },
+                              variables: {
+                                organizationId: orgData.organizationId,
+                              },
                             })
                           }}
                         />
@@ -426,8 +422,11 @@ const Organization = () => {
                 </Paper>
               </Grid>
             </Grid>
-            {isValidUuid(organizationId) && (
-              <Relations organizationId={organizationId} data={orgData} />
+            {isValidUuid(orgData.organizationId) && (
+              <Relations
+                organizationId={orgData.organizationId}
+                data={orgData}
+              />
             )}
           </form>
         )}
