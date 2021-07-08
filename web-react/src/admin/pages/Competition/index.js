@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
+
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -17,11 +17,12 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
+import { decomposeDate, isValidUuid, checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
+import OrganizationContext from '../../../context/organization'
 import {
   getAdminOrgCompetitionsRoute,
   getAdminOrgCompetitionRoute,
@@ -40,6 +41,7 @@ const GET_COMPETITION = gql`
       short
       status
       logo
+      organizationId
       foundDate {
         formatted
       }
@@ -58,6 +60,7 @@ const MERGE_COMPETITION = gql`
     $foundDateMonth: Int
     $foundDateYear: Int
     $logo: String
+    $organizationId: ID
   ) {
     mergeCompetition: MergeCompetition(
       competitionId: $competitionId
@@ -66,6 +69,7 @@ const MERGE_COMPETITION = gql`
       short: $short
       status: $status
       logo: $logo
+      organizationId: $organizationId
       foundDate: {
         day: $foundDateDay
         month: $foundDateMonth
@@ -91,6 +95,7 @@ const Competition = () => {
   const { enqueueSnackbar } = useSnackbar()
   const { competitionId, organizationSlug } = useParams()
   const client = useApolloClient()
+  const { organizationData } = React.useContext(OrganizationContext)
   const {
     loading: queryLoading,
     data: queryData,
@@ -130,14 +135,16 @@ const Competition = () => {
     resolver: yupResolver(schema),
   })
 
-  const onSubmit = useCallback(
+  const onSubmit = React.useCallback(
     dataToCheck => {
       try {
         const { foundDate, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          competitionId: competitionId === 'new' ? uuidv4() : competitionId,
+          organizationId:
+            competitionData?.organizationId || organizationData?.organizationId,
+          competitionId: checkId(competitionId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
@@ -148,10 +155,10 @@ const Competition = () => {
         console.error(error)
       }
     },
-    [competitionId]
+    [competitionId, organizationData, competitionData]
   )
 
-  const updateLogo = useCallback(
+  const updateLogo = React.useCallback(
     url => {
       setValue('logo', url, true)
 

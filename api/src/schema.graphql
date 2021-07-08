@@ -17,6 +17,15 @@ enum ActivityStatus {
   RETIRED
 }
 
+# enum TimestampOperation {
+#   CREATE
+#   UPDATE
+# }
+
+# directive @timestamp(
+#   operations: [TimestampOperation!]! = [CREATE, UPDATE]
+# ) on FIELD_DEFINITION
+
 type S3Payload {
   signedRequest: String!
   url: String!
@@ -782,6 +791,8 @@ type Game {
   foreignId: String
   info: String
   description: String
+  # createdAt: DateTime! @timestamp(operations: [CREATE])
+  # updatedAt: DateTime! @timestamp(operations: [UPDATE])
   teams: [TeamGame]
   players: [TakingPartIn]
   gameEvents: [GameEvent] @relation(name: "INITIATES", direction: OUT)
@@ -1192,6 +1203,7 @@ type Competition {
   foundDate: Date
   status: String
   logo: String
+  organizationId: ID
   organization: Organization @relation(name: "OWNED_BY", direction: OUT)
   rulePacks: [RulePack] @relation(name: "GUIDED_BY", direction: OUT)
   events: [Event] @relation(name: "ORGANIZE_AN", direction: OUT)
