@@ -2,7 +2,7 @@ import { typeDefs } from './graphql-schema'
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 import neo4j from 'neo4j-driver'
-import { makeAugmentedSchema } from 'neo4j-graphql-js'
+import { Neo4jGraphQL } from '@neo4j/graphql'
 import dotenv from 'dotenv'
 import { initializeDatabase } from './initialize'
 import jwt from 'express-jwt'
@@ -49,33 +49,36 @@ app.use(
  * https://grandstack.io/docs/neo4j-graphql-js-api.html#makeaugmentedschemaoptions-graphqlschema
  */
 
-const schema = makeAugmentedSchema({
+const driver = neo4j.driver(
+  NEO4J_URI || 'bolt://localhost:7687',
+  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
+)
+
+const neo4jGraphQL = new Neo4jGraphQL({
+  driver,
   typeDefs,
   resolvers,
-  config: {
-    query: {
-      exclude: ['S3Payload'],
-    },
-    mutation: {
-      exclude: ['S3Payload'],
-    },
-    auth: {
-      isAuthenticated: true,
-      hasRole: true,
-      // hasScope: true,
-    },
-  },
 })
+// config: {
+//   query: {
+//     exclude: ['S3Payload'],
+//   },
+//   mutation: {
+//     exclude: ['S3Payload'],
+//   },
+//   auth: {
+//     // isAuthenticated: true,
+//     // hasRole: true,
+//     // hasScope: true,
+//   },
+// },
+// const schema = neo4jGraphQL?.schema
 
 /*
  * Create a Neo4j driver instance to connect to the database
  * using credentials specified as environment variables
  * with fallback to defaults
  */
-const driver = neo4j.driver(
-  NEO4J_URI || 'bolt://localhost:7687',
-  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
-)
 
 /*
  * Perform any database initialization steps such as
@@ -114,7 +117,7 @@ const server = new ApolloServer({
       },
     }
   },
-  schema: schema,
+  schema: neo4jGraphQL.schema,
   introspection: true,
   playground: true,
 })
