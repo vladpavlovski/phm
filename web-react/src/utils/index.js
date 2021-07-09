@@ -79,9 +79,7 @@ export const showTimeAsHms = (minutes = 0) => {
 }
 
 export const decomposeDate = (date, fieldName) => ({
-  [`${fieldName}Day`]: dayjs(date).date(),
-  [`${fieldName}Month`]: dayjs(date).month() + 1,
-  [`${fieldName}Year`]: dayjs(date).year(),
+  [`${fieldName}`]: date ? dayjs(date).date() : null,
 })
 
 export const decomposeTime = (time, fieldName) => ({

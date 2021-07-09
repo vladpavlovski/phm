@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -24,15 +24,15 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_ORG_TEAMS, getAdminOrgTeamRoute } from '../../../routes'
+import { getAdminOrgTeamsRoute, getAdminOrgTeamRoute } from '../../../routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 export const GET_TEAM = gql`
-  query getTeam($teamId: ID!) {
-    team: Team(teamId: $teamId) {
+  query getTeam($where: TeamWhere) {
+    team: teams(where: $where) {
       teamId
       name
       fullName
@@ -44,9 +44,7 @@ export const GET_TEAM = gql`
       primaryColor
       secondaryColor
       tertiaryColor
-      foundDate {
-        formatted
-      }
+      foundDate
       jerseys {
         jerseyId
         number
@@ -75,50 +73,30 @@ export const GET_TEAM = gql`
   }
 `
 
-const MERGE_TEAM = gql`
-  mutation mergeTeam(
-    $teamId: ID!
-    $name: String
-    $fullName: String
-    $nick: String
-    $short: String
-    $status: String
-    $externalId: String
-    $logo: String
-    $primaryColor: String
-    $secondaryColor: String
-    $tertiaryColor: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-  ) {
-    mergeTeam: MergeTeam(
-      teamId: $teamId
-      name: $name
-      fullName: $fullName
-      nick: $nick
-      short: $short
-      status: $status
-      externalId: $externalId
-      logo: $logo
-      primaryColor: $primaryColor
-      secondaryColor: $secondaryColor
-      tertiaryColor: $tertiaryColor
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+const CREATE_TEAM = gql`
+  mutation createTeam($input: [TeamCreateInput!]!) {
+    createTeams(input: $input) {
+      teams {
+        teamId
       }
-    ) {
-      teamId
+    }
+  }
+`
+
+const UPDATE_TEAM = gql`
+  mutation updateTeam($where: TeamWhere, $update: TeamUpdateInput) {
+    updateTeam: updateTeams(where: $where, update: $update) {
+      teams {
+        teamId
+      }
     }
   }
 `
 
 const DELETE_TEAM = gql`
-  mutation deleteTeam($teamId: ID!) {
-    deleteTeam: DeleteTeam(teamId: $teamId) {
-      teamId
+  mutation deleteTeam($where: TeamWhere) {
+    deleteTeams(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -135,20 +113,29 @@ const Team = () => {
     error: queryError,
   } = useQuery(GET_TEAM, {
     fetchPolicy: 'network-only',
-    variables: { teamId },
+    variables: { where: { teamId } },
     skip: teamId === 'new',
   })
 
   const [
-    mergeTeam,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_TEAM, {
+    createTeam,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_TEAM, {
     onCompleted: data => {
       if (teamId === 'new') {
-        const newId = data.mergeTeam.teamId
-        history.replace(getAdminOrgTeamRoute(organizationSlug, newId))
+        const newId = data?.createTeams?.teams?.[0]?.teamId
+        newId && history.replace(getAdminOrgTeamRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Team saved!', { variant: 'success' })
+    },
+  })
+
+  const [
+    updateTeam,
+    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  ] = useMutation(UPDATE_TEAM, {
+    onCompleted: () => {
+      enqueueSnackbar('Team updated!', { variant: 'success' })
     },
   })
 
@@ -156,8 +143,9 @@ const Team = () => {
     deleteTeam,
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_TEAM, {
+    variables: { where: { teamId } },
     onCompleted: () => {
-      history.push(ADMIN_ORG_TEAMS)
+      history.push(getAdminOrgTeamsRoute(organizationSlug))
       enqueueSnackbar('Team was deleted!')
     },
   })
@@ -172,16 +160,25 @@ const Team = () => {
     dataToCheck => {
       try {
         const { foundDate, ...rest } = dataToCheck
-
         const dataToSubmit = {
           ...rest,
-          teamId: teamId === 'new' ? uuidv4() : teamId,
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeTeam({
-          variables: dataToSubmit,
-        })
+        teamId === 'new'
+          ? createTeam({
+              variables: {
+                input: dataToSubmit,
+              },
+            })
+          : updateTeam({
+              variables: {
+                where: {
+                  teamId: teamId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -222,10 +219,12 @@ const Team = () => {
   return (
     <Container maxWidth="lg" className={classes.container}>
       {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+      {queryError && <Error message={queryError.message} />}
+      {errorDelete && <Error message={errorDelete.message} />}
+      {(mutationErrorMerge || mutationErrorCreate) && (
+        <Error
+          message={mutationErrorMerge.message || mutationErrorCreate.message}
+        />
       )}
       {(teamData || teamId === 'new') &&
         !queryLoading &&
@@ -281,14 +280,16 @@ const Team = () => {
                       </div>
                       <div>
                         {formState.isDirty && (
-                          <ButtonSave loading={mutationLoadingMerge} />
+                          <ButtonSave
+                            loading={
+                              mutationLoadingMerge || mutationLoadingCreate
+                            }
+                          />
                         )}
                         {teamId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={() => {
-                              deleteTeam({ variables: { teamId } })
-                            }}
+                            onClick={deleteTeam}
                           />
                         )}
                       </div>
@@ -373,9 +374,7 @@ const Team = () => {
                           error={errors.logo}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        logo
-                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}></Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFColorpicker
                           name="primaryColor"
@@ -421,7 +420,7 @@ const Team = () => {
                           disableFuture
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'day']}
-                          defaultValue={teamData?.foundDate?.formatted}
+                          defaultValue={teamData?.foundDate}
                           error={errors?.foundDate}
                         />
                       </Grid>

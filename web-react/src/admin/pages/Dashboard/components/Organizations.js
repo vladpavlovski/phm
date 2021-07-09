@@ -23,7 +23,7 @@ import { setIdFromEntityId } from '../../../../utils'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
-    organizations: Organization {
+    organizations {
       organizationId
       name
       nick
