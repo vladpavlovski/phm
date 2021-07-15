@@ -17,7 +17,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid, checkId } from '../../../utils'
+import { decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -33,8 +33,8 @@ import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_COMPETITION = gql`
-  query getCompetition($competitionId: ID!) {
-    competition: Competition(competitionId: $competitionId) {
+  query getCompetition($where: CompetitionWhere) {
+    competitions(where: $where) {
       competitionId
       name
       nick
@@ -42,49 +42,38 @@ const GET_COMPETITION = gql`
       status
       logo
       organizationId
-      foundDate {
-        formatted
+      foundDate
+    }
+  }
+`
+
+const CREATE_COMPETITION = gql`
+  mutation createCompetition($input: [CompetitionCreateInput!]!) {
+    createCompetitions(input: $input) {
+      competitions {
+        competitionId
       }
     }
   }
 `
 
-const MERGE_COMPETITION = gql`
-  mutation mergeCompetition(
-    $competitionId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-    $organizationId: ID
+const UPDATE_COMPETITION = gql`
+  mutation updateCompetition(
+    $where: CompetitionWhere
+    $update: CompetitionUpdateInput
   ) {
-    mergeCompetition: MergeCompetition(
-      competitionId: $competitionId
-      name: $name
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      organizationId: $organizationId
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+    updateCompetitions(where: $where, update: $update) {
+      competitions {
+        competitionId
       }
-    ) {
-      competitionId
     }
   }
 `
 
 const DELETE_COMPETITION = gql`
-  mutation deleteCompetition($competitionId: ID!) {
-    deleteCompetition: DeleteCompetition(competitionId: $competitionId) {
-      competitionId
+  mutation deleteCompetition($where: CompetitionWhere) {
+    deleteCompetitions(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -102,20 +91,30 @@ const Competition = () => {
     error: queryError,
   } = useQuery(GET_COMPETITION, {
     fetchPolicy: 'network-only',
-    variables: { competitionId },
+    variables: { where: { competitionId } },
     skip: competitionId === 'new',
   })
 
   const [
-    mergeCompetition,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_COMPETITION, {
+    createCompetition,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_COMPETITION, {
     onCompleted: data => {
       if (competitionId === 'new') {
-        const newId = data.mergeCompetition.competitionId
-        history.replace(getAdminOrgCompetitionRoute(organizationSlug, newId))
+        const newId = data?.createCompetitions?.competitions?.[0]?.competitionId
+        newId &&
+          history.replace(getAdminOrgCompetitionRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Competition saved!', { variant: 'success' })
+    },
+  })
+
+  const [
+    updateCompetition,
+    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  ] = useMutation(UPDATE_COMPETITION, {
+    onCompleted: () => {
+      enqueueSnackbar('Competition updated!', { variant: 'success' })
     },
   })
 
@@ -123,13 +122,14 @@ const Competition = () => {
     deleteCompetition,
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_COMPETITION, {
+    variables: { where: { competitionId } },
     onCompleted: () => {
       history.push(getAdminOrgCompetitionsRoute(organizationSlug))
       enqueueSnackbar('Competition was deleted!')
     },
   })
 
-  const competitionData = queryData?.competition[0] || {}
+  const competitionData = queryData?.competitions?.[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -144,13 +144,38 @@ const Competition = () => {
           ...rest,
           organizationId:
             competitionData?.organizationId || organizationData?.organizationId,
-          competitionId: checkId(competitionId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
-
-        mergeCompetition({
-          variables: dataToSubmit,
-        })
+        console.log(
+          'decomposeDate(foundDate)',
+          foundDate,
+          decomposeDate(foundDate, 'foundDate')
+        )
+        competitionId === 'new'
+          ? createCompetition({
+              variables: {
+                input: {
+                  ...dataToSubmit,
+                  organization: {
+                    connect: {
+                      where: {
+                        organizationId:
+                          competitionData?.organizationId ||
+                          organizationData?.organizationId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
+          : updateCompetition({
+              variables: {
+                where: {
+                  competitionId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -193,9 +218,12 @@ const Competition = () => {
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
-      )}
+      {mutationErrorMerge ||
+        (mutationErrorCreate && (
+          <Error
+            message={mutationErrorMerge.message || mutationErrorCreate.message}
+          />
+        ))}
       {(competitionData || competitionId === 'new') &&
         !queryLoading &&
         !queryError &&
@@ -249,7 +277,11 @@ const Competition = () => {
                     </div>
                     <div>
                       {formState.isDirty && (
-                        <ButtonSave loading={mutationLoadingMerge} />
+                        <ButtonSave
+                          loading={
+                            mutationLoadingCreate || mutationLoadingMerge
+                          }
+                        />
                       )}
                       {competitionId !== 'new' && (
                         <ButtonDelete
@@ -321,7 +353,7 @@ const Competition = () => {
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={competitionData?.foundDate?.formatted}
+                        defaultValue={competitionData?.foundDate}
                         error={errors.foundDate}
                       />
                     </Grid>

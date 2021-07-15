@@ -33,8 +33,8 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_SPONSORS = gql`
-  query getSponsors($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
+  query getSponsors($where: CompetitionWhere) {
+    competition: competitions(where: $where) {
       competitionId
       name
       sponsors {
@@ -46,18 +46,17 @@ const GET_SPONSORS = gql`
   }
 `
 
-const REMOVE_TEAM_SPONSOR = gql`
-  mutation removeCompetitionSponsor($competitionId: ID!, $sponsorId: ID!) {
-    competitionSponsor: RemoveCompetitionSponsors(
-      from: { competitionId: $competitionId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
+const UPDATE_SPONSOR = gql`
+  mutation updateSponsor($where: SponsorWhere, $update: SponsorUpdateInput) {
+    updateSponsors(where: $where, update: $update) {
+      sponsors {
         sponsorId
         name
+        description
+        competitions {
+          competitionId
+          name
+        }
       }
     }
   }
@@ -65,27 +64,9 @@ const REMOVE_TEAM_SPONSOR = gql`
 
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
-    sponsors: Sponsor {
+    sponsors {
       sponsorId
       name
-    }
-  }
-`
-
-const MERGE_TEAM_SPONSOR = gql`
-  mutation mergeCompetitionSponsor($competitionId: ID!, $sponsorId: ID!) {
-    competitionSponsor: MergeCompetitionSponsors(
-      from: { competitionId: $competitionId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
-        sponsorId
-        name
-        description
-      }
     }
   }
 `
@@ -96,7 +77,7 @@ const Sponsors = props => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
-
+  const updateStatus = React.useRef()
   const handleCloseAddSponsor = useCallback(() => {
     setOpenAddSponsor(false)
   }, [])
@@ -114,110 +95,64 @@ const Sponsors = props => {
     },
   ] = useLazyQuery(GET_ALL_SPONSORS)
 
-  const [mergeCompetitionSponsor] = useMutation(MERGE_TEAM_SPONSOR, {
-    update(cache, { data: { competitionSponsor } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SPONSORS,
-          variables: {
-            competitionId,
-          },
-        })
-
-        const existingSponsors = queryResult.competition[0].sponsors
-        const newSponsor = competitionSponsor.to
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              sponsors: [newSponsor, ...existingSponsors],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_SPONSORS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.competitionSponsor.to.name} is ${competition.name} sponsor!`,
+  const [updateSponsor, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_SPONSOR,
+    {
+      update(
+        cache,
         {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const competition =
-    queryData && queryData.competition && queryData.competition[0]
-
-  const [
-    removeCompetitionSponsor,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_TEAM_SPONSOR, {
-    update(cache, { data: { competitionSponsor } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SPONSORS,
-          variables: {
-            competitionId,
+          data: {
+            updateSponsors: { sponsors },
           },
-        })
-
-        const updatedSponsors = queryResult.competition[0].sponsors.filter(
-          p => p.sponsorId !== competitionSponsor.to.sponsorId
-        )
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              sponsors: updatedSponsors,
+        }
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SPONSORS,
+            variables: {
+              where: { competitionId },
             },
-          ],
+          })
+
+          const updatedData =
+            updateStatus.current === 'disconnect'
+              ? queryResult?.competition?.[0]?.sponsors?.filter(
+                  p => p.sponsorId !== sponsors?.[0]?.sponsorId
+                )
+              : [...queryResult?.competition?.[0]?.sponsors, ...sponsors]
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult?.competition?.[0],
+                sponsors: updatedData,
+              },
+            ],
+          }
+
+          cache.writeQuery({
+            query: GET_SPONSORS,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_SPONSORS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.competitionSponsor.to.name} not sponsor ${competition.name}`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+      onCompleted: () => {
+        updateStatus.current = null
+        enqueueSnackbar('Sponsor updated!', { variant: 'success' })
+      },
+    }
+  )
+
+  const competition = queryData?.competition?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData({ variables: { where: { competitionId } } })
     }
   }, [])
 
@@ -268,7 +203,7 @@ const Sponsors = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
+              loading={mutationLoadingUpdate}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -278,10 +213,23 @@ const Sponsors = props => {
               dialogNegativeText={'No, keep sponsor'}
               dialogPositiveText={'Yes, detach sponsor'}
               onDialogClosePositive={() => {
-                removeCompetitionSponsor({
+                updateStatus.current = 'disconnect'
+                updateSponsor({
                   variables: {
-                    competitionId,
-                    sponsorId: params.row.sponsorId,
+                    where: {
+                      sponsorId: params.row?.sponsorId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -316,8 +264,8 @@ const Sponsors = props => {
               sponsorId={params.value}
               competitionId={competitionId}
               competition={competition}
-              merge={mergeCompetitionSponsor}
-              remove={removeCompetitionSponsor}
+              update={updateSponsor}
+              updateStatus={updateStatus}
             />
           )
         },
@@ -352,7 +300,6 @@ const Sponsors = props => {
                 >
                   Add Sponsor
                 </Button>
-                {/* TODO: MAKE Modal */}
 
                 <LinkButton
                   startIcon={<CreateIcon />}
@@ -391,9 +338,7 @@ const Sponsors = props => {
           !queryAllSponsorsLoading &&
           !queryAllSponsorsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${
-                competition && competition.name
-              }`}</DialogTitle>
+              <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${competition?.name}`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
@@ -427,7 +372,7 @@ const Sponsors = props => {
 }
 
 const ToggleNewSponsor = props => {
-  const { sponsorId, competitionId, competition, remove, merge } = props
+  const { sponsorId, competitionId, competition, update, updateStatus } = props
   const [isMember, setIsMember] = useState(
     !!competition.sponsors.find(p => p.sponsorId === sponsorId)
   )
@@ -439,18 +384,41 @@ const ToggleNewSponsor = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? update({
                   variables: {
-                    competitionId,
-                    sponsorId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : update({
                   variables: {
-                    competitionId,
-                    sponsorId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      competitions: {
+                        connect: {
+                          where: {
+                            competitionId,
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+            updateStatus.current = isMember ? 'disconnect' : null
             setIsMember(!isMember)
           }}
           name="sponsorMember"
@@ -466,8 +434,7 @@ ToggleNewSponsor.propTypes = {
   playerId: PropTypes.string,
   competitionId: PropTypes.string,
   competition: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
+  update: PropTypes.func,
 }
 
 Sponsors.propTypes = {

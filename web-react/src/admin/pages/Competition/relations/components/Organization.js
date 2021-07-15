@@ -16,8 +16,8 @@ import { useStyles } from '../../../commonComponents/styled'
 import { TextField, Autocomplete, Grid } from '@material-ui/core'
 
 const GET_ORGANIZATIONS = gql`
-  query getCompetitionOrganizations($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
+  query getCompetitionOrganizations($where: CompetitionWhere) {
+    competition: competitions(where: $where) {
       competitionId
       name
       organization {
@@ -25,64 +25,26 @@ const GET_ORGANIZATIONS = gql`
         name
       }
     }
-    organizations: Organization {
+    organizations {
       organizationId
       name
     }
   }
 `
 
-const MERGE_COMPETITION_ORGANIZATION = gql`
-  mutation mergeCompetitionOrganization(
-    $competitionId: ID!
-    $organizationIdToMerge: ID!
+const UPDATE_COMPETITION = gql`
+  mutation updateCompetition(
+    $where: CompetitionWhere
+    $update: CompetitionUpdateInput
   ) {
-    competitionOrganizationMerge: MergeCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToMerge }
-    ) {
-      from {
+    updateCompetitions(where: $where, update: $update) {
+      competitions {
         competitionId
         name
-      }
-      to {
-        organizationId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_MERGE_COMPETITION_ORGANIZATION = gql`
-  mutation removeMergeCompetitionOrganization(
-    $competitionId: ID!
-    $organizationIdToRemove: ID!
-    $organizationIdToMerge: ID!
-  ) {
-    competitionOrganizationRemove: RemoveCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToRemove }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        organizationId
-        name
-      }
-    }
-    competitionOrganizationMerge: MergeCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToMerge }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        organizationId
-        name
+        organization {
+          organizationId
+          name
+        }
       }
     }
   }
@@ -107,47 +69,20 @@ const Organization = props => {
 
   const competition = queryData?.competition?.[0]
 
-  const [removeMergeOrganizationCompetition] = useMutation(
-    REMOVE_MERGE_COMPETITION_ORGANIZATION,
-    {
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-        setSelectedOrganization(data.competitionOrganizationMerge.to)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeOrganizationCompetition] = useMutation(
-    MERGE_COMPETITION_ORGANIZATION,
-    {
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-        setSelectedOrganization(data.competitionOrganizationMerge.to)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
+  const [updateCompetition] = useMutation(UPDATE_COMPETITION, {
+    onCompleted: data => {
+      enqueueSnackbar('Competition updated!', { variant: 'success' })
+      enqueueSnackbar(
+        `${competition.name} owned by ${data?.updateCompetitions?.competitions?.[0]?.name}!`,
+        {
+          variant: 'success',
+        }
+      )
+      setSelectedOrganization(
+        data?.updateCompetitions?.competitions?.[0]?.organization
+      )
+    },
+  })
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
@@ -157,25 +92,30 @@ const Organization = props => {
 
   const handleOrganizationChange = useCallback(
     data => {
-      if (
-        selectedOrganization &&
-        selectedOrganization?.organizationId !== data?.organizationId
-      ) {
-        removeMergeOrganizationCompetition({
-          variables: {
+      updateCompetition({
+        variables: {
+          where: {
             competitionId,
-            organizationIdToRemove: selectedOrganization.organizationId,
-            organizationIdToMerge: data.organizationId,
           },
-        })
-      } else {
-        mergeOrganizationCompetition({
-          variables: {
-            competitionId,
-            organizationIdToMerge: data.organizationId,
+          update: {
+            organization: {
+              connect: {
+                where: {
+                  organizationId: data?.organizationId,
+                },
+              },
+              disconnect: {
+                where: {
+                  node: {
+                    organizationId:
+                      selectedOrganization?.organizationId || null,
+                  },
+                },
+              },
+            },
           },
-        })
-      }
+        },
+      })
     },
     [competitionId, selectedOrganization]
   )
@@ -203,7 +143,10 @@ const Organization = props => {
                   name="organization"
                   value={selectedOrganization}
                   getOptionLabel={option => option.name}
-                  isOptionEqualToValue={(option, value) =>
+                  // isOptionEqualToValue={(option, value) =>
+                  //   option.organizationId === value.organizationId
+                  // }
+                  getOptionSelected={(option, value) =>
                     option.organizationId === value.organizationId
                   }
                   options={queryData.organizations}
@@ -239,5 +182,4 @@ const Organization = props => {
 Organization.propTypes = {
   competitionId: PropTypes.string,
 }
-
 export { Organization }

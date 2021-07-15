@@ -79,7 +79,7 @@ export const showTimeAsHms = (minutes = 0) => {
 }
 
 export const decomposeDate = (date, fieldName) => ({
-  [`${fieldName}`]: date ? dayjs(date).date() : null,
+  [`${fieldName}`]: date ? dayjs(date).format('YYYY-MM-DD') : null,
 })
 
 export const decomposeTime = (time, fieldName) => ({
@@ -91,8 +91,7 @@ export const decomposeTime = (time, fieldName) => ({
 export const decomposeNumber = value =>
   !isNaN(parseInt(value)) && parseInt(value)
 
-export const formatDate = date =>
-  date === '0000-01-01' ? ' ' : dayjs(date).format('LL')
+export const formatDate = date => (!date ? ' ' : dayjs(date).format('LL'))
 
 export const formatTime = time =>
   time === '00:00:00Z' ? ' ' : time?.slice(0, 5)

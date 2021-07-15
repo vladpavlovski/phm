@@ -3,7 +3,7 @@ import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
@@ -37,8 +37,8 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, decomposeNumber } from '../../../../../utils'
 
 const GET_GROUPS = gql`
-  query getCompetition($competitionId: ID, $organizationSlug: String!) {
-    competition: Competition(competitionId: $competitionId) {
+  query getCompetition($where: CompetitionWhere, $organizationSlug: String!) {
+    competition: competitions(where: $where) {
       competitionId
       name
       groups {
@@ -60,96 +60,49 @@ const GET_GROUPS = gql`
   }
 `
 
-const MERGE_COMPETITION_GROUP = gql`
-  mutation mergeCompetitionGroup(
-    $competitionId: ID!
-    $groupId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $teamsLimit: Int
-  ) {
-    group: MergeGroup(
-      groupId: $groupId
-      name: $name
-      nick: $nick
-      short: $short
-      teamsLimit: $teamsLimit
-    ) {
-      groupId
-      name
-    }
-    groupCompetition: MergeGroupCompetition(
-      from: { competitionId: $competitionId }
-      to: { groupId: $groupId }
-    ) {
-      from {
-        name
-      }
-      to {
+const CREATE_COMPETITION_GROUP = gql`
+  mutation createCompetitionGroup($input: [GroupCreateInput!]!) {
+    createGroups(input: $input) {
+      groups {
         groupId
         name
         nick
         short
         teamsLimit
+        season {
+          seasonId
+          name
+        }
       }
     }
   }
 `
 
-const DELETE_GROUP = gql`
-  mutation deleteGroup($groupId: ID!) {
-    deleted: DeleteGroup(groupId: $groupId) {
-      groupId
-    }
-  }
-`
-
-const MERGE_GROUP_SEASON = gql`
-  mutation mergeGroupSeason($groupId: ID!, $seasonId: ID!) {
-    mergeGroupSeason: MergeGroupSeason(
-      from: { groupId: $groupId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        groupId
-      }
-      to {
-        seasonId
-        name
-      }
-    }
-  }
-`
-const REMOVE_MERGE_GROUP_SEASON = gql`
-  mutation removeMergeGroupSeason(
-    $groupId: ID!
-    $seasonIdToRemove: ID!
-    $seasonIdToMerge: ID!
+const UPDATE_COMPETITION_GROUP = gql`
+  mutation updateCompetitionGroup(
+    $where: GroupWhere
+    $update: GroupUpdateInput
   ) {
-    removeGroupSeason: RemoveGroupSeason(
-      from: { groupId: $groupId }
-      to: { seasonId: $seasonIdToRemove }
-    ) {
-      from {
+    updateGroups(where: $where, update: $update) {
+      groups {
         groupId
-      }
-      to {
-        seasonId
         name
+        nick
+        short
+        teamsLimit
+        season {
+          seasonId
+          name
+        }
       }
     }
-    mergeGroupSeason: MergeGroupSeason(
-      from: { groupId: $groupId }
-      to: { seasonId: $seasonIdToMerge }
-    ) {
-      from {
-        groupId
-      }
-      to {
-        seasonId
-        name
-      }
+  }
+`
+
+const DELETE_COMPETITION_GROUP = gql`
+  mutation deleteGroup($where: GroupWhere) {
+    deleteGroups(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -167,6 +120,7 @@ const Groups = props => {
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
+  const deletedItemId = useRef()
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -178,7 +132,7 @@ const Groups = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GROUPS, {
-    variables: { competitionId, organizationSlug },
+    variables: { where: { competitionId }, organizationSlug },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -196,24 +150,25 @@ const Groups = props => {
   }, [])
 
   const [deleteGroup, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_GROUP,
+    DELETE_COMPETITION_GROUP,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
           const queryResult = cache.readQuery({
             query: GET_GROUPS,
             variables: {
-              competitionId,
+              where: { competitionId },
+              organizationSlug,
             },
           })
-          const updatedData = queryResult.competition[0].groups.filter(
-            p => p.groupId !== deleted.groupId
+          const updatedData = queryResult?.competition?.[0]?.groups?.filter(
+            p => p.groupId !== deletedItemId.current
           )
 
           const updatedResult = {
             competition: [
               {
-                ...queryResult.competition[0],
+                ...queryResult.competition?.[0],
                 groups: updatedData,
               },
             ],
@@ -222,7 +177,8 @@ const Groups = props => {
             query: GET_GROUPS,
             data: updatedResult,
             variables: {
-              competitionId,
+              where: { competitionId },
+              organizationSlug,
             },
           })
         } catch (error) {
@@ -270,7 +226,7 @@ const Groups = props => {
         field: 'season',
         headerName: 'Season',
         width: 150,
-        valueGetter: params => params.row.season.name,
+        valueGetter: params => params.row?.season?.name,
       },
       {
         field: 'groupId',
@@ -308,13 +264,14 @@ const Groups = props => {
               dialogDescription={'Group will be completely delete'}
               dialogNegativeText={'No, keep group'}
               dialogPositiveText={'Yes, delete group'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                deletedItemId.current = params.row.groupId
                 deleteGroup({
                   variables: {
-                    groupId: params.row.groupId,
+                    where: { groupId: params.row.groupId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -354,7 +311,7 @@ const Groups = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={competitionGroupsColumns}
-                rows={setIdFromEntityId(competition.groups, 'groupId')}
+                rows={setIdFromEntityId(competition?.groups, 'groupId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -378,6 +335,7 @@ const Groups = props => {
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
+        organizationSlug={organizationSlug}
       />
     </Accordion>
   )
@@ -391,6 +349,7 @@ const FormDialog = props => {
     openDialog,
     handleCloseDialog,
     data,
+    organizationSlug,
   } = props
   const [selectedSeason, setSelectedSeason] = useState()
   const classes = useStyles()
@@ -406,110 +365,101 @@ const FormDialog = props => {
     }
   }, [data])
 
-  const [mergeCompetitionGroup, { loading: loadingMergeGroup }] = useMutation(
-    MERGE_COMPETITION_GROUP,
-    {
-      update(cache, { data: { groupCompetition } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_GROUPS,
-            variables: {
-              competitionId,
-            },
-          })
-
-          const existingData = queryResult?.competition?.[0]?.groups
-          const newItem = groupCompetition?.to
-          let updatedData = []
-          if (existingData.find(ed => ed.groupId === newItem.groupId)) {
-            // replace if item exist in array
-            updatedData = existingData.map(ed =>
-              ed.groupId === newItem.groupId ? newItem : ed
-            )
-          } else {
-            // add new item if item not in array
-            updatedData = [newItem, ...existingData]
-          }
-
-          const updatedResult = {
-            competition: [
-              {
-                ...queryResult.competition[0],
-                groups: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GROUPS,
-            data: updatedResult,
-            variables: {
-              competitionId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.groupCompetition.to.name} added to ${competition.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-        handleCloseDialog()
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
+  const [
+    createCompetitionGroup,
+    { loading: mutationLoadingCreate },
+  ] = useMutation(CREATE_COMPETITION_GROUP, {
+    update(
+      cache,
+      {
+        data: {
+          createGroups: { groups },
+        },
+      }
+    ) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GROUPS,
+          variables: {
+            where: { competitionId },
+            organizationSlug,
+          },
         })
-        console.error(error)
-      },
-    }
-  )
 
-  const [removeMergeGroupSeason] = useMutation(REMOVE_MERGE_GROUP_SEASON, {
-    onCompleted: data => {
-      setSelectedSeason(data?.mergeGroupSeason?.to)
+        const existingData = queryResult?.competition?.[0]?.groups
+        const newItem = groups?.[0]
+        let updatedData = []
+        if (existingData?.find(ed => ed.groupId === newItem.groupId)) {
+          // replace if item exist in array
+          updatedData = existingData?.map(ed =>
+            ed.groupId === newItem.groupId ? newItem : ed
+          )
+        } else {
+          // add new item if item not in array
+          updatedData = [newItem, ...existingData]
+        }
+
+        const updatedResult = {
+          competition: [
+            {
+              ...queryResult?.competition?.[0],
+              groups: updatedData,
+            },
+          ],
+        }
+        cache.writeQuery({
+          query: GET_GROUPS,
+          data: updatedResult,
+          variables: {
+            where: { competitionId },
+            organizationSlug,
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
     },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
+    onCompleted: () => {
+      enqueueSnackbar('Competition group created!', { variant: 'success' })
+      handleCloseDialog()
+      setSelectedSeason(null)
     },
   })
 
-  const [mergeGroupSeason] = useMutation(MERGE_GROUP_SEASON, {
-    onCompleted: data => {
-      setSelectedSeason(data?.mergeGroupSeason?.to)
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
+  const [
+    updateCompetitionGroup,
+    { loading: mutationLoadingUpdate },
+  ] = useMutation(UPDATE_COMPETITION_GROUP, {
+    onCompleted: () => {
+      enqueueSnackbar('Competition group updated!', { variant: 'success' })
     },
   })
 
   const handleSeasonChange = useCallback(
     selected => {
-      if (selectedSeason && selectedSeason?.seasonId !== selected?.seasonId) {
-        removeMergeGroupSeason({
-          variables: {
+      updateCompetitionGroup({
+        variables: {
+          where: {
             groupId: data?.groupId,
-            seasonIdToRemove: selectedSeason.seasonId,
-            seasonIdToMerge: selected.seasonId,
           },
-        })
-      } else {
-        mergeGroupSeason({
-          variables: {
-            groupId: data?.groupId,
-            seasonIdToMerge: selected.seasonId,
+          update: {
+            season: {
+              connect: {
+                where: {
+                  seasonId: selected?.seasonId || null,
+                },
+              },
+              disconnect: {
+                where: {
+                  node: {
+                    seasonId: selectedSeason?.seasonId || null,
+                  },
+                },
+              },
+            },
           },
-        })
-      }
+        },
+      })
     },
     [selectedSeason, data]
   )
@@ -519,14 +469,33 @@ const FormDialog = props => {
       try {
         const { teamsLimit, ...rest } = dataToCheck
 
-        mergeCompetitionGroup({
-          variables: {
-            ...rest,
-            teamsLimit: decomposeNumber(teamsLimit),
-            competitionId,
-            groupId: data?.groupId || uuidv4(),
-          },
-        })
+        data?.groupId
+          ? updateCompetitionGroup({
+              variables: {
+                where: {
+                  groupId: data?.groupId,
+                },
+                update: {
+                  ...rest,
+                  teamsLimit: decomposeNumber(teamsLimit),
+                },
+              },
+            })
+          : createCompetitionGroup({
+              variables: {
+                input: {
+                  ...rest,
+                  teamsLimit: decomposeNumber(teamsLimit),
+                  competition: {
+                    connect: {
+                      where: {
+                        competitionId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -557,6 +526,7 @@ const FormDialog = props => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
+                      autoFocus
                       control={control}
                       defaultValue={data?.name || ''}
                       name="name"
@@ -603,15 +573,18 @@ const FormDialog = props => {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
-                    {data && (
+                    {data?.groupId && (
                       <Autocomplete
                         id="group-season-select"
                         name="season"
                         value={selectedSeason}
                         disableClearable
                         getOptionLabel={option => option.name}
-                        isOptionEqualToValue={(option, value) =>
-                          option?.seasonId === value?.seasonId
+                        // isOptionEqualToValue={(option, value) =>
+                        //   option?.seasonId === value?.seasonId
+                        // }
+                        getOptionSelected={(option, value) =>
+                          option.seasonId === value.seasonId
                         }
                         options={[...seasons].sort(sortByName)}
                         onChange={(_, data) => {
@@ -647,8 +620,13 @@ const FormDialog = props => {
           <Button type="button" onClick={handleCloseDialog}>
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeGroup}>
-            {loadingMergeGroup ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>
