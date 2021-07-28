@@ -14,7 +14,7 @@
   "author": "Vlad Pavlovski",
   "license": "MIT",
   "dependencies": {
-    "@apollo/client": "^3.3.12",
+    "@apollo/client": "^3.4.0",
     "apollo-server": "^2.21.2",
     "apollo-server-lambda": "^2.21.2",
     "aws-sdk": "^2.871.0",
