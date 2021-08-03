@@ -10,14 +10,14 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
-import DashboardIcon from '@material-ui/icons/Dashboard'
+import EditIcon from '@material-ui/icons/Edit'
 import Tooltip from '@material-ui/core/Tooltip'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
-    organizations: Organization {
+    organizations {
       organizationId
       name
       nick
@@ -48,14 +48,17 @@ const XGridTable = () => {
       },
       {
         field: 'organizationId',
-        headerName: 'Edit',
+        headerName: 'Actions',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <LinkButton to={getAdminOrganizationRoute(params.row?.urlSlug)}>
-              <Tooltip arrow title="Dashboard" placement="top">
-                <DashboardIcon />
+            <LinkButton
+              icon
+              to={getAdminOrganizationRoute(params.row?.urlSlug)}
+            >
+              <Tooltip arrow title="Edit" placement="top">
+                <EditIcon />
               </Tooltip>
             </LinkButton>
           )
@@ -87,7 +90,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

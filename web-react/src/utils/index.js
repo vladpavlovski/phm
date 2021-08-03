@@ -37,7 +37,7 @@ export const arrayToStringList = (data, keyId, keyValue = 'name') =>
   )
 
 export const setIdFromEntityId = (array, filedId) =>
-  array.map(item => ({ ...item, id: item[filedId] }))
+  array?.map(item => ({ ...item, id: item[filedId] })) || []
 
 export const setXGridForRelation = (array, filedId, propertyName) => {
   return array.map(item => {
