@@ -26,50 +26,46 @@ import { Periods, GameEventWizard, EventsTable } from './components'
 import GameEventFormContext from './context'
 
 export const GET_GAME_PLAY = gql`
-  query getGame($gameId: ID!) {
-    game: Game(gameId: $gameId) {
+  query getGame($where: GameWhere) {
+    game: games(where: $where) {
       gameId
       name
       type
       info
       foreignId
       description
-      teams {
-        team {
-          teamId
-          name
-          nick
-          logo
-        }
-        host
-      }
-      players {
-        player {
-          avatar
-          playerId
-          name
-          firstName
-          lastName
-          meta {
-            metaPlayerId
+      teamsConnection {
+        edges {
+          host
+          node {
+            teamId
+            name
+            nick
+            logo
           }
         }
-        host
-        jersey
-        position
       }
-      startDate {
-        formatted
+      playersConnection {
+        edges {
+          host
+          jersey
+          position
+          node {
+            avatar
+            playerId
+            name
+            firstName
+            lastName
+            meta {
+              metaPlayerId
+            }
+          }
+        }
       }
-      endDate {
-        formatted
-      }
-      startTime {
-        formatted
-      }
-      endTime {
-        formatted
-      }
+      startDate
+      endDate
+      startTime
+      endTime
       event {
         eventId
         name

@@ -480,83 +480,83 @@ type Mutation {
 }
 
 type Query {
-  organizationBySlug(organizationSlug: String!): Organization
+  orgBySlug(orgSlug: String!): Organization
     @cypher(
       statement: """
-      MATCH (organization: Organization {urlSlug: $organizationSlug})
-      return organization
+      MATCH (org: Organization {urlSlug: $orgSlug})
+      return org
       """
     )
-  teamsByOrganization(organizationSlug: String!): [Team]
+  teamsByOrganization(orgSlug: String!): [Team]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (team: Team)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (team: Team)
       return team
       """
     )
-  playersByOrganization(organizationSlug: String!): [Player]
+  playersByOrganization(orgSlug: String!): [Player]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
       return player
       """
     )
-  personsByOrganization(organizationSlug: String!): [Person]
+  personsByOrganization(orgSlug: String!): [Person]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (person:Person)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (person:Person)
       return person
       """
     )
-  competitionsByOrganization(organizationSlug: String!): [Competition]
+  competitionsByOrganization(orgSlug: String!): [Competition]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition)
       return competition
       """
     )
-  sponsorsByOrganization(organizationSlug: String!): [Sponsor]
+  sponsorsByOrganization(orgSlug: String!): [Sponsor]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
       return sponsor
       """
     )
-  seasonsByOrganization(organizationSlug: String!): [Season]
+  seasonsByOrganization(orgSlug: String!): [Season]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
       return season
       """
     )
-  awardsByOrganization(organizationSlug: String!): [Award]
+  awardsByOrganization(orgSlug: String!): [Award]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (award:Award)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (award:Award)
       return award
       """
     )
-  rulePacksByOrganization(organizationSlug: String!): [RulePack]
+  rulePacksByOrganization(orgSlug: String!): [RulePack]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
       return rulePack
       """
     )
-  eventsByOrganization(organizationSlug: String!): [Event]
+  eventsByOrganization(orgSlug: String!): [Event]
     @cypher(
       statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:CREATE_IN] - (event:Event)
+      MATCH (Organization {urlSlug: $orgSlug}) - [:CREATE_IN] - (event:Event)
       return event
       """
     )
-  gamesByOrganization(organizationSlug: String!): [Game]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $organizationSlug}) - [:PROVIDED_BY] - (game:Game)
-      return game
-      """
-    )
+  # gamesByOrganization(orgSlug: String!): [Game]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (game:Game)
+  #     return game
+  #     """
+  #   )
   gameEventsSimpleByGameId(gameId: ID!): [GameEventSimple]
     @cypher(
       statement: """
@@ -670,7 +670,7 @@ type Person {
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
   payments: [Payment] @relationship(type: "INITIATES_PAYMENT", direction: OUT)
-  organizations: [Organization]
+  orgs: [Organization]
     @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
   orgs: [Organization] @relationship(type: "ENGAGED_IN", direction: OUT)
   awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
@@ -694,8 +694,7 @@ type Occupation {
   description: String
   person: [Person] @relationship(type: "TYPE_OF", direction: IN)
   team: Team @relationship(type: "USE_OCCUPATION", direction: IN)
-  organization: Organization
-    @relationship(type: "USE_OCCUPATION", direction: IN)
+  org: Organization @relationship(type: "USE_OCCUPATION", direction: IN)
 }
 
 type User {
@@ -754,8 +753,7 @@ type Team {
   competitions: [Competition]
     @relationship(type: "PARTICIPATE_IN", direction: OUT)
   positions: [Position] @relationship(type: "USE_POSITION", direction: OUT)
-  organizations: [Organization]
-    @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  orgs: [Organization] @relationship(type: "PARTICIPATE_IN", direction: OUT)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   jerseys: [Jersey] @relationship(type: "USE_JERSEY", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
@@ -793,7 +791,7 @@ type Game {
   # createdAt: DateTime! @timestamp(operations: [CREATE])
   # updatedAt: DateTime! @timestamp(operations: [UPDATE])
   teams: [Team!]!
-    @relationship(type: "PLAYS", properties: "TeamGame", direction: OUT)
+    @relationship(type: "PLAYS", properties: "TeamGame", direction: IN)
   players: [Player!]!
     @relationship(
       type: "TAKING_PART_IN"
@@ -1094,8 +1092,7 @@ type Discussion {
   game: Game @relationship(type: "HAS_DISCUSSION", direction: IN)
   competition: Competition @relationship(type: "HAS_DISCUSSION", direction: IN)
   person: Person @relationship(type: "HAS_DISCUSSION", direction: IN)
-  organization: Organization
-    @relationship(type: "HAS_DISCUSSION", direction: IN)
+  org: Organization @relationship(type: "HAS_DISCUSSION", direction: IN)
   group: Group @relationship(type: "HAS_DISCUSSION", direction: IN)
   phase: Phase @relationship(type: "HAS_DISCUSSION", direction: IN)
   award: Award @relationship(type: "HAS_DISCUSSION", direction: IN)
@@ -1220,7 +1217,7 @@ type Competition {
   status: String
   logo: String
   organizationId: ID
-  organization: Organization @relationship(type: "OWNED_BY", direction: OUT)
+  org: Organization @relationship(type: "OWNED_BY", direction: OUT)
   rulePacks: [RulePack] @relationship(type: "GUIDED_BY", direction: OUT)
   events: [Event] @relationship(type: "ORGANIZE_AN", direction: OUT)
   venues: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
@@ -1359,7 +1356,7 @@ type Award {
 
 type Media {
   mediaId: ID! @id
-  organization: Organization @relationship(type: "HAS_MEDIA", direction: IN)
+  org: Organization @relationship(type: "HAS_MEDIA", direction: IN)
   phase: Phase @relationship(type: "HAS_MEDIA", direction: IN)
   group: Group @relationship(type: "HAS_MEDIA", direction: IN)
   sponsor: Sponsor @relationship(type: "HAS_MEDIA", direction: IN)
@@ -1427,7 +1424,7 @@ type RulePack {
   rulePackId: ID! @id
   name: String
   createdAt: DateTime
-  organizations: [Organization] @relationship(type: "GUIDED_BY", direction: IN)
+  orgs: [Organization] @relationship(type: "GUIDED_BY", direction: IN)
   phases: [Phase] @relationship(type: "GUIDED_BY", direction: IN)
   groups: [Group] @relationship(type: "GUIDED_BY", direction: IN)
   games: [Game] @relationship(type: "GUIDED_BY", direction: IN)

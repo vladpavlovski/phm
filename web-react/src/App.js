@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import objectSupport from 'dayjs/plugin/objectSupport'
 
 import 'react-imported-component/macro'
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
@@ -69,6 +70,7 @@ const AdminGamePlay = Load(() => import('./admin/pages/Game/play'))
 dayjs.extend(duration)
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(objectSupport)
 
 const App = ({ history }) => {
   return (

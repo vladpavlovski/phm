@@ -2,18 +2,18 @@ import React, { useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 
 import TextField from '@material-ui/core/TextField'
-import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
-
-import { useStyles } from '../../../../commonComponents/styled'
+import EditIcon from '@material-ui/icons/Edit'
+import Tooltip from '@material-ui/core/Tooltip'
+import { LinkButton } from '../../../../../../components/LinkButton'
+import ButtonBase from '@material-ui/core/ButtonBase'
 
 export const SetLineupJersey = props => {
-  const { player, gameId, mergeGamePlayer } = props
-  const classes = useStyles()
+  const { player, gameId, updateGame } = props
   const [lineupJerseyDialogOpen, setLineupJerseyDialogOpen] = useState(false)
 
   const [jerseyValue, setJerseyValue] = useState(player?.jersey || '')
@@ -24,18 +24,18 @@ export const SetLineupJersey = props => {
 
   return (
     <>
-      <Button
-        type="button"
+      <LinkButton
+        component={ButtonBase}
+        variant="text"
+        icon
         onClick={() => {
           setLineupJerseyDialogOpen(true)
         }}
-        variant={'outlined'}
-        size="small"
-        className={classes.submit}
-        startIcon={<AddIcon />}
       >
-        Set Jersey
-      </Button>
+        <Tooltip arrow title="Change Jersey" placement="top">
+          <EditIcon />
+        </Tooltip>
+      </LinkButton>
       <Dialog
         fullWidth
         maxWidth="xs"
@@ -76,11 +76,23 @@ export const SetLineupJersey = props => {
             type="button"
             disabled={!jerseyValue}
             onClick={() => {
-              mergeGamePlayer({
+              updateGame({
                 variables: {
-                  gameId,
-                  playerId: player?.playerId,
-                  jersey: parseInt(jerseyValue),
+                  where: {
+                    gameId,
+                  },
+                  update: {
+                    players: {
+                      connect: {
+                        where: {
+                          playerId: player?.playerId,
+                        },
+                        properties: {
+                          jersey: parseInt(jerseyValue),
+                        },
+                      },
+                    },
+                  },
                 },
               })
               handleCloseDialog()

@@ -6,25 +6,33 @@ import { gql, useLazyQuery, useMutation } from '@apollo/client'
 
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Toolbar from '@material-ui/core/Toolbar'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
 import AddIcon from '@material-ui/icons/Add'
-
 import AccountBox from '@material-ui/icons/AccountBox'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline'
+import Tooltip from '@material-ui/core/Tooltip'
+import Typography from '@material-ui/core/Typography'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { LinkButton } from '../../../../../../components/LinkButton'
 import { Title } from '../../../../../../components/Title'
 import { Loader } from '../../../../../../components/Loader'
 import { Error } from '../../../../../../components/Error'
+import { QuickSearchToolbar } from '../../../../../../components/QuickSearchToolbar'
 import { getAdminOrgPlayerRoute } from '../../../../../../routes'
 import {
   setIdFromEntityId,
+  escapeRegExp,
   getXGridValueFromArray,
   setXGridForRelation,
 } from '../../../../../../utils'
@@ -36,9 +44,11 @@ import { GET_GAME } from '../../../index'
 import { SetLineupPosition } from './SetLineupPosition'
 import { SetLineupJersey } from './SetLineupJersey'
 
+import { UPDATE_GAME } from '../../../index'
+
 const GET_TEAM_PLAYERS = gql`
-  query getTeamPlayers($teamId: ID!) {
-    team: Team(teamId: $teamId) {
+  query getTeamPlayers($where: TeamWhere) {
+    team: teams(where: $where) {
       teamId
       name
       players {
@@ -67,60 +77,11 @@ const GET_TEAM_PLAYERS = gql`
   }
 `
 
-const MERGE_GAME_PLAYER = gql`
-  mutation mergeGamePlayer(
-    $gameId: ID!
-    $playerId: ID!
-    $host: Boolean
-    $jersey: Int
-    $position: String
-  ) {
-    gamePlayer: MergePlayerGames(
-      game: { gameId: $gameId }
-      player: { playerId: $playerId }
-      data: { host: $host, jersey: $jersey, position: $position }
-    ) {
-      game {
-        gameId
-        name
-      }
-      player {
-        playerId
-        firstName
-        lastName
-        name
-        avatar
-      }
-      host
-      jersey
-      position
-    }
-  }
-`
-
-const REMOVE_GAME_PLAYER = gql`
-  mutation removeGamePlayer($gameId: ID!, $playerId: ID!) {
-    gamePlayer: RemovePlayerGames(
-      game: { gameId: $gameId }
-      player: { playerId: $playerId }
-    ) {
-      game {
-        gameId
-        name
-      }
-      player {
-        playerId
-        name
-      }
-    }
-  }
-`
-
 const Lineups = props => {
   const { gameId, teams, players } = props
 
-  const teamHost = useMemo(() => teams.find(t => t.host)?.team || null, [teams])
-  const teamGuest = useMemo(() => teams.find(t => !t.host)?.team || null, [
+  const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
+  const teamGuest = useMemo(() => teams.find(t => !t.host)?.node || null, [
     teams,
   ])
   const playersHost = useMemo(() => players.filter(p => p.host) || null, [
@@ -171,7 +132,7 @@ const LineupList = props => {
     },
   ] = useLazyQuery(GET_TEAM_PLAYERS, {
     variables: {
-      teamId: team?.teamId,
+      where: { teamId: team?.teamId },
     },
     fetchPolicy: 'cache-and-network',
   })
@@ -180,33 +141,69 @@ const LineupList = props => {
     if (!queryTeamPlayersData) {
       getTeamPlayers()
     }
-    // isHost.current = asHost
     setPlayerDialog(true)
   }, [])
+
+  const addAllTeamPlayersToGame = useCallback(() => {
+    const allPlayers = queryTeamPlayersData?.team?.[0]?.players
+
+    const dataToConnect = allPlayers.map(player => {
+      const position =
+        player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
+          ?.name || ''
+
+      const jersey =
+        player?.jerseys?.filter(p => p.team?.teamId === team?.teamId)?.[0]
+          ?.number?.low || ''
+      return {
+        where: {
+          playerId: player.playerId,
+        },
+        properties: {
+          host,
+          position,
+          jersey,
+        },
+      }
+    })
+
+    updateGame({
+      variables: {
+        where: {
+          gameId,
+        },
+        update: {
+          players: {
+            connect: dataToConnect,
+          },
+        },
+      },
+    })
+  }, [team, host, gameId, queryTeamPlayersData])
 
   const handleClosePlayerDialog = useCallback(() => {
     setPlayerDialog(false)
   }, [])
 
-  const [mergeGamePlayer, { loading: loadingMergeGamePlayer }] = useMutation(
-    MERGE_GAME_PLAYER,
+  const [updateGame, { loading: loadingUpdateGameTeam }] = useMutation(
+    UPDATE_GAME,
     {
-      update(cache, { data: { gamePlayer } }) {
+      update(cache, { data: { updateGame } }) {
         try {
           const queryResult = cache.readQuery({
             query: GET_GAME,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
-
-          const updatedData = [...queryResult.game?.[0].players, gamePlayer]
+          const updatedData = updateGame?.games?.find(g => g.gameId === gameId)
+            ?.playersConnection
 
           const updatedResult = {
-            game: [
+            games: [
               {
-                ...queryResult.game?.[0],
-                players: updatedData,
+                ...queryResult.games?.find(g => g.gameId === gameId),
+                playersConnection: updatedData,
               },
             ],
           }
@@ -214,20 +211,17 @@ const LineupList = props => {
             query: GET_GAME,
             data: updatedResult,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
         } catch (error) {
           console.error(error)
         }
       },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data?.gamePlayer?.player?.name} added to lineup ${data?.gamePlayer?.game?.name}!`,
-          {
-            variant: 'success',
-          }
-        )
+      onCompleted: () => {
+        enqueueSnackbar(`Game updated`, {
+          variant: 'success',
+        })
       },
       onError: error => {
         enqueueSnackbar(`${error}`, {
@@ -238,56 +232,9 @@ const LineupList = props => {
     }
   )
 
-  const [removeGamePlayer, { loading: loadingRemoveGamePlayer }] = useMutation(
-    REMOVE_GAME_PLAYER,
-    {
-      update(cache, { data: { gamePlayer } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_GAME,
-            variables: {
-              gameId,
-            },
-          })
-
-          const updatedData = queryResult.game?.[0].players.filter(
-            p => p?.player?.playerId !== gamePlayer?.player?.playerId
-          )
-
-          const updatedResult = {
-            game: [
-              {
-                ...queryResult.game?.[0],
-                players: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GAME,
-            data: updatedResult,
-            variables: {
-              gameId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data?.gamePlayer?.player?.name} removed lineup ${data?.gamePlayer?.game?.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
+  const lineupPlayers = useMemo(
+    () => setXGridForRelation(players, 'playerId', 'node'),
+    [players]
   )
 
   const teamPlayersColumns = useMemo(
@@ -318,9 +265,10 @@ const LineupList = props => {
         headerName: 'Positions',
         width: 150,
         valueGetter: params => {
-          const positions = params.row.positions.filter(
-            p => p.team?.teamId === team?.teamId
-          )
+          const positions =
+            params?.row?.positions?.filter(
+              p => p.team?.teamId === team?.teamId
+            ) || []
           return getXGridValueFromArray(positions, 'name')
         },
       },
@@ -330,9 +278,9 @@ const LineupList = props => {
         headerName: 'Jerseys',
         width: 200,
         valueGetter: params => {
-          const jerseys = params.row.jerseys.filter(
-            p => p.team?.teamId === team?.teamId
-          )
+          const jerseys =
+            params.row?.jerseys?.filter(p => p.team?.teamId === team?.teamId) ||
+            []
           return getXGridValueFromArray(jerseys, 'name')
         },
       },
@@ -343,43 +291,20 @@ const LineupList = props => {
         width: 250,
         disableColumnMenu: true,
         renderCell: params => {
-          const position =
-            params.row.positions.filter(
-              p => p.team?.teamId === team?.teamId
-            )?.[0]?.name || ''
-
-          const jersey = params.row.jerseys.filter(
-            p => p.team?.teamId === team?.teamId
-          )?.[0]?.number
-
           return (
-            <Button
-              variant={'outlined'}
-              size="small"
-              className={classes.submit}
-              startIcon={<AddIcon />}
-              type="button"
-              onClick={() => {
-                mergeGamePlayer({
-                  variables: {
-                    gameId,
-                    host,
-                    position,
-                    jersey,
-                    playerId: params.value,
-                  },
-                })
-              }}
-            >
-              {loadingMergeGamePlayer
-                ? 'Adding...'
-                : `Add as ${host ? 'Host' : 'Guest'} player`}
-            </Button>
+            <TogglePlayerGame
+              gameId={gameId}
+              player={params.row}
+              team={team}
+              host={host}
+              lineupPlayers={lineupPlayers}
+              updateGame={updateGame}
+            />
           )
         },
       },
     ],
-    [gameId, host, team]
+    [gameId, host, team, lineupPlayers]
   )
 
   const gameLineupColumns = useMemo(
@@ -408,87 +333,89 @@ const LineupList = props => {
         field: 'position',
         headerName: 'Position',
         width: 120,
+        renderCell: params => {
+          return (
+            <>
+              <span style={{ marginRight: '4px' }}>{params.value}</span>
+              <SetLineupPosition
+                player={params.row}
+                gameId={gameId}
+                updateGame={updateGame}
+              />
+            </>
+          )
+        },
       },
       {
         field: 'jersey',
         headerName: 'Jersey',
         width: 100,
+        renderCell: params => {
+          return (
+            <>
+              <span style={{ marginRight: '4px' }}>{params.value}</span>
+              <SetLineupJersey
+                player={params.row}
+                gameId={gameId}
+                updateGame={updateGame}
+              />
+            </>
+          )
+        },
       },
       {
-        field: 'removeButton',
-        headerName: 'Remove',
+        field: 'actions',
+        headerName: 'Actions',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ButtonDialog
-              text={'Remove'}
-              textLoading={'Removing...'}
-              loading={loadingRemoveGamePlayer}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you want to remove player from this lineup?'}
-              dialogDescription={'You can add player to lineup later'}
-              dialogNegativeText={'No, keep player'}
-              dialogPositiveText={'Yes, remove player'}
-              onDialogClosePositive={() => {
-                removeGamePlayer({
-                  variables: {
-                    gameId,
-                    playerId: params.row.playerId,
-                  },
-                })
-              }}
-            />
-          )
-        },
-      },
-
-      {
-        field: 'setPlayerPosition',
-        headerName: 'Set Position',
-        width: 200,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <SetLineupPosition
-              player={params.row}
-              gameId={gameId}
-              mergeGamePlayer={mergeGamePlayer}
-            />
-          )
-        },
-      },
-
-      {
-        field: 'setPlayerJersey',
-        headerName: 'Set Jersey',
-        width: 200,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <SetLineupJersey
-              player={params.row}
-              gameId={gameId}
-              mergeGamePlayer={mergeGamePlayer}
-            />
-          )
-        },
-      },
-      {
-        field: 'playerId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<AccountBox />}
-              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
-              target="_blank"
-            >
-              Profile
-            </LinkButton>
+            <>
+              <ButtonDialog
+                icon={
+                  <Tooltip arrow title="Remove Player" placement="top">
+                    <RemoveCircleOutlineIcon />
+                  </Tooltip>
+                }
+                size="small"
+                dialogTitle={'Do you want to remove player from this lineup?'}
+                dialogDescription={'You can add player to lineup later'}
+                dialogNegativeText={'No, keep player'}
+                dialogPositiveText={'Yes, remove player'}
+                onDialogClosePositive={() => {
+                  updateGame({
+                    variables: {
+                      where: {
+                        gameId,
+                      },
+                      update: {
+                        players: {
+                          disconnect: {
+                            where: {
+                              node: {
+                                playerId: params.row.playerId,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  })
+                }}
+              />
+              <LinkButton
+                to={getAdminOrgPlayerRoute(
+                  organizationSlug,
+                  params.row.playerId
+                )}
+                target="_blank"
+                icon
+              >
+                <Tooltip arrow title="Profile" placement="top">
+                  <AccountBox />
+                </Tooltip>
+              </LinkButton>
+            </>
           )
         },
       },
@@ -496,20 +423,35 @@ const LineupList = props => {
     [gameId]
   )
 
-  const lineupPlayers = useMemo(
-    () => setXGridForRelation(players, 'playerId', 'player'),
-    [players]
-  )
-
-  const teamPlayers = useMemo(
+  const teamPlayersData = useMemo(
     () =>
       queryTeamPlayersData &&
-      setIdFromEntityId(
-        queryTeamPlayersData?.team?.[0]?.players,
-        'playerId'
-      ).filter(p => !lineupPlayers.find(lp => lp.playerId === p.playerId)),
-    [queryTeamPlayersData, lineupPlayers]
+      setIdFromEntityId(queryTeamPlayersData?.team?.[0]?.players, 'playerId'),
+    [queryTeamPlayersData]
   )
+
+  const [searchText, setSearchText] = React.useState('')
+  const [teamPlayers, setTeamPlayers] = React.useState([])
+
+  const requestSearch = useCallback(
+    searchValue => {
+      setSearchText(searchValue)
+      const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
+      const filteredRows = teamPlayersData.filter(row => {
+        return Object.keys(row).some(field => {
+          return searchRegex.test(row[field]?.toString())
+        })
+      })
+      setTeamPlayers(filteredRows)
+    },
+    [teamPlayersData]
+  )
+
+  React.useEffect(() => {
+    teamPlayersData && setTeamPlayers(teamPlayersData)
+  }, [teamPlayersData])
+
+  const [anchorEl, setAnchorEl] = React.useState(null)
 
   return (
     <>
@@ -521,20 +463,92 @@ const LineupList = props => {
             }`}</Title>
           </div>
           <div>
-            <Button
-              type="button"
-              variant={'outlined'}
-              size="small"
-              className={classes.submit}
-              startIcon={<AddIcon />}
-              onClick={() => openPlayerDialog({ asHost: host })}
+            <ButtonGroup
+              variant="contained"
+              aria-label="contained button group"
             >
-              Add Player
-            </Button>
+              <Button
+                aria-controls="add-players-menu"
+                aria-haspopup="true"
+                type="button"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={event => {
+                  getTeamPlayers()
+                  setAnchorEl(event.currentTarget)
+                }}
+              >
+                Add Players
+              </Button>
+              {players.length > 0 && (
+                <ButtonDialog
+                  text={'Remove Players'}
+                  textLoading={'Removing...'}
+                  loading={loadingUpdateGameTeam}
+                  size="small"
+                  startIcon={<RemoveCircleOutlineIcon />}
+                  dialogTitle={'Do you want to remove all players from lineup?'}
+                  dialogDescription={'You can add players to lineup later'}
+                  dialogNegativeText={'No, keep players'}
+                  dialogPositiveText={'Yes, remove players'}
+                  onDialogClosePositive={() => {
+                    const dataToDisconnect = players.map(player => {
+                      return {
+                        where: {
+                          node: {
+                            playerId: player?.node?.playerId,
+                          },
+                        },
+                      }
+                    })
+                    updateGame({
+                      variables: {
+                        where: {
+                          gameId,
+                        },
+                        update: {
+                          players: {
+                            disconnect: dataToDisconnect,
+                          },
+                        },
+                      },
+                    })
+                  }}
+                />
+              )}
+            </ButtonGroup>
+            <Menu
+              id="add-players-menu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={() => {
+                setAnchorEl(null)
+              }}
+            >
+              <MenuItem
+                onClick={() => {
+                  openPlayerDialog()
+                  setAnchorEl(null)
+                }}
+              >
+                Choose specific
+              </MenuItem>
+              <MenuItem
+                disabled={!queryTeamPlayersData}
+                onClick={() => {
+                  addAllTeamPlayersToGame()
+                  setAnchorEl(null)
+                }}
+              >
+                All
+              </MenuItem>
+            </Menu>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <XGrid
+            density="compact"
             columns={gameLineupColumns}
             rows={lineupPlayers}
             disableSelectionOnClick
@@ -562,14 +576,27 @@ const LineupList = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add player to game`}</DialogTitle>
               <DialogContent>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Typography variant="body1" gutterBottom>
+                    {`Total players selected: ${lineupPlayers.length}`}
+                  </Typography>
+                </div>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <XGrid
+                    density="compact"
                     columns={teamPlayersColumns}
                     rows={teamPlayers}
                     disableSelectionOnClick
                     loading={queryTeamPlayersLoading}
                     components={{
-                      Toolbar: GridToolbar,
+                      Toolbar: QuickSearchToolbar,
+                    }}
+                    componentsProps={{
+                      toolbar: {
+                        value: searchText,
+                        onChange: event => requestSearch(event.target.value),
+                        clearSearch: () => requestSearch(''),
+                      },
                     }}
                   />
                 </div>
@@ -588,6 +615,91 @@ const LineupList = props => {
 
 Lineups.propTypes = {
   players: PropTypes.array,
+}
+
+const TogglePlayerGame = props => {
+  const { gameId, team, player, host, updateGame, lineupPlayers } = props
+  const [isMember, setIsMember] = useState(
+    !!lineupPlayers?.find(p => p.playerId === player.playerId)
+  )
+
+  const position = useMemo(
+    () =>
+      player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
+        ?.name || '',
+    []
+  )
+
+  const jersey = useMemo(
+    () =>
+      player?.jerseys?.filter(p => p.team?.teamId === team?.teamId)?.[0]?.number
+        ?.low || '',
+    []
+  )
+
+  return (
+    <FormControlLabel
+      control={
+        <Switch
+          checked={isMember}
+          onChange={() => {
+            isMember
+              ? updateGame({
+                  variables: {
+                    where: {
+                      gameId,
+                    },
+                    update: {
+                      players: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              playerId: player.playerId,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                })
+              : updateGame({
+                  variables: {
+                    where: {
+                      gameId,
+                    },
+                    update: {
+                      players: {
+                        connect: {
+                          where: {
+                            playerId: player.playerId,
+                          },
+                          properties: {
+                            host,
+                            position,
+                            jersey,
+                          },
+                        },
+                      },
+                    },
+                  },
+                })
+
+            setIsMember(!isMember)
+          }}
+          name="phaseMember"
+          color="primary"
+        />
+      }
+    />
+  )
+}
+
+TogglePlayerGame.propTypes = {
+  playerId: PropTypes.string,
+  awardId: PropTypes.string,
+  award: PropTypes.object,
+  remove: PropTypes.func,
+  merge: PropTypes.func,
 }
 
 export { Lineups }

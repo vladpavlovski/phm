@@ -1,6 +1,7 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
+import Img from 'react-cool-img'
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
@@ -21,17 +22,40 @@ import {
 } from '../../../../utils'
 
 const GET_GAMES = gql`
-  query getGames($organizationSlug: String!) {
-    games: gamesByOrganization(organizationSlug: $organizationSlug) {
+  query getGames($where: GameWhere) {
+    games: games(where: $where) {
       gameId
       name
       type
       foreignId
-      startDate {
-        formatted
+      startDate
+      startTime
+      venue {
+        name
       }
-      startTime {
-        formatted
+      teamsConnection {
+        edges {
+          host
+          node {
+            name
+            nick
+            logo
+          }
+        }
+      }
+      phase {
+        phaseId
+        name
+        competition {
+          name
+        }
+      }
+      group {
+        groupId
+        name
+        competition {
+          name
+        }
       }
     }
   }
@@ -42,45 +66,16 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_GAMES, {
     variables: {
-      organizationSlug,
+      where: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+      },
     },
-    notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
-
   const columns = useMemo(
     () => [
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 300,
-      },
-      {
-        field: 'foreignId',
-        headerName: 'foreignId',
-        width: 150,
-      },
-      {
-        field: 'type',
-        headerName: 'Type',
-        width: 150,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.startDate?.formatted,
-        valueFormatter: params => formatDate(params?.value),
-      },
-      {
-        field: 'startTime',
-        headerName: 'Start Time',
-        width: 100,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.startTime?.formatted,
-        valueFormatter: params => formatTime(params?.value),
-      },
       {
         field: 'gameId',
         headerName: 'Edit',
@@ -96,6 +91,107 @@ const XGridTable = () => {
             </LinkButton>
           )
         },
+      },
+      {
+        field: 'startDate',
+        headerName: 'Date',
+        width: 220,
+        disableColumnMenu: true,
+        valueGetter: params => params?.row?.startDate,
+        valueFormatter: params =>
+          formatDate(params?.value, 'dddd, MMMM D, YYYY'),
+      },
+      {
+        field: 'startTime',
+        headerName: 'Time',
+        width: 100,
+        disableColumnMenu: true,
+        valueGetter: params => params?.row?.startTime,
+        valueFormatter: params => {
+          return typeof params?.value === 'string'
+            ? formatTime(params?.value)
+            : ''
+        },
+      },
+      {
+        field: 'venue',
+        headerName: 'Venue',
+        width: 200,
+        valueGetter: params => params?.row?.venue?.name,
+      },
+      {
+        field: 'hostTeam',
+        headerName: 'Host team',
+        width: 200,
+        renderCell: params => {
+          const team = params?.row?.teamsConnection?.edges?.find(t => t?.host)
+            ?.node
+
+          return (
+            <>
+              <Img
+                src={team?.logo}
+                style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
+                alt={team?.name}
+              />
+              <span>{team?.name}</span>
+            </>
+          )
+        },
+      },
+      {
+        field: 'guestTeam',
+        headerName: 'Guest team',
+        width: 200,
+        renderCell: params => {
+          const team = params?.row?.teamsConnection?.edges?.find(t => !t?.host)
+            ?.node
+
+          return (
+            <>
+              <Img
+                src={team?.logo}
+                style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
+                alt={team?.name}
+              />
+              <span>{team?.name}</span>
+            </>
+          )
+        },
+      },
+      {
+        field: 'competition',
+        headerName: 'Competition',
+        width: 200,
+        valueGetter: params => {
+          const phaseCompetition = params?.row?.phase?.competition?.name
+          const groupCompetition = params?.row?.group?.competition?.name
+          return phaseCompetition || groupCompetition
+        },
+      },
+      {
+        field: 'phase',
+        headerName: 'Phase',
+        width: 120,
+        valueGetter: params => params?.row?.phase?.name,
+      },
+      {
+        field: 'group',
+        headerName: 'Group',
+        width: 120,
+        valueGetter: params => params?.row?.group?.name,
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
+        hide: true,
+      },
+      {
+        field: 'foreignId',
+        headerName: 'Foreign Id',
+        width: 150,
+        hide: true,
       },
     ],
     [organizationSlug]
@@ -131,6 +227,7 @@ const XGridTable = () => {
               className={classes.xGridWrapper}
             >
               <XGrid
+                density="compact"
                 columns={columns}
                 rows={setIdFromEntityId(data.games, 'gameId')}
                 loading={loading}
