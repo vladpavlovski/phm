@@ -557,13 +557,13 @@ type Query {
   #     return game
   #     """
   #   )
-  gameEventsSimpleByGameId(gameId: ID!): [GameEventSimple]
-    @cypher(
-      statement: """
-      MATCH (Game { gameId: $gameId }) - [:INITIATES_SIMPLE] -> (ges: GameEventSimple)
-      return ges
-      """
-    )
+  # gameEventsSimpleByGameId(gameId: ID!): [GameEventSimple]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Game { gameId: $gameId }) - [:INITIATES_SIMPLE] -> (ges: GameEventSimple)
+  #     return ges
+  #     """
+  #   )
 }
 
 type MetaPlayer {

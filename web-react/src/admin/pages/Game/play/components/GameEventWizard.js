@@ -134,19 +134,18 @@ const GameEventWizard = props => {
       gameEventSimpleId: uuidv4(),
       previousGameEventSimpleId: previousGameEventSimpleId.current || null,
       metaPlayerScoredById:
-        gameEventData?.scoredBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.scoredBy?.node?.meta?.metaPlayerId || null,
       metaPlayerAllowedById:
-        gameEventData?.allowedBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.allowedBy?.node?.meta?.metaPlayerId || null,
       metaPlayerFirstAssistId:
-        gameEventData?.firstAssist?.player?.meta?.metaPlayerId || null,
+        gameEventData?.firstAssist?.node?.meta?.metaPlayerId || null,
       metaPlayerSecondAssistId:
-        gameEventData?.secondAssist?.player?.meta?.metaPlayerId || null,
+        gameEventData?.secondAssist?.node?.meta?.metaPlayerId || null,
       metaPlayerSavedById:
-        gameEventData?.savedBy?.player?.meta?.metaPlayerId || null,
-      metaPlayerWonById:
-        gameEventData?.wonBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.savedBy?.node?.meta?.metaPlayerId || null,
+      metaPlayerWonById: gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
       metaPlayerLostById:
-        gameEventData?.lostBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
       eventType: gameEventSettings?.name || null,
       eventTypeCode: gameEventSettings?.type || null,
       timestamp: gameEventData?.timestamp || null,
@@ -162,15 +161,15 @@ const GameEventWizard = props => {
         ? parseFloat(gameEventData?.duration)
         : null,
       metaPlayerPenalizedId:
-        gameEventData?.penalized?.player?.meta?.metaPlayerId || null,
+        gameEventData?.penalized?.node?.meta?.metaPlayerId || null,
       metaPlayerExecutedById:
-        gameEventData?.executedBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.executedBy?.node?.meta?.metaPlayerId || null,
       metaPlayerFacedAgainstId:
-        gameEventData?.facedAgainst?.player?.meta?.metaPlayerId || null,
+        gameEventData?.facedAgainst?.node?.meta?.metaPlayerId || null,
       description: gameEventData?.description || null,
       injuryType: gameEventData?.injuryType?.name || null,
       metaPlayerSufferedId:
-        gameEventData?.suffered?.player?.meta?.metaPlayerId || null,
+        gameEventData?.suffered?.node?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =
