@@ -150,7 +150,8 @@ const PositionTypes = props => {
             query: GET_POSITION_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
