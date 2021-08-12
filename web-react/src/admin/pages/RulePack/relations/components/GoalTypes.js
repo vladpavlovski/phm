@@ -2,7 +2,7 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -33,17 +33,29 @@ import { RHFInput } from '../../../../../components/RHFInput'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  checkId,
-  getXGridValueFromArray,
-} from '../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
 
 const GET_GOAL_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: GoalTypeWhere, $whereRulePack: RulePackWhere) {
+    goalTypes(where: $where) {
+      goalTypeId
       name
+      code
+      subTypes {
+        goalSubTypeId
+        name
+        code
+      }
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_GOAL_TYPE = gql`
+  mutation createGoalType($input: [GoalTypeCreateInput!]!) {
+    createGoalTypes(input: $input) {
       goalTypes {
         goalTypeId
         name
@@ -58,76 +70,39 @@ const GET_GOAL_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_GOAL_TYPE = gql`
-  mutation mergeRulePackGoalType(
-    $rulePackId: ID!
-    $goalTypeId: ID!
-    $name: String
-    $code: String
+const UPDATE_GOAL_TYPE = gql`
+  mutation updateGoalType(
+    $where: GoalTypeWhere
+    $update: GoalTypeUpdateInput
+    $create: GoalTypeRelationInput
   ) {
-    goalType: MergeGoalType(goalTypeId: $goalTypeId, name: $name, code: $code) {
-      goalTypeId
-      name
-    }
-    goalTypeRulePack: MergeGoalTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { goalTypeId: $goalTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateGoalTypes(where: $where, update: $update, create: $create) {
+      goalTypes {
         goalTypeId
         name
         code
+        subTypes {
+          goalSubTypeId
+          name
+          code
+        }
       }
     }
   }
 `
 
 const DELETE_GOAL_TYPE = gql`
-  mutation deleteGoalType($goalTypeId: ID!) {
-    deleted: DeleteGoalType(goalTypeId: $goalTypeId) {
-      goalTypeId
-    }
-  }
-`
-
-const MERGE_GOAL_TYPE_GOAL_SUB_TYPE = gql`
-  mutation mergeRulePackGoalSubType(
-    $goalTypeId: ID!
-    $goalSubTypeId: ID!
-    $name: String
-    $code: String
-  ) {
-    goalSubType: MergeGoalSubType(
-      goalSubTypeId: $goalSubTypeId
-      name: $name
-      code: $code
-    ) {
-      goalSubTypeId
-      name
-    }
-    goalSubTypeGoalType: MergeGoalSubTypeGoalType(
-      from: { goalTypeId: $goalTypeId }
-      to: { goalSubTypeId: $goalSubTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
-        goalSubTypeId
-        name
-        code
-      }
+  mutation deleteGoalType($where: GoalTypeWhere) {
+    deleteGoalTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
 
 const DELETE_GOAL_SUB_TYPE = gql`
-  mutation deleteGoalSubType($goalSubTypeId: ID!) {
-    deleted: DeleteGoalSubType(goalSubTypeId: $goalSubTypeId) {
-      goalSubTypeId
+  mutation deleteGoalSubType($where: GoalSubTypeWhere) {
+    deleteGoalSubTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -154,14 +129,15 @@ const GoalTypes = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GOAL_TYPES, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -173,31 +149,29 @@ const GoalTypes = props => {
   const [deleteGoalType, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_GOAL_TYPE,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_GOAL_TYPES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].goalTypes.filter(
+          const updatedData = queryResult.goalTypes.filter(
             p => p.goalTypeId !== deleted.goalTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                goalTypes: updatedData,
-              },
-            ],
+            goalTypes: updatedData,
           }
           cache.writeQuery({
             query: GET_GOAL_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -275,13 +249,14 @@ const GoalTypes = props => {
               dialogDescription={'Goal type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteGoalType({
                   variables: {
-                    goalTypeId: params.row.goalTypeId,
+                    where: { goalTypeId: params.row.goalTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -323,7 +298,7 @@ const GoalTypes = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackGoalTypesColumns}
-                rows={setIdFromEntityId(rulePack.goalTypes, 'goalTypeId')}
+                rows={setIdFromEntityId(queryData?.goalTypes, 'goalTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -335,11 +310,11 @@ const GoalTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={rulePack?.goalTypes?.find(
+        data={queryData?.goalTypes?.find(
           gt => gt.goalTypeId === formData.current
         )}
       />
@@ -357,81 +332,127 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackGoalType,
-    { loading: loadingMergeGoalType },
-  ] = useMutation(MERGE_RULEPACK_GOAL_TYPE, {
-    update(cache, { data: { goalTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GOAL_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createGoalType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_GOAL_TYPE,
+    {
+      update(cache, { data: { createGoalTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GOAL_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createGoalTypes?.goalTypes?.[0]
 
-        const existingData = queryResult.rulePack[0].goalTypes
-        const newItem = goalTypeRulePack.to
-        let updatedData = []
-        if (existingData.find(ed => ed.goalTypeId === newItem.goalTypeId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.goalTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            goalTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_GOAL_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateGoalType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_GOAL_TYPE,
+    {
+      update(cache, { data: { updateGoalTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GOAL_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateGoalTypes?.goalTypes?.[0]
+
+          const existingData = queryResult?.goalTypes
+          const updatedData = existingData?.map(ed =>
             ed.goalTypeId === newItem.goalTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              goalTypes: updatedData,
+          const updatedResult = {
+            goalTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_GOAL_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_GOAL_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+        setNewSubType(false)
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.goalTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
 
-        mergeRulePackGoalType({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            goalTypeId: data?.goalTypeId || uuidv4(),
-          },
-        })
+        data?.goalTypeId
+          ? updateGoalType({
+              variables: {
+                where: {
+                  goalTypeId: data?.goalTypeId,
+                },
+                update: {
+                  name,
+                  code,
+                },
+              },
+            })
+          : createGoalType({
+              variables: {
+                input: {
+                  name,
+                  code,
+
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -500,8 +521,9 @@ const FormDialog = props => {
               rulePack={rulePack}
               rulePackId={rulePackId}
               goalTypeId={data?.goalTypeId}
-              setNewSubType={setNewSubType}
               data={st}
+              updateGoalType={updateGoalType}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ))}
         </div>
@@ -511,12 +533,13 @@ const FormDialog = props => {
               rulePack={rulePack}
               rulePackId={rulePackId}
               goalTypeId={data?.goalTypeId}
-              setNewSubType={setNewSubType}
               data={{
                 goalSubTypeId: null,
                 name: '',
                 code: '',
               }}
+              updateGoalType={updateGoalType}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ) : (
             data?.goalTypeId && (
@@ -547,9 +570,11 @@ const FormDialog = props => {
         <LoadingButton
           type="button"
           onClick={handleSubmit(onSubmit)}
-          loading={loadingMergeGoalType}
+          loading={mutationLoadingCreate || mutationLoadingUpdate}
         >
-          {loadingMergeGoalType ? 'Saving...' : 'Save'}
+          {mutationLoadingCreate || mutationLoadingUpdate
+            ? 'Saving...'
+            : 'Save'}
         </LoadingButton>
       </DialogActions>
     </Dialog>
@@ -557,85 +582,20 @@ const FormDialog = props => {
 }
 
 const SubType = props => {
-  const { rulePack, rulePackId, goalTypeId, data, setNewSubType } = props
+  const {
+    rulePackId,
+    goalTypeId,
+    data,
+    updateGoalType,
+    mutationLoadingUpdate,
+  } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
+  const goalSubTypeIdDelete = React.useRef(data?.goalSubTypeId)
+
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
-  })
-
-  const [
-    mergeGoalTypeGoalSubType,
-    { loading: loadingMergeGoalSubType },
-  ] = useMutation(MERGE_GOAL_TYPE_GOAL_SUB_TYPE, {
-    update(cache, { data: { goalSubTypeGoalType } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GOAL_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
-
-        const goalType = queryResult.rulePack[0].goalTypes.find(
-          gt => gt.goalTypeId === goalTypeId
-        )
-        const existingData = goalType.subTypes
-        const newItem = goalSubTypeGoalType.to
-
-        let updatedData = []
-        if (
-          existingData.find(ed => ed.goalSubTypeId === newItem.goalSubTypeId)
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.goalSubTypeId === newItem.goalSubTypeId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [...existingData, newItem]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              goalTypes: [
-                ...queryResult.rulePack[0].goalTypes.filter(
-                  gt => gt.goalTypeId !== goalTypeId
-                ),
-                { ...goalType, subTypes: updatedData },
-              ],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_GOAL_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.goalSubTypeGoalType.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      setNewSubType(false)
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
   })
 
   const [
@@ -643,46 +603,44 @@ const SubType = props => {
     { loading: mutationLoadingDeleteGoalSubType },
   ] = useMutation(DELETE_GOAL_SUB_TYPE, {
     variables: {
-      goalSubTypeId: data?.goalSubTypeId,
+      where: { goalSubTypeId: data?.goalSubTypeId },
     },
-    update(cache, { data: { deleted } }) {
+    update(cache) {
       try {
         const queryResult = cache.readQuery({
           query: GET_GOAL_TYPES,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
 
-        const goalType = queryResult.rulePack[0].goalTypes.find(
+        const goalType = queryResult.goalTypes.find(
           gt => gt.goalTypeId === goalTypeId
         )
 
         const updatedData = goalType.subTypes.filter(
-          p => p.goalSubTypeId !== deleted.goalSubTypeId
+          p => p.goalSubTypeId !== goalSubTypeIdDelete.current
         )
 
         const updatedResult = {
-          rulePack: [
+          goalTypes: [
+            ...queryResult.goalTypes.filter(gt => gt.goalTypeId !== goalTypeId),
             {
-              ...queryResult.rulePack[0],
-              goalTypes: [
-                ...queryResult.rulePack[0].goalTypes.filter(
-                  gt => gt.goalTypeId !== goalTypeId
-                ),
-                {
-                  ...goalType,
-                  subTypes: updatedData,
-                },
-              ],
+              ...goalType,
+              subTypes: updatedData,
             },
           ],
+
+          rulePacks: queryResult?.rulePacks,
         }
+
         cache.writeQuery({
           query: GET_GOAL_TYPES,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -707,14 +665,36 @@ const SubType = props => {
       try {
         const { name, code } = dataToCheck
 
-        mergeGoalTypeGoalSubType({
-          variables: {
-            goalTypeId,
-            name,
-            code,
-            goalSubTypeId: checkId(data?.goalSubTypeId || 'new'),
-          },
-        })
+        data?.goalSubTypeId
+          ? updateGoalType({
+              variables: {
+                where: {
+                  goalTypeId,
+                },
+                update: {
+                  subTypes: {
+                    where: {
+                      goalSubTypeId: data?.goalSubTypeId,
+                    },
+                    update: {
+                      name,
+                      code,
+                    },
+                  },
+                },
+              },
+            })
+          : updateGoalType({
+              variables: {
+                where: {
+                  goalTypeId,
+                },
+
+                create: {
+                  subTypes: { node: { name, code } },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -780,9 +760,9 @@ const SubType = props => {
                     handleSubmit(onSubmit)()
                   }}
                   type="button"
-                  loading={loadingMergeGoalSubType}
+                  loading={mutationLoadingUpdate}
                 >
-                  {loadingMergeGoalSubType ? 'Saving...' : 'Save'}
+                  {mutationLoadingUpdate ? 'Saving...' : 'Save'}
                 </LoadingButton>
               </Grid>
             </Grid>
