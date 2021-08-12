@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -36,10 +35,21 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_SHOT_TARGETS = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: ShotTargetWhere, $whereRulePack: RulePackWhere) {
+    shotTargets(where: $where) {
+      shotTargetId
       name
+      code
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_SHOT_TARGET = gql`
+  mutation createShotTarget($input: [ShotTargetCreateInput!]!) {
+    createShotTargets(input: $input) {
       shotTargets {
         shotTargetId
         name
@@ -49,29 +59,13 @@ const GET_SHOT_TARGETS = gql`
   }
 `
 
-const MERGE_RULEPACK_SHOT_TARGET = gql`
-  mutation mergeRulePackShotTarget(
-    $rulePackId: ID!
-    $shotTargetId: ID!
-    $name: String
-    $code: String
+const UPDATE_SHOT_TARGET = gql`
+  mutation updateShotTarget(
+    $where: ShotTargetWhere
+    $update: ShotTargetUpdateInput
   ) {
-    shotType: MergeShotTarget(
-      shotTargetId: $shotTargetId
-      name: $name
-      code: $code
-    ) {
-      shotTargetId
-      name
-    }
-    shotTypeRulePack: MergeShotTargetRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { shotTargetId: $shotTargetId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateShotTargets(where: $where, update: $update) {
+      shotTargets {
         shotTargetId
         name
         code
@@ -81,9 +75,9 @@ const MERGE_RULEPACK_SHOT_TARGET = gql`
 `
 
 const DELETE_SHOT_TARGET = gql`
-  mutation deleteShotTarget($shotTargetId: ID!) {
-    deleted: DeleteShotTarget(shotTargetId: $shotTargetId) {
-      shotTargetId
+  mutation deleteShotTarget($where: ShotTargetWhere) {
+    deleteShotTargets(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -110,14 +104,15 @@ const ShotTargets = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_SHOT_TARGETS, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -129,31 +124,29 @@ const ShotTargets = props => {
   const [deleteShotTarget, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_SHOT_TARGET,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_SHOT_TARGETS,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].shotTargets.filter(
+          const updatedData = queryResult.shotTargets.filter(
             p => p.shotTargetId !== deleted.shotTargetId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                shotTargets: updatedData,
-              },
-            ],
+            shotTargets: updatedData,
           }
           cache.writeQuery({
             query: GET_SHOT_TARGETS,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -223,13 +216,14 @@ const ShotTargets = props => {
               dialogDescription={'Shot target will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteShotTarget({
                   variables: {
                     shotTargetId: params.row.shotTargetId,
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -271,7 +265,7 @@ const ShotTargets = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackShotTargetsColumns}
-                rows={setIdFromEntityId(rulePack.shotTargets, 'shotTargetId')}
+                rows={setIdFromEntityId(queryData?.shotTargets, 'shotTargetId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -283,7 +277,7 @@ const ShotTargets = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -303,81 +297,126 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackShotTarget,
-    { loading: loadingMergeShotTarget },
-  ] = useMutation(MERGE_RULEPACK_SHOT_TARGET, {
-    update(cache, { data: { shotTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SHOT_TARGETS,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createShotTarget, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_SHOT_TARGET,
+    {
+      update(cache, { data: { createShotTargets } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SHOT_TARGETS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createShotTargets?.shotTargets?.[0]
 
-        const existingData = queryResult.rulePack[0].shotTargets
-        const newItem = shotTypeRulePack.to
-        let updatedData = []
-        if (existingData.find(ed => ed.shotTargetId === newItem.shotTargetId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.shotTargets
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            shotTargets: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_SHOT_TARGETS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateShotTarget, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_SHOT_TARGET,
+    {
+      update(cache, { data: { updateShotTargets } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SHOT_TARGETS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateShotTargets?.shotTargets?.[0]
+
+          const existingData = queryResult?.shotTargets
+          const updatedData = existingData?.map(ed =>
             ed.shotTargetId === newItem.shotTargetId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              shotTargets: updatedData,
+          const updatedResult = {
+            shotTargets: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_SHOT_TARGETS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_SHOT_TARGETS,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.shotTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
 
-        mergeRulePackShotTarget({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            shotTargetId: data?.shotTargetId || uuidv4(),
-          },
-        })
+        data?.shotTargetId
+          ? updateShotTarget({
+              variables: {
+                where: {
+                  shotTargetId: data?.shotTargetId,
+                },
+                update: {
+                  name,
+                  code,
+                },
+              },
+            })
+          : createShotTarget({
+              variables: {
+                input: {
+                  name,
+                  code,
+
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -445,8 +484,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeShotTarget}>
-            {loadingMergeShotTarget ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>
