@@ -2,7 +2,7 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
@@ -37,14 +37,30 @@ import {
   setIdFromEntityId,
   showTimeAsHms,
   getXGridValueFromArray,
-  checkId,
 } from '../../../../../utils'
 
 const GET_PENALTY_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: PenaltyTypeWhere, $whereRulePack: RulePackWhere) {
+    penaltyTypes(where: $where) {
+      penaltyTypeId
       name
+      code
+      duration
+      subTypes {
+        penaltySubTypeId
+        name
+        code
+      }
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_PENALTY_TYPE = gql`
+  mutation createPenaltyType($input: [PenaltyTypeCreateInput!]!) {
+    createPenaltyTypes(input: $input) {
       penaltyTypes {
         penaltyTypeId
         name
@@ -60,86 +76,144 @@ const GET_PENALTY_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_PENALTY_TYPE = gql`
-  mutation mergeRulePackPenaltyType(
-    $rulePackId: ID!
-    $penaltyTypeId: ID!
-    $name: String
-    $code: String
-    $duration: Float
+const UPDATE_PENALTY_TYPE = gql`
+  mutation updatePenaltyType(
+    $where: PenaltyTypeWhere
+    $update: PenaltyTypeUpdateInput
+    $create: PenaltyTypeRelationInput
   ) {
-    penaltyType: MergePenaltyType(
-      penaltyTypeId: $penaltyTypeId
-      name: $name
-      code: $code
-      duration: $duration
-    ) {
-      penaltyTypeId
-      name
-    }
-    penaltyTypeRulePack: MergePenaltyTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { penaltyTypeId: $penaltyTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updatePenaltyTypes(where: $where, update: $update, create: $create) {
+      penaltyTypes {
         penaltyTypeId
         name
         code
         duration
+        subTypes {
+          penaltySubTypeId
+          name
+          code
+        }
       }
     }
   }
 `
 
 const DELETE_PENALTY_TYPE = gql`
-  mutation deletePenaltyType($penaltyTypeId: ID!) {
-    deleted: DeletePenaltyType(penaltyTypeId: $penaltyTypeId) {
-      penaltyTypeId
+  mutation deletePenaltyType($where: PenaltyTypeWhere) {
+    deletePenaltyTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
 
-const MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE = gql`
-  mutation mergeRulePackPenaltySubType(
-    $penaltyTypeId: ID!
-    $penaltySubTypeId: ID!
-    $name: String
-    $code: String
-  ) {
-    penaltySubType: MergePenaltySubType(
-      penaltySubTypeId: $penaltySubTypeId
-      name: $name
-      code: $code
-    ) {
-      penaltySubTypeId
-      name
-    }
-    penaltySubTypePenaltyType: MergePenaltySubTypePenaltyType(
-      from: { penaltyTypeId: $penaltyTypeId }
-      to: { penaltySubTypeId: $penaltySubTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
-        penaltySubTypeId
-        name
-        code
-      }
+const DELETE_SHOT_SUB_TYPE = gql`
+  mutation deletePenaltySubType($where: PenaltySubTypeWhere) {
+    deletePenaltySubTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
 
-const DELETE_PENALTY_SUB_TYPE = gql`
-  mutation deletePenaltySubType($penaltySubTypeId: ID!) {
-    deleted: DeletePenaltySubType(penaltySubTypeId: $penaltySubTypeId) {
-      penaltySubTypeId
-    }
-  }
-`
+// const GET_PENALTY_TYPES = gql`
+//   query getRulePack($rulePackId: ID) {
+//     rulePack: RulePack(rulePackId: $rulePackId) {
+//       rulePackId
+//       name
+//       penaltyTypes {
+//         penaltyTypeId
+//         name
+//         code
+//         duration
+//         subTypes {
+//           penaltySubTypeId
+//           name
+//           code
+//         }
+//       }
+//     }
+//   }
+// `
+
+// const MERGE_RULEPACK_PENALTY_TYPE = gql`
+//   mutation mergeRulePackPenaltyType(
+//     $rulePackId: ID!
+//     $penaltyTypeId: ID!
+//     $name: String
+//     $code: String
+//     $duration: Float
+//   ) {
+//     penaltyType: MergePenaltyType(
+//       penaltyTypeId: $penaltyTypeId
+//       name: $name
+//       code: $code
+//       duration: $duration
+//     ) {
+//       penaltyTypeId
+//       name
+//     }
+//     penaltyTypeRulePack: MergePenaltyTypeRulePack(
+//       from: { rulePackId: $rulePackId }
+//       to: { penaltyTypeId: $penaltyTypeId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         penaltyTypeId
+//         name
+//         code
+//         duration
+//       }
+//     }
+//   }
+// `
+
+// const DELETE_PENALTY_TYPE = gql`
+//   mutation deletePenaltyType($penaltyTypeId: ID!) {
+//     deleted: DeletePenaltyType(penaltyTypeId: $penaltyTypeId) {
+//       penaltyTypeId
+//     }
+//   }
+// `
+
+// const MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE = gql`
+//   mutation mergeRulePackPenaltySubType(
+//     $penaltyTypeId: ID!
+//     $penaltySubTypeId: ID!
+//     $name: String
+//     $code: String
+//   ) {
+//     penaltySubType: MergePenaltySubType(
+//       penaltySubTypeId: $penaltySubTypeId
+//       name: $name
+//       code: $code
+//     ) {
+//       penaltySubTypeId
+//       name
+//     }
+//     penaltySubTypePenaltyType: MergePenaltySubTypePenaltyType(
+//       from: { penaltyTypeId: $penaltyTypeId }
+//       to: { penaltySubTypeId: $penaltySubTypeId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         penaltySubTypeId
+//         name
+//         code
+//       }
+//     }
+//   }
+// `
+
+// const DELETE_PENALTY_SUB_TYPE = gql`
+//   mutation deletePenaltySubType($penaltySubTypeId: ID!) {
+//     deleted: DeletePenaltySubType(penaltySubTypeId: $penaltySubTypeId) {
+//       penaltySubTypeId
+//     }
+//   }
+// `
 
 const schema = object().shape({
   name: string().required('Name is required'),
@@ -165,18 +239,20 @@ const PenaltyTypes = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_PENALTY_TYPES, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -188,31 +264,29 @@ const PenaltyTypes = props => {
   const [deletePenaltyType, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_PENALTY_TYPE,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_PENALTY_TYPES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].penaltyTypes.filter(
+          const updatedData = queryResult.penaltyTypes.filter(
             p => p.penaltyTypeId !== deleted.penaltyTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                penaltyTypes: updatedData,
-              },
-            ],
+            penaltyTypes: updatedData,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -220,7 +294,7 @@ const PenaltyTypes = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`PenaltyType was deleted!`, {
+        enqueueSnackbar(`Penalty type was deleted!`, {
           variant: 'info',
         })
       },
@@ -298,13 +372,14 @@ const PenaltyTypes = props => {
               dialogDescription={'Penalty type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deletePenaltyType({
                   variables: {
-                    penaltyTypeId: params.row.penaltyTypeId,
+                    where: { penaltyTypeId: params.row.penaltyTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -346,7 +421,10 @@ const PenaltyTypes = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackPenaltyTypesColumns}
-                rows={setIdFromEntityId(rulePack.penaltyTypes, 'penaltyTypeId')}
+                rows={setIdFromEntityId(
+                  queryData?.penaltyTypes,
+                  'penaltyTypeId'
+                )}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -358,11 +436,11 @@ const PenaltyTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={rulePack?.penaltyTypes?.find(
+        data={queryData?.penaltyTypes?.find(
           gt => gt.penaltyTypeId === formData.current
         )}
       />
@@ -380,84 +458,136 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackPenaltyType,
-    { loading: loadingMergePenaltyType },
-  ] = useMutation(MERGE_RULEPACK_PENALTY_TYPE, {
-    update(cache, { data: { penaltyTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PENALTY_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createPenaltyType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_PENALTY_TYPE,
+    {
+      update(cache, { data: { createPenaltyTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PENALTY_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createPenaltyTypes?.penaltyTypes?.[0]
 
-        const existingData = queryResult.rulePack[0].penaltyTypes
-        const newItem = penaltyTypeRulePack.to
-        let updatedData = []
-        if (
-          existingData.find(ed => ed.penaltyTypeId === newItem.penaltyTypeId)
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.penaltyTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            penaltyTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PENALTY_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Penalty type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updatePenaltyType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_PENALTY_TYPE,
+    {
+      update(cache, { data: { updatePenaltyTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PENALTY_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updatePenaltyTypes?.penaltyTypes?.[0]
+
+          const existingData = queryResult?.penaltyTypes
+          const updatedData = existingData?.map(ed =>
             ed.penaltyTypeId === newItem.penaltyTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              penaltyTypes: updatedData,
+          const updatedResult = {
+            penaltyTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PENALTY_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_PENALTY_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Penalty type updated!', { variant: 'success' })
+        handleCloseDialog()
+        setNewSubType(false)
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.penaltyTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
+      },
+    }
+  )
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, code, duration } = dataToCheck
 
-        mergeRulePackPenaltyType({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            duration: parseFloat(duration),
-            penaltyTypeId: data?.penaltyTypeId || uuidv4(),
-          },
-        })
+        data?.penaltyTypeId
+          ? updatePenaltyType({
+              variables: {
+                where: {
+                  penaltyTypeId: data?.penaltyTypeId,
+                },
+                update: {
+                  name,
+                  code,
+                  duration: parseFloat(duration),
+                },
+              },
+            })
+          : createPenaltyType({
+              variables: {
+                input: {
+                  name,
+                  code,
+                  duration: parseFloat(duration),
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
+        // mergeRulePackPenaltyType({
+        //   variables: {
+        //     rulePackId,
+        //     name,
+        //     code,
+        //     duration: parseFloat(duration),
+        //     penaltyTypeId: data?.penaltyTypeId || uuidv4(),
+        //   },
+        // })
       } catch (error) {
         console.error(error)
       }
@@ -535,8 +665,9 @@ const FormDialog = props => {
               rulePack={rulePack}
               rulePackId={rulePackId}
               penaltyTypeId={data?.penaltyTypeId}
-              setNewSubType={setNewSubType}
               data={st}
+              updatePenaltyType={updatePenaltyType}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ))}
         </div>
@@ -546,12 +677,13 @@ const FormDialog = props => {
               rulePack={rulePack}
               rulePackId={rulePackId}
               penaltyTypeId={data?.penaltyTypeId}
-              setNewSubType={setNewSubType}
               data={{
                 penaltySubTypeId: null,
                 name: '',
                 code: '',
               }}
+              updatePenaltyType={updatePenaltyType}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ) : (
             data?.penaltyTypeId && (
@@ -581,9 +713,11 @@ const FormDialog = props => {
         <LoadingButton
           type="button"
           onClick={handleSubmit(onSubmit)}
-          loading={loadingMergePenaltyType}
+          loading={mutationLoadingCreate || mutationLoadingUpdate}
         >
-          {loadingMergePenaltyType ? 'Saving...' : 'Save'}
+          {mutationLoadingCreate || mutationLoadingUpdate
+            ? 'Saving...'
+            : 'Save'}
         </LoadingButton>
       </DialogActions>
     </Dialog>
@@ -591,134 +725,67 @@ const FormDialog = props => {
 }
 
 const SubType = props => {
-  const { rulePack, rulePackId, penaltyTypeId, data, setNewSubType } = props
+  const {
+    rulePackId,
+    penaltyTypeId,
+    data,
+    updatePenaltyType,
+    mutationLoadingUpdate,
+  } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
+
+  const penaltySubTypeIdDelete = React.useRef(data?.penaltySubTypeId)
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schemaSubType),
   })
 
   const [
-    mergePenaltyTypePenaltySubType,
-    { loading: loadingMergePenaltySubType },
-  ] = useMutation(MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE, {
-    update(cache, { data: { penaltySubTypePenaltyType } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PENALTY_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
-
-        const penaltyType = queryResult.rulePack[0].penaltyTypes.find(
-          gt => gt.penaltyTypeId === penaltyTypeId
-        )
-        const existingData = penaltyType.subTypes
-        const newItem = penaltySubTypePenaltyType.to
-
-        let updatedData = []
-        if (
-          existingData.find(
-            ed => ed.penaltySubTypeId === newItem.penaltySubTypeId
-          )
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.penaltySubTypeId === newItem.penaltySubTypeId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [...existingData, newItem]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              penaltyTypes: [
-                ...queryResult.rulePack[0].penaltyTypes.filter(
-                  gt => gt.penaltyTypeId !== penaltyTypeId
-                ),
-                { ...penaltyType, subTypes: updatedData },
-              ],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PENALTY_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.penaltySubTypePenaltyType.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      setNewSubType(false)
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [
     deletePenaltySubType,
     { loading: mutationLoadingDeletePenaltySubType },
-  ] = useMutation(DELETE_PENALTY_SUB_TYPE, {
+  ] = useMutation(DELETE_SHOT_SUB_TYPE, {
     variables: {
-      penaltySubTypeId: data?.penaltySubTypeId,
+      where: { penaltySubTypeId: data?.penaltySubTypeId },
     },
-    update(cache, { data: { deleted } }) {
+    update(cache) {
       try {
         const queryResult = cache.readQuery({
           query: GET_PENALTY_TYPES,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
 
-        const penaltyType = queryResult.rulePack[0].penaltyTypes.find(
+        const penaltyType = queryResult.penaltyTypes.find(
           gt => gt.penaltyTypeId === penaltyTypeId
         )
 
         const updatedData = penaltyType.subTypes.filter(
-          p => p.penaltySubTypeId !== deleted.penaltySubTypeId
+          p => p.penaltySubTypeId !== penaltySubTypeIdDelete.current
         )
 
         const updatedResult = {
-          rulePack: [
+          penaltyTypes: [
+            ...queryResult.penaltyTypes.filter(
+              gt => gt.penaltyTypeId !== penaltyTypeId
+            ),
             {
-              ...queryResult.rulePack[0],
-              penaltyTypes: [
-                ...queryResult.rulePack[0].penaltyTypes.filter(
-                  gt => gt.penaltyTypeId !== penaltyTypeId
-                ),
-                {
-                  ...penaltyType,
-                  subTypes: updatedData,
-                },
-              ],
+              ...penaltyType,
+              subTypes: updatedData,
             },
           ],
+
+          rulePacks: queryResult?.rulePacks,
         }
+
         cache.writeQuery({
           query: GET_PENALTY_TYPES,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -743,14 +810,36 @@ const SubType = props => {
       try {
         const { name, code } = dataToCheck
 
-        mergePenaltyTypePenaltySubType({
-          variables: {
-            penaltyTypeId,
-            name,
-            code,
-            penaltySubTypeId: checkId(data?.penaltySubTypeId || 'new'),
-          },
-        })
+        data?.penaltySubTypeId
+          ? updatePenaltyType({
+              variables: {
+                where: {
+                  penaltyTypeId,
+                },
+                update: {
+                  subTypes: {
+                    where: {
+                      penaltySubTypeId: data?.penaltySubTypeId,
+                    },
+                    update: {
+                      name,
+                      code,
+                    },
+                  },
+                },
+              },
+            })
+          : updatePenaltyType({
+              variables: {
+                where: {
+                  penaltyTypeId,
+                },
+
+                create: {
+                  subTypes: { node: { name, code } },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -816,9 +905,9 @@ const SubType = props => {
                     handleSubmit(onSubmit)()
                   }}
                   type="button"
-                  loading={loadingMergePenaltySubType}
+                  loading={mutationLoadingUpdate}
                 >
-                  {loadingMergePenaltySubType ? 'Saving...' : 'Save'}
+                  {mutationLoadingUpdate ? 'Saving...' : 'Save'}
                 </LoadingButton>
               </Grid>
             </Grid>
