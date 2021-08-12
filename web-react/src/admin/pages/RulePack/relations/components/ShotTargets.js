@@ -220,7 +220,7 @@ const ShotTargets = props => {
                 formData.current = params.row
                 deleteShotTarget({
                   variables: {
-                    shotTargetId: params.row.shotTargetId,
+                    where: { shotTargetId: params.row.shotTargetId },
                   },
                 })
               }}
