@@ -114,107 +114,6 @@ const DELETE_SHOT_SUB_TYPE = gql`
   }
 `
 
-// const GET_PENALTY_TYPES = gql`
-//   query getRulePack($rulePackId: ID) {
-//     rulePack: RulePack(rulePackId: $rulePackId) {
-//       rulePackId
-//       name
-//       penaltyTypes {
-//         penaltyTypeId
-//         name
-//         code
-//         duration
-//         subTypes {
-//           penaltySubTypeId
-//           name
-//           code
-//         }
-//       }
-//     }
-//   }
-// `
-
-// const MERGE_RULEPACK_PENALTY_TYPE = gql`
-//   mutation mergeRulePackPenaltyType(
-//     $rulePackId: ID!
-//     $penaltyTypeId: ID!
-//     $name: String
-//     $code: String
-//     $duration: Float
-//   ) {
-//     penaltyType: MergePenaltyType(
-//       penaltyTypeId: $penaltyTypeId
-//       name: $name
-//       code: $code
-//       duration: $duration
-//     ) {
-//       penaltyTypeId
-//       name
-//     }
-//     penaltyTypeRulePack: MergePenaltyTypeRulePack(
-//       from: { rulePackId: $rulePackId }
-//       to: { penaltyTypeId: $penaltyTypeId }
-//     ) {
-//       from {
-//         name
-//       }
-//       to {
-//         penaltyTypeId
-//         name
-//         code
-//         duration
-//       }
-//     }
-//   }
-// `
-
-// const DELETE_PENALTY_TYPE = gql`
-//   mutation deletePenaltyType($penaltyTypeId: ID!) {
-//     deleted: DeletePenaltyType(penaltyTypeId: $penaltyTypeId) {
-//       penaltyTypeId
-//     }
-//   }
-// `
-
-// const MERGE_PENALTY_TYPE_PENALTY_SUB_TYPE = gql`
-//   mutation mergeRulePackPenaltySubType(
-//     $penaltyTypeId: ID!
-//     $penaltySubTypeId: ID!
-//     $name: String
-//     $code: String
-//   ) {
-//     penaltySubType: MergePenaltySubType(
-//       penaltySubTypeId: $penaltySubTypeId
-//       name: $name
-//       code: $code
-//     ) {
-//       penaltySubTypeId
-//       name
-//     }
-//     penaltySubTypePenaltyType: MergePenaltySubTypePenaltyType(
-//       from: { penaltyTypeId: $penaltyTypeId }
-//       to: { penaltySubTypeId: $penaltySubTypeId }
-//     ) {
-//       from {
-//         name
-//       }
-//       to {
-//         penaltySubTypeId
-//         name
-//         code
-//       }
-//     }
-//   }
-// `
-
-// const DELETE_PENALTY_SUB_TYPE = gql`
-//   mutation deletePenaltySubType($penaltySubTypeId: ID!) {
-//     deleted: DeletePenaltySubType(penaltySubTypeId: $penaltySubTypeId) {
-//       penaltySubTypeId
-//     }
-//   }
-// `
-
 const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
@@ -579,15 +478,6 @@ const FormDialog = props => {
                 },
               },
             })
-        // mergeRulePackPenaltyType({
-        //   variables: {
-        //     rulePackId,
-        //     name,
-        //     code,
-        //     duration: parseFloat(duration),
-        //     penaltyTypeId: data?.penaltyTypeId || uuidv4(),
-        //   },
-        // })
       } catch (error) {
         console.error(error)
       }
