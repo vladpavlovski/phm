@@ -494,13 +494,13 @@ type Query {
       return team
       """
     )
-  playersByOrganization(orgSlug: String!): [Player]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
-      return player
-      """
-    )
+  # playersByOrganization(orgSlug: String!): [Player]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
+  #     return player
+  #     """
+  #   )
   personsByOrganization(orgSlug: String!): [Person]
     @cypher(
       statement: """
