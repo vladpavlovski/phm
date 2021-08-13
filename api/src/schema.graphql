@@ -1,8 +1,4 @@
-scalar Point
-scalar Date
-scalar DateTime
 scalar Time
-scalar Long
 
 enum Role {
   reader
@@ -10,26 +6,12 @@ enum Role {
   admin
 }
 
-enum ActivityStatus {
-  ACTIVE
-  INACTIVE
-  UNKNOWN
-  RETIRED
-}
-
-enum TimestampOperation {
-  CREATE
-  UPDATE
-}
-
-directive @timestamp(
-  operations: [TimestampOperation!]! = [CREATE, UPDATE]
-) on FIELD_DEFINITION
-
-type S3Payload {
-  signedRequest: String!
-  url: String!
-}
+# enum ActivityStatus {
+#   ACTIVE
+#   INACTIVE
+#   UNKNOWN
+#   RETIRED
+# }
 
 # interface Human {
 #   name: String
@@ -670,8 +652,8 @@ type Person {
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
   payments: [Payment] @relationship(type: "INITIATES_PAYMENT", direction: OUT)
-  orgs: [Organization]
-    @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
+  # orgs: [Organization]
+  #   @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
   orgs: [Organization] @relationship(type: "ENGAGED_IN", direction: OUT)
   awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
@@ -1445,7 +1427,7 @@ type RulePack {
   resultPoints: [ResultPoint] @relationship(type: "SET_UP", direction: OUT)
   systemSettings: SystemSettings
     @relationship(type: "GUIDED_DEFAULT_BY", direction: IN)
-  orgs: [Organization] @relationship(type: "PROVIDED_BY", direction: OUT)
+  # orgs: [Organization] @relationship(type: "PROVIDED_BY", direction: OUT)
 }
 
 type PenaltyShotStatus {
