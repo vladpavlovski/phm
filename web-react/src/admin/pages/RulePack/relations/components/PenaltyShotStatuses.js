@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -36,10 +35,24 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_PENALTY_SHOT_STATUSES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack(
+    $where: PenaltyShotStatusWhere
+    $whereRulePack: RulePackWhere
+  ) {
+    penaltyShotStatuses(where: $where) {
+      penaltyShotStatusId
       name
+      code
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_PENALTY_SHOT_STATUS = gql`
+  mutation createPenaltyShotStatus($input: [PenaltyShotStatusCreateInput!]!) {
+    createPenaltyShotStatuses(input: $input) {
       penaltyShotStatuses {
         penaltyShotStatusId
         name
@@ -49,29 +62,13 @@ const GET_PENALTY_SHOT_STATUSES = gql`
   }
 `
 
-const GET_RULEPACK_PENALTY_SHOT_STATUS = gql`
-  mutation mergeRulePackPenaltyShotStatus(
-    $rulePackId: ID!
-    $penaltyShotStatusId: ID!
-    $name: String
-    $code: String
+const UPDATE_PENALTY_SHOT_STATUS = gql`
+  mutation updatePenaltyShotStatus(
+    $where: PenaltyShotStatusWhere
+    $update: PenaltyShotStatusUpdateInput
   ) {
-    penaltyShotStatus: MergePenaltyShotStatus(
-      penaltyShotStatusId: $penaltyShotStatusId
-      name: $name
-      code: $code
-    ) {
-      penaltyShotStatusId
-      name
-    }
-    penaltyShotStatusRulePack: MergePenaltyShotStatusRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { penaltyShotStatusId: $penaltyShotStatusId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updatePenaltyShotStatuses(where: $where, update: $update) {
+      penaltyShotStatuses {
         penaltyShotStatusId
         name
         code
@@ -81,11 +78,9 @@ const GET_RULEPACK_PENALTY_SHOT_STATUS = gql`
 `
 
 const DELETE_PENALTY_SHOT_STATUS = gql`
-  mutation deletePenaltyShotStatus($penaltyShotStatusId: ID!) {
-    deleted: DeletePenaltyShotStatus(
-      penaltyShotStatusId: $penaltyShotStatusId
-    ) {
-      penaltyShotStatusId
+  mutation deletePenaltyShotStatus($where: PenaltyShotStatusWhere) {
+    deletePenaltyShotStatuses(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -108,18 +103,20 @@ const PenaltyShotStatuses = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_PENALTY_SHOT_STATUSES, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -132,31 +129,29 @@ const PenaltyShotStatuses = props => {
     deletePenaltyShotStatus,
     { loading: mutationLoadingRemove },
   ] = useMutation(DELETE_PENALTY_SHOT_STATUS, {
-    update(cache, { data: { deleted } }) {
+    update(cache) {
       try {
+        const deleted = formData.current
         const queryResult = cache.readQuery({
           query: GET_PENALTY_SHOT_STATUSES,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
-        const updatedData = queryResult.rulePack[0].penaltyShotStatuses.filter(
+        const updatedData = queryResult.penaltyShotStatuses.filter(
           p => p.penaltyShotStatusId !== deleted.penaltyShotStatusId
         )
 
         const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              penaltyShotStatuses: updatedData,
-            },
-          ],
+          penaltyShotStatuses: updatedData,
         }
         cache.writeQuery({
           query: GET_PENALTY_SHOT_STATUSES,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -229,13 +224,16 @@ const PenaltyShotStatuses = props => {
               }
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deletePenaltyShotStatus({
                   variables: {
-                    penaltyShotStatusId: params.row.penaltyShotStatusId,
+                    where: {
+                      penaltyShotStatusId: params.row.penaltyShotStatusId,
+                    },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -278,7 +276,7 @@ const PenaltyShotStatuses = props => {
               <XGrid
                 columns={rulePackPenaltyShotStatusesColumns}
                 rows={setIdFromEntityId(
-                  rulePack.penaltyShotStatuses,
+                  queryData?.penaltyShotStatuses,
                   'penaltyShotStatusId'
                 )}
                 loading={queryLoading}
@@ -292,7 +290,7 @@ const PenaltyShotStatuses = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -313,70 +311,89 @@ const FormDialog = props => {
   })
 
   const [
-    mergeRulePackPenaltyShotStatus,
-    { loading: loadingMergePenaltyShotStatus },
-  ] = useMutation(GET_RULEPACK_PENALTY_SHOT_STATUS, {
-    update(cache, { data: { penaltyShotStatusRulePack } }) {
+    createPenaltyShotStatus,
+    { loading: mutationLoadingCreate },
+  ] = useMutation(CREATE_PENALTY_SHOT_STATUS, {
+    update(cache, { data: { createPenaltyShotStatuses } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_PENALTY_SHOT_STATUSES,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
+        const newItem = createPenaltyShotStatuses?.penaltyShotStatuses?.[0]
 
-        const existingData = queryResult.rulePack[0].penaltyShotStatuses
-        const newItem = penaltyShotStatusRulePack.to
-        let updatedData = []
-        if (
-          existingData.find(
-            ed => ed.penaltyShotStatusId === newItem.penaltyShotStatusId
-          )
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.penaltyShotStatusId === newItem.penaltyShotStatusId
-              ? newItem
-              : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
+        const existingData = queryResult?.penaltyShotStatuses
+        const updatedData = [newItem, ...existingData]
         const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              penaltyShotStatuses: updatedData,
-            },
-          ],
+          penaltyShotStatuses: updatedData,
         }
         cache.writeQuery({
           query: GET_PENALTY_SHOT_STATUSES,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
           },
         })
       } catch (error) {
         console.error(error)
       }
     },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.penaltyShotStatusRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+    onCompleted: () => {
+      enqueueSnackbar('Position type saved!', { variant: 'success' })
       handleCloseDialog()
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error: ${error}`, {
         variant: 'error',
       })
-      console.error(error)
+    },
+  })
+
+  const [
+    updatePenaltyShotStatus,
+    { loading: mutationLoadingUpdate },
+  ] = useMutation(UPDATE_PENALTY_SHOT_STATUS, {
+    update(cache, { data: { updatePenaltyShotStatuses } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_PENALTY_SHOT_STATUSES,
+          variables: {
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
+          },
+        })
+
+        const newItem = updatePenaltyShotStatuses?.penaltyShotStatuses?.[0]
+
+        const existingData = queryResult?.penaltyShotStatuses
+        const updatedData = existingData?.map(ed =>
+          ed.penaltyShotStatusId === newItem.penaltyShotStatusId ? newItem : ed
+        )
+        const updatedResult = {
+          penaltyShotStatuses: updatedData,
+        }
+        cache.writeQuery({
+          query: GET_PENALTY_SHOT_STATUSES,
+          data: updatedResult,
+          variables: {
+            where: { rulePack: { rulePackId } },
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar('Position type updated!', { variant: 'success' })
+      handleCloseDialog()
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
     },
   })
 
@@ -384,15 +401,34 @@ const FormDialog = props => {
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
+        data?.penaltyShotStatusId
+          ? updatePenaltyShotStatus({
+              variables: {
+                where: {
+                  penaltyShotStatusId: data?.penaltyShotStatusId,
+                },
+                update: {
+                  name,
+                  code,
+                },
+              },
+            })
+          : createPenaltyShotStatus({
+              variables: {
+                input: {
+                  name,
+                  code,
 
-        mergeRulePackPenaltyShotStatus({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            penaltyShotStatusId: data?.penaltyShotStatusId || uuidv4(),
-          },
-        })
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -460,8 +496,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergePenaltyShotStatus}>
-            {loadingMergePenaltyShotStatus ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>
