@@ -469,20 +469,6 @@ type Query {
       return org
       """
     )
-  teamsByOrganization(orgSlug: String!): [Team]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (team: Team)
-      return team
-      """
-    )
-  # playersByOrganization(orgSlug: String!): [Player]
-  #   @cypher(
-  #     statement: """
-  #     MATCH (Organization {urlSlug: $orgSlug}) - [:PARTICIPATE_IN] - (Team) - [:PLAY_IN] - (player: Player)
-  #     return player
-  #     """
-  #   )
   personsByOrganization(orgSlug: String!): [Person]
     @cypher(
       statement: """
@@ -621,7 +607,8 @@ type MetaHistory {
 }
 
 # person types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
-
+# orgs: [Organization]
+#   @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
 type Person {
   personId: ID! @id
   name: String
@@ -652,8 +639,6 @@ type Person {
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
   payments: [Payment] @relationship(type: "INITIATES_PAYMENT", direction: OUT)
-  # orgs: [Organization]
-  #   @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
   orgs: [Organization] @relationship(type: "ENGAGED_IN", direction: OUT)
   awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
   sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)

@@ -32,7 +32,7 @@ import { Relations } from './relations'
 
 export const GET_TEAM = gql`
   query getTeam($where: TeamWhere) {
-    team: teams(where: $where) {
+    teams(where: $where) {
       teamId
       name
       fullName
@@ -47,12 +47,34 @@ export const GET_TEAM = gql`
       foundDate
       jerseys {
         jerseyId
+        name
         number
+        player {
+          firstName
+          lastName
+          name
+        }
       }
       players {
         playerId
         firstName
         lastName
+        name
+        positions {
+          positionId
+          name
+        }
+        jerseys {
+          jerseyId
+          name
+          number
+        }
+      }
+      positions {
+        positionId
+        name
+        short
+        description
       }
       persons {
         personId
@@ -68,6 +90,12 @@ export const GET_TEAM = gql`
       occupations {
         occupationId
         name
+        description
+      }
+      sponsors {
+        sponsorId
+        name
+        description
       }
     }
   }
@@ -84,10 +112,64 @@ const CREATE_TEAM = gql`
 `
 
 const UPDATE_TEAM = gql`
-  mutation updateTeam($where: TeamWhere, $update: TeamUpdateInput) {
-    updateTeam: updateTeams(where: $where, update: $update) {
+  mutation updateTeam(
+    $where: TeamWhere
+    $update: TeamUpdateInput
+    $create: TeamRelationInput
+  ) {
+    updateTeams(where: $where, update: $update, create: $create) {
       teams {
         teamId
+        name
+        fullName
+        nick
+        short
+        status
+        externalId
+        logo
+        primaryColor
+        secondaryColor
+        tertiaryColor
+        foundDate
+        jerseys {
+          jerseyId
+          number
+        }
+        players {
+          playerId
+          firstName
+          lastName
+          jerseys {
+            jerseyId
+          }
+        }
+        positions {
+          positionId
+          name
+          short
+          description
+        }
+        persons {
+          personId
+          firstName
+          lastName
+          name
+          avatar
+          occupations {
+            occupationId
+            name
+          }
+        }
+        occupations {
+          occupationId
+          name
+          description
+        }
+        sponsors {
+          sponsorId
+          name
+          description
+        }
       }
     }
   }
@@ -134,6 +216,19 @@ const Team = () => {
     updateTeam,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
   ] = useMutation(UPDATE_TEAM, {
+    update(cache, { data }) {
+      try {
+        cache.writeQuery({
+          query: GET_TEAM,
+          data: {
+            teams: data?.updateTeams?.teams,
+          },
+          variables: { where: { teamId } },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
     onCompleted: () => {
       enqueueSnackbar('Team updated!', { variant: 'success' })
     },
@@ -150,7 +245,7 @@ const Team = () => {
     },
   })
 
-  const teamData = queryData?.team[0] || {}
+  const teamData = queryData?.teams[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -193,22 +288,22 @@ const Team = () => {
       const queryResult = client.readQuery({
         query: GET_TEAM,
         variables: {
-          teamId,
+          where: { teamId },
         },
       })
 
       client.writeQuery({
         query: GET_TEAM,
         data: {
-          team: [
+          teams: [
             {
-              ...queryResult.team[0],
+              ...queryResult.teams[0],
               logo: url,
             },
           ],
         },
         variables: {
-          teamId,
+          where: { teamId },
         },
       })
       handleSubmit(onSubmit)()
@@ -430,7 +525,11 @@ const Team = () => {
               </Grid>
             </form>
             {isValidUuid(teamId) && (
-              <Relations teamId={teamId} data={teamData} />
+              <Relations
+                teamId={teamId}
+                team={teamData}
+                updateTeam={updateTeam}
+              />
             )}
           </>
         )}
