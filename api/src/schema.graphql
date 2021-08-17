@@ -1210,6 +1210,9 @@ type Event {
   date: Date
   time: Time
   logo: String
+  author: String
+  userId: String
+  organizationId: String
   address: Address @relationship(type: "TAKES_PLACE_AT", direction: OUT)
   organizer: User @relationship(type: "ORGANIZE_AN", direction: IN)
   game: Game @relationship(type: "TRANSFORM_TO", direction: OUT)
