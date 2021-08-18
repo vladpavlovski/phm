@@ -165,7 +165,7 @@ const Teams = props => {
                       teams: {
                         connect: {
                           where: {
-                            teamId: params.value,
+                            node: { teamId: params.value },
                           },
                           properties: {
                             host: isHost.current,

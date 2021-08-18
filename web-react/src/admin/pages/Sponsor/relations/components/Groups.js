@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -31,45 +30,9 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_GROUPS = gql`
-  query getSponsor($sponsorId: ID) {
-    sponsor: Sponsor(sponsorId: $sponsorId) {
-      _id
-      sponsorId
-      name
-      groups {
-        groupId
-        name
-        nick
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
-const REMOVE_SPONSOR_GROUP = gql`
-  mutation removeSponsorGroup($sponsorId: ID!, $groupId: ID!) {
-    sponsorGroup: RemoveSponsorGroups(
-      from: { groupId: $groupId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        groupId
-        name
-        nick
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
 export const GET_ALL_GROUPS = gql`
   query getGroups {
-    groups: Group {
+    groups {
       groupId
       name
       nick
@@ -80,43 +43,15 @@ export const GET_ALL_GROUPS = gql`
   }
 `
 
-const MERGE_SPONSOR_GROUP = gql`
-  mutation mergeSponsorGroup($sponsorId: ID!, $groupId: ID!) {
-    sponsorGroup: MergeSponsorGroups(
-      from: { groupId: $groupId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        groupId
-        name
-        nick
-        short
-        teamsLimit
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
 const Groups = props => {
-  const { sponsorId } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const [openAddGroup, setOpenAddGroup] = useState(false)
+  const { sponsorId, sponsor, updateSponsor } = props
 
-  const handleCloseAddGroup = useCallback(() => {
+  const classes = useStyles()
+  const [openAddGroup, setOpenAddGroup] = React.useState(false)
+
+  const handleCloseAddGroup = React.useCallback(() => {
     setOpenAddGroup(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_GROUPS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const sponsor = queryData && queryData.sponsor && queryData.sponsor[0]
 
   const [
     getAllGroups,
@@ -125,121 +60,16 @@ const Groups = props => {
       error: queryAllGroupsError,
       data: queryAllGroupsData,
     },
-  ] = useLazyQuery(GET_ALL_GROUPS, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_ALL_GROUPS)
 
-  const [removeSponsorGroup, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_SPONSOR_GROUP,
-    {
-      update(cache, { data: { sponsorGroup } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_GROUPS,
-            variables: {
-              sponsorId,
-            },
-          })
-          const updatedGroups = queryResult.sponsor[0].groups.filter(
-            p => p.groupId !== sponsorGroup.from.groupId
-          )
-
-          const updatedResult = {
-            sponsor: [
-              {
-                ...queryResult.sponsor[0],
-                groups: updatedGroups,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GROUPS,
-            data: updatedResult,
-            variables: {
-              sponsorId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.sponsorGroup.from.name} not sponsored by ${sponsor.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeSponsorGroup] = useMutation(MERGE_SPONSOR_GROUP, {
-    update(cache, { data: { sponsorGroup } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GROUPS,
-          variables: {
-            sponsorId,
-          },
-        })
-        const existingGroups = queryResult.sponsor[0].groups
-        const newGroup = sponsorGroup.from
-        const updatedResult = {
-          sponsor: [
-            {
-              ...queryResult.sponsor[0],
-              groups: [newGroup, ...existingGroups],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_GROUPS,
-          data: updatedResult,
-          variables: {
-            sponsorId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.sponsorGroup.from.name} sponsored by ${sponsor.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { sponsorId } })
-    }
-  }, [])
-
-  const handleOpenAddGroup = useCallback(() => {
+  const handleOpenAddGroup = React.useCallback(() => {
     if (!queryAllGroupsData) {
       getAllGroups()
     }
     setOpenAddGroup(true)
   }, [])
 
-  const sponsorGroupsColumns = useMemo(
+  const sponsorGroupsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -286,7 +116,6 @@ const Groups = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -296,10 +125,22 @@ const Groups = props => {
               dialogNegativeText={'No, keep group'}
               dialogPositiveText={'Yes, detach group'}
               onDialogClosePositive={() => {
-                removeSponsorGroup({
+                updateSponsor({
                   variables: {
-                    sponsorId,
-                    groupId: params.row.groupId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      groups: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              groupId: params.row.groupId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -311,7 +152,7 @@ const Groups = props => {
     []
   )
 
-  const allGroupsColumns = useMemo(
+  const allGroupsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -342,8 +183,7 @@ const Groups = props => {
               groupId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
-              merge={mergeSponsorGroup}
-              remove={removeSponsorGroup}
+              updateSponsor={updateSponsor}
             />
           )
         },
@@ -353,7 +193,7 @@ const Groups = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="groups-content"
@@ -362,36 +202,30 @@ const Groups = props => {
         <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddGroup}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Group
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={sponsorGroupsColumns}
-                rows={setIdFromEntityId(sponsor.groups, 'groupId')}
-                loading={queryAllGroupsLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddGroup}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Group
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={sponsorGroupsColumns}
+            rows={setIdFromEntityId(sponsor?.groups, 'groupId')}
+            loading={queryAllGroupsLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -440,8 +274,8 @@ const Groups = props => {
 }
 
 const ToggleNewGroup = props => {
-  const { groupId, sponsorId, sponsor, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { groupId, sponsorId, sponsor, updateSponsor } = props
+  const [isMember, setIsMember] = React.useState(
     !!sponsor.groups.find(p => p.groupId === groupId)
   )
 
@@ -452,18 +286,41 @@ const ToggleNewGroup = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updateSponsor({
                   variables: {
-                    sponsorId,
-                    groupId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      groups: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              groupId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updateSponsor({
                   variables: {
-                    sponsorId,
-                    groupId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      groups: {
+                        connect: {
+                          where: {
+                            node: { groupId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+
             setIsMember(!isMember)
           }}
           name="sponsorMember"
@@ -479,12 +336,13 @@ ToggleNewGroup.propTypes = {
   groupId: PropTypes.string,
   sponsorId: PropTypes.string,
   sponsor: PropTypes.object,
-  removeSponsorGroup: PropTypes.func,
-  mergeSponsorGroup: PropTypes.func,
+  updateSponsor: PropTypes.func,
 }
 
 Groups.propTypes = {
   sponsorId: PropTypes.string,
+  updateSponsor: PropTypes.func,
+  sponsor: PropTypes.object,
 }
 
 export { Groups }
