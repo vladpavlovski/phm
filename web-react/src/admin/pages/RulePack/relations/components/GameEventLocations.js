@@ -129,51 +129,49 @@ const GameEventLocations = props => {
     setOpenDialog(true)
   }, [])
 
-  const [
-    deleteGameEventLocation,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(DELETE_GAME_EVENT_LOCATION, {
-    update(cache) {
-      try {
-        const deleted = formData.current
-        const queryResult = cache.readQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-        const updatedData = queryResult.gameEventLocations.filter(
-          p => p.gameEventLocationId !== deleted.gameEventLocationId
-        )
+  const [deleteGameEventLocation, { loading: mutationLoadingRemove }] =
+    useMutation(DELETE_GAME_EVENT_LOCATION, {
+      update(cache) {
+        try {
+          const deleted = formData.current
+          const queryResult = cache.readQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const updatedData = queryResult.gameEventLocations.filter(
+            p => p.gameEventLocationId !== deleted.gameEventLocationId
+          )
 
-        const updatedResult = {
-          gameEventLocations: updatedData,
+          const updatedResult = {
+            gameEventLocations: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar(`GameEventLocation was deleted!`, {
+          variant: 'info',
         })
-      } catch (error) {
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
         console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`GameEventLocation was deleted!`, {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const rulePackGameEventLocationsColumns = useMemo(
     () => [
@@ -319,92 +317,90 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    createGameEventLocation,
-    { loading: mutationLoadingCreate },
-  ] = useMutation(CREATE_GAME_EVENT_LOCATION, {
-    update(cache, { data: { createGameEventLocations } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-        const newItem = createGameEventLocations?.gameEventLocations?.[0]
+  const [createGameEventLocation, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_GAME_EVENT_LOCATION, {
+      update(cache, { data: { createGameEventLocations } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createGameEventLocations?.gameEventLocations?.[0]
 
-        const existingData = queryResult?.gameEventLocations
-        const updatedData = [newItem, ...existingData]
-        const updatedResult = {
-          gameEventLocations: updatedData,
+          const existingData = queryResult?.gameEventLocations
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            gameEventLocations: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Position type saved!', { variant: 'success' })
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+    })
 
-  const [
-    updateGameEventLocation,
-    { loading: mutationLoadingUpdate },
-  ] = useMutation(UPDATE_GAME_EVENT_LOCATION, {
-    update(cache, { data: { updateGameEventLocations } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
+  const [updateGameEventLocation, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_GAME_EVENT_LOCATION, {
+      update(cache, { data: { updateGameEventLocations } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
 
-        const newItem = updateGameEventLocations?.gameEventLocations?.[0]
+          const newItem = updateGameEventLocations?.gameEventLocations?.[0]
 
-        const existingData = queryResult?.gameEventLocations
-        const updatedData = existingData?.map(ed =>
-          ed.gameEventLocationId === newItem.gameEventLocationId ? newItem : ed
-        )
-        const updatedResult = {
-          gameEventLocations: updatedData,
+          const existingData = queryResult?.gameEventLocations
+          const updatedData = existingData?.map(ed =>
+            ed.gameEventLocationId === newItem.gameEventLocationId
+              ? newItem
+              : ed
+          )
+          const updatedResult = {
+            gameEventLocations: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_GAME_EVENT_LOCATIONS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_GAME_EVENT_LOCATIONS,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Position type updated!', { variant: 'success' })
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {

@@ -124,8 +124,9 @@ const XGridTable = () => {
         headerName: 'Host team',
         width: 200,
         renderCell: params => {
-          const team = params?.row?.teamsConnection?.edges?.find(t => t?.host)
-            ?.node
+          const team = params?.row?.teamsConnection?.edges?.find(
+            t => t?.host
+          )?.node
 
           return (
             <>
@@ -144,8 +145,9 @@ const XGridTable = () => {
         headerName: 'Guest team',
         width: 200,
         renderCell: params => {
-          const team = params?.row?.teamsConnection?.edges?.find(t => !t?.host)
-            ?.node
+          const team = params?.row?.teamsConnection?.edges?.find(
+            t => !t?.host
+          )?.node
 
           return (
             <>

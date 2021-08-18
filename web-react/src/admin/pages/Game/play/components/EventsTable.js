@@ -168,9 +168,8 @@ const EventsTable = props => {
   const { gameData, gameSettings, players, teams } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const [openDeleteEventDialog, setOpenDeleteEventDialog] = React.useState(
-    false
-  )
+  const [openDeleteEventDialog, setOpenDeleteEventDialog] =
+    React.useState(false)
 
   const gameEventSimpleIdToDelete = React.useRef()
 

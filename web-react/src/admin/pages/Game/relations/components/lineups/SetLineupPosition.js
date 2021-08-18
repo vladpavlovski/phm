@@ -14,9 +14,8 @@ import ButtonBase from '@material-ui/core/ButtonBase'
 
 export const SetLineupPosition = props => {
   const { player, gameId, updateGame } = props
-  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] = useState(
-    false
-  )
+  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
+    useState(false)
 
   const [positionValue, setPositionValue] = useState(player?.position || '')
 

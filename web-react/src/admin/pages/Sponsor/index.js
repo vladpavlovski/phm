@@ -234,16 +234,14 @@ const Sponsor = () => {
     },
   })
 
-  const [
-    deleteSponsor,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_SPONSOR, {
-    variables: { where: { sponsorId } },
-    onCompleted: () => {
-      history.push(getAdminOrgSponsorsRoute(organizationSlug))
-      enqueueSnackbar('Sponsor was deleted!')
-    },
-  })
+  const [deleteSponsor, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_SPONSOR, {
+      variables: { where: { sponsorId } },
+      onCompleted: () => {
+        history.push(getAdminOrgSponsorsRoute(organizationSlug))
+        enqueueSnackbar('Sponsor was deleted!')
+      },
+    })
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),

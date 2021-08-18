@@ -24,11 +24,8 @@ const formInitialState = {
 const SaveForm = props => {
   const { gameEventSettings, activeStep, players } = props
 
-  const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-  } = React.useContext(GameEventFormContext)
+  const { setNextButtonDisabled, gameEventData, setGameEventData } =
+    React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],

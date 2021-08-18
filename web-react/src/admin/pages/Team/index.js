@@ -234,16 +234,14 @@ const Team = () => {
     },
   })
 
-  const [
-    deleteTeam,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_TEAM, {
-    variables: { where: { teamId } },
-    onCompleted: () => {
-      history.push(getAdminOrgTeamsRoute(organizationSlug))
-      enqueueSnackbar('Team was deleted!')
-    },
-  })
+  const [deleteTeam, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_TEAM, {
+      variables: { where: { teamId } },
+      onCompleted: () => {
+        history.push(getAdminOrgTeamsRoute(organizationSlug))
+        enqueueSnackbar('Team was deleted!')
+      },
+    })
 
   const teamData = queryData?.teams[0] || {}
 

@@ -123,19 +123,18 @@ const Award = () => {
     },
   })
 
-  const [
-    deleteAward,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_AWARD, {
-    onCompleted: () => {
-      history.push(getAdminOrgAwardsRoute(organizationSlug))
-      enqueueSnackbar('Award was deleted!')
-    },
-  })
+  const [deleteAward, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_AWARD, {
+      onCompleted: () => {
+        history.push(getAdminOrgAwardsRoute(organizationSlug))
+        enqueueSnackbar('Award was deleted!')
+      },
+    })
 
-  const awardData = useMemo(() => (queryData && queryData.award[0]) || {}, [
-    queryData,
-  ])
+  const awardData = useMemo(
+    () => (queryData && queryData.award[0]) || {},
+    [queryData]
+  )
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),

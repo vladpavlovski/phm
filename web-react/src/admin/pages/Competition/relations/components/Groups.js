@@ -363,75 +363,71 @@ const FormDialog = props => {
     }
   }, [data])
 
-  const [
-    createCompetitionGroup,
-    { loading: mutationLoadingCreate },
-  ] = useMutation(CREATE_COMPETITION_GROUP, {
-    update(
-      cache,
-      {
-        data: {
-          createGroups: { groups },
-        },
-      }
-    ) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GROUPS,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
+  const [createCompetitionGroup, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_COMPETITION_GROUP, {
+      update(
+        cache,
+        {
+          data: {
+            createGroups: { groups },
           },
-        })
-
-        const existingData = queryResult?.competition?.[0]?.groups
-        const newItem = groups?.[0]
-        let updatedData = []
-        if (existingData?.find(ed => ed.groupId === newItem.groupId)) {
-          // replace if item exist in array
-          updatedData = existingData?.map(ed =>
-            ed.groupId === newItem.groupId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
         }
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult?.competition?.[0],
-              groups: updatedData,
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GROUPS,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
             },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_GROUPS,
-          data: updatedResult,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Competition group created!', { variant: 'success' })
-      handleCloseDialog()
-      setSelectedSeason(null)
-    },
-  })
+          })
 
-  const [
-    updateCompetitionGroup,
-    { loading: mutationLoadingUpdate },
-  ] = useMutation(UPDATE_COMPETITION_GROUP, {
-    onCompleted: () => {
-      enqueueSnackbar('Competition group updated!', { variant: 'success' })
-    },
-  })
+          const existingData = queryResult?.competition?.[0]?.groups
+          const newItem = groups?.[0]
+          let updatedData = []
+          if (existingData?.find(ed => ed.groupId === newItem.groupId)) {
+            // replace if item exist in array
+            updatedData = existingData?.map(ed =>
+              ed.groupId === newItem.groupId ? newItem : ed
+            )
+          } else {
+            // add new item if item not in array
+            updatedData = [newItem, ...existingData]
+          }
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult?.competition?.[0],
+                groups: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_GROUPS,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Competition group created!', { variant: 'success' })
+        handleCloseDialog()
+        setSelectedSeason(null)
+      },
+    })
+
+  const [updateCompetitionGroup, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_COMPETITION_GROUP, {
+      onCompleted: () => {
+        enqueueSnackbar('Competition group updated!', { variant: 'success' })
+      },
+    })
 
   const handleSeasonChange = useCallback(
     selected => {

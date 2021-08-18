@@ -243,18 +243,16 @@ const Player = () => {
 
   const playerData = queryData?.players?.[0]
 
-  const [
-    deletePlayer,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_PLAYER, {
-    variables: { where: { playerId } },
-    onCompleted: () => {
-      history.push(getAdminOrgPlayersRoute(organizationSlug))
-      enqueueSnackbar(`Player was deleted!`, {
-        variant: 'info',
-      })
-    },
-  })
+  const [deletePlayer, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_PLAYER, {
+      variables: { where: { playerId } },
+      onCompleted: () => {
+        history.push(getAdminOrgPlayersRoute(organizationSlug))
+        enqueueSnackbar(`Player was deleted!`, {
+          variant: 'info',
+        })
+      },
+    })
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),

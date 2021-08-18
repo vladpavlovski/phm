@@ -103,11 +103,13 @@ export const formatTime = time =>
 
 export const formatTimeFull = time => (time === '00:00:00Z' ? ' ' : time)
 
-const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
+const uuidRegex =
+  /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/i
 
 export const isValidUuid = uuid => uuidRegex.test(uuid)
 
-export const phoneRegExp = /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
+export const phoneRegExp =
+  /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/
 
 export const getInitials = value => {
   let initials = value.replace(/[^a-zA-Z- ]/g, '').match(/\b\w/g)

@@ -125,51 +125,49 @@ const PenaltyShotStatuses = props => {
     setOpenDialog(true)
   }, [])
 
-  const [
-    deletePenaltyShotStatus,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(DELETE_PENALTY_SHOT_STATUS, {
-    update(cache) {
-      try {
-        const deleted = formData.current
-        const queryResult = cache.readQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-        const updatedData = queryResult.penaltyShotStatuses.filter(
-          p => p.penaltyShotStatusId !== deleted.penaltyShotStatusId
-        )
+  const [deletePenaltyShotStatus, { loading: mutationLoadingRemove }] =
+    useMutation(DELETE_PENALTY_SHOT_STATUS, {
+      update(cache) {
+        try {
+          const deleted = formData.current
+          const queryResult = cache.readQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const updatedData = queryResult.penaltyShotStatuses.filter(
+            p => p.penaltyShotStatusId !== deleted.penaltyShotStatusId
+          )
 
-        const updatedResult = {
-          penaltyShotStatuses: updatedData,
+          const updatedResult = {
+            penaltyShotStatuses: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar(`PenaltyShotStatus was deleted!`, {
+          variant: 'info',
         })
-      } catch (error) {
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
         console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`PenaltyShotStatus was deleted!`, {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const rulePackPenaltyShotStatusesColumns = useMemo(
     () => [
@@ -310,92 +308,90 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    createPenaltyShotStatus,
-    { loading: mutationLoadingCreate },
-  ] = useMutation(CREATE_PENALTY_SHOT_STATUS, {
-    update(cache, { data: { createPenaltyShotStatuses } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-        const newItem = createPenaltyShotStatuses?.penaltyShotStatuses?.[0]
+  const [createPenaltyShotStatus, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_PENALTY_SHOT_STATUS, {
+      update(cache, { data: { createPenaltyShotStatuses } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createPenaltyShotStatuses?.penaltyShotStatuses?.[0]
 
-        const existingData = queryResult?.penaltyShotStatuses
-        const updatedData = [newItem, ...existingData]
-        const updatedResult = {
-          penaltyShotStatuses: updatedData,
+          const existingData = queryResult?.penaltyShotStatuses
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            penaltyShotStatuses: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Position type saved!', { variant: 'success' })
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+    })
 
-  const [
-    updatePenaltyShotStatus,
-    { loading: mutationLoadingUpdate },
-  ] = useMutation(UPDATE_PENALTY_SHOT_STATUS, {
-    update(cache, { data: { updatePenaltyShotStatuses } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
+  const [updatePenaltyShotStatus, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_PENALTY_SHOT_STATUS, {
+      update(cache, { data: { updatePenaltyShotStatuses } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
 
-        const newItem = updatePenaltyShotStatuses?.penaltyShotStatuses?.[0]
+          const newItem = updatePenaltyShotStatuses?.penaltyShotStatuses?.[0]
 
-        const existingData = queryResult?.penaltyShotStatuses
-        const updatedData = existingData?.map(ed =>
-          ed.penaltyShotStatusId === newItem.penaltyShotStatusId ? newItem : ed
-        )
-        const updatedResult = {
-          penaltyShotStatuses: updatedData,
+          const existingData = queryResult?.penaltyShotStatuses
+          const updatedData = existingData?.map(ed =>
+            ed.penaltyShotStatusId === newItem.penaltyShotStatusId
+              ? newItem
+              : ed
+          )
+          const updatedResult = {
+            penaltyShotStatuses: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PENALTY_SHOT_STATUSES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_PENALTY_SHOT_STATUSES,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Position type updated!', { variant: 'success' })
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {

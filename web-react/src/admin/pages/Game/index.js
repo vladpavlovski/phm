@@ -196,35 +196,27 @@ const Game = () => {
     },
   })
 
-  const [
-    deleteGame,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_GAME, {
-    variables: { where: { gameId } },
-    onCompleted: () => {
-      history.push(getAdminOrgGamesRoute(organizationSlug))
-      enqueueSnackbar('Game was deleted!')
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+  const [deleteGame, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_GAME, {
+      variables: { where: { gameId } },
+      onCompleted: () => {
+        history.push(getAdminOrgGamesRoute(organizationSlug))
+        enqueueSnackbar('Game was deleted!')
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    })
 
   const gameData = queryData?.games[0] || {}
 
-  const {
-    handleSubmit,
-    control,
-    errors,
-    formState,
-    register,
-    setValue,
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: { gameVenue: [] },
-  })
+  const { handleSubmit, control, errors, formState, register, setValue } =
+    useForm({
+      resolver: yupResolver(schema),
+      defaultValues: { gameVenue: [] },
+    })
 
   React.useEffect(() => {
     register('gameVenue', {
@@ -237,14 +229,8 @@ const Game = () => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const {
-          startDate,
-          endDate,
-          startTime,
-          endTime,
-          gameVenue,
-          ...rest
-        } = dataToCheck
+        const { startDate, endDate, startTime, endTime, gameVenue, ...rest } =
+          dataToCheck
         const dataToSubmit = {
           ...rest,
           ...decomposeDate(startDate, 'startDate'),

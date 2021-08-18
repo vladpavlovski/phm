@@ -45,9 +45,10 @@ const Teams = props => {
   const isHost = useRef(true)
 
   const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
-  const teamGuest = useMemo(() => teams.find(t => !t.host)?.node || null, [
-    teams,
-  ])
+  const teamGuest = useMemo(
+    () => teams.find(t => !t.host)?.node || null,
+    [teams]
+  )
 
   const [
     getAllTeams,

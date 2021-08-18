@@ -132,15 +132,13 @@ const Venue = () => {
     },
   })
 
-  const [
-    deleteVenue,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_VENUE, {
-    onCompleted: () => {
-      history.push(getAdminOrgVenuesRoute(organizationSlug))
-      enqueueSnackbar('Venue was deleted!')
-    },
-  })
+  const [deleteVenue, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_VENUE, {
+      onCompleted: () => {
+        history.push(getAdminOrgVenuesRoute(organizationSlug))
+        enqueueSnackbar('Venue was deleted!')
+      },
+    })
 
   const venueData = queryData?.venue[0] || {}
 

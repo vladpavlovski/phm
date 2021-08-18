@@ -154,16 +154,14 @@ const Person = () => {
     },
   })
 
-  const [
-    deletePerson,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_PERSON, {
-    variables: { where: { personId } },
-    onCompleted: () => {
-      history.push(getAdminOrgPersonsRoute(organizationSlug))
-      enqueueSnackbar('Person was deleted!')
-    },
-  })
+  const [deletePerson, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_PERSON, {
+      variables: { where: { personId } },
+      onCompleted: () => {
+        history.push(getAdminOrgPersonsRoute(organizationSlug))
+        enqueueSnackbar('Person was deleted!')
+      },
+    })
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),

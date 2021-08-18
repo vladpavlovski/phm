@@ -46,9 +46,8 @@ const RulePack = props => {
 
   const classes = useStyles()
   // const { organizationSlug } = useParams()
-  const [openAddSystemSettings, setOpenAddSystemSettings] = React.useState(
-    false
-  )
+  const [openAddSystemSettings, setOpenAddSystemSettings] =
+    React.useState(false)
 
   const handleCloseAddSystemSettings = React.useCallback(() => {
     setOpenAddSystemSettings(false)
@@ -259,12 +258,8 @@ const RulePack = props => {
 }
 
 const ToggleNewRulePack = props => {
-  const {
-    systemSettingsId,
-    rulePackId,
-    systemSettings,
-    updateSystemSettings,
-  } = props
+  const { systemSettingsId, rulePackId, systemSettings, updateSystemSettings } =
+    props
   const [isMember, setIsMember] = React.useState(
     systemSettings?.rulePack?.rulePackId === rulePackId
   )

@@ -126,56 +126,56 @@ const Competitions = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeCompetitionOrganization,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_COMPETITION, {
-    update(cache, { data: { organizationCompetition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_COMPETITIONS,
-          variables: {
-            organizationId,
-          },
-        })
-        const updatedData = queryResult?.organization?.[0]?.competitions.filter(
-          p => p.competitionId !== organizationCompetition.from.competitionId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult?.organization?.[0],
-              competitions: updatedData,
+  const [removeCompetitionOrganization, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_ORGANIZATION_COMPETITION, {
+      update(cache, { data: { organizationCompetition } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_COMPETITIONS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const updatedData =
+            queryResult?.organization?.[0]?.competitions.filter(
+              p =>
+                p.competitionId !== organizationCompetition.from.competitionId
+            )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult?.organization?.[0],
+                competitions: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_COMPETITIONS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_COMPETITIONS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationCompetition.from.name} not owned by ${organization.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationCompetition.from.name} not owned by ${organization.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeCompetitionOrganization] = useMutation(
     MERGE_ORGANIZATION_COMPETITION,

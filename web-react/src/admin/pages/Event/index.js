@@ -140,16 +140,14 @@ const Event = () => {
     },
   })
 
-  const [
-    deleteEvent,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_EVENT, {
-    variables: { where: { eventId } },
-    onCompleted: () => {
-      history.push(getAdminOrgEventsRoute(organizationSlug))
-      enqueueSnackbar('Event was deleted!')
-    },
-  })
+  const [deleteEvent, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_EVENT, {
+      variables: { where: { eventId } },
+      onCompleted: () => {
+        history.push(getAdminOrgEventsRoute(organizationSlug))
+        enqueueSnackbar('Event was deleted!')
+      },
+    })
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),

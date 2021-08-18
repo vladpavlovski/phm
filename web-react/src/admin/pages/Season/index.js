@@ -116,19 +116,18 @@ const Season = () => {
     },
   })
 
-  const [
-    deleteSeason,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_SEASON, {
-    onCompleted: () => {
-      history.push(getAdminOrgSeasonsRoute(organizationSlug))
-      enqueueSnackbar('Season was deleted!')
-    },
-  })
+  const [deleteSeason, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_SEASON, {
+      onCompleted: () => {
+        history.push(getAdminOrgSeasonsRoute(organizationSlug))
+        enqueueSnackbar('Season was deleted!')
+      },
+    })
 
-  const seasonData = useMemo(() => (queryData && queryData.season[0]) || {}, [
-    queryData,
-  ])
+  const seasonData = useMemo(
+    () => (queryData && queryData.season[0]) || {},
+    [queryData]
+  )
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),

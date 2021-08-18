@@ -595,67 +595,67 @@ const SubType = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    deleteShotSubType,
-    { loading: mutationLoadingDeleteShotSubType },
-  ] = useMutation(DELETE_SHOT_SUB_TYPE, {
-    variables: {
-      where: { shotSubTypeId: data?.shotSubTypeId },
-    },
-    update(cache) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SHOT_TYPES,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-
-        const shotType = queryResult.shotTypes.find(
-          gt => gt.shotTypeId === shotTypeId
-        )
-
-        const updatedData = shotType.subTypes.filter(
-          p => p.shotSubTypeId !== shotSubTypeIdDelete.current
-        )
-
-        const updatedResult = {
-          shotTypes: [
-            ...queryResult.shotTypes.filter(gt => gt.shotTypeId !== shotTypeId),
-            {
-              ...shotType,
-              subTypes: updatedData,
+  const [deleteShotSubType, { loading: mutationLoadingDeleteShotSubType }] =
+    useMutation(DELETE_SHOT_SUB_TYPE, {
+      variables: {
+        where: { shotSubTypeId: data?.shotSubTypeId },
+      },
+      update(cache) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SHOT_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
-          ],
+          })
 
-          rulePacks: queryResult?.rulePacks,
+          const shotType = queryResult.shotTypes.find(
+            gt => gt.shotTypeId === shotTypeId
+          )
+
+          const updatedData = shotType.subTypes.filter(
+            p => p.shotSubTypeId !== shotSubTypeIdDelete.current
+          )
+
+          const updatedResult = {
+            shotTypes: [
+              ...queryResult.shotTypes.filter(
+                gt => gt.shotTypeId !== shotTypeId
+              ),
+              {
+                ...shotType,
+                subTypes: updatedData,
+              },
+            ],
+
+            rulePacks: queryResult?.rulePacks,
+          }
+
+          cache.writeQuery({
+            query: GET_SHOT_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-
-        cache.writeQuery({
-          query: GET_SHOT_TYPES,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar(`ShotSubType was deleted!`, {
+          variant: 'info',
         })
-      } catch (error) {
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
         console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`ShotSubType was deleted!`, {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {

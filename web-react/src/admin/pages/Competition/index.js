@@ -122,16 +122,14 @@ const Competition = () => {
     },
   })
 
-  const [
-    deleteCompetition,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_COMPETITION, {
-    variables: { where: { competitionId } },
-    onCompleted: () => {
-      history.push(getAdminOrgCompetitionsRoute(organizationSlug))
-      enqueueSnackbar('Competition was deleted!')
-    },
-  })
+  const [deleteCompetition, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_COMPETITION, {
+      variables: { where: { competitionId } },
+      onCompleted: () => {
+        history.push(getAdminOrgCompetitionsRoute(organizationSlug))
+        enqueueSnackbar('Competition was deleted!')
+      },
+    })
 
   const competitionData = queryData?.competitions?.[0] || {}
 

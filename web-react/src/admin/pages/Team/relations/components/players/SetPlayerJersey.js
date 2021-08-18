@@ -43,9 +43,8 @@ export const SetPlayerJersey = props => {
   const { player } = props
   const classes = useStyles()
 
-  const { setPlayerJerseyDialogOpen, setPlayerData } = React.useContext(
-    TeamPlayersContext
-  )
+  const { setPlayerJerseyDialogOpen, setPlayerData } =
+    React.useContext(TeamPlayersContext)
 
   return (
     <Button

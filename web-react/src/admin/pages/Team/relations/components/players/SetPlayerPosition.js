@@ -22,9 +22,8 @@ export const SetPlayerPosition = props => {
   const { player } = props
   const classes = useStyles()
 
-  const { setPlayerPositionDialogOpen, setPlayerData } = React.useContext(
-    TeamPlayersContext
-  )
+  const { setPlayerPositionDialogOpen, setPlayerData } =
+    React.useContext(TeamPlayersContext)
 
   return (
     <Button

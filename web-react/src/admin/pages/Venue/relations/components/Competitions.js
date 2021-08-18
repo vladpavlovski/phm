@@ -120,56 +120,54 @@ const Competitions = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeCompetitionVenue,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_VENUE_COMPETITION, {
-    update(cache, { data: { venueCompetition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_COMPETITIONS,
-          variables: {
-            venueId,
-          },
-        })
-        const updatedData = queryResult?.venue?.[0]?.competitions.filter(
-          p => p.competitionId !== venueCompetition.from.competitionId
-        )
-
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              competitions: updatedData,
+  const [removeCompetitionVenue, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_VENUE_COMPETITION, {
+      update(cache, { data: { venueCompetition } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_COMPETITIONS,
+            variables: {
+              venueId,
             },
-          ],
+          })
+          const updatedData = queryResult?.venue?.[0]?.competitions.filter(
+            p => p.competitionId !== venueCompetition.from.competitionId
+          )
+
+          const updatedResult = {
+            venue: [
+              {
+                ...queryResult?.venue?.[0],
+                competitions: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_COMPETITIONS,
+            data: updatedResult,
+            variables: {
+              venueId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_COMPETITIONS,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.venueCompetition.from.name} not takes plays on ${venue.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venueCompetition.from.name} not takes plays on ${venue.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeCompetitionVenue] = useMutation(MERGE_VENUE_COMPETITION, {
     update(cache, { data: { venueCompetition } }) {
