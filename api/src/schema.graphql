@@ -1105,6 +1105,7 @@ type Organization {
   teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
   occupations: [Occupation]
     @relationship(type: "USE_OCCUPATION", direction: OUT)
+  seasons: [Season] @relationship(type: "BELONGS_TO", direction: IN)
   orgPersons: [Person] @relationship(type: "ENGAGED_IN", direction: IN)
   orgSponsors: [Sponsor] @relationship(type: "ENGAGED_IN", direction: IN)
   orgAwards: [Award] @relationship(type: "PROVIDED_BY", direction: IN)
@@ -1231,6 +1232,7 @@ type Season {
   short: String
   startDate: Date
   endDate: Date
+  org: Organization @relationship(type: "BELONGS_TO", direction: OUT)
   competitions: [Competition] @relationship(type: "BELONGS_TO", direction: IN)
   teamWears: [Wear] @relationship(type: "WEAR_FOR", direction: IN)
   venues: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)

@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,82 +32,25 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_TEAMS = gql`
-  query getSeasonTeams($seasonId: ID) {
-    season: Season(seasonId: $seasonId) {
-      seasonId
-      name
-      teams {
-        teamId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_ORGANIZATION_TEAM = gql`
-  mutation removeSeasonTeam($seasonId: ID!, $teamId: ID!) {
-    seasonTeam: RemoveSeasonTeams(
-      from: { teamId: $teamId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        teamId
-        name
-      }
-      to {
-        seasonId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_TEAMS = gql`
   query getTeams {
-    teams: Team {
+    teams {
       teamId
       name
     }
   }
 `
 
-const MERGE_ORGANIZATION_TEAM = gql`
-  mutation mergeSeasonTeams($seasonId: ID!, $teamId: ID!) {
-    seasonTeam: MergeSeasonTeams(
-      from: { teamId: $teamId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        teamId
-        name
-      }
-      to {
-        seasonId
-        name
-      }
-    }
-  }
-`
-
 const Teams = props => {
-  const { seasonId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { seasonId, season, updateSeason } = props
+
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [openAddSeason, setOpenAddSeason] = useState(false)
+  const [openAddSeason, setOpenAddSeason] = React.useState(false)
 
-  const handleCloseAddSeason = useCallback(() => {
+  const handleCloseAddSeason = React.useCallback(() => {
     setOpenAddSeason(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_TEAMS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const season = queryData?.season?.[0]
 
   const [
     getAllSeasons,
@@ -120,117 +63,14 @@ const Teams = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeTeamSeason, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_ORGANIZATION_TEAM,
-    {
-      update(cache, { data: { seasonTeam } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_TEAMS,
-            variables: {
-              seasonId,
-            },
-          })
-          const updatedData = queryResult?.season?.[0]?.teams.filter(
-            p => p.teamId !== seasonTeam.from.teamId
-          )
-
-          const updatedResult = {
-            season: [
-              {
-                ...queryResult?.season?.[0],
-                teams: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_TEAMS,
-            data: updatedResult,
-            variables: {
-              seasonId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.seasonTeam.from.name} not participate in ${season.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeTeamSeason] = useMutation(MERGE_ORGANIZATION_TEAM, {
-    update(cache, { data: { seasonTeam } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            seasonId,
-          },
-        })
-        const existingData = queryResult?.season?.[0]?.teams
-        const newItem = seasonTeam.from
-        const updatedResult = {
-          season: [
-            {
-              ...queryResult?.season?.[0],
-              teams: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            seasonId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.seasonTeam.from.name} participate in ${season.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { seasonId } })
-    }
-  }, [])
-
-  const handleOpenAddSeason = useCallback(() => {
+  const handleOpenAddSeason = React.useCallback(() => {
     if (!queryAllSeasonsData) {
       getAllSeasons()
     }
     setOpenAddSeason(true)
   }, [])
 
-  const seasonTeamsColumns = useMemo(
+  const seasonTeamsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -264,7 +104,6 @@ const Teams = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to detach team from season?'}
@@ -274,10 +113,22 @@ const Teams = props => {
               dialogNegativeText={'No, keep team'}
               dialogPositiveText={'Yes, detach team'}
               onDialogClosePositive={() => {
-                removeTeamSeason({
+                updateSeason({
                   variables: {
-                    seasonId,
-                    teamId: params.row.teamId,
+                    where: {
+                      seasonId,
+                    },
+                    update: {
+                      teams: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              teamId: params.row.teamId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -289,7 +140,7 @@ const Teams = props => {
     []
   )
 
-  const allTeamsColumns = useMemo(
+  const allTeamsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -308,8 +159,7 @@ const Teams = props => {
               teamId={params.value}
               seasonId={seasonId}
               season={season}
-              merge={mergeTeamSeason}
-              remove={removeTeamSeason}
+              updateSeason={updateSeason}
             />
           )
         },
@@ -319,7 +169,7 @@ const Teams = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="teams-content"
@@ -328,36 +178,30 @@ const Teams = props => {
         <Typography className={classes.accordionFormTitle}>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddSeason}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Team
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={seasonTeamsColumns}
-                rows={setIdFromEntityId(season.teams, 'teamId')}
-                loading={queryAllSeasonsLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddSeason}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Team
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={seasonTeamsColumns}
+            rows={setIdFromEntityId(season.teams, 'teamId')}
+            loading={queryAllSeasonsLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -409,8 +253,8 @@ const Teams = props => {
 }
 
 const ToggleNewTeam = props => {
-  const { seasonId, teamId, season, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { seasonId, teamId, season, updateSeason } = props
+  const [isMember, setIsMember] = React.useState(
     !!season.teams.find(p => p.teamId === teamId)
   )
 
@@ -420,19 +264,35 @@ const ToggleNewTeam = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    seasonId,
-                    teamId,
+            updateSeason({
+              variables: {
+                where: {
+                  seasonId,
+                },
+                update: {
+                  teams: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                teamId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { teamId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    seasonId,
-                    teamId,
-                  },
-                })
+                },
+              },
+            })
+
             setIsMember(!isMember)
           }}
           name="teamMember"
@@ -448,13 +308,15 @@ ToggleNewTeam.propTypes = {
   seasonId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
-  removeTeamSeason: PropTypes.func,
-  mergeTeamSeason: PropTypes.func,
+  updateSeason: PropTypes.func,
+
   loading: PropTypes.bool,
 }
 
 Teams.propTypes = {
   seasonId: PropTypes.string,
+  updateSeason: PropTypes.func,
+  season: PropTypes.object,
 }
 
 export { Teams }
