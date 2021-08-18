@@ -86,7 +86,7 @@ export const SetLineupPosition = props => {
                     players: {
                       connect: {
                         where: {
-                          playerId: player?.playerId,
+                          node: { playerId: player?.playerId },
                         },
                         properties: {
                           position: positionValue,

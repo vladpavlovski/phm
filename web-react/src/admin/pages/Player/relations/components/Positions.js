@@ -259,7 +259,7 @@ const ToggleNewPosition = props => {
                       positions: {
                         connect: {
                           where: {
-                            positionId,
+                            node: { positionId },
                           },
                         },
                       },

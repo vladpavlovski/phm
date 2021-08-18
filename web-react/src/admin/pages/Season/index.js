@@ -227,7 +227,7 @@ const Season = () => {
                   org: {
                     connect: {
                       where: {
-                        urlSlug: organizationSlug,
+                        node: { urlSlug: organizationSlug },
                       },
                     },
                   },

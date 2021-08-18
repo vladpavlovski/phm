@@ -160,7 +160,7 @@ const LineupList = props => {
           ?.number?.low || ''
       return {
         where: {
-          playerId: player.playerId,
+          node: { playerId: player.playerId },
         },
         properties: {
           host,
@@ -675,7 +675,7 @@ const TogglePlayerGame = props => {
                       players: {
                         connect: {
                           where: {
-                            playerId: player.playerId,
+                            node: { playerId: player.playerId },
                           },
                           properties: {
                             host,

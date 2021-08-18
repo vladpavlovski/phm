@@ -440,7 +440,7 @@ const FormDialog = props => {
             season: {
               connect: {
                 where: {
-                  seasonId: selected?.seasonId || null,
+                  node: { seasonId: selected?.seasonId || null },
                 },
               },
               disconnect: {
@@ -483,7 +483,7 @@ const FormDialog = props => {
                   competition: {
                     connect: {
                       where: {
-                        competitionId,
+                        node: { competitionId },
                       },
                     },
                   },

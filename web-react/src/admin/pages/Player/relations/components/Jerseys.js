@@ -263,7 +263,7 @@ const ToggleNewJersey = props => {
                       jerseys: {
                         connect: {
                           where: {
-                            jerseyId,
+                            node: { jerseyId },
                           },
                         },
                       },
