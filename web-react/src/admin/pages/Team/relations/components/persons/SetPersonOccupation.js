@@ -38,9 +38,8 @@ export const SetPersonOccupation = props => {
   const { person } = props
   const classes = useStyles()
 
-  const { setPersonOccupationDialogOpen, setPersonData } = React.useContext(
-    TeamPersonsContext
-  )
+  const { setPersonOccupationDialogOpen, setPersonData } =
+    React.useContext(TeamPersonsContext)
 
   return (
     <Button

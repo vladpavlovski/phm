@@ -133,15 +133,13 @@ const RulePack = () => {
     },
   })
 
-  const [
-    deleteRulePack,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_RULEPACK, {
-    onCompleted: () => {
-      history.push(getAdminOrgRulePacksRoute(organizationSlug))
-      enqueueSnackbar('RulePack was deleted!')
-    },
-  })
+  const [deleteRulePack, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_RULEPACK, {
+      onCompleted: () => {
+        history.push(getAdminOrgRulePacksRoute(organizationSlug))
+        enqueueSnackbar('RulePack was deleted!')
+      },
+    })
 
   const rulePackData = queryData?.rulePacks[0] || {}
 

@@ -5,15 +5,8 @@ import DatePicker from '@material-ui/lab/DatePicker'
 import dayjs from 'dayjs'
 
 const RHFDatepicker = props => {
-  const {
-    control,
-    name,
-    defaultValue,
-    variant,
-    error,
-    fullWidth,
-    ...rest
-  } = props
+  const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
+    props
   return (
     <Controller
       name={name}

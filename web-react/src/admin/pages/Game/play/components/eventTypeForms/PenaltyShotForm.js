@@ -24,11 +24,8 @@ const formInitialState = {
 const PenaltyShotForm = props => {
   const { gameEventSettings, activeStep, players, playersRival } = props
 
-  const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-  } = React.useContext(GameEventFormContext)
+  const { setNextButtonDisabled, gameEventData, setGameEventData } =
+    React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],

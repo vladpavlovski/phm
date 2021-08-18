@@ -204,14 +204,8 @@ const schema = object().shape({
 })
 
 const FormDialog = props => {
-  const {
-    team,
-    teamId,
-    openDialog,
-    handleCloseDialog,
-    data,
-    updateTeam,
-  } = props
+  const { team, teamId, openDialog, handleCloseDialog, data, updateTeam } =
+    props
 
   const classes = useStyles()
 

@@ -81,15 +81,18 @@ const Lineups = props => {
   const { gameId, teams, players } = props
 
   const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
-  const teamGuest = useMemo(() => teams.find(t => !t.host)?.node || null, [
-    teams,
-  ])
-  const playersHost = useMemo(() => players.filter(p => p.host) || null, [
-    players,
-  ])
-  const playersGuest = useMemo(() => players.filter(p => !p.host) || null, [
-    players,
-  ])
+  const teamGuest = useMemo(
+    () => teams.find(t => !t.host)?.node || null,
+    [teams]
+  )
+  const playersHost = useMemo(
+    () => players.filter(p => p.host) || null,
+    [players]
+  )
+  const playersGuest = useMemo(
+    () => players.filter(p => !p.host) || null,
+    [players]
+  )
 
   return (
     <>
@@ -196,8 +199,9 @@ const LineupList = props => {
               where: { gameId },
             },
           })
-          const updatedData = updateGame?.games?.find(g => g.gameId === gameId)
-            ?.playersConnection
+          const updatedData = updateGame?.games?.find(
+            g => g.gameId === gameId
+          )?.playersConnection
 
           const updatedResult = {
             games: [

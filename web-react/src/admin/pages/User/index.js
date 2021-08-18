@@ -79,20 +79,18 @@ const User = () => {
     variables: { userId },
   })
 
-  const [
-    mergeUser,
-    { loading: mutationLoading, error: mutationError },
-  ] = useMutation(MERGE_USER, {
-    onCompleted: data => {
-      if (userId === 'new') {
-        const newUserId = data.mergeUser.userId
-        history.replace(getAdminUserRoute(newUserId))
-      }
-      enqueueSnackbar(`User saved!`, {
-        variant: 'success',
-      })
-    },
-  })
+  const [mergeUser, { loading: mutationLoading, error: mutationError }] =
+    useMutation(MERGE_USER, {
+      onCompleted: data => {
+        if (userId === 'new') {
+          const newUserId = data.mergeUser.userId
+          history.replace(getAdminUserRoute(newUserId))
+        }
+        enqueueSnackbar(`User saved!`, {
+          variant: 'success',
+        })
+      },
+    })
 
   const userData = (queryData && queryData.user[0]) || {}
 

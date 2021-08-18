@@ -120,56 +120,54 @@ const Teams = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeTeamOrganization,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_TEAM, {
-    update(cache, { data: { organizationTeam } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            organizationId,
-          },
-        })
-        const updatedData = queryResult?.organization?.[0]?.teams.filter(
-          p => p.teamId !== organizationTeam.from.teamId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult?.organization?.[0],
-              teams: updatedData,
+  const [removeTeamOrganization, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_ORGANIZATION_TEAM, {
+      update(cache, { data: { organizationTeam } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_TEAMS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const updatedData = queryResult?.organization?.[0]?.teams.filter(
+            p => p.teamId !== organizationTeam.from.teamId
+          )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult?.organization?.[0],
+                teams: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_TEAMS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationTeam.from.name} not participate in ${organization.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationTeam.from.name} not participate in ${organization.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeTeamOrganization] = useMutation(MERGE_ORGANIZATION_TEAM, {
     update(cache, { data: { organizationTeam } }) {

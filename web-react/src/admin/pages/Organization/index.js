@@ -199,14 +199,12 @@ const Organization = () => {
     }
   )
 
-  const [
-    deleteOrganization,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_ORGANIZATION, {
-    onCompleted: () => {
-      history.push(ADMIN_ORGANIZATIONS)
-    },
-  })
+  const [deleteOrganization, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_ORGANIZATION, {
+      onCompleted: () => {
+        history.push(ADMIN_ORGANIZATIONS)
+      },
+    })
 
   const orgData = queryData?.organization
 

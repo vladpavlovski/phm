@@ -28,29 +28,26 @@ const OrganizationDashboard = () => {
   const history = useHistory()
   const { organizationSlug } = useParams()
   const { setBarTitle } = useContext(LayoutContext)
-  const { organizationData, setOrganizationData } = useContext(
-    OrganizationContext
-  )
+  const { organizationData, setOrganizationData } =
+    useContext(OrganizationContext)
 
-  const [
-    getOrganizationBySlug,
-    { loading: queryLoading, error: queryError },
-  ] = useLazyQuery(GET_ORGANIZATION_BY_SLUG, {
-    variables: { organizationSlug },
-    onCompleted: ({ organization }) => {
-      if (organization) {
-        const { organizationId, urlSlug, name, nick } = organization
-        setOrganizationData({
-          organizationId,
-          urlSlug,
-          name,
-          nick,
-        })
-      } else {
-        history.replace(ROUTES.NOT_FOUND)
-      }
-    },
-  })
+  const [getOrganizationBySlug, { loading: queryLoading, error: queryError }] =
+    useLazyQuery(GET_ORGANIZATION_BY_SLUG, {
+      variables: { organizationSlug },
+      onCompleted: ({ organization }) => {
+        if (organization) {
+          const { organizationId, urlSlug, name, nick } = organization
+          setOrganizationData({
+            organizationId,
+            urlSlug,
+            name,
+            nick,
+          })
+        } else {
+          history.replace(ROUTES.NOT_FOUND)
+        }
+      },
+    })
 
   useEffect(() => {
     if (

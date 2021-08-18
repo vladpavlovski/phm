@@ -60,56 +60,54 @@ const Positions = props => {
     formData.current = null
   }, [])
 
-  const [
-    createDefaultPositions,
-    { loading: queryCreateDefaultLoading },
-  ] = useMutation(CREATE_DEFAULT_POSITIONS, {
-    variables: {
-      teamId,
-      systemSettingsId: 'system-settings',
-    },
+  const [createDefaultPositions, { loading: queryCreateDefaultLoading }] =
+    useMutation(CREATE_DEFAULT_POSITIONS, {
+      variables: {
+        teamId,
+        systemSettingsId: 'system-settings',
+      },
 
-    update(cache, { data: { defaultPositions } }) {
-      try {
-        console.log(cache, defaultPositions)
-        // const queryResult = cache.readQuery({
-        //   query: GET_POSITIONS,
-        //   variables: {
-        //     teamId,
-        //   },
-        // })
+      update(cache, { data: { defaultPositions } }) {
+        try {
+          console.log(cache, defaultPositions)
+          // const queryResult = cache.readQuery({
+          //   query: GET_POSITIONS,
+          //   variables: {
+          //     teamId,
+          //   },
+          // })
 
-        // const updatedResult = {
-        //   team: [
-        //     {
-        //       ...queryResult.team[0],
-        //       positions: defaultPositions,
-        //     },
-        //   ],
-        // }
-        // cache.writeQuery({
-        //   query: GET_POSITIONS,
-        //   data: updatedResult,
-        //   variables: {
-        //     teamId,
-        //   },
-        // })
-      } catch (error) {
+          // const updatedResult = {
+          //   team: [
+          //     {
+          //       ...queryResult.team[0],
+          //       positions: defaultPositions,
+          //     },
+          //   ],
+          // }
+          // cache.writeQuery({
+          //   query: GET_POSITIONS,
+          //   data: updatedResult,
+          //   variables: {
+          //     teamId,
+          //   },
+          // })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar(`Default positions added to ${team.name}!`, {
+          variant: 'success',
+        })
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
         console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`Default positions added to ${team.name}!`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const handleOpenDialog = useCallback(data => {
     formData.current = data
@@ -276,14 +274,8 @@ const schema = object().shape({
 })
 
 const FormDialog = props => {
-  const {
-    team,
-    teamId,
-    openDialog,
-    handleCloseDialog,
-    data,
-    updateTeam,
-  } = props
+  const { team, teamId, openDialog, handleCloseDialog, data, updateTeam } =
+    props
 
   const classes = useStyles()
 

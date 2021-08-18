@@ -598,67 +598,67 @@ const SubType = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    deleteGoalSubType,
-    { loading: mutationLoadingDeleteGoalSubType },
-  ] = useMutation(DELETE_GOAL_SUB_TYPE, {
-    variables: {
-      where: { goalSubTypeId: data?.goalSubTypeId },
-    },
-    update(cache) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GOAL_TYPES,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
-        })
-
-        const goalType = queryResult.goalTypes.find(
-          gt => gt.goalTypeId === goalTypeId
-        )
-
-        const updatedData = goalType.subTypes.filter(
-          p => p.goalSubTypeId !== goalSubTypeIdDelete.current
-        )
-
-        const updatedResult = {
-          goalTypes: [
-            ...queryResult.goalTypes.filter(gt => gt.goalTypeId !== goalTypeId),
-            {
-              ...goalType,
-              subTypes: updatedData,
+  const [deleteGoalSubType, { loading: mutationLoadingDeleteGoalSubType }] =
+    useMutation(DELETE_GOAL_SUB_TYPE, {
+      variables: {
+        where: { goalSubTypeId: data?.goalSubTypeId },
+      },
+      update(cache) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_GOAL_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
-          ],
+          })
 
-          rulePacks: queryResult?.rulePacks,
+          const goalType = queryResult.goalTypes.find(
+            gt => gt.goalTypeId === goalTypeId
+          )
+
+          const updatedData = goalType.subTypes.filter(
+            p => p.goalSubTypeId !== goalSubTypeIdDelete.current
+          )
+
+          const updatedResult = {
+            goalTypes: [
+              ...queryResult.goalTypes.filter(
+                gt => gt.goalTypeId !== goalTypeId
+              ),
+              {
+                ...goalType,
+                subTypes: updatedData,
+              },
+            ],
+
+            rulePacks: queryResult?.rulePacks,
+          }
+
+          cache.writeQuery({
+            query: GET_GOAL_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-
-        cache.writeQuery({
-          query: GET_GOAL_TYPES,
-          data: updatedResult,
-          variables: {
-            where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar(`GoalSubType was deleted!`, {
+          variant: 'info',
         })
-      } catch (error) {
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
         console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`GoalSubType was deleted!`, {
-        variant: 'info',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {

@@ -58,56 +58,54 @@ const Persons = props => {
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [
-    removeOrganizationPerson,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_PERSON, {
-    update(cache, { data: { organizationPerson } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_ORGANIZATION,
-          variables: {
-            organizationId,
-          },
-        })
-        const updatedPersons = queryResult.organization[0].persons.filter(
-          p => p.personId !== organizationPerson.to.personId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult.organization[0],
-              persons: updatedPersons,
+  const [removeOrganizationPerson, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_ORGANIZATION_PERSON, {
+      update(cache, { data: { organizationPerson } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_ORGANIZATION,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const updatedPersons = queryResult.organization[0].persons.filter(
+            p => p.personId !== organizationPerson.to.personId
+          )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult.organization[0],
+                persons: updatedPersons,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_ORGANIZATION,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_ORGANIZATION,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationPerson.to.name} removed from ${organization.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationPerson.to.name} removed from ${organization.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const organizationPersonsColumns = useMemo(
     () => [

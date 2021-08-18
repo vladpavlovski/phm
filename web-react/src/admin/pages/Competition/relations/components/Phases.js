@@ -162,48 +162,46 @@ const Phases = props => {
     setOpenDialog(true)
   }, [])
 
-  const [
-    deleteCompetitionPhase,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(DELETE_COMPETITION_PHASE, {
-    update(cache) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PHASES,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
-          },
-        })
-        const updatedData = queryResult?.competition?.[0]?.phases?.filter(
-          p => p.phaseId !== deletedItemId.current
-        )
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition?.[0],
-              phases: updatedData,
+  const [deleteCompetitionPhase, { loading: mutationLoadingRemove }] =
+    useMutation(DELETE_COMPETITION_PHASE, {
+      update(cache) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PHASES,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
             },
-          ],
+          })
+          const updatedData = queryResult?.competition?.[0]?.phases?.filter(
+            p => p.phaseId !== deletedItemId.current
+          )
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult.competition?.[0],
+                phases: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_PHASES,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_PHASES,
-          data: updatedResult,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      deletedItemId.current = null
-      enqueueSnackbar('Phase was deleted!')
-    },
-  })
+      },
+      onCompleted: () => {
+        deletedItemId.current = null
+        enqueueSnackbar('Phase was deleted!')
+      },
+    })
 
   const competitionPhasesColumns = useMemo(
     () => [
@@ -387,74 +385,70 @@ const FormDialog = props => {
     }
   }, [data])
 
-  const [
-    createCompetitionPhase,
-    { loading: mutationLoadingCreate },
-  ] = useMutation(CREATE_COMPETITION_PHASE, {
-    update(
-      cache,
-      {
-        data: {
-          createPhases: { phases },
-        },
-      }
-    ) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PHASES,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
+  const [createCompetitionPhase, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_COMPETITION_PHASE, {
+      update(
+        cache,
+        {
+          data: {
+            createPhases: { phases },
           },
-        })
-        const existingData = queryResult?.competition?.[0]?.phases
-        const newItem = phases?.[0]
-        let updatedData = []
-        if (existingData?.find(ed => ed.phaseId === newItem.phaseId)) {
-          // replace if item exist in array
-          updatedData = existingData?.map(ed =>
-            ed.phaseId === newItem.phaseId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
         }
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition?.[0],
-              phases: updatedData,
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PHASES,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
             },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PHASES,
-          data: updatedResult,
-          variables: {
-            where: { competitionId },
-            organizationSlug,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar('Competition phase created!', { variant: 'success' })
-      handleCloseDialog()
-      setSelectedSeason(null)
-    },
-  })
+          })
+          const existingData = queryResult?.competition?.[0]?.phases
+          const newItem = phases?.[0]
+          let updatedData = []
+          if (existingData?.find(ed => ed.phaseId === newItem.phaseId)) {
+            // replace if item exist in array
+            updatedData = existingData?.map(ed =>
+              ed.phaseId === newItem.phaseId ? newItem : ed
+            )
+          } else {
+            // add new item if item not in array
+            updatedData = [newItem, ...existingData]
+          }
 
-  const [
-    updateCompetitionPhase,
-    { loading: mutationLoadingUpdate },
-  ] = useMutation(UPDATE_COMPETITION_PHASE, {
-    onCompleted: () => {
-      enqueueSnackbar('Competition phase updated!', { variant: 'success' })
-    },
-  })
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult.competition?.[0],
+                phases: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_PHASES,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+              organizationSlug,
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Competition phase created!', { variant: 'success' })
+        handleCloseDialog()
+        setSelectedSeason(null)
+      },
+    })
+
+  const [updateCompetitionPhase, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_COMPETITION_PHASE, {
+      onCompleted: () => {
+        enqueueSnackbar('Competition phase updated!', { variant: 'success' })
+      },
+    })
 
   const handleSeasonChange = useCallback(
     selected => {

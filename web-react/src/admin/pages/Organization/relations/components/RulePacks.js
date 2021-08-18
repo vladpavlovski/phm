@@ -119,56 +119,54 @@ const RulePacks = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeRulePackOrganization,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_RULEPACK, {
-    update(cache, { data: { organizationRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_RULEPACKS,
-          variables: {
-            organizationId,
-          },
-        })
-        const updatedData = queryResult?.organization?.[0]?.rulePacks.filter(
-          p => p.rulePackId !== organizationRulePack.to.rulePackId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult?.organization?.[0],
-              rulePacks: updatedData,
+  const [removeRulePackOrganization, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_ORGANIZATION_RULEPACK, {
+      update(cache, { data: { organizationRulePack } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_RULEPACKS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const updatedData = queryResult?.organization?.[0]?.rulePacks.filter(
+            p => p.rulePackId !== organizationRulePack.to.rulePackId
+          )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult?.organization?.[0],
+                rulePacks: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_RULEPACKS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_RULEPACKS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${organization.name} not guided by ${data.organizationRulePack.to.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${organization.name} not guided by ${data.organizationRulePack.to.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeRulePackOrganization] = useMutation(MERGE_ORGANIZATION_RULEPACK, {
     update(cache, { data: { organizationRulePack } }) {

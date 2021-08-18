@@ -120,56 +120,54 @@ const Sponsors = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeSponsorOrganization,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_SPONSOR, {
-    update(cache, { data: { organizationSponsor } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SPONSORS,
-          variables: {
-            organizationId,
-          },
-        })
-        const updatedData = queryResult?.organization?.[0]?.sponsors.filter(
-          p => p.sponsorId !== organizationSponsor.to.sponsorId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult?.organization?.[0],
-              sponsors: updatedData,
+  const [removeSponsorOrganization, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_ORGANIZATION_SPONSOR, {
+      update(cache, { data: { organizationSponsor } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SPONSORS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+          const updatedData = queryResult?.organization?.[0]?.sponsors.filter(
+            p => p.sponsorId !== organizationSponsor.to.sponsorId
+          )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult?.organization?.[0],
+                sponsors: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_SPONSORS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_SPONSORS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationSponsor.to.name} not sponsor for ${organization.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationSponsor.to.name} not sponsor for ${organization.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeSponsorOrganization] = useMutation(MERGE_ORGANIZATION_SPONSOR, {
     update(cache, { data: { organizationSponsor } }) {

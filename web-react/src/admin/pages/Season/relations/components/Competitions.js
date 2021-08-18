@@ -120,56 +120,54 @@ const Competitions = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeCompetitionSeason,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_SEASON_COMPETITION, {
-    update(cache, { data: { seasonCompetition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_COMPETITIONS,
-          variables: {
-            seasonId,
-          },
-        })
-        const updatedData = queryResult?.season?.[0]?.competitions.filter(
-          p => p.competitionId !== seasonCompetition.from.competitionId
-        )
-
-        const updatedResult = {
-          season: [
-            {
-              ...queryResult?.season?.[0],
-              competitions: updatedData,
+  const [removeCompetitionSeason, { loading: mutationLoadingRemove }] =
+    useMutation(REMOVE_SEASON_COMPETITION, {
+      update(cache, { data: { seasonCompetition } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_COMPETITIONS,
+            variables: {
+              seasonId,
             },
-          ],
+          })
+          const updatedData = queryResult?.season?.[0]?.competitions.filter(
+            p => p.competitionId !== seasonCompetition.from.competitionId
+          )
+
+          const updatedResult = {
+            season: [
+              {
+                ...queryResult?.season?.[0],
+                competitions: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_COMPETITIONS,
+            data: updatedResult,
+            variables: {
+              seasonId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_COMPETITIONS,
-          data: updatedResult,
-          variables: {
-            seasonId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.seasonCompetition.from.name} not owned by ${season.name}!`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.seasonCompetition.from.name} not owned by ${season.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [mergeCompetitionSeason] = useMutation(MERGE_SEASON_COMPETITION, {
     update(cache, { data: { seasonCompetition } }) {
