@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -31,69 +30,15 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, formatDate } from '../../../../../utils'
 
-const GET_PHASES = gql`
-  query getSponsor($sponsorId: ID) {
-    sponsor: Sponsor(sponsorId: $sponsorId) {
-      _id
-      sponsorId
-      name
-      phases {
-        phaseId
-        name
-        nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
-const REMOVE_SPONSOR_PHASE = gql`
-  mutation removeSponsorPhase($sponsorId: ID!, $phaseId: ID!) {
-    sponsorPhase: RemoveSponsorPhases(
-      from: { phaseId: $phaseId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        phaseId
-        name
-        nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
 export const GET_ALL_PHASES = gql`
   query getPhases {
-    phases: Phase {
+    phases {
       phaseId
       name
       nick
       status
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
+      startDate
+      endDate
       competition {
         name
       }
@@ -101,48 +46,15 @@ export const GET_ALL_PHASES = gql`
   }
 `
 
-const MERGE_SPONSOR_PHASE = gql`
-  mutation mergeSponsorPhase($sponsorId: ID!, $phaseId: ID!) {
-    sponsorPhase: MergeSponsorPhases(
-      from: { phaseId: $phaseId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        phaseId
-        name
-        nick
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
 const Phases = props => {
-  const { sponsorId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { sponsorId, sponsor, updateSponsor } = props
+  // const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const [openAddPhase, setOpenAddPhase] = useState(false)
+  const [openAddPhase, setOpenAddPhase] = React.useState(false)
 
-  const handleCloseAddPhase = useCallback(() => {
+  const handleCloseAddPhase = React.useCallback(() => {
     setOpenAddPhase(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PHASES, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const sponsor = queryData && queryData.sponsor && queryData.sponsor[0]
 
   const [
     getAllPhases,
@@ -155,117 +67,14 @@ const Phases = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeSponsorPhase, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_SPONSOR_PHASE,
-    {
-      update(cache, { data: { sponsorPhase } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_PHASES,
-            variables: {
-              sponsorId,
-            },
-          })
-          const updatedPhases = queryResult.sponsor[0].phases.filter(
-            p => p.phaseId !== sponsorPhase.from.phaseId
-          )
-
-          const updatedResult = {
-            sponsor: [
-              {
-                ...queryResult.sponsor[0],
-                phases: updatedPhases,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_PHASES,
-            data: updatedResult,
-            variables: {
-              sponsorId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.sponsorPhase.from.name} not sponsored by ${sponsor.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeSponsorPhase] = useMutation(MERGE_SPONSOR_PHASE, {
-    update(cache, { data: { sponsorPhase } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PHASES,
-          variables: {
-            sponsorId,
-          },
-        })
-        const existingPhases = queryResult.sponsor[0].phases
-        const newPhase = sponsorPhase.from
-        const updatedResult = {
-          sponsor: [
-            {
-              ...queryResult.sponsor[0],
-              phases: [newPhase, ...existingPhases],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PHASES,
-          data: updatedResult,
-          variables: {
-            sponsorId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.sponsorPhase.from.name} sponsored by ${sponsor.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { sponsorId } })
-    }
-  }, [])
-
-  const handleOpenAddPhase = useCallback(() => {
+  const handleOpenAddPhase = React.useCallback(() => {
     if (!queryAllPhasesData) {
       getAllPhases()
     }
     setOpenAddPhase(true)
   }, [])
 
-  const sponsorPhasesColumns = useMemo(
+  const sponsorPhasesColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -294,14 +103,14 @@ const Phases = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params.row.startDate.formatted,
+        valueGetter: params => params.row.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params.row.endDate.formatted,
+        valueGetter: params => params.row.endDate,
         valueFormatter: params => formatDate(params.value),
       },
 
@@ -331,7 +140,6 @@ const Phases = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -341,10 +149,22 @@ const Phases = props => {
               dialogNegativeText={'No, keep phase'}
               dialogPositiveText={'Yes, detach phase'}
               onDialogClosePositive={() => {
-                removeSponsorPhase({
+                updateSponsor({
                   variables: {
-                    sponsorId,
-                    phaseId: params.row.phaseId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      phases: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              phaseId: params.row.phaseId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -356,7 +176,7 @@ const Phases = props => {
     []
   )
 
-  const allPhasesColumns = useMemo(
+  const allPhasesColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -385,14 +205,14 @@ const Phases = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params.row.startDate.formatted,
+        valueGetter: params => params.row.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params.row.endDate.formatted,
+        valueGetter: params => params.row.endDate,
         valueFormatter: params => formatDate(params.value),
       },
 
@@ -407,8 +227,7 @@ const Phases = props => {
               phaseId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
-              merge={mergeSponsorPhase}
-              remove={removeSponsorPhase}
+              updateSponsor={updateSponsor}
             />
           )
         },
@@ -418,7 +237,7 @@ const Phases = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="phases-content"
@@ -427,36 +246,30 @@ const Phases = props => {
         <Typography className={classes.accordionFormTitle}>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddPhase}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Phase
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={sponsorPhasesColumns}
-                rows={setIdFromEntityId(sponsor.phases, 'phaseId')}
-                loading={queryAllPhasesLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddPhase}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Phase
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={sponsorPhasesColumns}
+            rows={setIdFromEntityId(sponsor.phases, 'phaseId')}
+            loading={queryAllPhasesLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -505,8 +318,8 @@ const Phases = props => {
 }
 
 const ToggleNewPhase = props => {
-  const { phaseId, sponsorId, sponsor, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { phaseId, sponsorId, sponsor, updateSponsor } = props
+  const [isMember, setIsMember] = React.useState(
     !!sponsor.phases.find(p => p.phaseId === phaseId)
   )
 
@@ -517,18 +330,41 @@ const ToggleNewPhase = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updateSponsor({
                   variables: {
-                    sponsorId,
-                    phaseId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      phases: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              phaseId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updateSponsor({
                   variables: {
-                    sponsorId,
-                    phaseId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      phases: {
+                        connect: {
+                          where: {
+                            node: { phaseId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+
             setIsMember(!isMember)
           }}
           name="sponsorMember"
@@ -544,12 +380,13 @@ ToggleNewPhase.propTypes = {
   phaseId: PropTypes.string,
   sponsorId: PropTypes.string,
   sponsor: PropTypes.object,
-  removeSponsorPhase: PropTypes.func,
-  mergeSponsorPhase: PropTypes.func,
+  updateSponsor: PropTypes.func,
 }
 
 Phases.propTypes = {
   sponsorId: PropTypes.string,
+  updateSponsor: PropTypes.func,
+  sponsor: PropTypes.object,
 }
 
 export { Phases }

@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -36,10 +35,25 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_GAME_EVENT_LOCATIONS = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack(
+    $where: GameEventLocationWhere
+    $whereRulePack: RulePackWhere
+  ) {
+    gameEventLocations(where: $where) {
+      gameEventLocationId
       name
+      fieldX
+      fieldY
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_GAME_EVENT_LOCATION = gql`
+  mutation createGameEventLocation($input: [GameEventLocationCreateInput!]!) {
+    createGameEventLocations(input: $input) {
       gameEventLocations {
         gameEventLocationId
         name
@@ -50,31 +64,13 @@ const GET_GAME_EVENT_LOCATIONS = gql`
   }
 `
 
-const MERGE_RULEPACK_GAME_EVENT_LOCATION = gql`
-  mutation mergeRulePackGameEventLocation(
-    $rulePackId: ID!
-    $gameEventLocationId: ID!
-    $name: String
-    $fieldX: String
-    $fieldY: String
+const UPDATE_GAME_EVENT_LOCATION = gql`
+  mutation updateGameEventLocation(
+    $where: GameEventLocationWhere
+    $update: GameEventLocationUpdateInput
   ) {
-    gameEventLocation: MergeGameEventLocation(
-      gameEventLocationId: $gameEventLocationId
-      name: $name
-      fieldX: $fieldX
-      fieldY: $fieldY
-    ) {
-      gameEventLocationId
-      name
-    }
-    gameEventLocationRulePack: MergeGameEventLocationRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { gameEventLocationId: $gameEventLocationId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateGameEventLocations(where: $where, update: $update) {
+      gameEventLocations {
         gameEventLocationId
         name
         fieldX
@@ -85,11 +81,9 @@ const MERGE_RULEPACK_GAME_EVENT_LOCATION = gql`
 `
 
 const DELETE_GAME_EVENT_LOCATION = gql`
-  mutation deleteGameEventLocation($gameEventLocationId: ID!) {
-    deleted: DeleteGameEventLocation(
-      gameEventLocationId: $gameEventLocationId
-    ) {
-      gameEventLocationId
+  mutation deleteGameEventLocation($where: GameEventLocationWhere) {
+    deleteGameEventLocations(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -113,18 +107,20 @@ const GameEventLocations = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GAME_EVENT_LOCATIONS, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -137,31 +133,29 @@ const GameEventLocations = props => {
     deleteGameEventLocation,
     { loading: mutationLoadingRemove },
   ] = useMutation(DELETE_GAME_EVENT_LOCATION, {
-    update(cache, { data: { deleted } }) {
+    update(cache) {
       try {
+        const deleted = formData.current
         const queryResult = cache.readQuery({
           query: GET_GAME_EVENT_LOCATIONS,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
-        const updatedData = queryResult.rulePack[0].gameEventLocations.filter(
+        const updatedData = queryResult.gameEventLocations.filter(
           p => p.gameEventLocationId !== deleted.gameEventLocationId
         )
 
         const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              gameEventLocations: updatedData,
-            },
-          ],
+          gameEventLocations: updatedData,
         }
         cache.writeQuery({
           query: GET_GAME_EVENT_LOCATIONS,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -239,13 +233,16 @@ const GameEventLocations = props => {
               }
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteGameEventLocation({
                   variables: {
-                    gameEventLocationId: params.row.gameEventLocationId,
+                    where: {
+                      gameEventLocationId: params.row.gameEventLocationId,
+                    },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -288,7 +285,7 @@ const GameEventLocations = props => {
               <XGrid
                 columns={rulePackGameEventLocationsColumns}
                 rows={setIdFromEntityId(
-                  rulePack.gameEventLocations,
+                  queryData?.gameEventLocations,
                   'gameEventLocationId'
                 )}
                 loading={queryLoading}
@@ -302,7 +299,7 @@ const GameEventLocations = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -323,70 +320,89 @@ const FormDialog = props => {
   })
 
   const [
-    mergeRulePackGameEventLocation,
-    { loading: loadingMergeGameEventLocation },
-  ] = useMutation(MERGE_RULEPACK_GAME_EVENT_LOCATION, {
-    update(cache, { data: { gameEventLocationRulePack } }) {
+    createGameEventLocation,
+    { loading: mutationLoadingCreate },
+  ] = useMutation(CREATE_GAME_EVENT_LOCATION, {
+    update(cache, { data: { createGameEventLocations } }) {
       try {
         const queryResult = cache.readQuery({
           query: GET_GAME_EVENT_LOCATIONS,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
+        const newItem = createGameEventLocations?.gameEventLocations?.[0]
 
-        const existingData = queryResult.rulePack[0].gameEventLocations
-        const newItem = gameEventLocationRulePack.to
-        let updatedData = []
-        if (
-          existingData.find(
-            ed => ed.gameEventLocationId === newItem.gameEventLocationId
-          )
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.gameEventLocationId === newItem.gameEventLocationId
-              ? newItem
-              : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
+        const existingData = queryResult?.gameEventLocations
+        const updatedData = [newItem, ...existingData]
         const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              gameEventLocations: updatedData,
-            },
-          ],
+          gameEventLocations: updatedData,
         }
         cache.writeQuery({
           query: GET_GAME_EVENT_LOCATIONS,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
           },
         })
       } catch (error) {
         console.error(error)
       }
     },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.gameEventLocationRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+    onCompleted: () => {
+      enqueueSnackbar('Position type saved!', { variant: 'success' })
       handleCloseDialog()
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error: ${error}`, {
         variant: 'error',
       })
-      console.error(error)
+    },
+  })
+
+  const [
+    updateGameEventLocation,
+    { loading: mutationLoadingUpdate },
+  ] = useMutation(UPDATE_GAME_EVENT_LOCATION, {
+    update(cache, { data: { updateGameEventLocations } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GAME_EVENT_LOCATIONS,
+          variables: {
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
+          },
+        })
+
+        const newItem = updateGameEventLocations?.gameEventLocations?.[0]
+
+        const existingData = queryResult?.gameEventLocations
+        const updatedData = existingData?.map(ed =>
+          ed.gameEventLocationId === newItem.gameEventLocationId ? newItem : ed
+        )
+        const updatedResult = {
+          gameEventLocations: updatedData,
+        }
+        cache.writeQuery({
+          query: GET_GAME_EVENT_LOCATIONS,
+          data: updatedResult,
+          variables: {
+            where: { rulePack: { rulePackId } },
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar('Position type updated!', { variant: 'success' })
+      handleCloseDialog()
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
     },
   })
 
@@ -395,15 +411,36 @@ const FormDialog = props => {
       try {
         const { name, fieldX, fieldY } = dataToCheck
 
-        mergeRulePackGameEventLocation({
-          variables: {
-            rulePackId,
-            name,
-            fieldX,
-            fieldY,
-            gameEventLocationId: data?.gameEventLocationId || uuidv4(),
-          },
-        })
+        data?.gameEventLocationId
+          ? updateGameEventLocation({
+              variables: {
+                where: {
+                  gameEventLocationId: data?.gameEventLocationId,
+                },
+                update: {
+                  name,
+                  fieldX,
+                  fieldY,
+                },
+              },
+            })
+          : createGameEventLocation({
+              variables: {
+                input: {
+                  name,
+                  fieldX,
+                  fieldY,
+
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -483,8 +520,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeGameEventLocation}>
-            {loadingMergeGameEventLocation ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>

@@ -2,7 +2,7 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -35,11 +35,21 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_INJURY_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+const GET_INJURIES = gql`
+  query getRulePack($where: InjuryTypeWhere, $whereRulePack: RulePackWhere) {
+    injuryTypes(where: $where) {
+      injuryTypeId
       name
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_INJURY = gql`
+  mutation createInjuryType($input: [InjuryTypeCreateInput!]!) {
+    createInjuryTypes(input: $input) {
       injuryTypes {
         injuryTypeId
         name
@@ -48,24 +58,13 @@ const GET_INJURY_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_INJURY_TYPE = gql`
-  mutation mergeRulePackInjuryType(
-    $rulePackId: ID!
-    $injuryTypeId: ID!
-    $name: String
+const UPDATE_INJURY = gql`
+  mutation updateInjuryType(
+    $where: InjuryTypeWhere
+    $update: InjuryTypeUpdateInput
   ) {
-    injuryType: MergeInjuryType(injuryTypeId: $injuryTypeId, name: $name) {
-      injuryTypeId
-      name
-    }
-    injuryTypeRulePack: MergeInjuryTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { injuryTypeId: $injuryTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateInjuryTypes(where: $where, update: $update) {
+      injuryTypes {
         injuryTypeId
         name
       }
@@ -73,14 +72,13 @@ const MERGE_RULEPACK_INJURY_TYPE = gql`
   }
 `
 
-const DELETE_INJURY_TYPE = gql`
-  mutation deleteInjuryType($injuryTypeId: ID!) {
-    deleted: DeleteInjuryType(injuryTypeId: $injuryTypeId) {
-      injuryTypeId
+const DELETE_INJURY = gql`
+  mutation deleteInjuryType($where: InjuryTypeWhere) {
+    deleteInjuryTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
-
 const schema = object().shape({
   name: string().required('Name is required'),
 })
@@ -98,18 +96,20 @@ const InjuryTypes = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_INJURY_TYPES, {
-    fetchPolicy: 'cache-and-network',
+  ] = useLazyQuery(GET_INJURIES, {
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -119,33 +119,31 @@ const InjuryTypes = props => {
   }, [])
 
   const [deleteInjuryType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_INJURY_TYPE,
+    DELETE_INJURY,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
-            query: GET_INJURY_TYPES,
+            query: GET_INJURIES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].injuryTypes.filter(
+          const updatedData = queryResult.injuryTypes.filter(
             p => p.injuryTypeId !== deleted.injuryTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                injuryTypes: updatedData,
-              },
-            ],
+            injuryTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_INJURY_TYPES,
+            query: GET_INJURIES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -209,13 +207,14 @@ const InjuryTypes = props => {
               dialogDescription={'Injury type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteInjuryType({
                   variables: {
-                    injuryTypeId: params.row.injuryTypeId,
+                    where: { injuryTypeId: params.row.injuryTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -257,7 +256,7 @@ const InjuryTypes = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackInjuryTypesColumns}
-                rows={setIdFromEntityId(rulePack.injuryTypes, 'injuryTypeId')}
+                rows={setIdFromEntityId(queryData?.injuryTypes, 'injuryTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -269,7 +268,7 @@ const InjuryTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -289,81 +288,123 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackInjuryType,
-    { loading: loadingMergeInjuryType },
-  ] = useMutation(MERGE_RULEPACK_INJURY_TYPE, {
-    update(cache, { data: { injuryTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_INJURY_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createInjuryType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_INJURY,
+    {
+      update(cache, { data: { createInjuryTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_INJURIES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createInjuryTypes?.injuryTypes?.[0]
 
-        const existingData = queryResult.rulePack[0].injuryTypes
-        const newItem = injuryTypeRulePack.to
-        let updatedData = []
-        if (existingData.find(ed => ed.injuryTypeId === newItem.injuryTypeId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.injuryTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            injuryTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_INJURIES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateInjuryType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_INJURY,
+    {
+      update(cache, { data: { updateInjuryTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_INJURIES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateInjuryTypes?.injuryTypes?.[0]
+
+          const existingData = queryResult?.injuryTypes
+          const updatedData = existingData?.map(ed =>
             ed.injuryTypeId === newItem.injuryTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              injuryTypes: updatedData,
+          const updatedResult = {
+            injuryTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_INJURIES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_INJURY_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.injuryTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
+        const { name } = dataToCheck
 
-        mergeRulePackInjuryType({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            injuryTypeId: data?.injuryTypeId || uuidv4(),
-          },
-        })
+        data?.injuryTypeId
+          ? updateInjuryType({
+              variables: {
+                where: {
+                  injuryTypeId: data?.injuryTypeId,
+                },
+                update: {
+                  name,
+                },
+              },
+            })
+          : createInjuryType({
+              variables: {
+                input: {
+                  name,
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -419,8 +460,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeInjuryType}>
-            {loadingMergeInjuryType ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>

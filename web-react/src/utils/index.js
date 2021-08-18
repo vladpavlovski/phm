@@ -15,7 +15,13 @@ export const toTitleCase = R.compose(
 )
 
 export const getDateFromDate = date =>
-  date && date !== '0000-01-01' ? dayjs(date) : null
+  date
+    ? dayjs({
+        year: date?.year?.low,
+        month: date?.month?.low,
+        day: date?.day?.low,
+      })
+    : null
 
 export const getDateFromTime = time =>
   time && time !== '00:00:00Z'
@@ -37,7 +43,7 @@ export const arrayToStringList = (data, keyId, keyValue = 'name') =>
   )
 
 export const setIdFromEntityId = (array, filedId) =>
-  array.map(item => ({ ...item, id: item[filedId] }))
+  array?.map(item => ({ ...item, id: item[filedId] })) || []
 
 export const setXGridForRelation = (array, filedId, propertyName) => {
   return array.map(item => {
@@ -79,22 +85,18 @@ export const showTimeAsHms = (minutes = 0) => {
 }
 
 export const decomposeDate = (date, fieldName) => ({
-  [`${fieldName}Day`]: dayjs(date).date(),
-  [`${fieldName}Month`]: dayjs(date).month() + 1,
-  [`${fieldName}Year`]: dayjs(date).year(),
+  [`${fieldName}`]: date ? dayjs(date).format('YYYY-MM-DD') : null,
 })
 
 export const decomposeTime = (time, fieldName) => ({
-  [`${fieldName}Hour`]: dayjs(time).hour(),
-  [`${fieldName}Minute`]: dayjs(time).minute(),
-  [`${fieldName}Second`]: dayjs(time).second(),
+  [`${fieldName}`]: time ? dayjs(time).format('HH:mm:ss') : null,
 })
 
 export const decomposeNumber = value =>
   !isNaN(parseInt(value)) && parseInt(value)
 
-export const formatDate = date =>
-  date === '0000-01-01' ? ' ' : dayjs(date).format('LL')
+export const formatDate = (date, format = 'LL') =>
+  !date ? ' ' : dayjs(date).format(format)
 
 export const formatTime = time =>
   time === '00:00:00Z' ? ' ' : time?.slice(0, 5)
@@ -111,4 +113,8 @@ export const getInitials = value => {
   let initials = value.replace(/[^a-zA-Z- ]/g, '').match(/\b\w/g)
 
   return initials.join('')
+}
+
+export const escapeRegExp = value => {
+  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }

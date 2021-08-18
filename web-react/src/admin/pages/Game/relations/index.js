@@ -12,9 +12,9 @@ const Relations = props => {
 
   return (
     <div className={classes.accordionWrapper}>
+      <Membership gameId={gameId} />
       <Teams gameId={gameId} teams={teams} />
       <Lineups gameId={gameId} teams={teams} players={players} />
-      <Membership gameId={gameId} />
     </div>
   )
 }

@@ -33,8 +33,8 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_TEAMS = gql`
-  query getCompetitionTeams($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
+  query getCompetitionTeams($where: CompetitionWhere) {
+    competition: competitions(where: $where) {
       competitionId
       name
       teams {
@@ -45,19 +45,16 @@ const GET_TEAMS = gql`
   }
 `
 
-const REMOVE_ORGANIZATION_TEAM = gql`
-  mutation removeCompetitionTeam($competitionId: ID!, $teamId: ID!) {
-    competitionTeam: RemoveCompetitionTeams(
-      from: { teamId: $teamId }
-      to: { competitionId: $competitionId }
-    ) {
-      from {
+const UPDATE_TEAM = gql`
+  mutation updateTeam($where: TeamWhere, $update: TeamUpdateInput) {
+    updateTeams(where: $where, update: $update) {
+      teams {
         teamId
         name
-      }
-      to {
-        competitionId
-        name
+        competitions {
+          competitionId
+          name
+        }
       }
     }
   }
@@ -65,27 +62,9 @@ const REMOVE_ORGANIZATION_TEAM = gql`
 
 export const GET_ALL_TEAMS = gql`
   query getTeams {
-    teams: Team {
+    teams {
       teamId
       name
-    }
-  }
-`
-
-const MERGE_ORGANIZATION_TEAM = gql`
-  mutation mergeCompetitionTeams($competitionId: ID!, $teamId: ID!) {
-    competitionTeam: MergeCompetitionTeams(
-      from: { teamId: $teamId }
-      to: { competitionId: $competitionId }
-    ) {
-      from {
-        teamId
-        name
-      }
-      to {
-        competitionId
-        name
-      }
     }
   }
 `
@@ -96,6 +75,7 @@ const Teams = props => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddCompetition, setOpenAddCompetition] = useState(false)
+  const updateStatus = React.useRef()
 
   const handleCloseAddCompetition = useCallback(() => {
     setOpenAddCompetition(false)
@@ -109,6 +89,58 @@ const Teams = props => {
 
   const competition = queryData?.competition?.[0]
 
+  const [updateTeam, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_TEAM,
+    {
+      update(
+        cache,
+        {
+          data: {
+            updateTeams: { teams },
+          },
+        }
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_TEAMS,
+            variables: {
+              where: { competitionId },
+            },
+          })
+
+          const updatedData =
+            updateStatus.current === 'disconnect'
+              ? queryResult?.competition?.[0]?.teams?.filter(
+                  p => p.teamId !== teams?.[0]?.teamId
+                )
+              : [...(queryResult?.competition?.[0]?.teams || []), ...teams]
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult?.competition?.[0],
+                teams: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_TEAMS,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        updateStatus.current = null
+        enqueueSnackbar('Team updated!', { variant: 'success' })
+      },
+    }
+  )
+
   const [
     getAllCompetitions,
     {
@@ -120,106 +152,9 @@ const Teams = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeTeamCompetition,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_ORGANIZATION_TEAM, {
-    update(cache, { data: { competitionTeam } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            competitionId,
-          },
-        })
-        const updatedData = queryResult?.competition?.[0]?.teams.filter(
-          p => p.teamId !== competitionTeam.from.teamId
-        )
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult?.competition?.[0],
-              teams: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.competitionTeam.from.name} not participate in ${competition.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [mergeTeamCompetition] = useMutation(MERGE_ORGANIZATION_TEAM, {
-    update(cache, { data: { competitionTeam } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            competitionId,
-          },
-        })
-        const existingData = queryResult?.competition?.[0]?.teams
-        const newItem = competitionTeam.from
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult?.competition?.[0],
-              teams: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.competitionTeam.from.name} participate in ${competition.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData({ variables: { where: { competitionId } } })
     }
   }, [])
 
@@ -235,7 +170,7 @@ const Teams = props => {
       {
         field: 'name',
         headerName: 'Name',
-        width: 150,
+        width: 250,
       },
 
       {
@@ -256,30 +191,43 @@ const Teams = props => {
       },
       {
         field: 'removeButton',
-        headerName: 'Remove',
+        headerName: 'Detach',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
           return (
             <ButtonDialog
-              text={'Remove'}
-              textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
+              text={'Detach'}
+              textLoading={'Detaching...'}
+              loading={mutationLoadingUpdate}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to detach team from competition?'
               }
               dialogDescription={
-                'Team will remain in the database. You can add him to any competition later.'
+                'Team will remain in the database. You can add it to any competition later.'
               }
               dialogNegativeText={'No, keep team'}
               dialogPositiveText={'Yes, detach team'}
               onDialogClosePositive={() => {
-                removeTeamCompetition({
+                updateStatus.current = 'disconnect'
+                updateTeam({
                   variables: {
-                    competitionId,
-                    teamId: params.row.teamId,
+                    where: {
+                      teamId: params.row?.teamId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -302,7 +250,7 @@ const Teams = props => {
       {
         field: 'teamId',
         headerName: 'Membership',
-        width: 150,
+        width: 200,
         disableColumnMenu: true,
         renderCell: params => {
           return (
@@ -310,8 +258,8 @@ const Teams = props => {
               teamId={params.value}
               competitionId={competitionId}
               competition={competition}
-              merge={mergeTeamCompetition}
-              remove={removeTeamCompetition}
+              update={updateTeam}
+              updateStatus={updateStatus}
             />
           )
         },
@@ -413,7 +361,7 @@ const Teams = props => {
 }
 
 const ToggleNewTeam = props => {
-  const { competitionId, teamId, competition, remove, merge } = props
+  const { competitionId, teamId, competition, update, updateStatus } = props
   const [isMember, setIsMember] = useState(
     !!competition.teams.find(p => p.teamId === teamId)
   )
@@ -425,18 +373,41 @@ const ToggleNewTeam = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? update({
                   variables: {
-                    competitionId,
-                    teamId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : update({
                   variables: {
-                    competitionId,
-                    teamId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      competitions: {
+                        connect: {
+                          where: {
+                            competitionId,
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+            updateStatus.current = isMember ? 'disconnect' : null
             setIsMember(!isMember)
           }}
           name="teamMember"
@@ -452,9 +423,7 @@ ToggleNewTeam.propTypes = {
   competitionId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
-  removeTeamCompetition: PropTypes.func,
-  mergeTeamCompetition: PropTypes.func,
-  loading: PropTypes.bool,
+  update: PropTypes.func,
 }
 
 Teams.propTypes = {

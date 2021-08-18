@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
@@ -36,10 +35,22 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_RESULT_POINTS = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: ResultPointWhere, $whereRulePack: RulePackWhere) {
+    resultPoints(where: $where) {
+      resultPointId
       name
+      code
+      points
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_RESULT_POINT = gql`
+  mutation createResultPoint($input: [ResultPointCreateInput!]!) {
+    createResultPoints(input: $input) {
       resultPoints {
         resultPointId
         name
@@ -50,31 +61,13 @@ const GET_RESULT_POINTS = gql`
   }
 `
 
-const MERGE_RULEPACK_RESULT_POINT = gql`
-  mutation mergeRulePackResultPoint(
-    $rulePackId: ID!
-    $resultPointId: ID!
-    $name: String
-    $code: String
-    $points: Int
+const UPDATE_RESULT_POINT = gql`
+  mutation updateResultPoint(
+    $where: ResultPointWhere
+    $update: ResultPointUpdateInput
   ) {
-    resultPoint: MergeResultPoint(
-      resultPointId: $resultPointId
-      name: $name
-      code: $code
-      points: $points
-    ) {
-      resultPointId
-      name
-    }
-    resultPointRulePack: MergeResultPointRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { resultPointId: $resultPointId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateResultPoints(where: $where, update: $update) {
+      resultPoints {
         resultPointId
         name
         code
@@ -85,9 +78,9 @@ const MERGE_RULEPACK_RESULT_POINT = gql`
 `
 
 const DELETE_RESULT_POINT = gql`
-  mutation deleteResultPoint($resultPointId: ID!) {
-    deleted: DeleteResultPoint(resultPointId: $resultPointId) {
-      resultPointId
+  mutation deleteResultPoint($where: ResultPointWhere) {
+    deleteResultPoints(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -111,18 +104,20 @@ const ResultPoints = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_RESULT_POINTS, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -134,31 +129,29 @@ const ResultPoints = props => {
   const [deleteResultPoint, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_RESULT_POINT,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_RESULT_POINTS,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].resultPoints.filter(
+          const updatedData = queryResult.resultPoints.filter(
             p => p.resultPointId !== deleted.resultPointId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                resultPoints: updatedData,
-              },
-            ],
+            resultPoints: updatedData,
           }
           cache.writeQuery({
             query: GET_RESULT_POINTS,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -166,7 +159,7 @@ const ResultPoints = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`Result Point was deleted!`, {
+        enqueueSnackbar(`ResultPoint was deleted!`, {
           variant: 'info',
         })
       },
@@ -232,13 +225,14 @@ const ResultPoints = props => {
               dialogDescription={'Result point will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteResultPoint({
                   variables: {
-                    resultPointId: params.row.resultPointId,
+                    where: { resultPointId: params.row.resultPointId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -280,7 +274,10 @@ const ResultPoints = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackResultPointsColumns}
-                rows={setIdFromEntityId(rulePack.resultPoints, 'resultPointId')}
+                rows={setIdFromEntityId(
+                  queryData?.resultPoints,
+                  'resultPointId'
+                )}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -292,7 +289,7 @@ const ResultPoints = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -312,84 +309,127 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackResultPoint,
-    { loading: loadingMergeResultPoint },
-  ] = useMutation(MERGE_RULEPACK_RESULT_POINT, {
-    update(cache, { data: { resultPointRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_RESULT_POINTS,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createResultPoint, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_RESULT_POINT,
+    {
+      update(cache, { data: { createResultPoints } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_RESULT_POINTS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createResultPoints?.resultPoints?.[0]
 
-        const existingData = queryResult.rulePack[0].resultPoints
-        const newItem = resultPointRulePack.to
-        let updatedData = []
-        if (
-          existingData.find(ed => ed.resultPointId === newItem.resultPointId)
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.resultPoints
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            resultPoints: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_RESULT_POINTS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateResultPoint, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_RESULT_POINT,
+    {
+      update(cache, { data: { updateResultPoints } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_RESULT_POINTS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateResultPoints?.resultPoints?.[0]
+
+          const existingData = queryResult?.resultPoints
+          const updatedData = existingData?.map(ed =>
             ed.resultPointId === newItem.resultPointId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              resultPoints: updatedData,
+          const updatedResult = {
+            resultPoints: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_RESULT_POINTS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_RESULT_POINTS,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.resultPointRulePack.to.name} saved to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, points, code } = dataToCheck
 
-        mergeRulePackResultPoint({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            points: parseInt(points),
-            resultPointId: data?.resultPointId || uuidv4(),
-          },
-        })
+        data?.resultPointId
+          ? updateResultPoint({
+              variables: {
+                where: {
+                  resultPointId: data?.resultPointId,
+                },
+                update: {
+                  name,
+                  code,
+                  points: parseInt(points),
+                },
+              },
+            })
+          : createResultPoint({
+              variables: {
+                input: {
+                  name,
+                  code,
+                  points: parseInt(points),
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -444,7 +484,7 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.points?.toString() ?? ''}
+                      defaultValue={data?.points}
                       name="points"
                       label="Points"
                       required
@@ -468,8 +508,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeResultPoint}>
-            {loadingMergeResultPoint ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>

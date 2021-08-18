@@ -38,10 +38,10 @@ const server = new ApolloServer({
     resolvers,
     config: {
       query: {
-        exclude: ['S3Payload'],
+        exclude: [],
       },
       mutation: {
-        exclude: ['S3Payload'],
+        exclude: [],
       },
       auth: {
         isAuthenticated: true,

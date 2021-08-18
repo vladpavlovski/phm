@@ -102,7 +102,7 @@ const GoalForm = props => {
         <Grid item xs={12}>
           <PlayerSelect
             players={players.filter(
-              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
+              p => p.node.playerId !== gameEventData.scoredBy.node.playerId
             )}
             onClick={firstAssist => {
               setGameEventData(state => ({ ...state, firstAssist }))
@@ -115,7 +115,7 @@ const GoalForm = props => {
         <Grid item xs={12}>
           <PlayerSelect
             players={players.filter(
-              p => p.player.playerId !== gameEventData.scoredBy.player.playerId
+              p => p.node.playerId !== gameEventData.scoredBy.node.playerId
             )}
             onClick={secondAssist => {
               setGameEventData(state => ({ ...state, secondAssist }))
@@ -136,9 +136,10 @@ const GoalForm = props => {
                 <TextField {...params} autoFocus label="Goal type" />
               )}
               getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.type === value.type
-              }
+              // isOptionEqualToValue={(option, value) =>
+              //   option.type === value.type
+              // }
+              getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, goalType) => {
                 setGameEventData(state => ({ ...state, goalType }))
               }}
@@ -156,7 +157,10 @@ const GoalForm = props => {
                   <TextField {...params} label="Goal Sub type" />
                 )}
                 getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) =>
+                // isOptionEqualToValue={(option, value) =>
+                //   option.type === value.type
+                // }
+                getOptionSelected={(option, value) =>
                   option.type === value.type
                 }
                 onChange={(_, goalSubType) => {
@@ -179,9 +183,10 @@ const GoalForm = props => {
                 <TextField {...params} autoFocus label="Shot type" />
               )}
               getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.type === value.type
-              }
+              // isOptionEqualToValue={(option, value) =>
+              //   option.type === value.type
+              // }
+              getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, shotType) => {
                 setGameEventData(state => ({ ...state, shotType }))
               }}
@@ -200,7 +205,10 @@ const GoalForm = props => {
                   <TextField {...params} label="Shot Sub type" />
                 )}
                 getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) =>
+                // isOptionEqualToValue={(option, value) =>
+                //   option.type === value.type
+                // }
+                getOptionSelected={(option, value) =>
                   option.type === value.type
                 }
                 onChange={(_, shotSubType) => {

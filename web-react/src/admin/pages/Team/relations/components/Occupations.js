@@ -1,8 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -14,7 +13,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import AddIcon from '@material-ui/icons/Add'
 import EditIcon from '@material-ui/icons/Edit'
-// import CreateIcon from '@material-ui/icons/Create'
+
 import Toolbar from '@material-ui/core/Toolbar'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
@@ -29,216 +28,20 @@ import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
 import { RHFInput } from '../../../../../components/RHFInput'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_OCCUPATIONS = gql`
-  query getOccupations($teamId: ID) {
-    team: Team(teamId: $teamId) {
-      teamId
-      name
-      occupations {
-        occupationId
-        name
-        description
-      }
-    }
-  }
-`
-
-const DELETE_TEAM_OCCUPATION = gql`
-  mutation deleteTeamOccupation($teamId: ID!, $occupationId: ID!) {
-    teamOccupation: RemoveTeamOccupations(
-      from: { teamId: $teamId }
-      to: { occupationId: $occupationId }
-    ) {
-      from {
-        teamId
-      }
-      to {
-        occupationId
-        name
-      }
-    }
-    occupation: DeleteOccupation(occupationId: $occupationId) {
-      occupationId
-    }
-  }
-`
-
-const MERGE_TEAM_OCCUPATION = gql`
-  mutation mergeTeamOccupation(
-    $teamId: ID!
-    $occupationId: ID!
-    $name: String!
-    $description: String
-  ) {
-    occupation: MergeOccupation(
-      occupationId: $occupationId
-      name: $name
-      description: $description
-    ) {
-      occupationId
-      name
-      description
-    }
-    teamOccupation: MergeTeamOccupations(
-      from: { teamId: $teamId }
-      to: { occupationId: $occupationId }
-    ) {
-      from {
-        teamId
-      }
-      to {
-        occupationId
-        name
-        description
-      }
-    }
-  }
-`
-
-// const CREATE_DEFAULT_OCCUPATIONS = gql`
-//   mutation createOccupations($teamId: ID!, $systemSettingsId: ID!) {
-//     defaultOccupations: CreateTeamDefaultOccupations(
-//       teamId: $teamId
-//       systemSettingsId: $systemSettingsId
-//     ) {
-//       occupationId
-//       name
-//       description
-//     }
-//   }
-// `
-
 const Occupations = props => {
-  const { teamId } = props
+  const { teamId, team, updateTeam } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
-  const { enqueueSnackbar } = useSnackbar()
+
   const classes = useStyles()
 
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false)
 
     formData.current = null
-  }, [])
-
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_OCCUPATIONS)
-
-  const team = queryData && queryData.team && queryData.team[0]
-
-  const [
-    deleteTeamOccupation,
-    { loading: mutationLoadingDelete },
-  ] = useMutation(DELETE_TEAM_OCCUPATION, {
-    update(cache, { data: { teamOccupation } }) {
-      // TODO:
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_OCCUPATIONS,
-          variables: {
-            teamId,
-          },
-        })
-
-        const updatedOccupations = queryResult.team[0].occupations.filter(
-          p => p.occupationId !== teamOccupation.to.occupationId
-        )
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              occupations: updatedOccupations,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_OCCUPATIONS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.teamOccupation.to.name} not occupation ${team.name}`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
-
-  // const [
-  //   createDefaultOccupations,
-  //   { loading: queryCreateDefaultLoading },
-  // ] = useMutation(CREATE_DEFAULT_OCCUPATIONS, {
-  //   variables: {
-  //     teamId,
-  //     systemSettingsId: 'system-settings',
-  //   },
-
-  //   update(cache, { data: { defaultOccupations } }) {
-  //     try {
-  //       const queryResult = cache.readQuery({
-  //         query: GET_OCCUPATIONS,
-  //         variables: {
-  //           teamId,
-  //         },
-  //       })
-
-  //       const updatedResult = {
-  //         team: [
-  //           {
-  //             ...queryResult.team[0],
-  //             occupations: defaultOccupations,
-  //           },
-  //         ],
-  //       }
-  //       cache.writeQuery({
-  //         query: GET_OCCUPATIONS,
-  //         data: updatedResult,
-  //         variables: {
-  //           teamId,
-  //         },
-  //       })
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   },
-  //   onCompleted: () => {
-  //     enqueueSnackbar(`Default occupations added to ${team.name}!`, {
-  //       variant: 'success',
-  //     })
-  //   },
-  //   onError: error => {
-  //     enqueueSnackbar(`Error happened :( ${error}`, {
-  //       variant: 'error',
-  //     })
-  //     console.error(error)
-  //   },
-  // })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { teamId } })
-    }
   }, [])
 
   const handleOpenDialog = useCallback(data => {
@@ -290,7 +93,6 @@ const Occupations = props => {
             <ButtonDialog
               text={'Delete'}
               textLoading={'Deleting...'}
-              loading={mutationLoadingDelete}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to delete team occupation?'}
@@ -300,10 +102,22 @@ const Occupations = props => {
               dialogNegativeText={'No, keep occupation'}
               dialogPositiveText={'Yes, delete occupation'}
               onDialogClosePositive={() => {
-                deleteTeamOccupation({
+                updateTeam({
                   variables: {
-                    teamId,
-                    occupationId: params.row.occupationId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      occupations: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              occupationId: params.row.occupationId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -316,7 +130,7 @@ const Occupations = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="occupations-content"
@@ -327,25 +141,23 @@ const Occupations = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  type="button"
-                  onClick={handleOpenDialog}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Create Occupation
-                </Button>
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              type="button"
+              onClick={() => {
+                handleOpenDialog()
+              }}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Create Occupation
+            </Button>
 
-                {/* {team?.occupations?.length === 0 && (
+            {/* {team?.occupations?.length === 0 && (
                   <LoadingButton
                     type="button"
                     variant="outlined"
@@ -362,20 +174,17 @@ const Occupations = props => {
                       : 'Create default'}
                   </LoadingButton>
                 )} */}
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={teamOccupationsColumns}
-                rows={setIdFromEntityId(team.occupations, 'occupationId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={teamOccupationsColumns}
+            rows={setIdFromEntityId(team?.occupations, 'occupationId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <FormDialog
         team={team}
@@ -383,6 +192,7 @@ const Occupations = props => {
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
+        updateTeam={updateTeam}
       />
     </Accordion>
   )
@@ -394,85 +204,53 @@ const schema = object().shape({
 })
 
 const FormDialog = props => {
-  const { team, teamId, openDialog, handleCloseDialog, data } = props
+  const {
+    team,
+    teamId,
+    openDialog,
+    handleCloseDialog,
+    data,
+    updateTeam,
+  } = props
 
   const classes = useStyles()
-  const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeTeamOccupation,
-    { loading: loadingMergeOccupationType },
-  ] = useMutation(MERGE_TEAM_OCCUPATION, {
-    update(cache, { data: { teamOccupation } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_OCCUPATIONS,
-          variables: {
-            teamId,
-          },
-        })
-
-        const existingData = queryResult.team[0].occupations
-        const newItem = teamOccupation.to
-
-        let updatedData = []
-        if (existingData.find(ed => ed.occupationId === newItem.occupationId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.occupationId === newItem.occupationId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              occupations: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_OCCUPATIONS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(`${data.teamOccupation.to.name} saved to ${team.name}!`, {
-        variant: 'success',
-      })
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        mergeTeamOccupation({
-          variables: {
-            teamId,
-            ...dataToCheck,
-            occupationId: data?.occupationId || uuidv4(),
-          },
-        })
+        data?.occupationId
+          ? updateTeam({
+              variables: {
+                where: {
+                  teamId,
+                },
+                update: {
+                  occupations: {
+                    where: {
+                      node: {
+                        occupationId: data?.occupationId,
+                      },
+                    },
+                    update: dataToCheck,
+                  },
+                },
+              },
+            })
+          : updateTeam({
+              variables: {
+                where: {
+                  teamId,
+                },
+                create: {
+                  occupations: { node: dataToCheck },
+                },
+              },
+            })
+        handleCloseDialog()
       } catch (error) {
         console.error(error)
       }
@@ -539,9 +317,7 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeOccupationType}>
-            {loadingMergeOccupationType ? 'Saving...' : 'Save'}
-          </LoadingButton>
+          <LoadingButton type="submit">{'Save'}</LoadingButton>
         </DialogActions>
       </form>
     </Dialog>

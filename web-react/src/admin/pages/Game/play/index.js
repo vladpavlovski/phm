@@ -26,50 +26,49 @@ import { Periods, GameEventWizard, EventsTable } from './components'
 import GameEventFormContext from './context'
 
 export const GET_GAME_PLAY = gql`
-  query getGame($gameId: ID!) {
-    game: Game(gameId: $gameId) {
+  query getGame(
+    $whereGame: GameWhere
+    $whereSystemSettings: SystemSettingsWhere
+  ) {
+    game: games(where: $whereGame) {
       gameId
       name
       type
       info
       foreignId
       description
-      teams {
-        team {
-          teamId
-          name
-          nick
-          logo
-        }
-        host
-      }
-      players {
-        player {
-          avatar
-          playerId
-          name
-          firstName
-          lastName
-          meta {
-            metaPlayerId
+      teamsConnection {
+        edges {
+          host
+          node {
+            teamId
+            name
+            nick
+            logo
           }
         }
-        host
-        jersey
-        position
       }
-      startDate {
-        formatted
+      playersConnection {
+        edges {
+          host
+          jersey
+          position
+          node {
+            avatar
+            playerId
+            name
+            firstName
+            lastName
+            meta {
+              metaPlayerId
+            }
+          }
+        }
       }
-      endDate {
-        formatted
-      }
-      startTime {
-        formatted
-      }
-      endTime {
-        formatted
-      }
+      startDate
+      endDate
+      startTime
+      endTime
       event {
         eventId
         name
@@ -82,7 +81,7 @@ export const GET_GAME_PLAY = gql`
         }
       }
     }
-    systemSettings: SystemSettings(systemSettingsId: "system-settings") {
+    systemSettings(where: $whereSystemSettings) {
       rulePack {
         name
         periods {
@@ -161,7 +160,10 @@ const Play = () => {
     error: queryError,
   } = useQuery(GET_GAME_PLAY, {
     fetchPolicy: 'network-only',
-    variables: { gameId },
+    variables: {
+      whereGame: { gameId },
+      whereSystemSettings: { systemSettingsId: 'system-settings' },
+    },
     skip: gameId === 'new',
   })
 
@@ -169,20 +171,20 @@ const Play = () => {
   const gameSettings = queryData?.systemSettings[0]?.rulePack || null
 
   const teamHost = React.useMemo(
-    () => gameData?.teams?.find(t => t.host)?.team,
+    () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
     [gameData]
   )
 
   const teamGuest = React.useMemo(
-    () => gameData?.teams?.find(t => !t.host)?.team,
+    () => gameData?.teamsConnection?.edges?.find(t => !t.host)?.node,
     [gameData]
   )
   const playersHost = React.useMemo(
-    () => gameData?.players?.filter(t => t.host),
+    () => gameData?.playersConnection?.edges?.filter(t => t.host),
     [gameData]
   )
   const playersGuest = React.useMemo(
-    () => gameData?.players?.filter(t => !t.host),
+    () => gameData?.playersConnection?.edges?.filter(t => !t.host),
     [gameData]
   )
 
@@ -206,7 +208,11 @@ const Play = () => {
       const { gameEventsSimple } = client.readQuery({
         query: GET_GAME_EVENTS_SIMPLE,
         variables: {
-          gameId,
+          where: {
+            game: {
+              gameId,
+            },
+          },
         },
       })
 
@@ -356,8 +362,8 @@ const Play = () => {
           </Grid>
           <Grid item xs={12}>
             <EventsTable
-              teams={gameData?.teams}
-              players={gameData?.players}
+              teams={gameData?.teamsConnection?.edges}
+              players={gameData?.playersConnection?.edges}
               gameData={gameData}
               gameSettings={gameSettings}
             />

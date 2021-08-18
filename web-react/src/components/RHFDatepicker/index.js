@@ -2,7 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import TextField from '@material-ui/core/TextField'
 import DatePicker from '@material-ui/lab/DatePicker'
-import { getDateFromDate } from '../../utils'
+import dayjs from 'dayjs'
 
 const RHFDatepicker = props => {
   const {
@@ -37,7 +37,7 @@ const RHFDatepicker = props => {
           name={name}
         />
       )}
-      defaultValue={defaultValue ? getDateFromDate(defaultValue) : null}
+      defaultValue={dayjs(defaultValue).isValid() ? defaultValue : null}
     />
   )
 }

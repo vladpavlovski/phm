@@ -12,12 +12,12 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_TEAMS = gql`
-  query getTeams($organizationSlug: String!) {
-    teams: teamsByOrganization(organizationSlug: $organizationSlug) {
+  query getTeams($where: TeamWhere) {
+    teams(where: $where) {
       teamId
       name
       logo
@@ -31,7 +31,11 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_TEAMS, {
     variables: {
-      organizationSlug,
+      where: {
+        orgs: {
+          urlSlug: organizationSlug,
+        },
+      },
     },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
@@ -107,7 +111,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

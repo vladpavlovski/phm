@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
@@ -21,11 +20,11 @@ import {
   getXGridValueFromArray,
 } from '../../../../../../utils'
 
-import { GET_PLAYERS } from './index'
+// import { GET_PLAYERS } from './index'
 
 export const GET_ALL_PLAYERS = gql`
   query getPlayers {
-    players: Player {
+    players {
       playerId
       name
       firstName
@@ -43,40 +42,40 @@ export const GET_ALL_PLAYERS = gql`
   }
 `
 
-const MERGE_TEAM_PLAYER = gql`
-  mutation mergeTeamPlayer($teamId: ID!, $playerId: ID!) {
-    teamPlayer: MergeTeamPlayers(
-      from: { playerId: $playerId }
-      to: { teamId: $teamId }
-    ) {
-      from {
-        playerId
-        name
-        firstName
-        lastName
-        positions {
-          positionId
-          name
-        }
-        jerseys {
-          jerseyId
-          name
-          number
-        }
-      }
-    }
-  }
-`
+// const MERGE_TEAM_PLAYER = gql`
+//   mutation mergeTeamPlayer($teamId: ID!, $playerId: ID!) {
+//     teamPlayer: MergeTeamPlayers(
+//       from: { playerId: $playerId }
+//       to: { teamId: $teamId }
+//     ) {
+//       from {
+//         playerId
+//         name
+//         firstName
+//         lastName
+//         positions {
+//           positionId
+//           name
+//         }
+//         jerseys {
+//           jerseyId
+//           name
+//           number
+//         }
+//       }
+//     }
+//   }
+// `
 
 const AddPlayer = props => {
-  const { teamId, team, removeTeamPlayer } = props
+  const { teamId, team, updateTeam } = props
 
-  const { enqueueSnackbar } = useSnackbar()
+  // const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
 
-  const [openAddPlayer, setOpenAddPlayer] = useState(false)
+  const [openAddPlayer, setOpenAddPlayer] = React.useState(false)
 
-  const handleCloseAddPlayer = useCallback(() => {
+  const handleCloseAddPlayer = React.useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
 
@@ -91,57 +90,57 @@ const AddPlayer = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-    update(cache, { data: { teamPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-        const existingPlayers = queryResult?.team[0].players
-        const newPlayer = teamPlayer.from
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult?.team[0],
-              players: [newPlayer, ...existingPlayers],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+  // const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
+  //   update(cache, { data: { teamPlayer } }) {
+  //     try {
+  //       const queryResult = cache.readQuery({
+  //         query: GET_PLAYERS,
+  //         variables: {
+  //           teamId,
+  //         },
+  //       })
+  //       const existingPlayers = queryResult?.team[0].players
+  //       const newPlayer = teamPlayer.from
+  //       const updatedResult = {
+  //         team: [
+  //           {
+  //             ...queryResult?.team[0],
+  //             players: [newPlayer, ...existingPlayers],
+  //           },
+  //         ],
+  //       }
+  //       cache.writeQuery({
+  //         query: GET_PLAYERS,
+  //         data: updatedResult,
+  //         variables: {
+  //           teamId,
+  //         },
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   },
+  //   onCompleted: data => {
+  //     enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
+  //       variant: 'success',
+  //     })
+  //   },
+  //   onError: error => {
+  //     enqueueSnackbar(`Error happened :( ${error}`, {
+  //       variant: 'error',
+  //     })
+  //     console.error(error)
+  //   },
+  // })
 
-  const handleOpenAddPlayer = useCallback(() => {
+  const handleOpenAddPlayer = React.useCallback(() => {
     if (!queryAllPlayersData) {
       getAllPlayers()
     }
     setOpenAddPlayer(true)
   }, [])
 
-  const allPlayersColumns = useMemo(
+  const allPlayersColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -176,8 +175,9 @@ const AddPlayer = props => {
               playerId={params.value}
               teamId={teamId}
               team={team}
-              merge={mergeTeamPlayer}
-              remove={removeTeamPlayer}
+              updateTeam={updateTeam}
+              // merge={mergeTeamPlayer}
+              // remove={removeTeamPlayer}
             />
           )
         },
@@ -250,8 +250,8 @@ const AddPlayer = props => {
 }
 
 const ToggleNewPlayer = props => {
-  const { playerId, teamId, team, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { playerId, teamId, team, updateTeam } = props
+  const [isMember, setIsMember] = React.useState(
     !!team.players.find(p => p.playerId === playerId)
   )
 
@@ -261,19 +261,49 @@ const ToggleNewPlayer = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    teamId,
-                    playerId,
+            updateTeam({
+              variables: {
+                where: {
+                  teamId,
+                },
+                update: {
+                  players: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                playerId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                playerId,
+                              },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    teamId,
-                    playerId,
-                  },
-                })
+                },
+              },
+            })
+            // isMember
+            //   ? remove({
+            //       variables: {
+            //         teamId,
+            //         playerId,
+            //       },
+            //     })
+            //   : merge({
+            //       variables: {
+            //         teamId,
+            //         playerId,
+            //       },
+            //     })
             setIsMember(!isMember)
           }}
           name="teamMember"
