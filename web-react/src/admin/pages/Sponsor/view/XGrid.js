@@ -12,12 +12,12 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_SPONSORS = gql`
   query getSponsors {
-    sponsors: Sponsor {
+    sponsors {
       sponsorId
       name
       legalName
@@ -29,10 +29,7 @@ const GET_SPONSORS = gql`
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const { error, loading, data } = useQuery(GET_SPONSORS, {
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
-  })
+  const { error, loading, data } = useQuery(GET_SPONSORS)
 
   const columns = useMemo(
     () => [
@@ -94,8 +91,8 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          {error && <Error message={error.message} />}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
@@ -103,7 +100,7 @@ const XGridTable = () => {
             >
               <XGrid
                 columns={columns}
-                rows={setIdFromEntityId(data.sponsors, 'sponsorId')}
+                rows={setIdFromEntityId(data?.sponsors, 'sponsorId')}
                 loading={loading}
                 components={{
                   Toolbar: GridToolbar,

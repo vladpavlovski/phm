@@ -20,8 +20,8 @@ import {
 } from '../../../../utils'
 
 export const GET_PLAYERS = gql`
-  query getPlayers($organizationSlug: String!) {
-    players: playersByOrganization(organizationSlug: $organizationSlug) {
+  query getPlayers($where: PlayerWhere) {
+    players(where: $where) {
       playerId
       firstName
       lastName
@@ -42,10 +42,14 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_PLAYERS, {
     variables: {
-      organizationSlug,
+      where: {
+        teams: {
+          orgs: {
+            urlSlug: organizationSlug,
+          },
+        },
+      },
     },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
   })
 
   const columns = useMemo(

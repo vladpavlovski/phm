@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -33,17 +32,29 @@ import { RHFInput } from '../../../../../components/RHFInput'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-  checkId,
-} from '../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
 
 const GET_SHOT_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: ShotTypeWhere, $whereRulePack: RulePackWhere) {
+    shotTypes(where: $where) {
+      shotTypeId
       name
+      code
+      subTypes {
+        shotSubTypeId
+        name
+        code
+      }
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_SHOT_TYPE = gql`
+  mutation createShotType($input: [ShotTypeCreateInput!]!) {
+    createShotTypes(input: $input) {
       shotTypes {
         shotTypeId
         name
@@ -58,76 +69,39 @@ const GET_SHOT_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_SHOT_TYPE = gql`
-  mutation mergeRulePackShotType(
-    $rulePackId: ID!
-    $shotTypeId: ID!
-    $name: String
-    $code: String
+const UPDATE_SHOT_TYPE = gql`
+  mutation updateShotType(
+    $where: ShotTypeWhere
+    $update: ShotTypeUpdateInput
+    $create: ShotTypeRelationInput
   ) {
-    shotType: MergeShotType(shotTypeId: $shotTypeId, name: $name, code: $code) {
-      shotTypeId
-      name
-    }
-    shotTypeRulePack: MergeShotTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { shotTypeId: $shotTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateShotTypes(where: $where, update: $update, create: $create) {
+      shotTypes {
         shotTypeId
         name
         code
+        subTypes {
+          shotSubTypeId
+          name
+          code
+        }
       }
     }
   }
 `
 
 const DELETE_SHOT_TYPE = gql`
-  mutation deleteShotType($shotTypeId: ID!) {
-    deleted: DeleteShotType(shotTypeId: $shotTypeId) {
-      shotTypeId
-    }
-  }
-`
-
-const MERGE_SHOT_TYPE_SHOT_SUB_TYPE = gql`
-  mutation mergeRulePackShotSubType(
-    $shotTypeId: ID!
-    $shotSubTypeId: ID!
-    $name: String
-    $code: String
-  ) {
-    shotType: MergeShotSubType(
-      shotSubTypeId: $shotSubTypeId
-      name: $name
-      code: $code
-    ) {
-      shotSubTypeId
-      name
-    }
-    shotTypeShotSubType: MergeShotSubTypeShotType(
-      from: { shotTypeId: $shotTypeId }
-      to: { shotSubTypeId: $shotSubTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
-        shotSubTypeId
-        name
-        code
-      }
+  mutation deleteShotType($where: ShotTypeWhere) {
+    deleteShotTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
 
 const DELETE_SHOT_SUB_TYPE = gql`
-  mutation deleteShotSubType($shotSubTypeId: ID!) {
-    deleted: DeleteShotSubType(shotSubTypeId: $shotSubTypeId) {
-      shotSubTypeId
+  mutation deleteShotSubType($where: ShotSubTypeWhere) {
+    deleteShotSubTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -154,14 +128,15 @@ const ShotTypes = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_SHOT_TYPES, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -173,31 +148,29 @@ const ShotTypes = props => {
   const [deleteShotType, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_SHOT_TYPE,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_SHOT_TYPES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].shotTypes.filter(
+          const updatedData = queryResult.shotTypes.filter(
             p => p.shotTypeId !== deleted.shotTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                shotTypes: updatedData,
-              },
-            ],
+            shotTypes: updatedData,
           }
           cache.writeQuery({
             query: GET_SHOT_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -275,13 +248,14 @@ const ShotTypes = props => {
               dialogDescription={'Shot type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteShotType({
                   variables: {
-                    shotTypeId: params.row.shotTypeId,
+                    where: { shotTypeId: params.row.shotTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -323,7 +297,7 @@ const ShotTypes = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackShotTypesColumns}
-                rows={setIdFromEntityId(rulePack.shotTypes, 'shotTypeId')}
+                rows={setIdFromEntityId(queryData?.shotTypes, 'shotTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -335,11 +309,11 @@ const ShotTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={rulePack?.shotTypes?.find(
+        data={queryData?.shotTypes?.find(
           gt => gt.shotTypeId === formData.current
         )}
       />
@@ -357,81 +331,127 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackShotType,
-    { loading: loadingMergeShotType },
-  ] = useMutation(MERGE_RULEPACK_SHOT_TYPE, {
-    update(cache, { data: { shotTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SHOT_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createShotType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_SHOT_TYPE,
+    {
+      update(cache, { data: { createShotTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SHOT_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createShotTypes?.shotTypes?.[0]
 
-        const existingData = queryResult.rulePack[0].shotTypes
-        const newItem = shotTypeRulePack.to
-        let updatedData = []
-        if (existingData.find(ed => ed.shotTypeId === newItem.shotTypeId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.shotTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            shotTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_SHOT_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateShotType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_SHOT_TYPE,
+    {
+      update(cache, { data: { updateShotTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SHOT_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateShotTypes?.shotTypes?.[0]
+
+          const existingData = queryResult?.shotTypes
+          const updatedData = existingData?.map(ed =>
             ed.shotTypeId === newItem.shotTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              shotTypes: updatedData,
+          const updatedResult = {
+            shotTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_SHOT_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_SHOT_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+        setNewSubType(false)
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.shotTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
 
-        mergeRulePackShotType({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            shotTypeId: data?.shotTypeId || uuidv4(),
-          },
-        })
+        data?.shotTypeId
+          ? updateShotType({
+              variables: {
+                where: {
+                  shotTypeId: data?.shotTypeId,
+                },
+                update: {
+                  name,
+                  code,
+                },
+              },
+            })
+          : createShotType({
+              variables: {
+                input: {
+                  name,
+                  code,
+
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -493,27 +513,29 @@ const FormDialog = props => {
         <div style={{ margin: '2rem 0' }}>
           {data?.subTypes?.map(st => (
             <SubType
+              updateShotType={updateShotType}
               key={st.shotSubTypeId}
               rulePack={rulePack}
               rulePackId={rulePackId}
               shotTypeId={data?.shotTypeId}
-              setNewSubType={setNewSubType}
               data={st}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ))}
         </div>
         <div style={{ margin: '2rem 0' }}>
           {data?.shotTypeId && newSubType ? (
             <SubType
+              updateShotType={updateShotType}
               rulePack={rulePack}
               rulePackId={rulePackId}
               shotTypeId={data?.shotTypeId}
-              setNewSubType={setNewSubType}
               data={{
                 shotSubTypeId: null,
                 name: '',
                 code: '',
               }}
+              mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ) : (
             data?.shotTypeId && (
@@ -545,9 +567,11 @@ const FormDialog = props => {
             handleSubmit(onSubmit)()
           }}
           type="button"
-          loading={loadingMergeShotType}
+          loading={mutationLoadingCreate || mutationLoadingUpdate}
         >
-          {loadingMergeShotType ? 'Saving...' : 'Save'}
+          {mutationLoadingCreate || mutationLoadingUpdate
+            ? 'Saving...'
+            : 'Save'}
         </LoadingButton>
       </DialogActions>
     </Dialog>
@@ -555,85 +579,20 @@ const FormDialog = props => {
 }
 
 const SubType = props => {
-  const { rulePack, rulePackId, shotTypeId, data, setNewSubType } = props
+  const {
+    rulePackId,
+    shotTypeId,
+    data,
+    updateShotType,
+    mutationLoadingUpdate,
+  } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
+  const shotSubTypeIdDelete = React.useRef(data?.shotSubTypeId)
+
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
-  })
-
-  const [
-    mergeShotTypeShotSubType,
-    { loading: loadingMergeShotSubType },
-  ] = useMutation(MERGE_SHOT_TYPE_SHOT_SUB_TYPE, {
-    update(cache, { data: { shotTypeShotSubType } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SHOT_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
-
-        const shotType = queryResult.rulePack[0].shotTypes.find(
-          gt => gt.shotTypeId === shotTypeId
-        )
-        const existingData = shotType.subTypes
-        const newItem = shotTypeShotSubType.to
-
-        let updatedData = []
-        if (
-          existingData.find(ed => ed.shotSubTypeId === newItem.shotSubTypeId)
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.shotSubTypeId === newItem.shotSubTypeId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [...existingData, newItem]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              shotTypes: [
-                ...queryResult.rulePack[0].shotTypes.filter(
-                  gt => gt.shotTypeId !== shotTypeId
-                ),
-                { ...shotType, subTypes: updatedData },
-              ],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_SHOT_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.shotTypeShotSubType.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      setNewSubType(false)
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
   })
 
   const [
@@ -641,46 +600,44 @@ const SubType = props => {
     { loading: mutationLoadingDeleteShotSubType },
   ] = useMutation(DELETE_SHOT_SUB_TYPE, {
     variables: {
-      shotSubTypeId: data?.shotSubTypeId,
+      where: { shotSubTypeId: data?.shotSubTypeId },
     },
-    update(cache, { data: { deleted } }) {
+    update(cache) {
       try {
         const queryResult = cache.readQuery({
           query: GET_SHOT_TYPES,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
 
-        const shotType = queryResult.rulePack[0].shotTypes.find(
+        const shotType = queryResult.shotTypes.find(
           gt => gt.shotTypeId === shotTypeId
         )
 
         const updatedData = shotType.subTypes.filter(
-          p => p.shotSubTypeId !== deleted.shotSubTypeId
+          p => p.shotSubTypeId !== shotSubTypeIdDelete.current
         )
 
         const updatedResult = {
-          rulePack: [
+          shotTypes: [
+            ...queryResult.shotTypes.filter(gt => gt.shotTypeId !== shotTypeId),
             {
-              ...queryResult.rulePack[0],
-              shotTypes: [
-                ...queryResult.rulePack[0].shotTypes.filter(
-                  gt => gt.shotTypeId !== shotTypeId
-                ),
-                {
-                  ...shotType,
-                  subTypes: updatedData,
-                },
-              ],
+              ...shotType,
+              subTypes: updatedData,
             },
           ],
+
+          rulePacks: queryResult?.rulePacks,
         }
+
         cache.writeQuery({
           query: GET_SHOT_TYPES,
           data: updatedResult,
           variables: {
-            rulePackId,
+            where: { rulePack: { rulePackId } },
+            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -704,15 +661,36 @@ const SubType = props => {
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
+        data?.shotSubTypeId
+          ? updateShotType({
+              variables: {
+                where: {
+                  shotTypeId,
+                },
+                update: {
+                  subTypes: {
+                    where: {
+                      shotSubTypeId: data?.shotSubTypeId,
+                    },
+                    update: {
+                      name,
+                      code,
+                    },
+                  },
+                },
+              },
+            })
+          : updateShotType({
+              variables: {
+                where: {
+                  shotTypeId,
+                },
 
-        mergeShotTypeShotSubType({
-          variables: {
-            shotTypeId,
-            name,
-            code,
-            shotSubTypeId: checkId(data?.shotSubTypeId || 'new'),
-          },
-        })
+                create: {
+                  subTypes: { node: { name, code } },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -778,9 +756,9 @@ const SubType = props => {
                     handleSubmit(onSubmit)()
                   }}
                   type="button"
-                  loading={loadingMergeShotSubType}
+                  loading={mutationLoadingUpdate}
                 >
-                  {loadingMergeShotSubType ? 'Saving...' : 'Save'}
+                  {mutationLoadingUpdate ? 'Saving...' : 'Save'}
                 </LoadingButton>
               </Grid>
             </Grid>

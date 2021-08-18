@@ -1,13 +1,13 @@
 import React, { useCallback, useContext } from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
-
+import { useAuth0 } from '@auth0/auth0-react'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
+import { useSnackbar } from 'notistack'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
 import Img from 'react-cool-img'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
@@ -44,9 +44,8 @@ const GET_ORGANIZATION_BY_SLUG = gql`
       legalName
       logo
       urlSlug
-      foundDate {
-        formatted
-      }
+      ownerId
+      foundDate
       persons {
         personId
         firstName
@@ -67,8 +66,8 @@ const GET_ORGANIZATION_BY_SLUG = gql`
 `
 
 export const GET_ORGANIZATION = gql`
-  query getOrganization($organizationId: ID!) {
-    organization: Organization(organizationId: $organizationId) {
+  query getOrganization($where: OrganizationWhere) {
+    organization: organizations(where: $where) {
       organizationId
       name
       nick
@@ -77,9 +76,8 @@ export const GET_ORGANIZATION = gql`
       legalName
       logo
       urlSlug
-      foundDate {
-        formatted
-      }
+      ownerId
+      foundDate
       persons {
         personId
         firstName
@@ -99,44 +97,51 @@ export const GET_ORGANIZATION = gql`
   }
 `
 
-const MERGE_ORGANIZATION = gql`
-  mutation mergeOrganization(
-    $organizationId: ID!
-    $name: String
-    $legalName: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-    $urlSlug: String!
-  ) {
-    mergeOrganization: MergeOrganization(
-      organizationId: $organizationId
-      name: $name
-      legalName: $legalName
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      urlSlug: $urlSlug
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+const CREATE_ORGANIZATION = gql`
+  mutation createOrganization($input: [OrganizationCreateInput!]!) {
+    createOrganizations(input: $input) {
+      organizations {
+        organizationId
+        name
+        nick
+        short
+        status
+        legalName
+        logo
+        urlSlug
+        ownerId
+        foundDate
       }
-    ) {
-      organizationId
+    }
+  }
+`
+
+const UPDATE_ORGANIZATION = gql`
+  mutation updateOrganization(
+    $where: OrganizationWhere
+    $update: OrganizationUpdateInput
+  ) {
+    updateOrganizations(where: $where, update: $update) {
+      organizations {
+        organizationId
+        name
+        nick
+        short
+        status
+        legalName
+        logo
+        urlSlug
+        ownerId
+        foundDate
+      }
     }
   }
 `
 
 const DELETE_ORGANIZATION = gql`
-  mutation deleteOrganization($organizationId: ID!) {
-    deleteOrganization: DeleteOrganization(organizationId: $organizationId) {
-      organizationId
+  mutation deleteOrganization($where: OrganizationWhere) {
+    deleteOrganizations(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -144,20 +149,11 @@ const DELETE_ORGANIZATION = gql`
 const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { organizationId, organizationSlug } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
+  const { organizationSlug } = useParams()
   const client = useApolloClient()
-
+  const { user } = useAuth0()
   const { setOrganizationData } = useContext(OrganizationContext)
-
-  // const {
-  //   loading: queryLoading,
-  //   data: queryData,
-  //   error: queryError,
-  // } = useQuery(GET_ORGANIZATION, {
-  //   fetchPolicy: 'network-only',
-  //   variables: { organizationId },
-  //   skip: organizationId === 'new',
-  // })
 
   const {
     data: queryData,
@@ -165,7 +161,7 @@ const Organization = () => {
     error: queryError,
   } = useQuery(GET_ORGANIZATION_BY_SLUG, {
     variables: { organizationSlug },
-    skip: organizationId === 'new',
+    skip: organizationSlug === 'new',
     onCompleted: ({ organization }) => {
       if (organization) {
         const { organizationId, urlSlug, name, nick } = organization
@@ -182,16 +178,26 @@ const Organization = () => {
   })
 
   const [
-    mergeOrganization,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_ORGANIZATION, {
+    createOrganization,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_ORGANIZATION, {
     onCompleted: data => {
-      if (organizationId === 'new') {
+      if (organizationSlug === 'new') {
         const newId = data.mergeOrganization.organizationId
         history.replace(getAdminOrganizationRoute(newId))
       }
+      enqueueSnackbar('Organization created!', { variant: 'success' })
     },
   })
+
+  const [updateOrganization, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_ORGANIZATION,
+    {
+      onCompleted: () => {
+        enqueueSnackbar('Organization updated!', { variant: 'success' })
+      },
+    }
+  )
 
   const [
     deleteOrganization,
@@ -202,7 +208,7 @@ const Organization = () => {
     },
   })
 
-  const orgData = queryData?.organization || {}
+  const orgData = queryData?.organization
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -215,18 +221,34 @@ const Organization = () => {
 
         const dataToSubmit = {
           ...rest,
-          organizationId: organizationId === 'new' ? uuidv4() : organizationId,
+          ownerId: orgData?.ownerId || user?.sub,
+          // organizationId: checkId(orgData.organizationId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeOrganization({
-          variables: dataToSubmit,
-        })
+        orgData.organizationId
+          ? updateOrganization({
+              variables: {
+                where: {
+                  organizationId: orgData.organizationId,
+                },
+                update: dataToSubmit,
+              },
+            })
+          : createOrganization({
+              variables: {
+                input: dataToSubmit,
+              },
+            })
+
+        // mergeOrganization({
+        //   variables: dataToSubmit,
+        // })
       } catch (error) {
         console.error(error)
       }
     },
-    [organizationId]
+    [orgData]
   )
 
   const updateLogo = useCallback(
@@ -236,7 +258,7 @@ const Organization = () => {
       const queryResult = client.readQuery({
         query: GET_ORGANIZATION,
         variables: {
-          organizationId,
+          where: { organizationId: orgData.organizationId },
         },
       })
 
@@ -251,12 +273,12 @@ const Organization = () => {
           ],
         },
         variables: {
-          organizationId,
+          where: { organizationId: orgData.organizationId },
         },
       })
       handleSubmit(onSubmit)()
     },
-    [client, organizationId]
+    [client, orgData]
   )
 
   return (
@@ -264,13 +286,12 @@ const Organization = () => {
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+      {mutationErrorCreate && !mutationLoadingCreate && (
+        <Error message={mutationErrorCreate.message} />
       )}
-      {(orgData || organizationId === 'new') &&
-        !queryLoading &&
+      {(orgData || organizationSlug === 'new') &&
         !queryError &&
-        !mutationErrorMerge && (
+        !mutationErrorCreate && (
           <form
             onSubmit={handleSubmit(onSubmit)}
             className={classes.form}
@@ -278,7 +299,7 @@ const Organization = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{orgData.name || 'Organization'}</title>
+              <title>{orgData?.name || 'Organization'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
@@ -302,7 +323,7 @@ const Organization = () => {
                     error={errors.logo}
                   />
 
-                  {isValidUuid(organizationId) && (
+                  {isValidUuid(orgData.organizationId) && (
                     <Uploader
                       buttonText={'Change logo'}
                       onSubmit={updateLogo}
@@ -316,18 +337,26 @@ const Organization = () => {
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
-                      <Title>{'Organization'}</Title>
+                      <Title>{orgData?.name || 'Organization'}</Title>
                     </div>
                     <div>
                       {formState.isDirty && (
-                        <ButtonSave loading={mutationLoadingMerge} />
+                        <ButtonSave
+                          loading={
+                            mutationLoadingCreate || mutationLoadingUpdate
+                          }
+                        />
                       )}
-                      {organizationId !== 'new' && (
+                      {organizationSlug !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
                             deleteOrganization({
-                              variables: { organizationId },
+                              variables: {
+                                where: {
+                                  organizationId: orgData.organizationId,
+                                },
+                              },
                             })
                           }}
                         />
@@ -418,7 +447,7 @@ const Organization = () => {
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={orgData?.foundDate?.formatted}
+                        defaultValue={orgData?.foundDate}
                         error={errors?.foundDate}
                       />
                     </Grid>
@@ -426,8 +455,11 @@ const Organization = () => {
                 </Paper>
               </Grid>
             </Grid>
-            {isValidUuid(organizationId) && (
-              <Relations organizationId={organizationId} data={orgData} />
+            {isValidUuid(orgData.organizationId) && (
+              <Relations
+                organizationId={orgData.organizationId}
+                data={orgData}
+              />
             )}
           </form>
         )}

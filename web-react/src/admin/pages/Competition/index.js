@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { v4 as uuidv4 } from 'uuid'
+
 import { Container, Grid, Paper } from '@material-ui/core'
 
 import Toolbar from '@material-ui/core/Toolbar'
@@ -22,6 +22,7 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
+import OrganizationContext from '../../../context/organization'
 import {
   getAdminOrgCompetitionsRoute,
   getAdminOrgCompetitionRoute,
@@ -32,55 +33,51 @@ import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_COMPETITION = gql`
-  query getCompetition($competitionId: ID!) {
-    competition: Competition(competitionId: $competitionId) {
+  query getCompetition($where: CompetitionWhere) {
+    competitions(where: $where) {
       competitionId
       name
       nick
       short
       status
       logo
-      foundDate {
-        formatted
+      organizationId
+      foundDate
+      org {
+        organizationId
+        name
       }
     }
   }
 `
 
-const MERGE_COMPETITION = gql`
-  mutation mergeCompetition(
-    $competitionId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-  ) {
-    mergeCompetition: MergeCompetition(
-      competitionId: $competitionId
-      name: $name
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+const CREATE_COMPETITION = gql`
+  mutation createCompetition($input: [CompetitionCreateInput!]!) {
+    createCompetitions(input: $input) {
+      competitions {
+        competitionId
       }
-    ) {
-      competitionId
+    }
+  }
+`
+
+const UPDATE_COMPETITION = gql`
+  mutation updateCompetition(
+    $where: CompetitionWhere
+    $update: CompetitionUpdateInput
+  ) {
+    updateCompetitions(where: $where, update: $update) {
+      competitions {
+        competitionId
+      }
     }
   }
 `
 
 const DELETE_COMPETITION = gql`
-  mutation deleteCompetition($competitionId: ID!) {
-    deleteCompetition: DeleteCompetition(competitionId: $competitionId) {
-      competitionId
+  mutation deleteCompetition($where: CompetitionWhere) {
+    deleteCompetitions(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -91,26 +88,37 @@ const Competition = () => {
   const { enqueueSnackbar } = useSnackbar()
   const { competitionId, organizationSlug } = useParams()
   const client = useApolloClient()
+  const { organizationData } = React.useContext(OrganizationContext)
   const {
     loading: queryLoading,
     data: queryData,
     error: queryError,
   } = useQuery(GET_COMPETITION, {
     fetchPolicy: 'network-only',
-    variables: { competitionId },
+    variables: { where: { competitionId } },
     skip: competitionId === 'new',
   })
 
   const [
-    mergeCompetition,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_COMPETITION, {
+    createCompetition,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_COMPETITION, {
     onCompleted: data => {
       if (competitionId === 'new') {
-        const newId = data.mergeCompetition.competitionId
-        history.replace(getAdminOrgCompetitionRoute(organizationSlug, newId))
+        const newId = data?.createCompetitions?.competitions?.[0]?.competitionId
+        newId &&
+          history.replace(getAdminOrgCompetitionRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Competition saved!', { variant: 'success' })
+    },
+  })
+
+  const [
+    updateCompetition,
+    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  ] = useMutation(UPDATE_COMPETITION, {
+    onCompleted: () => {
+      enqueueSnackbar('Competition updated!', { variant: 'success' })
     },
   })
 
@@ -118,47 +126,71 @@ const Competition = () => {
     deleteCompetition,
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_COMPETITION, {
+    variables: { where: { competitionId } },
     onCompleted: () => {
       history.push(getAdminOrgCompetitionsRoute(organizationSlug))
       enqueueSnackbar('Competition was deleted!')
     },
   })
 
-  const competitionData = queryData?.competition[0] || {}
+  const competitionData = queryData?.competitions?.[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const onSubmit = useCallback(
+  const onSubmit = React.useCallback(
     dataToCheck => {
       try {
         const { foundDate, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          competitionId: competitionId === 'new' ? uuidv4() : competitionId,
+          organizationId:
+            competitionData?.organizationId || organizationData?.organizationId,
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeCompetition({
-          variables: dataToSubmit,
-        })
+        competitionId === 'new'
+          ? createCompetition({
+              variables: {
+                input: {
+                  ...dataToSubmit,
+                  organization: {
+                    connect: {
+                      where: {
+                        organizationId:
+                          competitionData?.organizationId ||
+                          organizationData?.organizationId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
+          : updateCompetition({
+              variables: {
+                where: {
+                  competitionId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
     },
-    [competitionId]
+    [competitionId, organizationData, competitionData]
   )
 
-  const updateLogo = useCallback(
+  const updateLogo = React.useCallback(
     url => {
       setValue('logo', url, true)
 
       const queryResult = client.readQuery({
         query: GET_COMPETITION,
         variables: {
-          competitionId,
+          where: { competitionId },
         },
       })
 
@@ -173,7 +205,7 @@ const Competition = () => {
           ],
         },
         variables: {
-          competitionId,
+          where: { competitionId },
         },
       })
       handleSubmit(onSubmit)()
@@ -186,9 +218,12 @@ const Competition = () => {
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
-      )}
+      {mutationErrorMerge ||
+        (mutationErrorCreate && (
+          <Error
+            message={mutationErrorMerge.message || mutationErrorCreate.message}
+          />
+        ))}
       {(competitionData || competitionId === 'new') &&
         !queryLoading &&
         !queryError &&
@@ -242,13 +277,19 @@ const Competition = () => {
                     </div>
                     <div>
                       {formState.isDirty && (
-                        <ButtonSave loading={mutationLoadingMerge} />
+                        <ButtonSave
+                          loading={
+                            mutationLoadingCreate || mutationLoadingMerge
+                          }
+                        />
                       )}
                       {competitionId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteCompetition({ variables: { competitionId } })
+                            deleteCompetition({
+                              variables: { where: { competitionId } },
+                            })
                           }}
                         />
                       )}
@@ -314,7 +355,7 @@ const Competition = () => {
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={competitionData?.foundDate?.formatted}
+                        defaultValue={competitionData?.foundDate}
                         error={errors.foundDate}
                       />
                     </Grid>
@@ -323,7 +364,11 @@ const Competition = () => {
               </Grid>
             </Grid>
             {isValidUuid(competitionId) && (
-              <Relations competitionId={competitionId} />
+              <Relations
+                competitionId={competitionId}
+                competition={competitionData}
+                updateCompetition={updateCompetition}
+              />
             )}
           </form>
         )}

@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
@@ -36,10 +35,23 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, showTimeAsMinutes } from '../../../../../utils'
 
 const GET_PERIODS = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: PeriodWhere, $whereRulePack: RulePackWhere) {
+    periods(where: $where) {
+      periodId
       name
+      code
+      duration
+      priority
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_PERIOD = gql`
+  mutation createPeriod($input: [PeriodCreateInput!]!) {
+    createPeriods(input: $input) {
       periods {
         periodId
         name
@@ -51,33 +63,10 @@ const GET_PERIODS = gql`
   }
 `
 
-const MERGE_RULEPACK_PERIOD = gql`
-  mutation mergeRulePackPeriod(
-    $rulePackId: ID!
-    $periodId: ID!
-    $name: String
-    $code: String
-    $duration: Int
-    $priority: Int!
-  ) {
-    period: MergePeriod(
-      periodId: $periodId
-      name: $name
-      code: $code
-      duration: $duration
-      priority: $priority
-    ) {
-      periodId
-      name
-    }
-    periodRulePack: MergePeriodRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { periodId: $periodId }
-    ) {
-      from {
-        name
-      }
-      to {
+const UPDATE_PERIOD = gql`
+  mutation updatePeriod($where: PeriodWhere, $update: PeriodUpdateInput) {
+    updatePeriods(where: $where, update: $update) {
+      periods {
         periodId
         name
         code
@@ -89,9 +78,9 @@ const MERGE_RULEPACK_PERIOD = gql`
 `
 
 const DELETE_PERIOD = gql`
-  mutation deletePeriod($periodId: ID!) {
-    deleted: DeletePeriod(periodId: $periodId) {
-      periodId
+  mutation deletePeriod($where: PeriodWhere) {
+    deletePeriods(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -120,14 +109,16 @@ const Periods = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_PERIODS, {
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
     fetchPolicy: 'cache-and-network',
   })
 
-  const rulePack = queryData?.rulePack?.[0]
-
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -139,31 +130,29 @@ const Periods = props => {
   const [deletePeriod, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_PERIOD,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_PERIODS,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].periods.filter(
+          const updatedData = queryResult.periods.filter(
             p => p.periodId !== deleted.periodId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                periods: updatedData,
-              },
-            ],
+            periods: updatedData,
           }
           cache.writeQuery({
             query: GET_PERIODS,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -203,11 +192,17 @@ const Periods = props => {
         valueFormatter: params => {
           return showTimeAsMinutes(params.value)
         },
+        valueGetter: params => {
+          return params.value
+        },
       },
       {
         field: 'priority',
         headerName: 'Priority',
         width: 100,
+        valueGetter: params => {
+          return params.value
+        },
       },
       {
         field: 'periodId',
@@ -245,13 +240,14 @@ const Periods = props => {
               dialogDescription={'Period will be completely delete'}
               dialogNegativeText={'No, keep period'}
               dialogPositiveText={'Yes, delete period'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deletePeriod({
                   variables: {
-                    periodId: params.row.periodId,
+                    where: { periodId: params.row.periodId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -291,7 +287,7 @@ const Periods = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackPeriodsColumns}
-                rows={setIdFromEntityId(rulePack.periods, 'periodId')}
+                rows={setIdFromEntityId(queryData?.periods, 'periodId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -303,7 +299,7 @@ const Periods = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -323,64 +319,89 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [mergeRulePackPeriod, { loading: loadingMergePeriod }] = useMutation(
-    MERGE_RULEPACK_PERIOD,
+  const [createPeriod, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_PERIOD,
     {
-      update(cache, { data: { periodRulePack } }) {
+      update(cache, { data: { createPeriods } }) {
         try {
           const queryResult = cache.readQuery({
             query: GET_PERIODS,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
+          const newItem = createPeriods?.periods?.[0]
 
-          const existingData = queryResult.rulePack[0].periods
-          const newItem = periodRulePack.to
-          let updatedData = []
-          if (existingData.find(ed => ed.periodId === newItem.periodId)) {
-            // replace if item exist in array
-            updatedData = existingData.map(ed =>
-              ed.periodId === newItem.periodId ? newItem : ed
-            )
-          } else {
-            // add new item if item not in array
-            updatedData = [newItem, ...existingData]
-          }
-
+          const existingData = queryResult?.periods
+          const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                periods: updatedData,
-              },
-            ],
+            periods: updatedData,
           }
           cache.writeQuery({
             query: GET_PERIODS,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
             },
           })
         } catch (error) {
           console.error(error)
         }
       },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.periodRulePack.to.name} saved to ${rulePack.name}!`,
-          {
-            variant: 'success',
-          }
-        )
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
         handleCloseDialog()
       },
       onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
+        enqueueSnackbar(`Error: ${error}`, {
           variant: 'error',
         })
-        console.error(error)
+      },
+    }
+  )
+
+  const [updatePeriod, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_PERIOD,
+    {
+      update(cache, { data: { updatePeriods } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_PERIODS,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updatePeriods?.periods?.[0]
+
+          const existingData = queryResult?.periods
+          const updatedData = existingData?.map(ed =>
+            ed.periodId === newItem.periodId ? newItem : ed
+          )
+          const updatedResult = {
+            periods: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_PERIODS,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
       },
     }
   )
@@ -390,16 +411,37 @@ const FormDialog = props => {
       try {
         const { name, duration, code, priority } = dataToCheck
 
-        mergeRulePackPeriod({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            duration: !isNaN(parseInt(duration)) && parseInt(duration),
-            priority: !isNaN(parseInt(priority)) && parseInt(priority),
-            periodId: data?.periodId || uuidv4(),
-          },
-        })
+        data?.periodId
+          ? updatePeriod({
+              variables: {
+                where: {
+                  periodId: data?.periodId,
+                },
+                update: {
+                  name,
+                  code,
+                  duration: !isNaN(parseInt(duration)) && parseInt(duration),
+                  priority: !isNaN(parseInt(priority)) && parseInt(priority),
+                },
+              },
+            })
+          : createPeriod({
+              variables: {
+                input: {
+                  name,
+                  code,
+                  duration: !isNaN(parseInt(duration)) && parseInt(duration),
+                  priority: !isNaN(parseInt(priority)) && parseInt(priority),
+                  rulePack: {
+                    connect: {
+                      where: {
+                        rulePackId,
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -431,7 +473,7 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.name || ''}
+                      defaultValue={data?.name}
                       name="name"
                       label="Name"
                       required
@@ -443,7 +485,7 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.code || ''}
+                      defaultValue={data?.code}
                       name="code"
                       label="Code"
                       fullWidth
@@ -454,7 +496,7 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.duration || ''}
+                      defaultValue={data?.duration}
                       name="duration"
                       label="Duration in minutes"
                       required
@@ -466,9 +508,9 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.priority || ''}
+                      defaultValue={data?.priority}
                       name="priority"
-                      label="Priority in minutes"
+                      label="Priority"
                       required
                       fullWidth
                       variant="standard"
@@ -490,8 +532,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergePeriod}>
-            {loadingMergePeriod ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>

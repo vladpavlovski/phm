@@ -29,8 +29,11 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
 const GET_MEMBERSHIP = gql`
-  query getMembership($gameId: ID!, $organizationSlug: String!) {
-    game: Game(gameId: $gameId) {
+  query getMembership(
+    $whereGame: GameWhere
+    $whereCompetition: CompetitionWhere
+  ) {
+    game: games(where: $whereGame) {
       gameId
       name
       phase {
@@ -40,9 +43,7 @@ const GET_MEMBERSHIP = gql`
         groupId
       }
     }
-    competitions: competitionsByOrganization(
-      organizationSlug: $organizationSlug
-    ) {
+    competitions(where: $whereCompetition) {
       competitionId
       name
       phases {
@@ -67,69 +68,16 @@ const GET_MEMBERSHIP = gql`
   }
 `
 
-const MERGE_GAME_PHASE = gql`
-  mutation mergeGamePhase($gameId: ID!, $phaseId: ID!) {
-    gamePhase: MergeGamePhase(
-      from: { gameId: $gameId }
-      to: { phaseId: $phaseId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
+const UPDATE_GAME = gql`
+  mutation updateGame($where: GameWhere, $update: GameUpdateInput) {
+    updateGame: updateGames(where: $where, update: $update) {
+      games {
+        gameId
       }
     }
   }
 `
 
-const REMOVE_GAME_PHASE = gql`
-  mutation removeGamePhase($gameId: ID!, $phaseId: ID!) {
-    gamePhase: RemoveGamePhase(
-      from: { gameId: $gameId }
-      to: { phaseId: $phaseId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
-
-const MERGE_GAME_GROUP = gql`
-  mutation mergeGameGroup($gameId: ID!, $groupId: ID!) {
-    gameGroup: MergeGameGroup(
-      from: { gameId: $gameId }
-      to: { groupId: $groupId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_GAME_GROUP = gql`
-  mutation removeGameGroup($gameId: ID!, $groupId: ID!) {
-    gameGroup: RemoveGameGroup(
-      from: { gameId: $gameId }
-      to: { groupId: $groupId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
 const sortBySeasonNick = (a, b) => {
   if (a?.season && a?.season?.nick < b?.season?.nick) {
     return 1
@@ -152,7 +100,18 @@ const Membership = props => {
 
   const handleOnChange = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { organizationSlug, gameId } })
+      getData({
+        variables: {
+          whereGame: {
+            gameId,
+          },
+          whereCompetition: {
+            org: {
+              urlSlug: organizationSlug,
+            },
+          },
+        },
+      })
     }
   }, [])
 
@@ -308,26 +267,17 @@ const PhaseRow = props => {
     game?.phase?.phaseId === phase?.phaseId
   )
 
-  const [mergeGamePhase, { loading }] = useMutation(
-    isMember ? REMOVE_GAME_PHASE : MERGE_GAME_PHASE,
-    {
-      onCompleted: data => {
-        const { gamePhase } = data
-        const phrase = isMember
-          ? `${gamePhase.from.name} is not in ${gamePhase.to.name} phase`
-          : `${gamePhase.from.name} participate in ${gamePhase.to.name} phase`
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  const [updateGame, { loading }] = useMutation(UPDATE_GAME, {
+    onCompleted: () => {
+      enqueueSnackbar('Game updated!', { variant: 'success' })
+      setIsMember(!isMember)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+    },
+  })
 
   const isDisabled = React.useMemo(() => {
     if (selectedPhaseId === phase?.phaseId) return false
@@ -348,10 +298,32 @@ const PhaseRow = props => {
               disabled={isDisabled}
               onChange={() => {
                 setSelectedPhaseId(isMember ? null : phase?.phaseId)
-                mergeGamePhase({
+
+                updateGame({
                   variables: {
-                    gameId: game?.gameId,
-                    phaseId: phase?.phaseId,
+                    where: {
+                      gameId: game?.gameId,
+                    },
+                    update: {
+                      phase: {
+                        ...(!isMember && {
+                          connect: {
+                            where: {
+                              phaseId: phase?.phaseId,
+                            },
+                          },
+                        }),
+                        ...(isMember && {
+                          disconnect: {
+                            where: {
+                              node: {
+                                phaseId: phase?.phaseId,
+                              },
+                            },
+                          },
+                        }),
+                      },
+                    },
                   },
                 })
               }}
@@ -369,31 +341,22 @@ const PhaseRow = props => {
 const GroupRow = props => {
   const { game, group, selectedGroupId, setSelectedGroupId } = props
   const { enqueueSnackbar } = useSnackbar()
-  // !!game.groups.find(g => g.groupId === group.groupId)
+
   const [isMember, setIsMember] = useState(
     game?.group?.groupId === group?.groupId
   )
 
-  const [mergeGameGroup, { loading }] = useMutation(
-    isMember ? REMOVE_GAME_GROUP : MERGE_GAME_GROUP,
-    {
-      onCompleted: data => {
-        const { gameGroup } = data
-        const phrase = isMember
-          ? `${gameGroup.from.name} is not in ${gameGroup.to.name} group`
-          : `${gameGroup.from.name} participate in ${gameGroup.to.name} group`
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  const [updateGame, { loading }] = useMutation(UPDATE_GAME, {
+    onCompleted: () => {
+      enqueueSnackbar('Game updated!', { variant: 'success' })
+      setIsMember(!isMember)
+    },
+    onError: error => {
+      enqueueSnackbar(`Error happened :( ${error}`, {
+        variant: 'error',
+      })
+    },
+  })
 
   const isDisabled = React.useMemo(() => {
     if (selectedGroupId === group?.groupId) return false
@@ -414,10 +377,31 @@ const GroupRow = props => {
               disabled={isDisabled}
               onChange={() => {
                 setSelectedGroupId(isMember ? null : group?.groupId)
-                mergeGameGroup({
+                updateGame({
                   variables: {
-                    gameId: game.gameId,
-                    groupId: group.groupId,
+                    where: {
+                      gameId: game?.gameId,
+                    },
+                    update: {
+                      group: {
+                        ...(!isMember && {
+                          connect: {
+                            where: {
+                              groupId: group.groupId,
+                            },
+                          },
+                        }),
+                        ...(isMember && {
+                          disconnect: {
+                            where: {
+                              node: {
+                                groupId: group.groupId,
+                              },
+                            },
+                          },
+                        }),
+                      },
+                    },
                   },
                 })
               }}

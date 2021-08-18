@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback } from 'react'
 
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+// import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -28,18 +28,18 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
 const GET_MEMBERSHIP = gql`
-  query getMembership($teamId: ID) {
-    team: Team(teamId: $teamId) {
+  query getMembership($where: TeamWhere) {
+    teams(where: $where) {
       teamId
       name
-      organizations {
+      orgs {
         organizationId
         name
       }
       competitions {
         competitionId
         name
-        organization {
+        org {
           organizationId
         }
         phases {
@@ -68,7 +68,7 @@ const GET_MEMBERSHIP = gql`
         name
       }
     }
-    organizations: Organization {
+    organizations {
       organizationId
       name
       competitions {
@@ -90,181 +90,183 @@ const GET_MEMBERSHIP = gql`
     }
   }
 `
-const MERGE_TEAM_ORGANIZATION = gql`
-  mutation mergeTeamOrganization($teamId: ID!, $organizationId: ID!) {
-    teamOrganization: MergeTeamOrganizations(
-      from: { teamId: $teamId }
-      to: { organizationId: $organizationId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const MERGE_TEAM_ORGANIZATION = gql`
+//   mutation mergeTeamOrganization($teamId: ID!, $organizationId: ID!) {
+//     teamOrganization: MergeTeamOrganizations(
+//       from: { teamId: $teamId }
+//       to: { organizationId: $organizationId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const REMOVE_TEAM_ORGANIZATION = gql`
-  mutation removeTeamOrganization($teamId: ID!, $organizationId: ID!) {
-    teamOrganization: RemoveTeamOrganizations(
-      from: { teamId: $teamId }
-      to: { organizationId: $organizationId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const REMOVE_TEAM_ORGANIZATION = gql`
+//   mutation removeTeamOrganization($teamId: ID!, $organizationId: ID!) {
+//     teamOrganization: RemoveTeamOrganizations(
+//       from: { teamId: $teamId }
+//       to: { organizationId: $organizationId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const MERGE_TEAM_COMPETITION = gql`
-  mutation mergeTeamCompetition($teamId: ID!, $competitionId: ID!) {
-    teamCompetition: MergeTeamCompetitions(
-      from: { teamId: $teamId }
-      to: { competitionId: $competitionId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
-const REMOVE_TEAM_COMPETITION = gql`
-  mutation removeTeamCompetition($teamId: ID!, $competitionId: ID!) {
-    teamCompetition: RemoveTeamCompetitions(
-      from: { teamId: $teamId }
-      to: { competitionId: $competitionId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const MERGE_TEAM_COMPETITION = gql`
+//   mutation mergeTeamCompetition($teamId: ID!, $competitionId: ID!) {
+//     teamCompetition: MergeTeamCompetitions(
+//       from: { teamId: $teamId }
+//       to: { competitionId: $competitionId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
+// const REMOVE_TEAM_COMPETITION = gql`
+//   mutation removeTeamCompetition($teamId: ID!, $competitionId: ID!) {
+//     teamCompetition: RemoveTeamCompetitions(
+//       from: { teamId: $teamId }
+//       to: { competitionId: $competitionId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const MERGE_TEAM_PHASE = gql`
-  mutation mergeTeamPhase($teamId: ID!, $phaseId: ID!) {
-    teamPhase: MergeTeamPhases(
-      from: { teamId: $teamId }
-      to: { phaseId: $phaseId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const MERGE_TEAM_PHASE = gql`
+//   mutation mergeTeamPhase($teamId: ID!, $phaseId: ID!) {
+//     teamPhase: MergeTeamPhases(
+//       from: { teamId: $teamId }
+//       to: { phaseId: $phaseId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const REMOVE_TEAM_PHASE = gql`
-  mutation removeTeamPhase($teamId: ID!, $phaseId: ID!) {
-    teamPhase: RemoveTeamPhases(
-      from: { teamId: $teamId }
-      to: { phaseId: $phaseId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const REMOVE_TEAM_PHASE = gql`
+//   mutation removeTeamPhase($teamId: ID!, $phaseId: ID!) {
+//     teamPhase: RemoveTeamPhases(
+//       from: { teamId: $teamId }
+//       to: { phaseId: $phaseId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const MERGE_TEAM_GROUP = gql`
-  mutation mergeTeamGroup($teamId: ID!, $groupId: ID!) {
-    teamGroup: MergeTeamGroups(
-      from: { teamId: $teamId }
-      to: { groupId: $groupId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const MERGE_TEAM_GROUP = gql`
+//   mutation mergeTeamGroup($teamId: ID!, $groupId: ID!) {
+//     teamGroup: MergeTeamGroups(
+//       from: { teamId: $teamId }
+//       to: { groupId: $groupId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const REMOVE_TEAM_GROUP = gql`
-  mutation removeTeamGroup($teamId: ID!, $groupId: ID!) {
-    teamGroup: RemoveTeamGroups(
-      from: { teamId: $teamId }
-      to: { groupId: $groupId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const REMOVE_TEAM_GROUP = gql`
+//   mutation removeTeamGroup($teamId: ID!, $groupId: ID!) {
+//     teamGroup: RemoveTeamGroups(
+//       from: { teamId: $teamId }
+//       to: { groupId: $groupId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const MERGE_TEAM_SEASON = gql`
-  mutation mergeTeamSeason($teamId: ID!, $seasonId: ID!) {
-    teamSeason: MergeTeamSeasons(
-      from: { teamId: $teamId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const MERGE_TEAM_SEASON = gql`
+//   mutation mergeTeamSeason($teamId: ID!, $seasonId: ID!) {
+//     teamSeason: MergeTeamSeasons(
+//       from: { teamId: $teamId }
+//       to: { seasonId: $seasonId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
-const REMOVE_TEAM_SEASON = gql`
-  mutation removeTeamSeasons($teamId: ID!, $seasonId: ID!) {
-    teamSeason: RemoveTeamSeasons(
-      from: { teamId: $teamId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        name
-      }
-      to {
-        name
-      }
-    }
-  }
-`
+// const REMOVE_TEAM_SEASON = gql`
+//   mutation removeTeamSeasons($teamId: ID!, $seasonId: ID!) {
+//     teamSeason: RemoveTeamSeasons(
+//       from: { teamId: $teamId }
+//       to: { seasonId: $seasonId }
+//     ) {
+//       from {
+//         name
+//       }
+//       to {
+//         name
+//       }
+//     }
+//   }
+// `
 
 const Membership = props => {
-  const { teamId } = props
+  const { teamId, updateTeam } = props
   const classes = useStyles()
 
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_MEMBERSHIP)
+  ] = useLazyQuery(GET_MEMBERSHIP, {
+    variables: { where: { teamId } },
+  })
 
-  const team = useMemo(() => queryData && queryData.team && queryData.team[0], [
-    queryData,
-  ])
+  // const team = useMemo(() => queryData && queryData.team && queryData.team[0], [
+  //   queryData,
+  // ])
 
   const handleOnChange = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { teamId } })
+      getData()
     }
   }, [])
 
@@ -303,7 +305,8 @@ const Membership = props => {
                     <OrganizationRow
                       key={row.organizationId}
                       organization={row}
-                      team={team}
+                      team={queryData?.teams?.[0]}
+                      updateTeam={updateTeam}
                     />
                   ))}
                 </TableBody>
@@ -317,37 +320,35 @@ const Membership = props => {
 }
 
 const OrganizationRow = props => {
-  const { organization, team } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { organization, team, updateTeam } = props
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
-    !!team.organizations.find(
-      a => a.organizationId === organization.organizationId
-    )
+    !!team.orgs.find(a => a.organizationId === organization.organizationId)
   )
   const [organizationOpen, setOrganizationOpen] = useState(false)
 
-  const [mergeTeamOrganization, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_ORGANIZATION : MERGE_TEAM_ORGANIZATION,
-    {
-      onCompleted: data => {
-        const { teamOrganization } = data
-        const phrase = isMember
-          ? `${teamOrganization.from.name} is not in ${teamOrganization.to.name} organization`
-          : `${teamOrganization.from.name} participate in ${teamOrganization.to.name} organization`
+  // const [mergeTeamOrganization, { loading }] = useMutation(
+  //   isMember ? REMOVE_TEAM_ORGANIZATION : MERGE_TEAM_ORGANIZATION,
+  //   {
+  //     onCompleted: data => {
+  //       const { teamOrganization } = data
+  //       const phrase = isMember
+  //         ? `${teamOrganization.from.name} is not in ${teamOrganization.to.name} organization`
+  //         : `${teamOrganization.from.name} participate in ${teamOrganization.to.name} organization`
 
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  //       enqueueSnackbar(phrase, {
+  //         variant: isMember ? 'info' : 'success',
+  //       })
+  //       setIsMember(!isMember)
+  //     },
+  //     onError: error => {
+  //       enqueueSnackbar(`Error happened :( ${error}`, {
+  //         variant: 'error',
+  //       })
+  //     },
+  //   }
+  // )
   return (
     <>
       <TableRow>
@@ -373,18 +374,51 @@ const OrganizationRow = props => {
               <Switch
                 checked={isMember}
                 onChange={() => {
-                  mergeTeamOrganization({
+                  setIsMember(!isMember)
+                  updateTeam({
                     variables: {
-                      teamId: team.teamId,
-                      organizationId: organization.organizationId,
+                      where: {
+                        teamId: team.teamId,
+                      },
+                      update: {
+                        orgs: {
+                          ...(!isMember
+                            ? {
+                                connect: {
+                                  where: {
+                                    node: {
+                                      organizationId:
+                                        organization.organizationId,
+                                    },
+                                  },
+                                },
+                              }
+                            : {
+                                disconnect: {
+                                  where: {
+                                    node: {
+                                      organizationId:
+                                        organization.organizationId,
+                                    },
+                                  },
+                                },
+                              }),
+                        },
+                      },
                     },
                   })
+                  // mergeTeamOrganization({
+                  //   variables: {
+                  //     teamId: team.teamId,
+                  //     organizationId: organization.organizationId,
+                  //   },
+                  // })
                 }}
                 name="isMember"
                 color="primary"
               />
             }
-            label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+            label={isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
         <TableCell align="right">{organization.competitions.length}</TableCell>
@@ -416,6 +450,7 @@ const OrganizationRow = props => {
                       key={competition.competitionId}
                       team={team}
                       competition={competition}
+                      updateTeam={updateTeam}
                     />
                   ))}
                 </TableBody>
@@ -429,35 +464,35 @@ const OrganizationRow = props => {
 }
 
 const CompetitionRow = props => {
-  const { competition, team } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { competition, team, updateTeam } = props
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.competitions.find(c => c.competitionId === competition.competitionId)
   )
   const [competitionOpen, setCompetitionOpen] = useState(false)
 
-  const [mergeTeamCompetition, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_COMPETITION : MERGE_TEAM_COMPETITION,
-    {
-      onCompleted: data => {
-        const { teamCompetition } = data
-        const phrase = isMember
-          ? `${teamCompetition.from.name} is not in ${teamCompetition.to.name} competition`
-          : `${teamCompetition.from.name} participate in ${teamCompetition.to.name} competition`
+  // const [mergeTeamCompetition, { loading }] = useMutation(
+  //   isMember ? REMOVE_TEAM_COMPETITION : MERGE_TEAM_COMPETITION,
+  //   {
+  //     onCompleted: data => {
+  //       const { teamCompetition } = data
+  //       const phrase = isMember
+  //         ? `${teamCompetition.from.name} is not in ${teamCompetition.to.name} competition`
+  //         : `${teamCompetition.from.name} participate in ${teamCompetition.to.name} competition`
 
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  //       enqueueSnackbar(phrase, {
+  //         variant: isMember ? 'info' : 'success',
+  //       })
+  //       setIsMember(!isMember)
+  //     },
+  //     onError: error => {
+  //       enqueueSnackbar(`Error happened :( ${error}`, {
+  //         variant: 'error',
+  //       })
+  //     },
+  //   }
+  // )
   return (
     <>
       <TableRow>
@@ -483,18 +518,49 @@ const CompetitionRow = props => {
               <Switch
                 checked={isMember}
                 onChange={() => {
-                  mergeTeamCompetition({
+                  setIsMember(!isMember)
+                  updateTeam({
                     variables: {
-                      teamId: team.teamId,
-                      competitionId: competition.competitionId,
+                      where: {
+                        teamId: team.teamId,
+                      },
+                      update: {
+                        competitions: {
+                          ...(!isMember
+                            ? {
+                                connect: {
+                                  where: {
+                                    node: {
+                                      competitionId: competition.competitionId,
+                                    },
+                                  },
+                                },
+                              }
+                            : {
+                                disconnect: {
+                                  where: {
+                                    node: {
+                                      competitionId: competition.competitionId,
+                                    },
+                                  },
+                                },
+                              }),
+                        },
+                      },
                     },
                   })
+                  // mergeTeamCompetition({
+                  //   variables: {
+                  //     teamId: team.teamId,
+                  //     competitionId: competition.competitionId,
+                  //   },
+                  // })
                 }}
                 name="isMember"
                 color="primary"
               />
             }
-            label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+            label={isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
         <TableCell align="right">{competition.phases.length}</TableCell>
@@ -517,7 +583,12 @@ const CompetitionRow = props => {
                 </TableHead>
                 <TableBody>
                   {competition.phases.map(phase => (
-                    <PhaseRow key={phase.phaseId} team={team} phase={phase} />
+                    <PhaseRow
+                      key={phase.phaseId}
+                      team={team}
+                      phase={phase}
+                      updateTeam={updateTeam}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -535,7 +606,12 @@ const CompetitionRow = props => {
                 </TableHead>
                 <TableBody>
                   {competition.groups.map(group => (
-                    <GroupRow key={group.groupId} team={team} group={group} />
+                    <GroupRow
+                      key={group.groupId}
+                      team={team}
+                      group={group}
+                      updateTeam={updateTeam}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -557,6 +633,7 @@ const CompetitionRow = props => {
                       key={season.seasonId}
                       team={team}
                       season={season}
+                      updateTeam={updateTeam}
                     />
                   ))}
                 </TableBody>
@@ -570,33 +647,33 @@ const CompetitionRow = props => {
 }
 
 const PhaseRow = props => {
-  const { team, phase } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { team, phase, updateTeam } = props
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.phases.find(p => p.phaseId === phase.phaseId)
   )
 
-  const [mergeTeamPhase, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_PHASE : MERGE_TEAM_PHASE,
-    {
-      onCompleted: data => {
-        const { teamPhase } = data
-        const phrase = isMember
-          ? `${teamPhase.from.name} is not in ${teamPhase.to.name} phase`
-          : `${teamPhase.from.name} participate in ${teamPhase.to.name} phase`
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  // const [mergeTeamPhase, { loading }] = useMutation(
+  //   isMember ? REMOVE_TEAM_PHASE : MERGE_TEAM_PHASE,
+  //   {
+  //     onCompleted: data => {
+  //       const { teamPhase } = data
+  //       const phrase = isMember
+  //         ? `${teamPhase.from.name} is not in ${teamPhase.to.name} phase`
+  //         : `${teamPhase.from.name} participate in ${teamPhase.to.name} phase`
+  //       enqueueSnackbar(phrase, {
+  //         variant: isMember ? 'info' : 'success',
+  //       })
+  //       setIsMember(!isMember)
+  //     },
+  //     onError: error => {
+  //       enqueueSnackbar(`Error happened :( ${error}`, {
+  //         variant: 'error',
+  //       })
+  //     },
+  //   }
+  // )
 
   return (
     <TableRow>
@@ -609,18 +686,49 @@ const PhaseRow = props => {
             <Switch
               checked={isMember}
               onChange={() => {
-                mergeTeamPhase({
+                setIsMember(!isMember)
+                updateTeam({
                   variables: {
-                    teamId: team.teamId,
-                    phaseId: phase.phaseId,
+                    where: {
+                      teamId: team.teamId,
+                    },
+                    update: {
+                      phases: {
+                        ...(!isMember
+                          ? {
+                              connect: {
+                                where: {
+                                  node: {
+                                    phaseId: phase.phaseId,
+                                  },
+                                },
+                              },
+                            }
+                          : {
+                              disconnect: {
+                                where: {
+                                  node: {
+                                    phaseId: phase.phaseId,
+                                  },
+                                },
+                              },
+                            }),
+                      },
+                    },
                   },
                 })
+                // mergeTeamPhase({
+                //   variables: {
+                //     teamId: team.teamId,
+                //     phaseId: phase.phaseId,
+                //   },
+                // })
               }}
               name="isMember"
               color="primary"
             />
           }
-          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+          label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
@@ -628,33 +736,33 @@ const PhaseRow = props => {
 }
 
 const GroupRow = props => {
-  const { team, group } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { team, group, updateTeam } = props
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.groups.find(g => g.groupId === group.groupId)
   )
 
-  const [mergeTeamGroup, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_GROUP : MERGE_TEAM_GROUP,
-    {
-      onCompleted: data => {
-        const { teamGroup } = data
-        const phrase = isMember
-          ? `${teamGroup.from.name} is not in ${teamGroup.to.name} group`
-          : `${teamGroup.from.name} participate in ${teamGroup.to.name} group`
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  // const [mergeTeamGroup, { loading }] = useMutation(
+  //   isMember ? REMOVE_TEAM_GROUP : MERGE_TEAM_GROUP,
+  //   {
+  //     onCompleted: data => {
+  //       const { teamGroup } = data
+  //       const phrase = isMember
+  //         ? `${teamGroup.from.name} is not in ${teamGroup.to.name} group`
+  //         : `${teamGroup.from.name} participate in ${teamGroup.to.name} group`
+  //       enqueueSnackbar(phrase, {
+  //         variant: isMember ? 'info' : 'success',
+  //       })
+  //       setIsMember(!isMember)
+  //     },
+  //     onError: error => {
+  //       enqueueSnackbar(`Error happened :( ${error}`, {
+  //         variant: 'error',
+  //       })
+  //     },
+  //   }
+  // )
 
   return (
     <TableRow>
@@ -667,18 +775,49 @@ const GroupRow = props => {
             <Switch
               checked={isMember}
               onChange={() => {
-                mergeTeamGroup({
+                setIsMember(!isMember)
+                updateTeam({
                   variables: {
-                    teamId: team.teamId,
-                    groupId: group.groupId,
+                    where: {
+                      teamId: team.teamId,
+                    },
+                    update: {
+                      groups: {
+                        ...(!isMember
+                          ? {
+                              connect: {
+                                where: {
+                                  node: {
+                                    groupId: group.groupId,
+                                  },
+                                },
+                              },
+                            }
+                          : {
+                              disconnect: {
+                                where: {
+                                  node: {
+                                    groupId: group.groupId,
+                                  },
+                                },
+                              },
+                            }),
+                      },
+                    },
                   },
                 })
+                // mergeTeamGroup({
+                //   variables: {
+                //     teamId: team.teamId,
+                //     groupId: group.groupId,
+                //   },
+                // })
               }}
               name="isMember"
               color="primary"
             />
           }
-          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+          label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
@@ -686,33 +825,33 @@ const GroupRow = props => {
 }
 
 const SeasonRow = props => {
-  const { team, season } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { team, season, updateTeam } = props
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.seasons.find(g => g.seasonId === season.seasonId)
   )
 
-  const [mergeTeamGroup, { loading }] = useMutation(
-    isMember ? REMOVE_TEAM_SEASON : MERGE_TEAM_SEASON,
-    {
-      onCompleted: data => {
-        const { teamSeason } = data
-        const phrase = isMember
-          ? `${teamSeason.from.name} is not in ${teamSeason.to.name} season`
-          : `${teamSeason.from.name} participate in ${teamSeason.to.name} season`
-        enqueueSnackbar(phrase, {
-          variant: isMember ? 'info' : 'success',
-        })
-        setIsMember(!isMember)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  // const [mergeTeamGroup, { loading }] = useMutation(
+  //   isMember ? REMOVE_TEAM_SEASON : MERGE_TEAM_SEASON,
+  //   {
+  //     onCompleted: data => {
+  //       const { teamSeason } = data
+  //       const phrase = isMember
+  //         ? `${teamSeason.from.name} is not in ${teamSeason.to.name} season`
+  //         : `${teamSeason.from.name} participate in ${teamSeason.to.name} season`
+  //       enqueueSnackbar(phrase, {
+  //         variant: isMember ? 'info' : 'success',
+  //       })
+  //       setIsMember(!isMember)
+  //     },
+  //     onError: error => {
+  //       enqueueSnackbar(`Error happened :( ${error}`, {
+  //         variant: 'error',
+  //       })
+  //     },
+  //   }
+  // )
 
   return (
     <TableRow>
@@ -725,18 +864,49 @@ const SeasonRow = props => {
             <Switch
               checked={isMember}
               onChange={() => {
-                mergeTeamGroup({
+                setIsMember(!isMember)
+                updateTeam({
                   variables: {
-                    teamId: team.teamId,
-                    seasonId: season.seasonId,
+                    where: {
+                      teamId: team.teamId,
+                    },
+                    update: {
+                      seasons: {
+                        ...(!isMember
+                          ? {
+                              connect: {
+                                where: {
+                                  node: {
+                                    seasonId: season.seasonId,
+                                  },
+                                },
+                              },
+                            }
+                          : {
+                              disconnect: {
+                                where: {
+                                  node: {
+                                    seasonId: season.seasonId,
+                                  },
+                                },
+                              },
+                            }),
+                      },
+                    },
                   },
                 })
+                // mergeTeamGroup({
+                //   variables: {
+                //     teamId: team.teamId,
+                //     seasonId: season.seasonId,
+                //   },
+                // })
               }}
               name="isMember"
               color="primary"
             />
           }
-          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
+          label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>

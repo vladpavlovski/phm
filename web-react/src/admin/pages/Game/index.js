@@ -14,6 +14,8 @@ import Paper from '@material-ui/core/Paper'
 import { LinkButton } from '../../../components/LinkButton'
 import Toolbar from '@material-ui/core/Toolbar'
 import PlayCircleIcon from '@material-ui/icons/PlayCircle'
+import Autocomplete from '@material-ui/core/Autocomplete'
+import TextField from '@material-ui/core/TextField'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -22,12 +24,7 @@ import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFTimepicker } from '../../../components/RHFTimepicker'
 
 import { RHFInput } from '../../../components/RHFInput'
-import {
-  decomposeDate,
-  decomposeTime,
-  checkId,
-  isValidUuid,
-} from '../../../utils'
+import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -44,108 +41,108 @@ import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
 
 export const GET_GAME = gql`
-  query getGame($gameId: ID!) {
-    game: Game(gameId: $gameId) {
+  query getGame($where: GameWhere) {
+    games(where: $where) {
       gameId
       name
       type
       info
       foreignId
       description
-      teams {
-        team {
-          teamId
-          name
-          nick
-          logo
+      teamsConnection {
+        edges {
+          host
+          node {
+            teamId
+            name
+            nick
+            logo
+          }
         }
-        host
       }
-      players {
-        player {
-          avatar
-          playerId
-          name
-          firstName
-          lastName
+      playersConnection {
+        edges {
+          host
+          jersey
+          position
+          node {
+            avatar
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-        host
-        jersey
-        position
       }
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
-      startTime {
-        formatted
-      }
-      endTime {
-        formatted
-      }
+      startDate
+      endDate
+      startTime
+      endTime
       event {
         eventId
         name
       }
+      venue {
+        venueId
+        name
+      }
+    }
+    venues {
+      venueId
+      name
     }
   }
 `
 
-const MERGE_GAME = gql`
-  mutation mergeGame(
-    $gameId: ID!
-    $name: String!
-    $type: String
-    $description: String
-    $info: String
-    $foreignId: String
-    $startDateDay: Int
-    $startDateMonth: Int
-    $startDateYear: Int
-    $endDateDay: Int
-    $endDateMonth: Int
-    $endDateYear: Int
-    $startTimeHour: Int
-    $startTimeMinute: Int
-    $endTimeHour: Int
-    $endTimeMinute: Int
-    $organizationId: ID!
-  ) {
-    mergeGame: MergeGame(
-      gameId: $gameId
-      name: $name
-      description: $description
-      info: $info
-      type: $type
-      foreignId: $foreignId
-      startDate: {
-        day: $startDateDay
-        month: $startDateMonth
-        year: $startDateYear
-      }
-      endDate: { day: $endDateDay, month: $endDateMonth, year: $endDateYear }
-      startTime: { hour: $startTimeHour, minute: $startTimeMinute }
-      endTime: { hour: $endTimeHour, minute: $endTimeMinute }
-    ) {
-      gameId
-    }
-    mergeGameOrg: MergeGameOrg(
-      from: { gameId: $gameId }
-      to: { organizationId: $organizationId }
-    ) {
-      from {
+const CREATE_GAME = gql`
+  mutation createGame($input: [GameCreateInput!]!) {
+    createGames(input: $input) {
+      games {
         gameId
       }
     }
   }
 `
 
+export const UPDATE_GAME = gql`
+  mutation updateGame($where: GameWhere, $update: GameUpdateInput) {
+    updateGame: updateGames(where: $where, update: $update) {
+      games {
+        gameId
+        teamsConnection {
+          edges {
+            host
+            node {
+              teamId
+              name
+              nick
+              logo
+            }
+          }
+        }
+        playersConnection {
+          edges {
+            host
+            jersey
+            position
+            node {
+              avatar
+              playerId
+              name
+              firstName
+              lastName
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const DELETE_GAME = gql`
-  mutation deleteGame($gameId: ID!) {
-    deleteGame: DeleteGame(gameId: $gameId) {
-      gameId
+  mutation deleteGame($where: GameWhere) {
+    deleteGames(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -163,20 +160,39 @@ const Game = () => {
     error: queryError,
   } = useQuery(GET_GAME, {
     fetchPolicy: 'network-only',
-    variables: { gameId },
+    variables: { where: { gameId } },
     skip: gameId === 'new',
   })
 
   const [
-    mergeGame,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_GAME, {
+    createGame,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_GAME, {
     onCompleted: data => {
       if (gameId === 'new') {
-        const newId = data.mergeGame.gameId
-        history.replace(getAdminOrgGameRoute(organizationSlug, newId))
+        const newId = data?.createGames?.games?.[0]?.gameId
+        newId && history.replace(getAdminOrgGameRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Game saved!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
+    },
+  })
+
+  const [
+    updateGame,
+    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  ] = useMutation(UPDATE_GAME, {
+    onCompleted: () => {
+      enqueueSnackbar('Game updated!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
     },
   })
 
@@ -184,36 +200,91 @@ const Game = () => {
     deleteGame,
     { loading: loadingDelete, error: errorDelete },
   ] = useMutation(DELETE_GAME, {
+    variables: { where: { gameId } },
     onCompleted: () => {
       history.push(getAdminOrgGamesRoute(organizationSlug))
       enqueueSnackbar('Game was deleted!')
     },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
+    },
   })
 
-  const gameData = queryData?.game[0] || {}
+  const gameData = queryData?.games[0] || {}
 
-  const { handleSubmit, control, errors, formState } = useForm({
+  const {
+    handleSubmit,
+    control,
+    errors,
+    formState,
+    register,
+    setValue,
+  } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: { gameVenue: [] },
   })
+
+  React.useEffect(() => {
+    register('gameVenue', {
+      validate: value => {
+        return !!value?.venueId
+      },
+    })
+  }, [register])
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { startDate, endDate, startTime, endTime, ...rest } = dataToCheck
-
+        const {
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          gameVenue,
+          ...rest
+        } = dataToCheck
         const dataToSubmit = {
           ...rest,
-          gameId: checkId(gameId),
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
           ...decomposeTime(startTime, 'startTime'),
           ...decomposeTime(endTime, 'endTime'),
-          organizationId: organizationData?.organizationId,
+          org: {
+            connect: {
+              where: {
+                organizationId: organizationData?.organizationId,
+              },
+            },
+          },
+          venue: {
+            disconnect: {
+              where: {},
+            },
+            ...(gameVenue && {
+              connect: {
+                where: {
+                  venueId: gameVenue?.venueId,
+                },
+              },
+            }),
+          },
         }
-
-        mergeGame({
-          variables: dataToSubmit,
-        })
+        gameId === 'new'
+          ? createGame({
+              variables: {
+                input: dataToSubmit,
+              },
+            })
+          : updateGame({
+              variables: {
+                where: {
+                  gameId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -226,8 +297,10 @@ const Game = () => {
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+      {(mutationErrorMerge || mutationErrorCreate) && (
+        <Error
+          message={mutationErrorMerge.message || mutationErrorCreate.message}
+        />
       )}
       {(gameData || gameId === 'new') &&
         !queryLoading &&
@@ -252,14 +325,16 @@ const Game = () => {
                       </div>
                       <div>
                         {formState.isDirty && (
-                          <ButtonSave loading={mutationLoadingMerge} />
+                          <ButtonSave
+                            loading={
+                              mutationLoadingMerge || mutationLoadingCreate
+                            }
+                          />
                         )}
                         {gameId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={() => {
-                              deleteGame({ variables: { gameId } })
-                            }}
+                            onClick={deleteGame}
                           />
                         )}
                       </div>
@@ -312,8 +387,8 @@ const Game = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'day']}
-                          defaultValue={gameData?.startDate?.formatted}
                           error={errors?.startDate}
+                          defaultValue={gameData?.startDate}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -328,7 +403,7 @@ const Game = () => {
                           openTo="hours"
                           inputFormat={'HH:mm'}
                           views={['hours', 'minutes']}
-                          defaultValue={gameData?.startTime?.formatted}
+                          defaultValue={gameData?.startTime}
                           error={errors?.startTime}
                         />
                       </Grid>
@@ -343,7 +418,7 @@ const Game = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'day']}
-                          defaultValue={gameData?.endDate?.formatted}
+                          defaultValue={gameData?.endDate}
                           error={errors?.endDate}
                         />
                       </Grid>
@@ -360,7 +435,7 @@ const Game = () => {
                           openTo="hours"
                           inputFormat={'HH:mm'}
                           views={['hours', 'minutes']}
-                          defaultValue={gameData?.endTime?.formatted}
+                          defaultValue={gameData?.endTime}
                           error={errors?.endTime}
                         />
                       </Grid>
@@ -384,6 +459,33 @@ const Game = () => {
                           fullWidth
                           variant="standard"
                           error={errors?.info}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <Autocomplete
+                          id="combo-box-game-venue"
+                          options={queryData?.venues}
+                          // value={gameData?.venue}
+                          defaultValue={gameData?.venue}
+                          renderInput={params => (
+                            <TextField
+                              variant="standard"
+                              {...params}
+                              label="Venue"
+                              error={errors?.gameVenue}
+                              helperText={errors?.gameVenue?.message}
+                            />
+                          )}
+                          getOptionLabel={option => option.name}
+                          // isOptionEqualToValue={(option, value) =>
+                          //   option.venueId === value.venueId
+                          // }
+                          getOptionSelected={(option, value) =>
+                            option.venueId === value.venueId
+                          }
+                          onChange={(_, options) =>
+                            setValue('gameVenue', options)
+                          }
                         />
                       </Grid>
                     </Grid>
@@ -421,8 +523,8 @@ const Game = () => {
             {isValidUuid(gameId) && (
               <Relations
                 gameId={gameId}
-                teams={gameData?.teams}
-                players={gameData?.players}
+                teams={gameData?.teamsConnection?.edges}
+                players={gameData?.playersConnection?.edges}
               />
             )}
           </>

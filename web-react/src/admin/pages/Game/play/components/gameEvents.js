@@ -1,135 +1,8 @@
 export const eventTypes = [
-  // {
-  //   type: 'hit',
-  //   name: 'Hit',
-  //   color: '#0077B6',
-  //   steps: [
-  //     { name: '', optional: false },
-  //   ],
-  // },
-  // {
-  //   type: 'takeOver',
-  //   name: 'Take Over',
-  //   color: '#EFD5C3',
-  //   steps: [],
-  // },
-  // {
-  //   type: 'icing',
-  //   name: 'Icing',
-  //   color: '#EF3054',
-  //   steps: [],
-  // },
-  {
-    type: 'faceOff',
-    name: 'Face Off',
-    color: '#688B58',
-    steps: [
-      {
-        name: 'Remaining time',
-        optional: false,
-        field: 'remainingTime',
-      },
-      {
-        name: 'Won by',
-        optional: true,
-        field: 'wonBy',
-      },
-      {
-        name: 'Lost by',
-        optional: true,
-        field: 'lostBy',
-      },
-    ],
-  },
-  // {
-  //   type: 'fight',
-  //   name: 'Fight',
-  //   color: '#D64933',
-  //   steps: [],
-  // },
-  // {
-  //   type: 'intervalOnIce',
-  //   name: 'Interval On Ice',
-  //   color: '#9649CB',
-  //   steps: [],
-  // },
-  {
-    type: 'penalty',
-    name: 'Penalty',
-    color: '#FE5F55',
-    steps: [
-      {
-        name: 'Remaining time',
-        optional: false,
-        field: 'remainingTime',
-      },
-      {
-        name: 'Penalized',
-        optional: false,
-        field: 'penalized',
-      },
-      {
-        name: 'Penalty type',
-        optional: false,
-        field: 'penaltyType',
-      },
-    ],
-  },
-  // {
-  //   type: 'timeout',
-  //   name: 'Timeout',
-  //   color: '#A26769',
-  //   steps: [],
-  // },
-  {
-    type: 'save',
-    name: 'Save',
-    color: '#291528',
-    steps: [
-      {
-        name: 'Remaining time',
-        optional: false,
-        field: 'remainingTime',
-      },
-      {
-        name: 'Saved by',
-        optional: true,
-        field: 'savedBy',
-      },
-    ],
-  },
-  {
-    type: 'penaltyShot',
-    name: 'Penalty Shot',
-    color: '#DB995A',
-    steps: [
-      {
-        name: 'Remaining time',
-        optional: false,
-        field: 'remainingTime',
-      },
-      {
-        name: 'Executed by',
-        optional: true,
-        field: 'executedBy',
-      },
-      {
-        name: 'Faced against',
-        optional: true,
-        field: 'facedAgainst',
-      },
-    ],
-  },
-  // {
-  //   type: 'shot',
-  //   name: 'Shot',
-  //   color: '#068D9D',
-  //   steps: [],
-  // },
   {
     type: 'goal',
     name: 'Goal',
-    color: '#363537',
+    color: '#83FF33',
     steps: [
       {
         name: 'Remaining time',
@@ -164,9 +37,53 @@ export const eventTypes = [
     ],
   },
   {
+    type: 'penalty',
+    name: 'Penalty',
+    color: '#FF3633',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Penalized',
+        optional: false,
+        field: 'penalized',
+      },
+      {
+        name: 'Penalty type',
+        optional: false,
+        field: 'penaltyType',
+      },
+    ],
+  },
+  {
+    type: 'penaltyShot',
+    name: 'Penalty Shot',
+    color: '#FF5B33',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Executed by',
+        optional: true,
+        field: 'executedBy',
+      },
+      {
+        name: 'Faced against',
+        optional: true,
+        field: 'facedAgainst',
+      },
+    ],
+  },
+  {
     type: 'injury',
     name: 'Injury',
-    color: '#D62839',
+    color: '#FF3333',
     steps: [
       {
         name: 'Remaining time',
@@ -185,6 +102,94 @@ export const eventTypes = [
       },
     ],
   },
+
+  {
+    type: 'save',
+    name: 'Save',
+    color: '#CF9F15',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Saved by',
+        optional: true,
+        field: 'savedBy',
+      },
+    ],
+  },
+  {
+    type: 'faceOff',
+    name: 'Face Off',
+    color: '#FAEEAA',
+    steps: [
+      {
+        name: 'Remaining time',
+        optional: false,
+        field: 'remainingTime',
+      },
+      {
+        name: 'Won by',
+        optional: true,
+        field: 'wonBy',
+      },
+      {
+        name: 'Lost by',
+        optional: true,
+        field: 'lostBy',
+      },
+    ],
+  },
+  // {
+  //   type: 'hit',
+  //   name: 'Hit',
+  //   color: '#0077B6',
+  //   steps: [
+  //     { name: '', optional: false },
+  //   ],
+  // },
+  // {
+  //   type: 'takeOver',
+  //   name: 'Take Over',
+  //   color: '#EFD5C3',
+  //   steps: [],
+  // },
+  // {
+  //   type: 'icing',
+  //   name: 'Icing',
+  //   color: '#EF3054',
+  //   steps: [],
+  // },
+
+  // {
+  //   type: 'fight',
+  //   name: 'Fight',
+  //   color: '#D64933',
+  //   steps: [],
+  // },
+  // {
+  //   type: 'intervalOnIce',
+  //   name: 'Interval On Ice',
+  //   color: '#9649CB',
+  //   steps: [],
+  // },
+
+  // {
+  //   type: 'timeout',
+  //   name: 'Timeout',
+  //   color: '#A26769',
+  //   steps: [],
+  // },
+
+  // {
+  //   type: 'shot',
+  //   name: 'Shot',
+  //   color: '#068D9D',
+  //   steps: [],
+  // },
+
   // {
   //   type: 'revision',
   //   name: 'Revision',
