@@ -570,7 +570,7 @@ const ToggleNewVenue = props => {
                       competitions: {
                         connect: {
                           where: {
-                            competitionId,
+                            node: { competitionId },
                           },
                         },
                       },

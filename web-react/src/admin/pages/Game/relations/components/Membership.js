@@ -309,7 +309,7 @@ const PhaseRow = props => {
                         ...(!isMember && {
                           connect: {
                             where: {
-                              phaseId: phase?.phaseId,
+                              node: { phaseId: phase?.phaseId },
                             },
                           },
                         }),
@@ -387,7 +387,7 @@ const GroupRow = props => {
                         ...(!isMember && {
                           connect: {
                             where: {
-                              groupId: group.groupId,
+                              node: { groupId: group.groupId },
                             },
                           },
                         }),

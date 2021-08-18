@@ -85,7 +85,7 @@ export const SetLineupJersey = props => {
                     players: {
                       connect: {
                         where: {
-                          playerId: player?.playerId,
+                          node: { playerId: player?.playerId },
                         },
                         properties: {
                           jersey: parseInt(jerseyValue),

@@ -292,7 +292,7 @@ const ToggleNewSponsor = props => {
                       sponsors: {
                         connect: {
                           where: {
-                            sponsorId,
+                            node: { sponsorId },
                           },
                         },
                       },

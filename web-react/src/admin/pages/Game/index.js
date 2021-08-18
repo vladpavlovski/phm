@@ -240,7 +240,7 @@ const Game = () => {
           org: {
             connect: {
               where: {
-                organizationId: organizationData?.organizationId,
+                node: { organizationId: organizationData?.organizationId },
               },
             },
           },
@@ -251,7 +251,7 @@ const Game = () => {
             ...(gameVenue && {
               connect: {
                 where: {
-                  venueId: gameVenue?.venueId,
+                  node: { venueId: gameVenue?.venueId },
                 },
               },
             }),

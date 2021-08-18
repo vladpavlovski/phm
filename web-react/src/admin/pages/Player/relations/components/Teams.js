@@ -308,7 +308,7 @@ const ToggleNewTeam = props => {
                       teams: {
                         connect: {
                           where: {
-                            teamId,
+                            node: { teamId },
                           },
                         },
                       },

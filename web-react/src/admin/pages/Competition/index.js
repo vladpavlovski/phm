@@ -157,9 +157,11 @@ const Competition = () => {
                   organization: {
                     connect: {
                       where: {
-                        organizationId:
-                          competitionData?.organizationId ||
-                          organizationData?.organizationId,
+                        node: {
+                          organizationId:
+                            competitionData?.organizationId ||
+                            organizationData?.organizationId,
+                        },
                       },
                     },
                   },

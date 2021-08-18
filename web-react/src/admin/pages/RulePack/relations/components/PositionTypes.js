@@ -417,7 +417,7 @@ const FormDialog = props => {
                   rulePack: {
                     connect: {
                       where: {
-                        rulePackId,
+                        node: { rulePackId },
                       },
                     },
                   },

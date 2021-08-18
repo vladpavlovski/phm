@@ -252,12 +252,10 @@ const Sponsor = () => {
       try {
         const dataToSubmit = {
           ...dataToCheck,
-          // sponsorId: checkId(sponsorId),
-          // organizationId: organizationData?.organizationId,
           orgs: {
             connect: {
               where: {
-                organizationId: organizationData?.organizationId,
+                node: { organizationId: organizationData?.organizationId },
               },
             },
           },
