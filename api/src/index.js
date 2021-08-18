@@ -59,20 +59,6 @@ const neo4jGraphQL = new Neo4jGraphQL({
   typeDefs,
   resolvers,
 })
-// config: {
-//   query: {
-//     exclude: ['S3Payload'],
-//   },
-//   mutation: {
-//     exclude: ['S3Payload'],
-//   },
-//   auth: {
-//     // isAuthenticated: true,
-//     // hasRole: true,
-//     // hasScope: true,
-//   },
-// },
-// const schema = neo4jGraphQL?.schema
 
 /*
  * Create a Neo4j driver instance to connect to the database
