@@ -39,9 +39,18 @@ import {
   decomposeDate,
   formatDate,
 } from '../../../../../utils'
+const sortByName = (a, b) => {
+  if (a?.name < b?.name) {
+    return 1
+  }
+  if (a?.name > b?.name) {
+    return -1
+  }
+  return 0
+}
 
 const GET_PHASES = gql`
-  query getCompetition($where: CompetitionWhere, $organizationSlug: String!) {
+  query getCompetition($where: CompetitionWhere, $whereSeason: SeasonWhere) {
     competition: competitions(where: $where) {
       competitionId
       name
@@ -59,7 +68,7 @@ const GET_PHASES = gql`
         }
       }
     }
-    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
+    seasons(where: $whereSeason) {
       seasonId
       name
     }
@@ -136,7 +145,7 @@ const Phases = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_PHASES, {
-    variables: { where: { competitionId }, organizationSlug },
+    variables: { where: { competitionId } },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -502,7 +511,7 @@ const FormDialog = props => {
                   competition: {
                     connect: {
                       where: {
-                        competitionId,
+                        node: { competitionId },
                       },
                     },
                   },
@@ -676,16 +685,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
-
-const sortByName = (a, b) => {
-  if (a?.name < b?.name) {
-    return 1
-  }
-  if (a?.name > b?.name) {
-    return -1
-  }
-  return 0
 }
 
 Phases.propTypes = {

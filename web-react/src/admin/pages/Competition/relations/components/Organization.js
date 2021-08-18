@@ -1,107 +1,65 @@
-import React, { useCallback, useState } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
-
+import { gql, useLazyQuery } from '@apollo/client'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
+import TextField from '@material-ui/core/TextField'
+import Autocomplete from '@material-ui/core/Autocomplete'
+import Grid from '@material-ui/core/Grid'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
-import { TextField, Autocomplete, Grid } from '@material-ui/core'
-
 const GET_ORGANIZATIONS = gql`
-  query getCompetitionOrganizations($where: CompetitionWhere) {
-    competition: competitions(where: $where) {
-      competitionId
-      name
-      organization {
-        organizationId
-        name
-      }
-    }
-    organizations {
+  query getCompetitionOrganizations($where: OrganizationWhere) {
+    organizations(where: $where) {
       organizationId
       name
     }
   }
 `
 
-const UPDATE_COMPETITION = gql`
-  mutation updateCompetition(
-    $where: CompetitionWhere
-    $update: CompetitionUpdateInput
-  ) {
-    updateCompetitions(where: $where, update: $update) {
-      competitions {
-        competitionId
-        name
-        organization {
-          organizationId
-          name
-        }
-      }
-    }
-  }
-`
-
 const Organization = props => {
-  const { competitionId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { competitionId, competition, updateCompetition } = props
+
   const classes = useStyles()
 
-  const [selectedOrganization, setSelectedOrganization] = useState(null)
+  const [selectedOrganization, setSelectedOrganization] = React.useState(
+    competition?.org
+  )
 
   const [
     getData,
-    { loading: queryLoading, error: queryError, data: queryData },
+    { loading: queryLoading, data: queryData, error: queryError },
   ] = useLazyQuery(GET_ORGANIZATIONS, {
-    fetchPolicy: 'cache-and-network',
-    onCompleted: data => {
-      setSelectedOrganization(data?.competition?.[0]?.organization)
+    onCompleted: () => {
+      setSelectedOrganization(competition?.org)
     },
   })
 
-  const competition = queryData?.competition?.[0]
-
-  const [updateCompetition] = useMutation(UPDATE_COMPETITION, {
-    onCompleted: data => {
-      enqueueSnackbar('Competition updated!', { variant: 'success' })
-      enqueueSnackbar(
-        `${competition.name} owned by ${data?.updateCompetitions?.competitions?.[0]?.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      setSelectedOrganization(
-        data?.updateCompetitions?.competitions?.[0]?.organization
-      )
-    },
-  })
-
-  const openAccordion = useCallback(() => {
+  const openAccordion = React.useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData()
     }
   }, [])
 
-  const handleOrganizationChange = useCallback(
+  const handleOrganizationChange = React.useCallback(
     data => {
+      setSelectedOrganization(data)
       updateCompetition({
         variables: {
           where: {
             competitionId,
           },
           update: {
-            organization: {
+            org: {
               connect: {
                 where: {
-                  organizationId: data?.organizationId,
+                  node: { organizationId: data?.organizationId },
                 },
               },
               disconnect: {
@@ -149,7 +107,7 @@ const Organization = props => {
                   getOptionSelected={(option, value) =>
                     option.organizationId === value.organizationId
                   }
-                  options={queryData.organizations}
+                  options={queryData?.organizations}
                   onChange={(_, data) => {
                     handleOrganizationChange(data)
                   }}

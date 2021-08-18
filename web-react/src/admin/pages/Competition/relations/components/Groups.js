@@ -37,7 +37,7 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, decomposeNumber } from '../../../../../utils'
 
 const GET_GROUPS = gql`
-  query getCompetition($where: CompetitionWhere, $organizationSlug: String!) {
+  query getCompetition($where: CompetitionWhere) {
     competition: competitions(where: $where) {
       competitionId
       name
@@ -53,7 +53,7 @@ const GET_GROUPS = gql`
         }
       }
     }
-    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
+    seasons {
       seasonId
       name
     }
@@ -132,7 +132,7 @@ const Groups = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GROUPS, {
-    variables: { where: { competitionId }, organizationSlug },
+    variables: { where: { competitionId } },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -158,7 +158,6 @@ const Groups = props => {
             query: GET_GROUPS,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
           const updatedData = queryResult?.competition?.[0]?.groups?.filter(
@@ -178,7 +177,6 @@ const Groups = props => {
             data: updatedResult,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
         } catch (error) {

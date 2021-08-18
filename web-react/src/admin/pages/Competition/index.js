@@ -43,6 +43,10 @@ const GET_COMPETITION = gql`
       logo
       organizationId
       foundDate
+      org {
+        organizationId
+        name
+      }
     }
   }
 `
@@ -146,11 +150,7 @@ const Competition = () => {
             competitionData?.organizationId || organizationData?.organizationId,
           ...decomposeDate(foundDate, 'foundDate'),
         }
-        console.log(
-          'decomposeDate(foundDate)',
-          foundDate,
-          decomposeDate(foundDate, 'foundDate')
-        )
+
         competitionId === 'new'
           ? createCompetition({
               variables: {
@@ -190,7 +190,7 @@ const Competition = () => {
       const queryResult = client.readQuery({
         query: GET_COMPETITION,
         variables: {
-          competitionId,
+          where: { competitionId },
         },
       })
 
@@ -205,7 +205,7 @@ const Competition = () => {
           ],
         },
         variables: {
-          competitionId,
+          where: { competitionId },
         },
       })
       handleSubmit(onSubmit)()
@@ -287,7 +287,9 @@ const Competition = () => {
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteCompetition({ variables: { competitionId } })
+                            deleteCompetition({
+                              variables: { where: { competitionId } },
+                            })
                           }}
                         />
                       )}
@@ -362,7 +364,11 @@ const Competition = () => {
               </Grid>
             </Grid>
             {isValidUuid(competitionId) && (
-              <Relations competitionId={competitionId} />
+              <Relations
+                competitionId={competitionId}
+                competition={competitionData}
+                updateCompetition={updateCompetition}
+              />
             )}
           </form>
         )}

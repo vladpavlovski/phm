@@ -469,20 +469,20 @@ type Query {
       return org
       """
     )
-  personsByOrganization(orgSlug: String!): [Person]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (person:Person)
-      return person
-      """
-    )
-  competitionsByOrganization(orgSlug: String!): [Competition]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition)
-      return competition
-      """
-    )
+  # personsByOrganization(orgSlug: String!): [Person]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (person:Person)
+  #     return person
+  #     """
+  #   )
+  # competitionsByOrganization(orgSlug: String!): [Competition]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition)
+  #     return competition
+  #     """
+  #   )
   sponsorsByOrganization(orgSlug: String!): [Sponsor]
     @cypher(
       statement: """
@@ -490,13 +490,13 @@ type Query {
       return sponsor
       """
     )
-  seasonsByOrganization(orgSlug: String!): [Season]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
-      return season
-      """
-    )
+  # seasonsByOrganization(orgSlug: String!): [Season]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:OWNED_BY] - (competition:Competition) - [:BELONGS_TO] - (season:Season)
+  #     return season
+  #     """
+  #   )
   awardsByOrganization(orgSlug: String!): [Award]
     @cypher(
       statement: """
@@ -511,13 +511,13 @@ type Query {
       return rulePack
       """
     )
-  eventsByOrganization(orgSlug: String!): [Event]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:CREATE_IN] - (event:Event)
-      return event
-      """
-    )
+  # eventsByOrganization(orgSlug: String!): [Event]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:CREATE_IN] - (event:Event)
+  #     return event
+  #     """
+  #   )
   # gamesByOrganization(orgSlug: String!): [Game]
   #   @cypher(
   #     statement: """
