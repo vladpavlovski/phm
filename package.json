@@ -21,12 +21,7 @@
     "format": "find . -name \"*.js\" | grep -v node_modules | grep -v build | xargs prettier --write",
     "format:log": "find . -name \"*.js\" | grep -v node_modules | grep -v build | xargs prettier",
     "inferschema:write": "node scripts/inferSchema.js",
-    "prepare": "npm set-script prepare \"husky install\""
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "pre-commit": "npm test && eslint"
   },
   "lint-staged": {
     "*.js": [
