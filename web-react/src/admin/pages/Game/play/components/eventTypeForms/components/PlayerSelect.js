@@ -3,7 +3,6 @@ import Button from '@material-ui/core/Button'
 
 const PlayerSelect = props => {
   const { players, onClick, selected } = props
-
   return (
     <div
       style={{

@@ -189,8 +189,8 @@ const Play = () => {
   )
 
   React.useEffect(() => {
-    console.log('gameData:', gameData)
-    console.log('gameSettings:', gameSettings)
+    // console.log('gameData:', gameData)
+    // console.log('gameSettings:', gameSettings)
     if (gameData) {
       const allGoals = gameData?.gameEventsSimple?.filter(
         ges => ges.eventType.toLowerCase() === 'goal'
@@ -205,7 +205,7 @@ const Play = () => {
 
   React.useEffect(() => {
     if (goalsEventsCounter) {
-      const { gameEventsSimple } = client.readQuery({
+      const { gameEventSimples } = client.readQuery({
         query: GET_GAME_EVENTS_SIMPLE,
         variables: {
           where: {
@@ -216,7 +216,7 @@ const Play = () => {
         },
       })
 
-      const allGoals = gameEventsSimple?.filter(
+      const allGoals = gameEventSimples?.filter(
         ges => ges.eventType.toLowerCase() === 'goal'
       )
       const goalsHost =

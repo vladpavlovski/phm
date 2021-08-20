@@ -88,7 +88,7 @@ export const SetLineupJersey = props => {
                           node: { playerId: player?.playerId },
                         },
                         properties: {
-                          jersey: parseInt(jerseyValue),
+                          jersey: `${jerseyValue}`,
                         },
                       },
                     },

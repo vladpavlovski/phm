@@ -410,7 +410,7 @@ const FormDialog = props => {
                 update: {
                   name,
                   code,
-                  points: parseInt(points),
+                  points: `${points}` || null,
                 },
               },
             })
@@ -419,7 +419,7 @@ const FormDialog = props => {
                 input: {
                   name,
                   code,
-                  points: parseInt(points),
+                  points: `${points}` || null,
                   rulePack: {
                     connect: {
                       where: {

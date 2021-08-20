@@ -29,10 +29,7 @@ const GET_ORGANIZATIONS = gql`
 const XGridTable = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(GET_ORGANIZATIONS, {
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
-  })
+  const { error, loading, data } = useQuery(GET_ORGANIZATIONS)
 
   const columns = useMemo(
     () => [

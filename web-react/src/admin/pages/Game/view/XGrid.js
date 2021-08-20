@@ -30,6 +30,8 @@ const GET_GAMES = gql`
       foreignId
       startDate
       startTime
+      description
+      info
       venue {
         name
       }
@@ -194,6 +196,16 @@ const XGridTable = () => {
         headerName: 'Foreign Id',
         width: 150,
         hide: true,
+      },
+      {
+        field: 'description',
+        headerName: 'Description',
+        width: 250,
+      },
+      {
+        field: 'info',
+        headerName: 'Info',
+        width: 250,
       },
     ],
     [organizationSlug]

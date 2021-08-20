@@ -151,7 +151,7 @@ type Mutation {
     shotSubType: String
     penaltyType: String
     penaltySubType: String
-    duration: Float
+    duration: String
     metaPlayerPenalizedId: ID
     metaPlayerExecutedById: ID
     metaPlayerFacedAgainstId: ID
@@ -163,7 +163,7 @@ type Mutation {
       statement: """
       MATCH (game: Game {gameId: $gameId})
       MATCH (team: Team {teamId: $teamId})
-      CREATE (ges: GameEventSimple {
+      MERGE (ges: GameEventSimple {
           gameEventSimpleId: $gameEventSimpleId,
           eventType: $eventType,
           eventTypeCode: $eventTypeCode,
@@ -180,8 +180,8 @@ type Mutation {
           injuryType: $injuryType,
           description: $description
       })
-      CREATE (ges) <- [:INITIATES_SIMPLE] - (game)
-      CREATE (team) <- [:CREATED_BY] - (ges)
+      MERGE (ges) <- [:INITIATES_SIMPLE] - (game)
+      MERGE (team) <- [:CREATED_BY] - (ges)
 
       WITH ges,
       team,
@@ -204,7 +204,7 @@ type Mutation {
       CALL apoc.do.when(
           $metaPlayerScoredById IS NOT NULL,
           'MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
-          CREATE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
+          MERGE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
           RETURN metaPlayerScoredBy
           ',
           '',
@@ -231,7 +231,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerFirstAssistId IS NOT NULL,
           'MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: metaPlayerFirstAssistId})
-          CREATE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
+          MERGE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
           RETURN metaPlayerFirstAssist
           ',
           '',
@@ -257,7 +257,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerSecondAssistId IS NOT NULL,
           'MATCH (metaPlayerSecondAssist: MetaPlayer {metaPlayerId: metaPlayerSecondAssistId})
-          CREATE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
+          MERGE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
           RETURN metaPlayerSecondAssist
           ',
           '',
@@ -282,7 +282,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerAllowedById IS NOT NULL,
           'MATCH (metaPlayerAllowedBy: MetaPlayer {metaPlayerId: metaPlayerAllowedById})
-          CREATE (metaPlayerAllowedBy) <- [:ALLOWED_BY] - (ges)
+          MERGE (metaPlayerAllowedBy) <- [:ALLOWED_BY] - (ges)
           RETURN metaPlayerAllowedBy
           ',
           '',
@@ -306,7 +306,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerSavedById IS NOT NULL,
           'MATCH (metaPlayerSavedBy: MetaPlayer {metaPlayerId: metaPlayerSavedById})
-          CREATE (metaPlayerSavedBy) <- [:SAVED_BY] - (ges)
+          MERGE (metaPlayerSavedBy) <- [:SAVED_BY] - (ges)
           RETURN metaPlayerSavedBy
           ',
           '',
@@ -329,7 +329,7 @@ type Mutation {
       CALL apoc.do.when(
           previousGameEventSimpleId IS NOT NULL,
           'MATCH (previousGameEventSimple: GameEventSimple {gameEventSimpleId: previousGameEventSimpleId})
-          CREATE (previousGameEventSimple) <- [:PREVIOUS_GAME_EVENT] - (ges)
+          MERGE (previousGameEventSimple) <- [:PREVIOUS_GAME_EVENT] - (ges)
           RETURN previousGameEventSimple
           ',
           '',
@@ -351,7 +351,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerWonById IS NOT NULL,
           'MATCH (metaPlayerWonBy: MetaPlayer { metaPlayerId: metaPlayerWonById })
-          CREATE (metaPlayerWonBy) <- [:WON_BY] - (ges)
+          MERGE (metaPlayerWonBy) <- [:WON_BY] - (ges)
           RETURN metaPlayerWonBy
           ',
           '',
@@ -372,7 +372,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerLostById IS NOT NULL,
           'MATCH (metaPlayerLostBy: MetaPlayer { metaPlayerId: metaPlayerLostById })
-          CREATE (metaPlayerLostBy) <- [:LOST_BY] - (ges)
+          MERGE (metaPlayerLostBy) <- [:LOST_BY] - (ges)
           RETURN metaPlayerLostBy
           ',
           '',
@@ -392,7 +392,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerPenalizedId IS NOT NULL,
           'MATCH (metaPlayerPenalized: MetaPlayer { metaPlayerId: metaPlayerPenalizedId })
-          CREATE (metaPlayerPenalized) <- [:PENALIZED] - (ges)
+          MERGE (metaPlayerPenalized) <- [:PENALIZED] - (ges)
           RETURN metaPlayerPenalized
           ',
           '',
@@ -411,7 +411,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerExecutedById IS NOT NULL,
           'MATCH (metaPlayerExecutedBy: MetaPlayer { metaPlayerId: metaPlayerExecutedById })
-          CREATE (metaPlayerExecutedBy) <- [:EXECUTED_BY] - (ges)
+          MERGE (metaPlayerExecutedBy) <- [:EXECUTED_BY] - (ges)
           RETURN metaPlayerExecutedBy
           ',
           '',
@@ -429,7 +429,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerFacedAgainstId IS NOT NULL,
           'MATCH (metaPlayerFacedAgainst: MetaPlayer { metaPlayerId: metaPlayerFacedAgainstId })
-          CREATE (metaPlayerFacedAgainst) <- [:FACED_AGAINST] - (ges)
+          MERGE (metaPlayerFacedAgainst) <- [:FACED_AGAINST] - (ges)
           RETURN metaPlayerFacedAgainst
           ',
           '',
@@ -446,7 +446,7 @@ type Mutation {
       CALL apoc.do.when(
           metaPlayerSufferedId IS NOT NULL,
           'MATCH (metaPlayerSuffered: MetaPlayer { metaPlayerId: metaPlayerSufferedId })
-          CREATE (metaPlayerSuffered) <- [:SUFFERED] - (ges)
+          MERGE (metaPlayerSuffered) <- [:SUFFERED] - (ges)
           RETURN metaPlayerSuffered
           ',
           '',
@@ -818,7 +818,7 @@ type GameEvent {
 
 type GameEventSimple {
   gameEventSimpleId: ID! @id
-  timestamp: String!
+  timestamp: String
   location: String
   period: String
   remainingTime: String
@@ -851,7 +851,7 @@ type GameEventSimple {
   # penalty
   penaltyType: String
   penaltySubType: String
-  duration: Float
+  duration: String
   penalized: MetaPlayer @relationship(type: "PENALIZED", direction: OUT)
 
   # penaltyShot

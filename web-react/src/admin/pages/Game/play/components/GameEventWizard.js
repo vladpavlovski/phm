@@ -46,7 +46,7 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $shotSubType: String
     $penaltyType: String
     $penaltySubType: String
-    $duration: Float
+    $duration: String
     $metaPlayerPenalizedId: ID
     $metaPlayerExecutedById: ID
     $metaPlayerFacedAgainstId: ID
@@ -118,7 +118,6 @@ const GameEventWizard = props => {
     gameEventData,
     setGameEventData,
   } = React.useContext(GameEventFormContext)
-
   const previousGameEventSimpleId = React.useRef()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -131,7 +130,7 @@ const GameEventWizard = props => {
     variables: {
       teamId: team?.teamId,
       gameId: gameData?.gameId,
-      gameEventSimpleId: uuidv4(),
+      gameEventSimpleId: gameEventData?.gameEventSimpleId || uuidv4(),
       previousGameEventSimpleId: previousGameEventSimpleId.current || null,
       metaPlayerScoredById:
         gameEventData?.scoredBy?.node?.meta?.metaPlayerId || null,
@@ -146,32 +145,31 @@ const GameEventWizard = props => {
       metaPlayerWonById: gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
       metaPlayerLostById:
         gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
-      eventType: gameEventSettings?.name || null,
-      eventTypeCode: gameEventSettings?.type || null,
-      timestamp: gameEventData?.timestamp || null,
-      period: period || null,
-      remainingTime: gameEventData?.remainingTime || null,
-      goalType: gameEventData?.goalType?.name || null,
-      goalSubType: gameEventData?.goalSubType?.name || null,
-      shotType: gameEventData?.shotType?.name || null,
-      shotSubType: gameEventData?.shotSubType?.name || null,
-      penaltyType: gameEventData?.penaltyType?.name || null,
-      penaltySubType: gameEventData?.penaltySubType?.name || null,
-      duration: gameEventData?.duration
-        ? parseFloat(gameEventData?.duration)
-        : null,
+      eventType: gameEventSettings?.name || '',
+      eventTypeCode: gameEventSettings?.type || '',
+      timestamp: gameEventData?.timestamp || '',
+      period: period || '',
+      remainingTime: gameEventData?.remainingTime || '',
+      goalType: gameEventData?.goalType?.name || '',
+      goalSubType: gameEventData?.goalSubType?.name || '',
+      shotType: gameEventData?.shotType?.name || '',
+      shotSubType: gameEventData?.shotSubType?.name || '',
+      penaltyType: gameEventData?.penaltyType?.name || '',
+      penaltySubType: gameEventData?.penaltySubType?.name || '',
+      duration: gameEventData?.duration || '',
       metaPlayerPenalizedId:
         gameEventData?.penalized?.node?.meta?.metaPlayerId || null,
       metaPlayerExecutedById:
         gameEventData?.executedBy?.node?.meta?.metaPlayerId || null,
       metaPlayerFacedAgainstId:
         gameEventData?.facedAgainst?.node?.meta?.metaPlayerId || null,
-      description: gameEventData?.description || null,
-      injuryType: gameEventData?.injuryType?.name || null,
+      description: gameEventData?.description || '',
+      injuryType: gameEventData?.injuryType?.name || '',
       metaPlayerSufferedId:
         gameEventData?.suffered?.node?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
+      console.log('on completes: ', data)
       previousGameEventSimpleId.current =
         data?.gameEventSimple?.gameEventSimpleId
 
@@ -188,6 +186,7 @@ const GameEventWizard = props => {
       console.error(error)
     },
   })
+
   const isStepOptional = React.useCallback(
     step => {
       return gameEventSettings?.steps?.[step]?.optional
@@ -362,10 +361,6 @@ const GameEventWizard = props => {
       </Dialog>
     </>
   )
-}
-
-GameEventWizard.defaultProps = {
-  team: null,
 }
 
 GameEventWizard.propTypes = {

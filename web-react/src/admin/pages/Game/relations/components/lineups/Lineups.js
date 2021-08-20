@@ -162,7 +162,7 @@ const LineupList = props => {
         where: {
           node: { playerId: player.playerId },
         },
-        properties: {
+        edge: {
           host,
           position,
           jersey,
@@ -314,67 +314,25 @@ const LineupList = props => {
   const gameLineupColumns = useMemo(
     () => [
       {
-        field: 'avatar',
-        headerName: 'Photo',
-        width: 80,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <XGridLogo
-              src={params.value}
-              placeholder={placeholderPerson}
-              alt={params.row.name}
-            />
-          )
-        },
-      },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
-      {
-        field: 'position',
-        headerName: 'Position',
-        width: 120,
-        renderCell: params => {
-          return (
-            <>
-              <span style={{ marginRight: '4px' }}>{params.value}</span>
-              <SetLineupPosition
-                player={params.row}
-                gameId={gameId}
-                updateGame={updateGame}
-              />
-            </>
-          )
-        },
-      },
-      {
-        field: 'jersey',
-        headerName: 'Jersey',
-        width: 100,
-        renderCell: params => {
-          return (
-            <>
-              <span style={{ marginRight: '4px' }}>{params.value}</span>
-              <SetLineupJersey
-                player={params.row}
-                gameId={gameId}
-                updateGame={updateGame}
-              />
-            </>
-          )
-        },
-      },
-      {
         field: 'actions',
         headerName: 'Actions',
-        width: 120,
+        width: 100,
         disableColumnMenu: true,
         renderCell: params => {
           return (
             <>
+              <LinkButton
+                to={getAdminOrgPlayerRoute(
+                  organizationSlug,
+                  params.row.playerId
+                )}
+                target="_blank"
+                icon
+              >
+                <Tooltip arrow title="Profile" placement="top">
+                  <AccountBox />
+                </Tooltip>
+              </LinkButton>
               <ButtonDialog
                 icon={
                   <Tooltip arrow title="Remove Player" placement="top">
@@ -407,18 +365,60 @@ const LineupList = props => {
                   })
                 }}
               />
-              <LinkButton
-                to={getAdminOrgPlayerRoute(
-                  organizationSlug,
-                  params.row.playerId
-                )}
-                target="_blank"
-                icon
-              >
-                <Tooltip arrow title="Profile" placement="top">
-                  <AccountBox />
-                </Tooltip>
-              </LinkButton>
+            </>
+          )
+        },
+      },
+      {
+        field: 'avatar',
+        headerName: 'Photo',
+        width: 80,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <XGridLogo
+              src={params.value}
+              placeholder={placeholderPerson}
+              alt={params.row.name}
+            />
+          )
+        },
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'position',
+        headerName: 'Position',
+        width: 120,
+        renderCell: params => {
+          return (
+            <>
+              <SetLineupPosition
+                player={params.row}
+                gameId={gameId}
+                updateGame={updateGame}
+              />
+              <span style={{ marginRight: '4px' }}>{params.value}</span>
+            </>
+          )
+        },
+      },
+      {
+        field: 'jersey',
+        headerName: 'Jersey',
+        width: 100,
+        renderCell: params => {
+          return (
+            <>
+              <SetLineupJersey
+                player={params.row}
+                gameId={gameId}
+                updateGame={updateGame}
+              />
+              <span style={{ marginRight: '4px' }}>{params.value}</span>
             </>
           )
         },
@@ -630,14 +630,14 @@ const TogglePlayerGame = props => {
   const position = useMemo(
     () =>
       player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
-        ?.name || '',
+        ?.name || null,
     []
   )
 
   const jersey = useMemo(
     () =>
       player?.jerseys?.filter(p => p.team?.teamId === team?.teamId)?.[0]?.number
-        ?.low || '',
+        ?.low || null,
     []
   )
 
@@ -647,46 +647,39 @@ const TogglePlayerGame = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? updateGame({
-                  variables: {
-                    where: {
-                      gameId,
-                    },
-                    update: {
-                      players: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              playerId: player.playerId,
+            updateGame({
+              variables: {
+                where: {
+                  gameId,
+                },
+                update: {
+                  players: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                playerId: player.playerId,
+                              },
                             },
                           },
-                        },
-                      },
-                    },
-                  },
-                })
-              : updateGame({
-                  variables: {
-                    where: {
-                      gameId,
-                    },
-                    update: {
-                      players: {
-                        connect: {
-                          where: {
-                            node: { playerId: player.playerId },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { playerId: player.playerId },
+                            },
+                            edge: {
+                              host,
+                              position,
+                              jersey,
+                            },
                           },
-                          properties: {
-                            host,
-                            position,
-                            jersey,
-                          },
-                        },
-                      },
-                    },
+                        }),
                   },
-                })
+                },
+              },
+            })
 
             setIsMember(!isMember)
           }}

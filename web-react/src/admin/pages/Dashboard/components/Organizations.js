@@ -35,10 +35,7 @@ const GET_ORGANIZATIONS = gql`
 const Organizations = () => {
   const classes = useStyles()
   const { setOrganizationData } = useContext(OrganizationContext)
-  const { error, loading, data } = useQuery(GET_ORGANIZATIONS, {
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
-  })
+  const { error, loading, data } = useQuery(GET_ORGANIZATIONS)
   const columns = useMemo(
     () => [
       {

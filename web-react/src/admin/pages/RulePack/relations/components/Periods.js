@@ -420,8 +420,8 @@ const FormDialog = props => {
                 update: {
                   name,
                   code,
-                  duration: !isNaN(parseInt(duration)) && parseInt(duration),
-                  priority: !isNaN(parseInt(priority)) && parseInt(priority),
+                  duration: `${duration}` || null,
+                  priority: `${priority}` || null,
                 },
               },
             })
@@ -430,8 +430,8 @@ const FormDialog = props => {
                 input: {
                   name,
                   code,
-                  duration: !isNaN(parseInt(duration)) && parseInt(duration),
-                  priority: !isNaN(parseInt(priority)) && parseInt(priority),
+                  duration: `${duration}` || null,
+                  priority: `${priority}` || null,
                   rulePack: {
                     connect: {
                       where: {

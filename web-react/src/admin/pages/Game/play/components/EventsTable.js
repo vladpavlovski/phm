@@ -184,7 +184,6 @@ const EventsTable = props => {
     variables: {
       where: { game: { gameId: gameData?.gameId } },
     },
-    // skip: !!gameData?.gameId,
   })
 
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
@@ -305,61 +304,61 @@ const EventsTable = props => {
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.scoredBy?.node?.playerId
+                          params.row?.scoredBy?.player?.playerId
                       ) || null,
                     firstAssist:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.firstAssist?.node?.playerId
+                          params.row?.firstAssist?.player?.playerId
                       ) || null,
                     secondAssist:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.secondAssist?.node?.playerId
+                          params.row?.secondAssist?.player?.playerId
                       ) || null,
                     wonBy:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.wonBy?.node?.playerId
+                          params.row?.wonBy?.player?.playerId
                       ) || null,
                     lostBy:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.lostBy?.node?.playerId
+                          params.row?.lostBy?.player?.playerId
                       ) || null,
                     suffered:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.suffered?.node?.playerId
+                          params.row?.suffered?.player?.playerId
                       ) || null,
                     penalized:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.penalized?.node?.playerId
+                          params.row?.penalized?.player?.playerId
                       ) || null,
                     executedBy:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.executedBy?.node?.playerId
+                          params.row?.executedBy?.player?.playerId
                       ) || null,
                     facedAgainst:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.facedAgainst?.node?.playerId
+                          params.row?.facedAgainst?.player?.playerId
                       ) || null,
                     savedBy:
                       players?.find(
                         p =>
                           p?.node?.playerId ===
-                          params.row?.savedBy?.node?.playerId
+                          params.row?.savedBy?.player?.playerId
                       ) || null,
                   }
 

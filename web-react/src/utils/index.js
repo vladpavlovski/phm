@@ -92,9 +92,6 @@ export const decomposeTime = (time, fieldName) => ({
   [`${fieldName}`]: time ? dayjs(time).format('HH:mm:ss') : null,
 })
 
-export const decomposeNumber = value =>
-  !isNaN(parseInt(value)) && parseInt(value)
-
 export const formatDate = (date, format = 'LL') =>
   !date ? ' ' : dayjs(date).format(format)
 

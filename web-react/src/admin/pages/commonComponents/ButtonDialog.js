@@ -35,7 +35,15 @@ const ButtonDialog = props => {
   return (
     <>
       {icon ? (
-        <IconButton {...rest}>{icon}</IconButton>
+        <IconButton
+          onClick={() => {
+            setOpenDialog(true)
+            onClick && onClick()
+          }}
+          {...rest}
+        >
+          {icon}
+        </IconButton>
       ) : (
         <LoadingButton
           {...rest}

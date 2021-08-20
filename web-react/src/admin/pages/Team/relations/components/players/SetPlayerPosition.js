@@ -3,7 +3,6 @@ import { useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
@@ -11,6 +10,10 @@ import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
+import EditIcon from '@material-ui/icons/Edit'
+import Tooltip from '@material-ui/core/Tooltip'
+import ButtonBase from '@material-ui/core/ButtonBase'
+import { LinkButton } from '../../../../../../components/LinkButton'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../../../commonComponents/styled'
@@ -20,25 +23,24 @@ import { UPDATE_PLAYER } from './SetPlayerJersey'
 
 export const SetPlayerPosition = props => {
   const { player } = props
-  const classes = useStyles()
 
   const { setPlayerPositionDialogOpen, setPlayerData } =
     React.useContext(TeamPlayersContext)
 
   return (
-    <Button
-      type="button"
+    <LinkButton
+      component={ButtonBase}
+      variant="text"
+      icon
       onClick={() => {
         setPlayerData(player)
         setPlayerPositionDialogOpen(true)
       }}
-      variant={'outlined'}
-      size="small"
-      className={classes.submit}
-      startIcon={<AddIcon />}
     >
-      Set Position
-    </Button>
+      <Tooltip arrow title="Set Position" placement="top">
+        <EditIcon />
+      </Tooltip>
+    </LinkButton>
   )
 }
 

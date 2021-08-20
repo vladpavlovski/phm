@@ -252,11 +252,13 @@ const Game = () => {
           },
           ...(gameVenue && {
             venue: {
-              disconnect: {
-                where: {
-                  node: {},
+              ...(gameId !== 'new' && {
+                disconnect: {
+                  where: {
+                    node: {},
+                  },
                 },
-              },
+              }),
               connect: {
                 where: {
                   node: { venueId: gameVenue?.venueId },

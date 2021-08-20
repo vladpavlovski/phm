@@ -113,10 +113,10 @@ const Person = () => {
     error: queryError,
   } = useQuery(GET_PERSON, {
     fetchPolicy: 'network-only',
-    variables: { personId },
+    variables: { where: { personId } },
   })
 
-  const personData = queryData?.people[0]
+  const personData = queryData?.people?.[0]
 
   const [
     createPerson,

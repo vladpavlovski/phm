@@ -60,6 +60,8 @@ export const GET_TEAM = gql`
         firstName
         lastName
         name
+        avatar
+        activityStatus
         positions {
           positionId
           name

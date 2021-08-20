@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import { useParams } from 'react-router-dom'
+
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
@@ -34,7 +34,7 @@ import { RHFInput } from '../../../../../components/RHFInput'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, decomposeNumber } from '../../../../../utils'
+import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_GROUPS = gql`
   query getCompetition($where: CompetitionWhere) {
@@ -116,7 +116,7 @@ const schema = object().shape({
 
 const Groups = props => {
   const { competitionId } = props
-  const { organizationSlug } = useParams()
+  // const { organizationSlug } = useParams()
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -133,7 +133,6 @@ const Groups = props => {
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_GROUPS, {
     variables: { where: { competitionId } },
-    fetchPolicy: 'cache-and-network',
   })
 
   const competition = queryData?.competition?.[0]
@@ -333,7 +332,6 @@ const Groups = props => {
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
-        organizationSlug={organizationSlug}
       />
     </Accordion>
   )
@@ -347,7 +345,6 @@ const FormDialog = props => {
     openDialog,
     handleCloseDialog,
     data,
-    organizationSlug,
   } = props
   const [selectedSeason, setSelectedSeason] = useState()
   const classes = useStyles()
@@ -378,7 +375,6 @@ const FormDialog = props => {
             query: GET_GROUPS,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
 
@@ -408,7 +404,6 @@ const FormDialog = props => {
             data: updatedResult,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
         } catch (error) {
@@ -471,7 +466,7 @@ const FormDialog = props => {
                 },
                 update: {
                   ...rest,
-                  teamsLimit: decomposeNumber(teamsLimit),
+                  teamsLimit: `${teamsLimit}`,
                 },
               },
             })
@@ -479,7 +474,7 @@ const FormDialog = props => {
               variables: {
                 input: {
                   ...rest,
-                  teamsLimit: decomposeNumber(teamsLimit),
+                  teamsLimit: `${teamsLimit}`,
                   competition: {
                     connect: {
                       where: {

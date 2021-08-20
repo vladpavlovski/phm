@@ -33,37 +33,37 @@ import { Relations } from './relations'
 import * as ROUTES from '../../../routes'
 import OrganizationContext from '../../../context/organization'
 
-const GET_ORGANIZATION_BY_SLUG = gql`
-  query getOrganizationBySlug($organizationSlug: String!) {
-    organization: organizationBySlug(organizationSlug: $organizationSlug) {
-      organizationId
-      name
-      nick
-      short
-      status
-      legalName
-      logo
-      urlSlug
-      ownerId
-      foundDate
-      persons {
-        personId
-        firstName
-        lastName
-        name
-        avatar
-        occupations {
-          occupationId
-          name
-        }
-      }
-      occupations {
-        occupationId
-        name
-      }
-    }
-  }
-`
+// const GET_ORGANIZATION_BY_SLUG = gql`
+//   query getOrganizationBySlug($organizationSlug: String!) {
+//     organization: organizationBySlug(organizationSlug: $organizationSlug) {
+//       organizationId
+//       name
+//       nick
+//       short
+//       status
+//       legalName
+//       logo
+//       urlSlug
+//       ownerId
+//       foundDate
+//       persons {
+//         personId
+//         firstName
+//         lastName
+//         name
+//         avatar
+//         occupations {
+//           occupationId
+//           name
+//         }
+//       }
+//       occupations {
+//         occupationId
+//         name
+//       }
+//     }
+//   }
+// `
 
 export const GET_ORGANIZATION = gql`
   query getOrganization($where: OrganizationWhere) {
@@ -159,8 +159,8 @@ const Organization = () => {
     data: queryData,
     loading: queryLoading,
     error: queryError,
-  } = useQuery(GET_ORGANIZATION_BY_SLUG, {
-    variables: { organizationSlug },
+  } = useQuery(GET_ORGANIZATION, {
+    variables: { where: { urlSlug: organizationSlug } },
     skip: organizationSlug === 'new',
     onCompleted: ({ organization }) => {
       if (organization) {
