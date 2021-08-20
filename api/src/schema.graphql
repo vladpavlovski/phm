@@ -463,13 +463,13 @@ type Mutation {
 }
 
 type Query {
-  orgBySlug(orgSlug: String!): Organization
-    @cypher(
-      statement: """
-      MATCH (org: Organization {urlSlug: $orgSlug})
-      return org
-      """
-    )
+  # orgBySlug(orgSlug: String!): Organization
+  #   @cypher(
+  #     statement: """
+  #     MATCH (org: Organization {urlSlug: $orgSlug})
+  #     return org
+  #     """
+  #   )
   # personsByOrganization(orgSlug: String!): [Person]
   #   @cypher(
   #     statement: """
@@ -484,13 +484,13 @@ type Query {
   #     return competition
   #     """
   #   )
-  sponsorsByOrganization(orgSlug: String!): [Sponsor]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
-      return sponsor
-      """
-    )
+  # sponsorsByOrganization(orgSlug: String!): [Sponsor]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
+  #     return sponsor
+  #     """
+  #   )
   # seasonsByOrganization(orgSlug: String!): [Season]
   #   @cypher(
   #     statement: """
@@ -505,13 +505,13 @@ type Query {
       return award
       """
     )
-  rulePacksByOrganization(orgSlug: String!): [RulePack]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
-      return rulePack
-      """
-    )
+  # rulePacksByOrganization(orgSlug: String!): [RulePack]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
+  #     return rulePack
+  #     """
+  #   )
   # eventsByOrganization(orgSlug: String!): [Event]
   #   @cypher(
   #     statement: """

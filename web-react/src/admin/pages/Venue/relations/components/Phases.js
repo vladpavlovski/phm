@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -31,71 +30,14 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, formatDate } from '../../../../../utils'
 
-const GET_PHASES = gql`
-  query getVenuePhases($venueId: ID) {
-    venue: Venue(venueId: $venueId) {
-      venueId
-      name
-      phases {
-        phaseId
-        name
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          competitionId
-          name
-        }
-      }
-    }
-  }
-`
-
-const REMOVE_VENUE_PHASE = gql`
-  mutation removeVenuePhase($venueId: ID!, $phaseId: ID!) {
-    venuePhase: RemoveVenuePhases(
-      from: { phaseId: $phaseId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        phaseId
-        name
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          competitionId
-          name
-        }
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_PHASES = gql`
   query getPhases {
-    phases: Phase {
+    phases {
       phaseId
       name
       status
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
+      startDate
+      endDate
       competition {
         competitionId
         name
@@ -104,52 +46,15 @@ export const GET_ALL_PHASES = gql`
   }
 `
 
-const MERGE_VENUE_PHASE = gql`
-  mutation mergeVenuePhases($venueId: ID!, $phaseId: ID!) {
-    venuePhase: MergeVenuePhases(
-      from: { phaseId: $phaseId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        phaseId
-        name
-        status
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-        competition {
-          competitionId
-          name
-        }
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 const Phases = props => {
-  const { venueId } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const [openAddVenue, setOpenAddVenue] = useState(false)
+  const { venueId, venue, updateVenue } = props
 
-  const handleCloseAddVenue = useCallback(() => {
+  const classes = useStyles()
+  const [openAddVenue, setOpenAddVenue] = React.useState(false)
+
+  const handleCloseAddVenue = React.useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PHASES, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const venue = queryData?.venue?.[0]
 
   const [
     getAllVenues,
@@ -162,117 +67,14 @@ const Phases = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removePhaseVenue, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_VENUE_PHASE,
-    {
-      update(cache, { data: { venuePhase } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_PHASES,
-            variables: {
-              venueId,
-            },
-          })
-          const updatedData = queryResult?.venue?.[0]?.phases.filter(
-            p => p.phaseId !== venuePhase.from.phaseId
-          )
-
-          const updatedResult = {
-            venue: [
-              {
-                ...queryResult?.venue?.[0],
-                phases: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_PHASES,
-            data: updatedResult,
-            variables: {
-              venueId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.venuePhase.from.name} not takes plays on ${venue.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergePhaseVenue] = useMutation(MERGE_VENUE_PHASE, {
-    update(cache, { data: { venuePhase } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PHASES,
-          variables: {
-            venueId,
-          },
-        })
-        const existingData = queryResult?.venue?.[0]?.phases
-        const newItem = venuePhase.from
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              phases: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PHASES,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venuePhase.from.name} takes plays on ${venue.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { venueId } })
-    }
-  }, [])
-
-  const handleOpenAddVenue = useCallback(() => {
+  const handleOpenAddVenue = React.useCallback(() => {
     if (!queryAllVenuesData) {
       getAllVenues()
     }
     setOpenAddVenue(true)
   }, [])
 
-  const venuePhasesColumns = useMemo(
+  const venuePhasesColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -294,14 +96,14 @@ const Phases = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params?.row?.startDate?.formatted,
+        valueGetter: params => params?.row?.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params?.row?.endDate?.formatted,
+        valueGetter: params => params?.row?.endDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
@@ -330,7 +132,6 @@ const Phases = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to detach phase from venue?'}
@@ -340,10 +141,22 @@ const Phases = props => {
               dialogNegativeText={'No, keep phase'}
               dialogPositiveText={'Yes, detach phase'}
               onDialogClosePositive={() => {
-                removePhaseVenue({
+                updateVenue({
                   variables: {
-                    venueId,
-                    phaseId: params.row?.phaseId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      phases: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              phaseId: params.row?.phaseId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -355,7 +168,7 @@ const Phases = props => {
     []
   )
 
-  const allPhasesColumns = useMemo(
+  const allPhasesColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -401,8 +214,7 @@ const Phases = props => {
               phaseId={params.value}
               venueId={venueId}
               venue={venue}
-              merge={mergePhaseVenue}
-              remove={removePhaseVenue}
+              updateVenue={updateVenue}
             />
           )
         },
@@ -412,7 +224,7 @@ const Phases = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="phases-content"
@@ -421,36 +233,30 @@ const Phases = props => {
         <Typography className={classes.accordionFormTitle}>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Phase
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={venuePhasesColumns}
-                rows={setIdFromEntityId(venue.phases, 'phaseId')}
-                loading={queryAllVenuesLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Phase
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={venuePhasesColumns}
+            rows={setIdFromEntityId(venue.phases, 'phaseId')}
+            loading={queryAllVenuesLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -497,8 +303,8 @@ const Phases = props => {
 }
 
 const ToggleNewPhase = props => {
-  const { venueId, phaseId, venue, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { venueId, phaseId, venue, updateVenue } = props
+  const [isMember, setIsMember] = React.useState(
     !!venue.phases.find(p => p.phaseId === phaseId)
   )
 
@@ -508,19 +314,35 @@ const ToggleNewPhase = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    venueId,
-                    phaseId,
+            updateVenue({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  phases: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                phaseId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { phaseId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    venueId,
-                    phaseId,
-                  },
-                })
+                },
+              },
+            })
+
             setIsMember(!isMember)
           }}
           name="phaseMember"
@@ -536,13 +358,14 @@ ToggleNewPhase.propTypes = {
   venueId: PropTypes.string,
   phaseId: PropTypes.string,
   phase: PropTypes.object,
-  removePhaseVenue: PropTypes.func,
-  mergePhaseVenue: PropTypes.func,
+  updateVenue: PropTypes.func,
   loading: PropTypes.bool,
 }
 
 Phases.propTypes = {
   venueId: PropTypes.string,
+  updateVenue: PropTypes.func,
+  venue: PropTypes.object,
 }
 
 export { Phases }

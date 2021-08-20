@@ -258,10 +258,10 @@ const Season = () => {
         errorDelete) && (
         <Error
           message={
-            mutationErrorCreate.message ||
-            mutationErrorUpdate.message ||
-            queryError.message ||
-            errorDelete.message
+            mutationErrorCreate?.message ||
+            mutationErrorUpdate?.message ||
+            queryError?.message ||
+            errorDelete?.message
           }
         />
       )}
@@ -349,7 +349,7 @@ const Season = () => {
                         openTo="year"
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={seasonData?.startDate?.formatted}
+                        defaultValue={seasonData?.startDate}
                         error={errors.startDate}
                       />
                     </Grid>
@@ -364,7 +364,7 @@ const Season = () => {
                         openTo="year"
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={seasonData?.endDate?.formatted}
+                        defaultValue={seasonData?.endDate}
                         error={errors.endDate}
                       />
                     </Grid>

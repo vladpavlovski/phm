@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 import Img from 'react-cool-img'
@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { checkId, decomposeDate, isValidUuid } from '../../../utils'
+import { decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -30,8 +30,8 @@ import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_VENUE = gql`
-  query getVenue($venueId: ID!) {
-    venue: Venue(venueId: $venueId) {
+  query getVenue($where: VenueWhere) {
+    venues(where: $where) {
       venueId
       name
       nick
@@ -41,9 +41,7 @@ const GET_VENUE = gql`
       location
       capacity
       logo
-      foundDate {
-        formatted
-      }
+      foundDate
       address {
         addressId
         addressLine1
@@ -55,50 +53,79 @@ const GET_VENUE = gql`
         country
         other
       }
+      competitions {
+        competitionId
+        name
+      }
+      seasons {
+        seasonId
+        name
+      }
+      phases {
+        phaseId
+        name
+        status
+        startDate
+        endDate
+        competition {
+          name
+        }
+      }
+      groups {
+        groupId
+        name
+        competition {
+          name
+        }
+      }
     }
   }
 `
 
-const MERGE_VENUE = gql`
-  mutation mergeVenue(
-    $venueId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $web: String
-    $description: String
-    $location: String
-    $capacity: Int
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-  ) {
-    mergeVenue: MergeVenue(
-      venueId: $venueId
-      name: $name
-      nick: $nick
-      short: $short
-      web: $web
-      description: $description
-      location: $location
-      capacity: $capacity
-      logo: $logo
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+const CREATE_VENUE = gql`
+  mutation createVenue($input: [VenueCreateInput!]!) {
+    createVenues(input: $input) {
+      venues {
+        venueId
       }
-    ) {
-      venueId
+    }
+  }
+`
+
+const UPDATE_VENUE = gql`
+  mutation updateVenue($where: VenueWhere, $update: VenueUpdateInput) {
+    updateVenues(where: $where, update: $update) {
+      venues {
+        venueId
+        name
+        nick
+        short
+        web
+        description
+        location
+        capacity
+        logo
+        foundDate
+        address {
+          addressId
+          addressLine1
+          addressLine2
+          addressLine3
+          city
+          countyProvince
+          zip
+          country
+          other
+        }
+      }
     }
   }
 `
 
 const DELETE_VENUE = gql`
-  mutation deleteVenue($venueId: ID!) {
-    deleteVenue: DeleteVenue(venueId: $venueId) {
-      venueId
+  mutation deleteVenue($where: VenueWhere) {
+    deleteVenues(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -114,53 +141,87 @@ const Venue = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_VENUE, {
-    fetchPolicy: 'network-only',
-    variables: { venueId },
+    variables: { where: { venueId } },
     skip: venueId === 'new',
   })
 
+  const venueData = queryData?.venues?.[0]
+
   const [
-    mergeVenue,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_VENUE, {
+    createVenue,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_VENUE, {
     onCompleted: data => {
       if (venueId === 'new') {
-        const newId = data.mergeVenue.venueId
-        history.replace(getAdminOrgVenueRoute(organizationSlug, newId))
+        const newId = data?.createVenues?.venues?.[0]?.venueId
+        newId && history.replace(getAdminOrgVenueRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Venue saved!', { variant: 'success' })
     },
   })
 
+  const [
+    updateVenue,
+    { loading: mutationLoadingUpdate, error: mutationErrorUpdate },
+  ] = useMutation(UPDATE_VENUE, {
+    update(cache, { data }) {
+      try {
+        cache.writeQuery({
+          query: GET_VENUE,
+          data: {
+            venues: data?.updateVenues?.venues,
+          },
+          variables: { where: { venueId } },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar('Venue updated!', { variant: 'success' })
+    },
+  })
+
   const [deleteVenue, { loading: loadingDelete, error: errorDelete }] =
     useMutation(DELETE_VENUE, {
+      variables: { where: { venueId } },
       onCompleted: () => {
         history.push(getAdminOrgVenuesRoute(organizationSlug))
         enqueueSnackbar('Venue was deleted!')
       },
     })
 
-  const venueData = queryData?.venue[0] || {}
-
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const onSubmit = useCallback(
+  const onSubmit = React.useCallback(
     dataToCheck => {
       try {
         const { foundDate, capacity, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          venueId: checkId(venueId),
-          capacity: capacity ? parseInt(capacity) : 0,
+          capacity: capacity ? `${capacity}` : null,
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeVenue({
-          variables: dataToSubmit,
-        })
+        venueId === 'new'
+          ? createVenue({
+              variables: {
+                input: {
+                  ...dataToSubmit,
+                },
+              },
+            })
+          : updateVenue({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -168,7 +229,7 @@ const Venue = () => {
     [venueId]
   )
 
-  const updateLogo = useCallback(
+  const updateLogo = React.useCallback(
     url => {
       setValue('logo', url, true)
 
@@ -184,7 +245,7 @@ const Venue = () => {
         data: {
           venue: [
             {
-              ...queryResult.venue[0],
+              ...queryResult?.venue?.[0],
               logo: url,
             },
           ],
@@ -200,182 +261,197 @@ const Venue = () => {
 
   return (
     <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+      {queryLoading && <Loader />}
+      {(mutationErrorCreate ||
+        mutationErrorUpdate ||
+        queryError ||
+        errorDelete) && (
+        <Error
+          message={
+            mutationErrorCreate?.message ||
+            mutationErrorUpdate?.message ||
+            queryError?.message ||
+            errorDelete?.message
+          }
+        />
       )}
-      {(venueData || venueId === 'new') &&
-        !queryLoading &&
-        !queryError &&
-        !mutationErrorMerge && (
-          <>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className={classes.form}
-              noValidate
-              autoComplete="off"
-            >
-              <Helmet>
-                <title>{venueData.name || 'Venue'}</title>
-              </Helmet>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4} lg={3}>
-                  <Paper className={classes.paper}>
-                    <Img
-                      placeholder={placeholderOrganization}
-                      src={venueData.logo}
-                      className={classes.logo}
-                      alt={venueData.name}
+      {(venueData || venueId === 'new') && (
+        <>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className={classes.form}
+            noValidate
+            autoComplete="off"
+          >
+            <Helmet>
+              <title>{venueData?.name || 'Venue'}</title>
+            </Helmet>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4} lg={3}>
+                <Paper className={classes.paper}>
+                  <Img
+                    placeholder={placeholderOrganization}
+                    src={venueData?.logo}
+                    className={classes.logo}
+                    alt={venueData?.name}
+                  />
+
+                  <RHFInput
+                    style={{ display: 'none' }}
+                    defaultValue={venueData?.logo}
+                    control={control}
+                    name="logo"
+                    label="Logo URL"
+                    disabled
+                    fullWidth
+                    variant="standard"
+                    error={errors.logo}
+                  />
+
+                  {isValidUuid(venueId) && (
+                    <Uploader
+                      buttonText={'Change logo'}
+                      onSubmit={updateLogo}
+                      folderName="images/venues"
                     />
-
-                    <RHFInput
-                      style={{ display: 'none' }}
-                      defaultValue={venueData.logo}
-                      control={control}
-                      name="logo"
-                      label="Logo URL"
-                      disabled
-                      fullWidth
-                      variant="standard"
-                      error={errors.logo}
-                    />
-
-                    {isValidUuid(venueId) && (
-                      <Uploader
-                        buttonText={'Change logo'}
-                        onSubmit={updateLogo}
-                        folderName="images/venues"
-                      />
-                    )}
-                  </Paper>
-                </Grid>
-
-                <Grid item xs={12} md={12} lg={9}>
-                  <Paper className={classes.paper}>
-                    <Toolbar disableGutters className={classes.toolbarForm}>
-                      <div>
-                        <Title>{'Venue'}</Title>
-                      </div>
-                      <div>
-                        {formState.isDirty && (
-                          <ButtonSave loading={mutationLoadingMerge} />
-                        )}
-                        {venueId !== 'new' && (
-                          <ButtonDelete
-                            loading={loadingDelete}
-                            onClick={() => {
-                              deleteVenue({ variables: { venueId } })
-                            }}
-                          />
-                        )}
-                      </div>
-                    </Toolbar>
-
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.name}
-                          control={control}
-                          name="name"
-                          label="Name"
-                          required
-                          fullWidth
-                          variant="standard"
-                          error={errors.name}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.nick}
-                          control={control}
-                          name="nick"
-                          label="Nick"
-                          fullWidth
-                          variant="standard"
-                          error={errors.nick}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.short}
-                          control={control}
-                          name="short"
-                          label="Short"
-                          fullWidth
-                          variant="standard"
-                          error={errors.short}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.web}
-                          control={control}
-                          name="web"
-                          label="Web"
-                          fullWidth
-                          variant="standard"
-                          error={errors.web}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.description}
-                          control={control}
-                          name="description"
-                          label="Description"
-                          fullWidth
-                          variant="standard"
-                          error={errors.description}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.location}
-                          control={control}
-                          name="location"
-                          label="Location"
-                          fullWidth
-                          variant="standard"
-                          error={errors.location}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={venueData.capacity}
-                          control={control}
-                          name="capacity"
-                          label="Capacity"
-                          fullWidth
-                          variant="standard"
-                          error={errors.capacity}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFDatepicker
-                          fullWidth
-                          control={control}
-                          variant="standard"
-                          name="foundDate"
-                          label="Found Date"
-                          id="foundDate"
-                          openTo="year"
-                          disableFuture
-                          inputFormat={'DD/MM/YYYY'}
-                          views={['year', 'month', 'day']}
-                          defaultValue={venueData?.foundDate?.formatted}
-                          error={errors.foundDate}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                </Grid>
+                  )}
+                </Paper>
               </Grid>
-            </form>
-            {isValidUuid(venueId) && <Relations venueId={venueId} />}
-          </>
-        )}
+
+              <Grid item xs={12} md={12} lg={9}>
+                <Paper className={classes.paper}>
+                  <Toolbar disableGutters className={classes.toolbarForm}>
+                    <div>
+                      <Title>{'Venue'}</Title>
+                    </div>
+                    <div>
+                      {formState.isDirty && (
+                        <ButtonSave
+                          loading={
+                            mutationLoadingCreate || mutationLoadingUpdate
+                          }
+                        />
+                      )}
+                      {venueId !== 'new' && (
+                        <ButtonDelete
+                          loading={loadingDelete}
+                          onClick={() => {
+                            deleteVenue({ variables: { where: { venueId } } })
+                          }}
+                        />
+                      )}
+                    </div>
+                  </Toolbar>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.name}
+                        control={control}
+                        name="name"
+                        label="Name"
+                        required
+                        fullWidth
+                        variant="standard"
+                        error={errors.name}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.nick}
+                        control={control}
+                        name="nick"
+                        label="Nick"
+                        fullWidth
+                        variant="standard"
+                        error={errors.nick}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.short}
+                        control={control}
+                        name="short"
+                        label="Short"
+                        fullWidth
+                        variant="standard"
+                        error={errors.short}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.web}
+                        control={control}
+                        name="web"
+                        label="Web"
+                        fullWidth
+                        variant="standard"
+                        error={errors.web}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.description}
+                        control={control}
+                        name="description"
+                        label="Description"
+                        fullWidth
+                        variant="standard"
+                        error={errors.description}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.location}
+                        control={control}
+                        name="location"
+                        label="Location"
+                        fullWidth
+                        variant="standard"
+                        error={errors.location}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={venueData?.capacity}
+                        control={control}
+                        name="capacity"
+                        label="Capacity"
+                        fullWidth
+                        variant="standard"
+                        error={errors.capacity}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFDatepicker
+                        fullWidth
+                        control={control}
+                        variant="standard"
+                        name="foundDate"
+                        label="Found Date"
+                        id="foundDate"
+                        openTo="year"
+                        disableFuture
+                        inputFormat={'DD/MM/YYYY'}
+                        views={['year', 'month', 'day']}
+                        defaultValue={venueData?.foundDate}
+                        error={errors.foundDate}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
+          </form>
+          {isValidUuid(venueId) && (
+            <Relations
+              venueId={venueId}
+              venue={venueData}
+              updateVenue={updateVenue}
+            />
+          )}
+        </>
+      )}
     </Container>
   )
 }
