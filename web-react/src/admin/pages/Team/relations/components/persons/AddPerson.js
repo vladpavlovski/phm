@@ -27,7 +27,6 @@ export const GET_ALL_PERSONS = gql`
       name
       firstName
       lastName
-      name
       teams {
         teamId
         name
