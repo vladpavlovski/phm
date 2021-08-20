@@ -7,6 +7,7 @@ const neo4j = require('neo4j-driver')
 // This module is copied during the build step
 // Be sure to run `npm run build`
 const { typeDefs } = require('./graphql-schema')
+const { resolvers } = require('./resolvers')
 
 const {
   DEV_NEO4J_URI,
@@ -30,7 +31,7 @@ const driver = neo4j.driver(
   neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
 )
 
-const neoSchema = new Neo4jGraphQL({ typeDefs, driver })
+const neoSchema = new Neo4jGraphQL({ typeDefs, resolvers, driver })
 
 const server = new ApolloServer({
   schema: neoSchema.schema,

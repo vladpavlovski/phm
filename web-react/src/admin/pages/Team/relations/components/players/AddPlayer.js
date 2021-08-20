@@ -29,7 +29,6 @@ export const GET_ALL_PLAYERS = gql`
       name
       firstName
       lastName
-      name
       teams {
         teamId
         name

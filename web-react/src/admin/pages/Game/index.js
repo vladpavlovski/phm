@@ -87,7 +87,12 @@ export const GET_GAME = gql`
         name
       }
     }
-    venues {
+  }
+`
+
+const GET_ALL_VENUES = gql`
+  query getVenues($where: VenueWhere) {
+    venues(where: $where) {
       venueId
       name
     }
@@ -159,10 +164,11 @@ const Game = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_GAME, {
-    fetchPolicy: 'network-only',
     variables: { where: { gameId } },
     skip: gameId === 'new',
   })
+
+  const { data: venuesData } = useQuery(GET_ALL_VENUES)
 
   const [
     createGame,
@@ -210,7 +216,7 @@ const Game = () => {
       },
     })
 
-  const gameData = queryData?.games[0] || {}
+  const gameData = queryData?.games?.[0]
 
   const { handleSubmit, control, errors, formState, register, setValue } =
     useForm({
@@ -244,18 +250,20 @@ const Game = () => {
               },
             },
           },
-          venue: {
-            disconnect: {
-              where: {},
-            },
-            ...(gameVenue && {
+          ...(gameVenue && {
+            venue: {
+              disconnect: {
+                where: {
+                  node: {},
+                },
+              },
               connect: {
                 where: {
                   node: { venueId: gameVenue?.venueId },
                 },
               },
-            }),
-          },
+            },
+          }),
         }
         gameId === 'new'
           ? createGame({
@@ -277,7 +285,6 @@ const Game = () => {
     },
     [gameId]
   )
-
   return (
     <Container maxWidth={false} className={classes.container}>
       {queryLoading && !queryError && <Loader />}
@@ -285,7 +292,7 @@ const Game = () => {
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
       {(mutationErrorMerge || mutationErrorCreate) && (
         <Error
-          message={mutationErrorMerge.message || mutationErrorCreate.message}
+          message={mutationErrorMerge?.message || mutationErrorCreate?.message}
         />
       )}
       {(gameData || gameId === 'new') &&
@@ -329,7 +336,7 @@ const Game = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <RHFInput
-                          defaultValue={gameData.name}
+                          defaultValue={gameData?.name}
                           control={control}
                           name="name"
                           label="Name"
@@ -427,7 +434,7 @@ const Game = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <RHFInput
-                          defaultValue={gameData.description}
+                          defaultValue={gameData?.description}
                           control={control}
                           name="description"
                           label="Description"
@@ -447,10 +454,11 @@ const Game = () => {
                           error={errors?.info}
                         />
                       </Grid>
+
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <Autocomplete
                           id="combo-box-game-venue"
-                          options={queryData?.venues}
+                          options={venuesData?.venues || []}
                           // value={gameData?.venue}
                           defaultValue={gameData?.venue}
                           renderInput={params => (

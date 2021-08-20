@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,82 +32,24 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_SEASONS = gql`
-  query getVenueSeasons($venueId: ID) {
-    venue: Venue(venueId: $venueId) {
-      venueId
-      name
-      seasons {
-        seasonId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_VENUE_SEASON = gql`
-  mutation removeVenueSeason($venueId: ID!, $seasonId: ID!) {
-    venueSeason: RemoveVenueSeasons(
-      from: { seasonId: $seasonId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        seasonId
-        name
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_SEASONS = gql`
   query getSeasons {
-    seasons: Season {
+    seasons {
       seasonId
       name
     }
   }
 `
 
-const MERGE_VENUE_SEASON = gql`
-  mutation mergeVenueSeasons($venueId: ID!, $seasonId: ID!) {
-    venueSeason: MergeVenueSeasons(
-      from: { seasonId: $seasonId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        seasonId
-        name
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 const Seasons = props => {
-  const { venueId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { venueId, venue, updateVenue } = props
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [openAddVenue, setOpenAddVenue] = useState(false)
+  const [openAddVenue, setOpenAddVenue] = React.useState(false)
 
-  const handleCloseAddVenue = useCallback(() => {
+  const handleCloseAddVenue = React.useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SEASONS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const venue = queryData?.venue?.[0]
 
   const [
     getAllVenues,
@@ -120,117 +62,14 @@ const Seasons = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeSeasonVenue, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_VENUE_SEASON,
-    {
-      update(cache, { data: { venueSeason } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_SEASONS,
-            variables: {
-              venueId,
-            },
-          })
-          const updatedData = queryResult?.venue?.[0]?.seasons.filter(
-            p => p.seasonId !== venueSeason.from.seasonId
-          )
-
-          const updatedResult = {
-            venue: [
-              {
-                ...queryResult?.venue?.[0],
-                seasons: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_SEASONS,
-            data: updatedResult,
-            variables: {
-              venueId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.venueSeason.from.name} not takes plays on ${venue.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeSeasonVenue] = useMutation(MERGE_VENUE_SEASON, {
-    update(cache, { data: { venueSeason } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SEASONS,
-          variables: {
-            venueId,
-          },
-        })
-        const existingData = queryResult?.venue?.[0]?.seasons
-        const newItem = venueSeason.from
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              seasons: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_SEASONS,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venueSeason.from.name} takes plays on ${venue.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { venueId } })
-    }
-  }, [])
-
-  const handleOpenAddVenue = useCallback(() => {
+  const handleOpenAddVenue = React.useCallback(() => {
     if (!queryAllVenuesData) {
       getAllVenues()
     }
     setOpenAddVenue(true)
   }, [])
 
-  const venueSeasonsColumns = useMemo(
+  const venueSeasonsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -264,7 +103,6 @@ const Seasons = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to detach season from venue?'}
@@ -274,10 +112,22 @@ const Seasons = props => {
               dialogNegativeText={'No, keep season'}
               dialogPositiveText={'Yes, detach season'}
               onDialogClosePositive={() => {
-                removeSeasonVenue({
+                updateVenue({
                   variables: {
-                    venueId,
-                    seasonId: params.row.seasonId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      seasons: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              seasonId: params.row.seasonId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -289,7 +139,7 @@ const Seasons = props => {
     [organizationSlug]
   )
 
-  const allSeasonsColumns = useMemo(
+  const allSeasonsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -308,8 +158,7 @@ const Seasons = props => {
               seasonId={params.value}
               venueId={venueId}
               venue={venue}
-              merge={mergeSeasonVenue}
-              remove={removeSeasonVenue}
+              updateVenue={updateVenue}
             />
           )
         },
@@ -319,7 +168,7 @@ const Seasons = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="seasons-content"
@@ -328,36 +177,30 @@ const Seasons = props => {
         <Typography className={classes.accordionFormTitle}>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Season
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={venueSeasonsColumns}
-                rows={setIdFromEntityId(venue.seasons, 'seasonId')}
-                loading={queryAllVenuesLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Season
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={venueSeasonsColumns}
+            rows={setIdFromEntityId(venue.seasons, 'seasonId')}
+            loading={queryAllVenuesLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -407,8 +250,8 @@ const Seasons = props => {
 }
 
 const ToggleNewSeason = props => {
-  const { venueId, seasonId, venue, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { venueId, seasonId, venue, updateVenue } = props
+  const [isMember, setIsMember] = React.useState(
     !!venue.seasons.find(p => p.seasonId === seasonId)
   )
 
@@ -418,19 +261,34 @@ const ToggleNewSeason = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    venueId,
-                    seasonId,
+            updateVenue({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  seasons: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                seasonId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { seasonId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    venueId,
-                    seasonId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="seasonMember"
@@ -446,13 +304,14 @@ ToggleNewSeason.propTypes = {
   venueId: PropTypes.string,
   seasonId: PropTypes.string,
   season: PropTypes.object,
-  removeSeasonVenue: PropTypes.func,
-  mergeSeasonVenue: PropTypes.func,
+  updateVenue: PropTypes.func,
   loading: PropTypes.bool,
 }
 
 Seasons.propTypes = {
   venueId: PropTypes.string,
+  updateVenue: PropTypes.func,
+  venue: PropTypes.object,
 }
 
 export { Seasons }

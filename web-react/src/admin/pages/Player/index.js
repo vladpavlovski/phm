@@ -290,6 +290,11 @@ const Player = () => {
               variables: {
                 input: {
                   ...dataToSubmit,
+                  meta: {
+                    create: {
+                      node: {},
+                    },
+                  },
                 },
               },
             })
@@ -316,7 +321,7 @@ const Player = () => {
         data: {
           player: [
             {
-              ...queryResult.players[0],
+              ...queryResult?.players?.[0],
               avatar: url,
             },
           ],
@@ -351,21 +356,21 @@ const Player = () => {
               autoComplete="off"
             >
               <Helmet>
-                <title>{playerData.name || 'Player'}</title>
+                <title>{playerData?.name || 'Player'}</title>
               </Helmet>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4} lg={3}>
                   <Paper className={classes.paper}>
                     <Img
                       placeholder={placeholderAvatar}
-                      src={playerData.avatar}
+                      src={playerData?.avatar}
                       className={classes.logo}
-                      alt={playerData.name}
+                      alt={playerData?.name}
                     />
 
                     <RHFInput
                       style={{ display: 'none' }}
-                      defaultValue={playerData.avatar}
+                      defaultValue={playerData?.avatar}
                       control={control}
                       name="avatar"
                       label="Avatar URL"

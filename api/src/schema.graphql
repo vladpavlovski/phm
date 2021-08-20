@@ -200,12 +200,13 @@ type Mutation {
       $metaPlayerSufferedId as metaPlayerSufferedId
 
 
+
       CALL apoc.do.when(
           $metaPlayerScoredById IS NOT NULL,
-          "MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
+          'MATCH (metaPlayerScoredBy: MetaPlayer {metaPlayerId: metaPlayerScoredById})
           CREATE (metaPlayerScoredBy) <- [:SCORED_BY] - (ges)
           RETURN metaPlayerScoredBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -229,10 +230,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerFirstAssistId IS NOT NULL,
-          "MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: metaPlayerFirstAssistId})
+          'MATCH (metaPlayerFirstAssist: MetaPlayer {metaPlayerId: metaPlayerFirstAssistId})
           CREATE (metaPlayerFirstAssist) <- [:FIRST_ASSIST_BY] - (ges)
           RETURN metaPlayerFirstAssist
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -255,10 +256,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerSecondAssistId IS NOT NULL,
-          "MATCH (metaPlayerSecondAssist: MetaPlayer {metaPlayerId: metaPlayerSecondAssistId})
+          'MATCH (metaPlayerSecondAssist: MetaPlayer {metaPlayerId: metaPlayerSecondAssistId})
           CREATE (metaPlayerSecondAssist) <- [:SECOND_ASSIST_BY] - (ges)
           RETURN metaPlayerSecondAssist
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -280,10 +281,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerAllowedById IS NOT NULL,
-          "MATCH (metaPlayerAllowedBy: MetaPlayer {metaPlayerId: metaPlayerAllowedById})
+          'MATCH (metaPlayerAllowedBy: MetaPlayer {metaPlayerId: metaPlayerAllowedById})
           CREATE (metaPlayerAllowedBy) <- [:ALLOWED_BY] - (ges)
           RETURN metaPlayerAllowedBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -304,10 +305,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerSavedById IS NOT NULL,
-          "MATCH (metaPlayerSavedBy: MetaPlayer {metaPlayerId: metaPlayerSavedById})
+          'MATCH (metaPlayerSavedBy: MetaPlayer {metaPlayerId: metaPlayerSavedById})
           CREATE (metaPlayerSavedBy) <- [:SAVED_BY] - (ges)
           RETURN metaPlayerSavedBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -327,10 +328,10 @@ type Mutation {
 
       CALL apoc.do.when(
           previousGameEventSimpleId IS NOT NULL,
-          "MATCH (previousGameEventSimple: GameEventSimple {gameEventSimpleId: previousGameEventSimpleId})
+          'MATCH (previousGameEventSimple: GameEventSimple {gameEventSimpleId: previousGameEventSimpleId})
           CREATE (previousGameEventSimple) <- [:PREVIOUS_GAME_EVENT] - (ges)
           RETURN previousGameEventSimple
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -349,10 +350,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerWonById IS NOT NULL,
-          "MATCH (metaPlayerWonBy: MetaPlayer { metaPlayerId: metaPlayerWonById })
+          'MATCH (metaPlayerWonBy: MetaPlayer { metaPlayerId: metaPlayerWonById })
           CREATE (metaPlayerWonBy) <- [:WON_BY] - (ges)
           RETURN metaPlayerWonBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -370,10 +371,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerLostById IS NOT NULL,
-          "MATCH (metaPlayerLostBy: MetaPlayer { metaPlayerId: metaPlayerLostById })
+          'MATCH (metaPlayerLostBy: MetaPlayer { metaPlayerId: metaPlayerLostById })
           CREATE (metaPlayerLostBy) <- [:LOST_BY] - (ges)
           RETURN metaPlayerLostBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -390,10 +391,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerPenalizedId IS NOT NULL,
-          "MATCH (metaPlayerPenalized: MetaPlayer { metaPlayerId: metaPlayerPenalizedId })
+          'MATCH (metaPlayerPenalized: MetaPlayer { metaPlayerId: metaPlayerPenalizedId })
           CREATE (metaPlayerPenalized) <- [:PENALIZED] - (ges)
           RETURN metaPlayerPenalized
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -409,10 +410,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerExecutedById IS NOT NULL,
-          "MATCH (metaPlayerExecutedBy: MetaPlayer { metaPlayerId: metaPlayerExecutedById })
+          'MATCH (metaPlayerExecutedBy: MetaPlayer { metaPlayerId: metaPlayerExecutedById })
           CREATE (metaPlayerExecutedBy) <- [:EXECUTED_BY] - (ges)
           RETURN metaPlayerExecutedBy
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -427,10 +428,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerFacedAgainstId IS NOT NULL,
-          "MATCH (metaPlayerFacedAgainst: MetaPlayer { metaPlayerId: metaPlayerFacedAgainstId })
+          'MATCH (metaPlayerFacedAgainst: MetaPlayer { metaPlayerId: metaPlayerFacedAgainstId })
           CREATE (metaPlayerFacedAgainst) <- [:FACED_AGAINST] - (ges)
           RETURN metaPlayerFacedAgainst
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -444,10 +445,10 @@ type Mutation {
 
       CALL apoc.do.when(
           metaPlayerSufferedId IS NOT NULL,
-          "MATCH (metaPlayerSuffered: MetaPlayer { metaPlayerId: metaPlayerSufferedId })
+          'MATCH (metaPlayerSuffered: MetaPlayer { metaPlayerId: metaPlayerSufferedId })
           CREATE (metaPlayerSuffered) <- [:SUFFERED] - (ges)
           RETURN metaPlayerSuffered
-          ",
+          ',
           '',
           {
             ges: ges,
@@ -462,13 +463,13 @@ type Mutation {
 }
 
 type Query {
-  orgBySlug(orgSlug: String!): Organization
-    @cypher(
-      statement: """
-      MATCH (org: Organization {urlSlug: $orgSlug})
-      return org
-      """
-    )
+  # orgBySlug(orgSlug: String!): Organization
+  #   @cypher(
+  #     statement: """
+  #     MATCH (org: Organization {urlSlug: $orgSlug})
+  #     return org
+  #     """
+  #   )
   # personsByOrganization(orgSlug: String!): [Person]
   #   @cypher(
   #     statement: """
@@ -483,13 +484,13 @@ type Query {
   #     return competition
   #     """
   #   )
-  sponsorsByOrganization(orgSlug: String!): [Sponsor]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
-      return sponsor
-      """
-    )
+  # sponsorsByOrganization(orgSlug: String!): [Sponsor]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:ENGAGED_IN] - (sponsor:Sponsor)
+  #     return sponsor
+  #     """
+  #   )
   # seasonsByOrganization(orgSlug: String!): [Season]
   #   @cypher(
   #     statement: """
@@ -504,13 +505,13 @@ type Query {
       return award
       """
     )
-  rulePacksByOrganization(orgSlug: String!): [RulePack]
-    @cypher(
-      statement: """
-      MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
-      return rulePack
-      """
-    )
+  # rulePacksByOrganization(orgSlug: String!): [RulePack]
+  #   @cypher(
+  #     statement: """
+  #     MATCH (Organization {urlSlug: $orgSlug}) - [:PROVIDED_BY] - (rulePack:RulePack)
+  #     return rulePack
+  #     """
+  #   )
   # eventsByOrganization(orgSlug: String!): [Event]
   #   @cypher(
   #     statement: """
