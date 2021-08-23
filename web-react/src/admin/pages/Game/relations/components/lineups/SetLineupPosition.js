@@ -88,7 +88,7 @@ export const SetLineupPosition = props => {
                         where: {
                           node: { playerId: player?.playerId },
                         },
-                        properties: {
+                        edge: {
                           position: positionValue,
                         },
                       },

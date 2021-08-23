@@ -87,7 +87,7 @@ export const SetLineupJersey = props => {
                         where: {
                           node: { playerId: player?.playerId },
                         },
-                        properties: {
+                        edge: {
                           jersey: `${jerseyValue}`,
                         },
                       },

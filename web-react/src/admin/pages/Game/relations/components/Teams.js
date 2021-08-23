@@ -168,7 +168,7 @@ const Teams = props => {
                           where: {
                             node: { teamId: params.value },
                           },
-                          properties: {
+                          edge: {
                             host: isHost.current,
                           },
                         },
