@@ -200,7 +200,12 @@ const Player = () => {
     createPlayer,
     { loading: mutationLoadingCreate, error: mutationErrorCreate },
   ] = useMutation(CREATE_PLAYER, {
-    onCompleted: () => {
+    onCompleted: data => {
+      if (playerId === 'new') {
+        const newId = data?.createPlayers?.players?.[0]?.playerId
+        newId &&
+          history.replace(getAdminOrgPlayerRoute(organizationSlug, newId))
+      }
       enqueueSnackbar('Player saved!', { variant: 'success' })
     },
     onError: error => {
@@ -227,11 +232,7 @@ const Player = () => {
         console.error(error)
       }
     },
-    onCompleted: data => {
-      if (playerId === 'new') {
-        const newPlayerId = data.updatePlayers?.players?.[0]?.playerId
-        history.replace(getAdminOrgPlayerRoute(organizationSlug, newPlayerId))
-      }
+    onCompleted: () => {
       enqueueSnackbar('Player updated!', { variant: 'success' })
     },
     onError: error => {

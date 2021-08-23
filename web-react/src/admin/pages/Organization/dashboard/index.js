@@ -12,9 +12,9 @@ import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
 import { useStyles } from '../../commonComponents/styled'
 
-const GET_ORGANIZATION_BY_SLUG = gql`
-  query getOrganizationBySlug($organizationSlug: String!) {
-    organization: organizationBySlug(organizationSlug: $organizationSlug) {
+const GET_ORGANIZATIONS = gql`
+  query getOrganizations($where: OrganizationWhere) {
+    organizations(where: $where) {
       organizationId
       name
       nick
@@ -31,12 +31,12 @@ const OrganizationDashboard = () => {
   const { organizationData, setOrganizationData } =
     useContext(OrganizationContext)
 
-  const [getOrganizationBySlug, { loading: queryLoading, error: queryError }] =
-    useLazyQuery(GET_ORGANIZATION_BY_SLUG, {
-      variables: { organizationSlug },
-      onCompleted: ({ organization }) => {
-        if (organization) {
-          const { organizationId, urlSlug, name, nick } = organization
+  const [getOrganizations, { loading: queryLoading, error: queryError }] =
+    useLazyQuery(GET_ORGANIZATIONS, {
+      variables: { where: { urlSlug: organizationSlug } },
+      onCompleted: ({ organizations }) => {
+        if (organizations) {
+          const { organizationId, urlSlug, name, nick } = organizations?.[0]
           setOrganizationData({
             organizationId,
             urlSlug,
@@ -56,7 +56,7 @@ const OrganizationDashboard = () => {
     ) {
       setBarTitle(organizationData?.name)
     } else {
-      getOrganizationBySlug()
+      getOrganizations()
     }
     return () => {
       setBarTitle('')
@@ -77,11 +77,9 @@ const OrganizationDashboard = () => {
                 className={classes.paper}
               >{`Organization Info: ${organizationData?.name}`}</Paper>
             </Grid>
-            {/* User Count */}
             <Grid item xs={12} md={4} lg={5}>
               <Paper className={classes.paper}>{/* <UserCount /> */}</Paper>
             </Grid>
-            {/* Recent Reviews */}
             <Grid item xs={12}>
               <Paper className={classes.paper}></Paper>
             </Grid>

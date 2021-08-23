@@ -217,12 +217,11 @@ const Game = () => {
     })
 
   const gameData = queryData?.games?.[0]
-
-  const { handleSubmit, control, errors, formState, register, setValue } =
-    useForm({
-      resolver: yupResolver(schema),
-      defaultValues: { gameVenue: [] },
-    })
+  // formState
+  const { handleSubmit, control, errors, register, setValue } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { gameVenue: [] },
+  })
 
   React.useEffect(() => {
     register('gameVenue', {
@@ -319,13 +318,14 @@ const Game = () => {
                         <Title sx={{ display: 'inline' }}>{'Game'}</Title>
                       </div>
                       <div>
-                        {formState.isDirty && (
-                          <ButtonSave
-                            loading={
-                              mutationLoadingMerge || mutationLoadingCreate
-                            }
-                          />
-                        )}
+                        {/* {formState.isDirty && ( */}
+                        {/* { // TODO: country change not triggered!!} */}
+                        <ButtonSave
+                          loading={
+                            mutationLoadingMerge || mutationLoadingCreate
+                          }
+                        />
+                        {/* )} */}
                         {gameId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}

@@ -33,41 +33,9 @@ import { Relations } from './relations'
 import * as ROUTES from '../../../routes'
 import OrganizationContext from '../../../context/organization'
 
-// const GET_ORGANIZATION_BY_SLUG = gql`
-//   query getOrganizationBySlug($organizationSlug: String!) {
-//     organization: organizationBySlug(organizationSlug: $organizationSlug) {
-//       organizationId
-//       name
-//       nick
-//       short
-//       status
-//       legalName
-//       logo
-//       urlSlug
-//       ownerId
-//       foundDate
-//       persons {
-//         personId
-//         firstName
-//         lastName
-//         name
-//         avatar
-//         occupations {
-//           occupationId
-//           name
-//         }
-//       }
-//       occupations {
-//         occupationId
-//         name
-//       }
-//     }
-//   }
-// `
-
 export const GET_ORGANIZATION = gql`
   query getOrganization($where: OrganizationWhere) {
-    organization: organizations(where: $where) {
+    organizations(where: $where) {
       organizationId
       name
       nick
@@ -162,9 +130,9 @@ const Organization = () => {
   } = useQuery(GET_ORGANIZATION, {
     variables: { where: { urlSlug: organizationSlug } },
     skip: organizationSlug === 'new',
-    onCompleted: ({ organization }) => {
-      if (organization) {
-        const { organizationId, urlSlug, name, nick } = organization
+    onCompleted: data => {
+      if (data) {
+        const { organizationId, urlSlug, name, nick } = data?.organizations?.[0]
         setOrganizationData({
           organizationId,
           urlSlug,
@@ -206,7 +174,7 @@ const Organization = () => {
       },
     })
 
-  const orgData = queryData?.organization
+  const orgData = queryData?.organizations?.[0]
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -220,7 +188,6 @@ const Organization = () => {
         const dataToSubmit = {
           ...rest,
           ownerId: orgData?.ownerId || user?.sub,
-          // organizationId: checkId(orgData.organizationId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
@@ -238,10 +205,6 @@ const Organization = () => {
                 input: dataToSubmit,
               },
             })
-
-        // mergeOrganization({
-        //   variables: dataToSubmit,
-        // })
       } catch (error) {
         console.error(error)
       }

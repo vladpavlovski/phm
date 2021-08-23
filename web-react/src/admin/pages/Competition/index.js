@@ -154,7 +154,7 @@ const Competition = () => {
               variables: {
                 input: {
                   ...dataToSubmit,
-                  organization: {
+                  org: {
                     connect: {
                       where: {
                         node: {

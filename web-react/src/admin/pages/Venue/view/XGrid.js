@@ -33,16 +33,6 @@ const XGridTable = () => {
   const columns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 200,
-      },
-      {
         field: 'venueId',
         headerName: 'Edit',
         width: 120,
@@ -58,6 +48,16 @@ const XGridTable = () => {
           )
         },
       },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 200,
+      },
     ],
     [organizationSlug]
   )
@@ -72,7 +72,7 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title>{'Seasons'}</Title>
+                <Title>{'Venues'}</Title>
               </div>
               <div>
                 <LinkButton

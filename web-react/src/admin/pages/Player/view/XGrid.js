@@ -55,6 +55,22 @@ const XGridTable = () => {
   const columns = useMemo(
     () => [
       {
+        field: 'playerId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
+      {
         field: 'firstName',
         headerName: 'First Name',
         width: 150,
@@ -78,22 +94,6 @@ const XGridTable = () => {
         width: 200,
         valueGetter: params => {
           return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-      {
-        field: 'playerId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
         },
       },
     ],

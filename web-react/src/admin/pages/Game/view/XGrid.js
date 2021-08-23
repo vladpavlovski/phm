@@ -163,16 +163,7 @@ const XGridTable = () => {
           )
         },
       },
-      {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => {
-          const phaseCompetition = params?.row?.phase?.competition?.name
-          const groupCompetition = params?.row?.group?.competition?.name
-          return phaseCompetition || groupCompetition
-        },
-      },
+
       {
         field: 'phase',
         headerName: 'Phase',
@@ -184,6 +175,16 @@ const XGridTable = () => {
         headerName: 'Group',
         width: 120,
         valueGetter: params => params?.row?.group?.name,
+      },
+      {
+        field: 'competition',
+        headerName: 'Competition',
+        width: 200,
+        valueGetter: params => {
+          const phaseCompetition = params?.row?.phase?.competition?.name
+          const groupCompetition = params?.row?.group?.competition?.name
+          return phaseCompetition || groupCompetition
+        },
       },
       {
         field: 'name',
