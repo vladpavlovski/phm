@@ -22,6 +22,8 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Typography from '@material-ui/core/Typography'
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
+import HowToRegIcon from '@material-ui/icons/HowToReg'
+import ClearIcon from '@material-ui/icons/Clear'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { LinkButton } from '../../../../../../components/LinkButton'
@@ -166,6 +168,7 @@ const LineupList = props => {
           host,
           position,
           jersey,
+          captain: false,
         },
       }
     })
@@ -319,6 +322,9 @@ const LineupList = props => {
         width: 100,
         disableColumnMenu: true,
         renderCell: params => {
+          const isCaptain = !!params?.row?.captain
+          const teamHasCaptain = !!lineupPlayers.find(p => p.captain)
+          console.log(lineupPlayers)
           return (
             <>
               <LinkButton
@@ -365,6 +371,70 @@ const LineupList = props => {
                   })
                 }}
               />
+              {!teamHasCaptain && (
+                <LinkButton
+                  onClick={() => {
+                    updateGame({
+                      variables: {
+                        where: {
+                          gameId,
+                        },
+                        update: {
+                          players: {
+                            where: {
+                              node: {
+                                playerId: params.row.playerId,
+                              },
+                            },
+                            update: {
+                              edge: {
+                                captain: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    })
+                  }}
+                  icon
+                >
+                  <Tooltip arrow title="Set Captain" placement="top">
+                    <HowToRegIcon />
+                  </Tooltip>
+                </LinkButton>
+              )}
+              {isCaptain && (
+                <LinkButton
+                  onClick={() => {
+                    updateGame({
+                      variables: {
+                        where: {
+                          gameId,
+                        },
+                        update: {
+                          players: {
+                            where: {
+                              node: {
+                                playerId: params.row.playerId,
+                              },
+                            },
+                            update: {
+                              edge: {
+                                captain: false,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    })
+                  }}
+                  icon
+                >
+                  <Tooltip arrow title="Remove Captain" placement="top">
+                    <ClearIcon />
+                  </Tooltip>
+                </LinkButton>
+              )}
             </>
           )
         },
@@ -424,7 +494,7 @@ const LineupList = props => {
         },
       },
     ],
-    [gameId]
+    [gameId, lineupPlayers]
   )
 
   const teamPlayersData = useMemo(

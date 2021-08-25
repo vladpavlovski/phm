@@ -676,6 +676,7 @@ interface TakingPartIn {
   host: Boolean
   jersey: BigInt
   position: String
+  captain: Boolean
 }
 
 interface TeamGame {

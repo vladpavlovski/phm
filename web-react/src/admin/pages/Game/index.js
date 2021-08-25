@@ -65,6 +65,7 @@ export const GET_GAME = gql`
           host
           jersey
           position
+          captain
           node {
             avatar
             playerId
