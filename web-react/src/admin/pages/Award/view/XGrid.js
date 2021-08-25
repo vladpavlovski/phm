@@ -16,8 +16,8 @@ import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_AWARDS = gql`
-  query getAwards($organizationSlug: String!) {
-    awards: awardsByOrganization(organizationSlug: $organizationSlug) {
+  query getAwards($where: AwardWhere) {
+    awards(where: $where) {
       awardId
       name
       type
@@ -29,23 +29,11 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_AWARDS, {
-    variables: { organizationSlug },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
+    variables: { where: { orgs: { urlSlug: organizationSlug } } },
   })
 
   const columns = useMemo(
     () => [
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 150,
-      },
-      {
-        field: 'type',
-        headerName: 'Type',
-        width: 200,
-      },
       {
         field: 'awardId',
         headerName: 'Edit',
@@ -61,6 +49,16 @@ const XGridTable = () => {
             </LinkButton>
           )
         },
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
+      },
+      {
+        field: 'type',
+        headerName: 'Type',
+        width: 200,
       },
     ],
     [organizationSlug]
