@@ -10,7 +10,7 @@ import {
   Box,
 } from '@material-ui/core'
 import createPersistedState from 'use-persisted-state'
-
+import { useLocation } from 'react-router-dom'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 
@@ -28,55 +28,68 @@ const Layout = props => {
   const [open, setOpen] = useLayoutSidebarState(true)
   const { barTitle } = useContext(LayoutContext)
 
+  const location = useLocation()
+  const withAppBar = React.useMemo(() => {
+    if (location.pathname.includes('web/league')) return false
+    return true
+  }, [location])
+
   return (
     <div className={classes.root}>
-      <AppBar
-        position="absolute"
-        color="primary"
-        className={clsx(classes.appBar, open && classes.appBarShift)}
-      >
-        <Toolbar className={classes.toolbar}>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            className={classes.title}
+      {withAppBar && (
+        <>
+          <AppBar
+            position="absolute"
+            color="primary"
+            className={clsx(classes.appBar, open && classes.appBarShift)}
           >
-            {barTitle}
-          </Typography>
-          {/* <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton> */}
-          <UserMenu />
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant="permanent"
-        classes={{
-          paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
-        }}
-        open={open}
-      >
-        <div className={classes.toolbarIcon}>
-          <Typography variant="h4" component="h1" sx={{ flex: 'auto' }}>
-            HMS
-          </Typography>
-          <IconButton
-            onClick={() => {
-              setOpen(state => !state)
+            <Toolbar className={classes.toolbar}>
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+                className={classes.title}
+              >
+                {barTitle}
+              </Typography>
+              {/* <IconButton color="inherit">
+              <Badge badgeContent={4} color="secondary">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton> */}
+              <UserMenu />
+            </Toolbar>
+          </AppBar>
+          <Drawer
+            variant="permanent"
+            classes={{
+              paper: clsx(
+                classes.drawerPaper,
+                !open && classes.drawerPaperClose
+              ),
             }}
+            open={open}
           >
-            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-          </IconButton>
-        </div>
-        <Divider />
-        <MainListItems open={open} />
-        {/*
-        <List>{secondaryListItems}</List> */}
-      </Drawer>
+            <div className={classes.toolbarIcon}>
+              <Typography variant="h4" component="h1" sx={{ flex: 'auto' }}>
+                HMS
+              </Typography>
+              <IconButton
+                onClick={() => {
+                  setOpen(state => !state)
+                }}
+              >
+                {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              </IconButton>
+            </div>
+            <Divider />
+            <MainListItems open={open} />
+            {/*
+          <List>{secondaryListItems}</List> */}
+          </Drawer>
+        </>
+      )}
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <>

@@ -324,7 +324,6 @@ const LineupList = props => {
         renderCell: params => {
           const isCaptain = !!params?.row?.captain
           const teamHasCaptain = !!lineupPlayers.find(p => p.captain)
-          console.log(lineupPlayers)
           return (
             <>
               <LinkButton
