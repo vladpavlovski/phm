@@ -13,8 +13,10 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 
-import { PlayerSelect } from './components'
+import { PlayerSelect, RemainingTime } from './components'
 import GameEventFormContext from '../../context'
+
+import { sortByPriority } from '../../../../../../utils'
 
 const formInitialState = {
   remainingTime: '00:00',
@@ -25,7 +27,13 @@ const formInitialState = {
 }
 
 const PenaltyForm = props => {
-  const { gameEventSettings, activeStep, players, gameSettings } = props
+  const {
+    gameEventSettings,
+    activeStep,
+    players,
+    gameSettings,
+    handleNextStep,
+  } = props
 
   const { setNextButtonDisabled, gameEventData, setGameEventData } =
     React.useContext(GameEventFormContext)
@@ -55,29 +63,10 @@ const PenaltyForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <TextField
-            placeholder="Remaining time"
-            label="Remaining time"
-            name="Remaining time"
-            fullWidth
-            autoFocus
-            variant="standard"
-            value={gameEventData?.remainingTime}
-            onChange={e => {
-              setGameEventData(state => ({
-                ...state,
-                remainingTime: e.target.value,
-              }))
-            }}
-            required={!activeStepData.optional}
-            error={!gameEventData?.remainingTime}
-            helperText={
-              !gameEventData?.remainingTime &&
-              'Remaining time should be defined'
-            }
-            inputProps={{
-              autoComplete: 'off',
-            }}
+          <RemainingTime
+            gameEventData={gameEventData}
+            setGameEventData={setGameEventData}
+            activeStepData={activeStepData}
           />
         </Grid>
       )}
@@ -87,6 +76,8 @@ const PenaltyForm = props => {
             players={players}
             onClick={penalized => {
               setGameEventData(state => ({ ...state, penalized }))
+              setNextButtonDisabled(false)
+              handleNextStep()
             }}
             selected={gameEventData?.penalized}
           />
@@ -99,7 +90,7 @@ const PenaltyForm = props => {
             <Autocomplete
               disableClearable
               id="combo-box-penalty-type"
-              options={gameSettings?.penaltyTypes}
+              options={[...gameSettings?.penaltyTypes].sort(sortByPriority)}
               value={gameEventData?.penaltyType}
               renderInput={params => (
                 <TextField {...params} autoFocus label="Penalty type" />
@@ -149,10 +140,12 @@ const PenaltyForm = props => {
                 // disablePortal
                 disableClearable
                 id="combo-box-penalty-sub-type"
-                options={gameEventData?.penaltyType?.subTypes}
+                options={[...gameEventData?.penaltyType?.subTypes].sort(
+                  sortByPriority
+                )}
                 value={gameEventData?.penaltySubType}
                 renderInput={params => (
-                  <TextField {...params} label="Goal Sub type" />
+                  <TextField {...params} label="Penalty Sub type" />
                 )}
                 getOptionLabel={option => option.name}
                 isOptionEqualToValue={(option, value) =>
@@ -192,7 +185,7 @@ const PenaltyForm = props => {
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
-                    {'Goal'}
+                    {'Penalty'}
                   </TableCell>
                   <TableCell align="right">
                     {gameEventData?.remainingTime}

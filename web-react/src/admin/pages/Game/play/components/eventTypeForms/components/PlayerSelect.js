@@ -18,7 +18,7 @@ const PlayerSelect = props => {
           <Button
             type="button"
             size="large"
-            style={{ width: '10%' }}
+            style={{ width: '15%', marginBottom: '2rem' }}
             key={p.node.playerId}
             variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
             color="primary"
@@ -26,7 +26,7 @@ const PlayerSelect = props => {
               onClick(p)
             }}
           >
-            {p.jersey || 'not defined'}
+            {`${p.jersey || ''} - ${p.node?.lastName}`}
           </Button>
         )
       })}

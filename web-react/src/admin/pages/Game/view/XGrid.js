@@ -1,7 +1,10 @@
 import React, { useMemo, useRef } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import Img from 'react-cool-img'
+import dayjs from 'dayjs'
+import createPersistedState from 'use-persisted-state'
+
 import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
@@ -20,6 +23,11 @@ import {
   formatDate,
   formatTime,
 } from '../../../../utils'
+
+import Button from '@material-ui/core/Button'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
+
+const useGamesViewState = createPersistedState('HMS-GamesView')
 
 const GET_GAMES = gql`
   query getGames($where: GameWhere) {
@@ -66,7 +74,12 @@ const GET_GAMES = gql`
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const { error, loading, data } = useQuery(GET_GAMES, {
+
+  const [gamesView, setGamesView] = useGamesViewState('all')
+  const [
+    getAllGames,
+    { error: errorGamesAll, loading: loadingGamesAll, data: dataGamesAll },
+  ] = useLazyQuery(GET_GAMES, {
     variables: {
       where: {
         org: {
@@ -74,8 +87,36 @@ const XGridTable = () => {
         },
       },
     },
-    fetchPolicy: 'cache-and-network',
   })
+
+  const [
+    getTodayGames,
+    {
+      error: errorGamesToday,
+      loading: loadingGamesToday,
+      data: dataGamesToday,
+    },
+  ] = useLazyQuery(GET_GAMES, {
+    variables: {
+      where: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+        startDate: dayjs().format('YYYY-MM-DD'),
+      },
+    },
+  })
+
+  React.useEffect(() => {
+    if (gamesView === 'all') {
+      getAllGames()
+    } else {
+      getTodayGames()
+    }
+  }, [gamesView])
+
+  const data = gamesView === 'all' ? dataGamesAll : dataGamesToday
+
   const columns = useMemo(
     () => [
       {
@@ -222,7 +263,29 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title>{'Games'}</Title>
+                <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
+                  {'Games'}
+                </Title>
+                <ButtonGroup variant="outlined">
+                  <Button
+                    variant={gamesView === 'all' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      console.log('all')
+                      setGamesView('all')
+                    }}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant={gamesView === 'today' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      setGamesView('today')
+                      console.log('today')
+                    }}
+                  >
+                    Today
+                  </Button>
+                </ButtonGroup>
               </div>
               <div>
                 <LinkButton
@@ -234,8 +297,12 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+          {(loadingGamesAll || loadingGamesToday) && <Loader />}
+          {(errorGamesAll || errorGamesToday) && (
+            <Error
+              message={errorGamesAll?.message || errorGamesToday?.message}
+            />
+          )}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
@@ -245,10 +312,16 @@ const XGridTable = () => {
                 density="compact"
                 columns={columns}
                 rows={setIdFromEntityId(data.games, 'gameId')}
-                loading={loading}
+                loading={loadingGamesAll || loadingGamesToday}
                 components={{
                   Toolbar: GridToolbar,
                 }}
+                sortModel={[
+                  {
+                    field: 'startDate',
+                    sort: 'asc',
+                  },
+                ]}
               />
             </div>
           )}

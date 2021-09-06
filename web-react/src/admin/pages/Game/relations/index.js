@@ -7,14 +7,13 @@ import { Lineups } from './components/lineups/Lineups'
 import { Membership } from './components/Membership'
 
 const Relations = props => {
-  const { gameId, teams, players } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Membership gameId={gameId} />
-      <Teams gameId={gameId} teams={teams} />
-      <Lineups gameId={gameId} teams={teams} players={players} />
+      <Membership {...props} />
+      <Teams {...props} />
+      <Lineups {...props} />
     </div>
   )
 }

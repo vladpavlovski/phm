@@ -459,13 +459,13 @@ const LineupList = props => {
         width: 200,
       },
       {
-        field: 'position',
-        headerName: 'Position',
-        width: 120,
+        field: 'jersey',
+        headerName: 'Jersey',
+        width: 100,
         renderCell: params => {
           return (
             <>
-              <SetLineupPosition
+              <SetLineupJersey
                 player={params.row}
                 gameId={gameId}
                 updateGame={updateGame}
@@ -476,13 +476,13 @@ const LineupList = props => {
         },
       },
       {
-        field: 'jersey',
-        headerName: 'Jersey',
-        width: 100,
+        field: 'position',
+        headerName: 'Position',
+        width: 120,
         renderCell: params => {
           return (
             <>
-              <SetLineupJersey
+              <SetLineupPosition
                 player={params.row}
                 gameId={gameId}
                 updateGame={updateGame}
@@ -531,9 +531,7 @@ const LineupList = props => {
       <Paper className={classes.paper}>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div>
-            <Title>{`Lineup ${team?.name ? 'for' : ''}${
-              team ? `: ${team?.name}` : ''
-            }`}</Title>
+            <Title>{`Lineup${team ? `: ${team?.name}` : ''}`}</Title>
           </div>
           <div>
             <ButtonGroup
@@ -703,12 +701,16 @@ const TogglePlayerGame = props => {
     []
   )
 
-  const jersey = useMemo(
-    () =>
-      player?.jerseys?.filter(p => p.team?.teamId === team?.teamId)?.[0]?.number
-        ?.low || null,
-    []
-  )
+  const jersey = useMemo(() => {
+    const jersey = player?.jerseys?.filter(
+      p => p.team?.teamId === team?.teamId
+    )?.[0]
+    const number =
+      typeof jersey?.number === 'string'
+        ? jersey?.number
+        : jersey?.number?.low || null
+    return number
+  }, [])
 
   return (
     <FormControlLabel

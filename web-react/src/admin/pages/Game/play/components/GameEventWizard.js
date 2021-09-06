@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { gql, useMutation } from '@apollo/client'
 
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Button from '@material-ui/core/Button'
 import AddTaskIcon from '@material-ui/icons/AddTask'
 import Dialog from '@material-ui/core/Dialog'
@@ -15,6 +16,7 @@ import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
 import Typography from '@material-ui/core/Typography'
 import { v4 as uuidv4 } from 'uuid'
+import dayjs from 'dayjs'
 
 import { GameEventTypes } from './GameEventTypes'
 import { getEventData } from './gameEvents'
@@ -156,7 +158,7 @@ const GameEventWizard = props => {
       shotSubType: gameEventData?.shotSubType?.name || '',
       penaltyType: gameEventData?.penaltyType?.name || '',
       penaltySubType: gameEventData?.penaltySubType?.name || '',
-      duration: gameEventData?.duration || '',
+      duration: `${gameEventData?.duration}` || '',
       metaPlayerPenalizedId:
         gameEventData?.penalized?.node?.meta?.metaPlayerId || null,
       metaPlayerExecutedById:
@@ -169,7 +171,6 @@ const GameEventWizard = props => {
         gameEventData?.suffered?.node?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
-      console.log('on completes: ', data)
       previousGameEventSimpleId.current =
         data?.gameEventSimple?.gameEventSimpleId
 
@@ -240,17 +241,64 @@ const GameEventWizard = props => {
 
   return (
     <>
-      <Button
-        type="button"
+      <ButtonGroup
+        orientation="vertical"
+        aria-label="vertical outlined button group"
         variant="contained"
-        color="primary"
-        onClick={() => {
-          setOpenGameEventDialog(host ? 'host' : 'guest')
-        }}
-        startIcon={<AddTaskIcon />}
       >
-        {`New ${team?.nick} Event`}
-      </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            setOpenGameEventDialog(host ? 'host' : 'guest')
+          }}
+          startIcon={<AddTaskIcon />}
+        >
+          {`Game Event`}
+        </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            const data = getEventData('save')
+            setGameEventSettings(data)
+            setGameEventData({
+              remainingTime: '',
+              savedBy: null,
+              timestamp: dayjs().format(),
+            })
+
+            setTimeout(() => {
+              createGameEventSimple()
+              handleClose()
+            }, 1000)
+          }}
+        >
+          {`Save`}
+        </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            const data = getEventData('faceOff')
+            setGameEventSettings(data)
+            setGameEventData({
+              remainingTime: '',
+              wonBy: null,
+              lostBy: null,
+              timestamp: dayjs().format(),
+            })
+
+            setTimeout(() => {
+              createGameEventSimple()
+              handleClose()
+            }, 1000)
+          }}
+        >
+          {`FaceOff`}
+        </Button>
+      </ButtonGroup>
+
       <Dialog
         fullWidth
         disableEscapeKeyDown
@@ -313,6 +361,7 @@ const GameEventWizard = props => {
                 players={players}
                 playersRival={playersRival}
                 gameSettings={gameSettings}
+                handleNextStep={handleNext}
               />
             </Box>
           )}

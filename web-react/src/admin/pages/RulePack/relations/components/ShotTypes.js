@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string } from 'yup'
+import { object, string, number } from 'yup'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -21,7 +21,6 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 
-import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
 import LoadingButton from '@material-ui/lab/LoadingButton'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
@@ -40,10 +39,12 @@ const GET_SHOT_TYPES = gql`
       shotTypeId
       name
       code
+      priority
       subTypes {
         shotSubTypeId
         name
         code
+        priority
       }
     }
     rulePacks(where: $whereRulePack) {
@@ -59,10 +60,12 @@ const CREATE_SHOT_TYPE = gql`
         shotTypeId
         name
         code
+        priority
         subTypes {
           shotSubTypeId
           name
           code
+          priority
         }
       }
     }
@@ -80,10 +83,12 @@ const UPDATE_SHOT_TYPE = gql`
         shotTypeId
         name
         code
+        priority
         subTypes {
           shotSubTypeId
           name
           code
+          priority
         }
       }
     }
@@ -109,6 +114,7 @@ const DELETE_SHOT_SUB_TYPE = gql`
 const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
+  priority: number().integer().positive(),
 })
 
 const ShotTypes = props => {
@@ -158,12 +164,13 @@ const ShotTypes = props => {
               whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.shotTypes.filter(
+          const updatedData = queryResult?.shotTypes?.filter(
             p => p.shotTypeId !== deleted.shotTypeId
           )
 
           const updatedResult = {
             shotTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_SHOT_TYPES,
@@ -202,6 +209,11 @@ const ShotTypes = props => {
       {
         field: 'code',
         headerName: 'Code',
+        width: 100,
+      },
+      {
+        field: 'priority',
+        headerName: 'Priority',
         width: 100,
       },
       {
@@ -349,12 +361,14 @@ const FormDialog = props => {
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
             shotTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_SHOT_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -394,12 +408,14 @@ const FormDialog = props => {
           )
           const updatedResult = {
             shotTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_SHOT_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -422,7 +438,7 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
+        const { name, code, priority } = dataToCheck
 
         data?.shotTypeId
           ? updateShotType({
@@ -433,6 +449,7 @@ const FormDialog = props => {
                 update: {
                   name,
                   code,
+                  priority: `${priority}`,
                 },
               },
             })
@@ -441,7 +458,7 @@ const FormDialog = props => {
                 input: {
                   name,
                   code,
-
+                  priority: `${priority}`,
                   rulePack: {
                     connect: {
                       where: {
@@ -476,38 +493,43 @@ const FormDialog = props => {
           noValidate
           autoComplete="off"
         >
-          <Container>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.name || ''}
-                      name="name"
-                      label="Name"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.name}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.code || ''}
-                      name="code"
-                      label="Code"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.code}
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4} md={4} lg={4}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.name || ''}
+                name="name"
+                label="Name"
+                required
+                fullWidth
+                variant="standard"
+                error={errors?.name}
+              />
             </Grid>
-          </Container>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.code || ''}
+                name="code"
+                label="Code"
+                required
+                fullWidth
+                variant="standard"
+                error={errors?.code}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.priority}
+                name="priority"
+                label="Priority"
+                fullWidth
+                variant="standard"
+                error={errors?.priority}
+              />
+            </Grid>
+          </Grid>
         </form>
 
         <div style={{ margin: '2rem 0' }}>
@@ -660,7 +682,7 @@ const SubType = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
+        const { name, code, priority } = dataToCheck
         data?.shotSubTypeId
           ? updateShotType({
               variables: {
@@ -670,11 +692,10 @@ const SubType = props => {
                 update: {
                   subTypes: {
                     where: {
-                      shotSubTypeId: data?.shotSubTypeId,
+                      node: { shotSubTypeId: data?.shotSubTypeId },
                     },
                     update: {
-                      name,
-                      code,
+                      node: { name, code, priority: `${priority}` },
                     },
                   },
                 },
@@ -687,7 +708,7 @@ const SubType = props => {
                 },
 
                 create: {
-                  subTypes: { node: { name, code } },
+                  subTypes: { node: { name, code, priority: `${priority}` } },
                 },
               },
             })
@@ -699,73 +720,73 @@ const SubType = props => {
   )
 
   return (
-    <Container>
-      <form
-        onSubmit={null}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={12} lg={12}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={5} md={5} lg={5}>
-                <RHFInput
-                  control={control}
-                  defaultValue={data?.name || ''}
-                  name="name"
-                  label="SubType Name"
-                  required
-                  fullWidth
-                  variant="standard"
-                  error={errors?.name}
-                />
-              </Grid>
-              <Grid item xs={12} sm={5} md={5} lg={5}>
-                <RHFInput
-                  control={control}
-                  defaultValue={data?.code || ''}
-                  name="code"
-                  label="SubType Code"
-                  required
-                  fullWidth
-                  variant="standard"
-                  error={errors?.code}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={1} md={1} lg={1}>
-                {data?.shotSubTypeId && (
-                  <LoadingButton
-                    onClick={() => {
-                      deleteShotSubType()
-                    }}
-                    type="button"
-                    loading={mutationLoadingDeleteShotSubType}
-                  >
-                    {mutationLoadingDeleteShotSubType
-                      ? 'Deleting...'
-                      : 'Delete'}
-                  </LoadingButton>
-                )}
-              </Grid>
-
-              <Grid item xs={12} sm={1} md={1} lg={1}>
-                <LoadingButton
-                  onClick={() => {
-                    handleSubmit(onSubmit)()
-                  }}
-                  type="button"
-                  loading={mutationLoadingUpdate}
-                >
-                  {mutationLoadingUpdate ? 'Saving...' : 'Save'}
-                </LoadingButton>
-              </Grid>
-            </Grid>
-          </Grid>
+    <form
+      onSubmit={null}
+      className={classes.form}
+      noValidate
+      autoComplete="off"
+    >
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={4} md={4} lg={4}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.name || ''}
+            name="name"
+            label="SubType Name"
+            required
+            fullWidth
+            variant="standard"
+            error={errors?.name}
+          />
         </Grid>
-      </form>
-    </Container>
+        <Grid item xs={12} sm={3} md={3} lg={3}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.code || ''}
+            name="code"
+            label="SubType Code"
+            required
+            fullWidth
+            variant="standard"
+            error={errors?.code}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3} md={3} lg={3}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.priority}
+            name="priority"
+            label="Priority"
+            fullWidth
+            variant="standard"
+            error={errors?.priority}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={2} md={2} lg={2}>
+          {data?.shotSubTypeId && (
+            <LoadingButton
+              onClick={() => {
+                deleteShotSubType()
+              }}
+              type="button"
+              loading={mutationLoadingDeleteShotSubType}
+            >
+              {mutationLoadingDeleteShotSubType ? 'Deleting...' : 'Delete'}
+            </LoadingButton>
+          )}
+          <LoadingButton
+            onClick={() => {
+              handleSubmit(onSubmit)()
+            }}
+            type="button"
+            loading={mutationLoadingUpdate}
+          >
+            {mutationLoadingUpdate ? 'Saving...' : 'Save'}
+          </LoadingButton>
+        </Grid>
+      </Grid>
+    </form>
   )
 }
 

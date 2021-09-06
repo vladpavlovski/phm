@@ -125,6 +125,12 @@ const Jerseys = props => {
         width: 150,
       },
       {
+        field: 'numberInt',
+        headerName: 'NumberInt',
+        width: 150,
+        hide: true,
+      },
+      {
         field: 'jerseyId',
         headerName: 'Assignment',
         width: 150,
@@ -191,11 +197,20 @@ const Jerseys = props => {
           <div style={{ height: 600 }} className={classes.xGridDialog}>
             <XGrid
               columns={allJerseysColumns}
-              rows={setIdFromEntityId(composeJerseys(player.teams), 'jerseyId')}
+              rows={setIdFromEntityId(
+                composeJerseys(player.teams),
+                'jerseyId'
+              ).map(t => ({ ...t, numberInt: Number(t.number) }))}
               disableSelectionOnClick
               components={{
                 Toolbar: GridToolbar,
               }}
+              sortModel={[
+                {
+                  field: 'numberInt',
+                  sort: 'asc',
+                },
+              ]}
             />
           </div>
         </DialogContent>

@@ -22,7 +22,6 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 
-import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
 import LoadingButton from '@material-ui/lab/LoadingButton'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
@@ -46,10 +45,12 @@ const GET_PENALTY_TYPES = gql`
       name
       code
       duration
+      priority
       subTypes {
         penaltySubTypeId
         name
         code
+        priority
       }
     }
     rulePacks(where: $whereRulePack) {
@@ -66,10 +67,12 @@ const CREATE_PENALTY_TYPE = gql`
         name
         code
         duration
+        priority
         subTypes {
           penaltySubTypeId
           name
           code
+          priority
         }
       }
     }
@@ -88,10 +91,12 @@ const UPDATE_PENALTY_TYPE = gql`
         name
         code
         duration
+        priority
         subTypes {
           penaltySubTypeId
           name
           code
+          priority
         }
       }
     }
@@ -118,11 +123,13 @@ const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
   duration: number().positive().required('Duration is required'),
+  priority: number().integer().positive(),
 })
 
 const schemaSubType = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
+  priority: number().integer().positive(),
 })
 
 const PenaltyTypes = props => {
@@ -173,12 +180,13 @@ const PenaltyTypes = props => {
               whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.penaltyTypes.filter(
+          const updatedData = queryResult?.penaltyTypes?.filter(
             p => p.penaltyTypeId !== deleted.penaltyTypeId
           )
 
           const updatedResult = {
             penaltyTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
@@ -218,6 +226,11 @@ const PenaltyTypes = props => {
         field: 'code',
         headerName: 'Code',
         width: 120,
+      },
+      {
+        field: 'priority',
+        headerName: 'Priority',
+        width: 100,
       },
       {
         field: 'duration',
@@ -375,12 +388,14 @@ const FormDialog = props => {
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
             penaltyTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -420,12 +435,14 @@ const FormDialog = props => {
           )
           const updatedResult = {
             penaltyTypes: updatedData,
+            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -447,7 +464,7 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code, duration } = dataToCheck
+        const { name, code, duration, priority } = dataToCheck
 
         data?.penaltyTypeId
           ? updatePenaltyType({
@@ -459,6 +476,7 @@ const FormDialog = props => {
                   name,
                   code,
                   duration: parseFloat(duration),
+                  priority: `${priority}`,
                 },
               },
             })
@@ -468,6 +486,7 @@ const FormDialog = props => {
                   name,
                   code,
                   duration: parseFloat(duration),
+                  priority: `${priority}`,
                   rulePack: {
                     connect: {
                       where: {
@@ -502,50 +521,55 @@ const FormDialog = props => {
           noValidate
           autoComplete="off"
         >
-          <Container>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={12} lg={12}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.name || ''}
-                      name="name"
-                      label="Name"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.name}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.code || ''}
-                      name="code"
-                      label="Code"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.code}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.duration || ''}
-                      name="duration"
-                      label="Duration in minutes"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.duration}
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.name || ''}
+                name="name"
+                label="Name"
+                required
+                fullWidth
+                variant="standard"
+                error={errors?.name}
+              />
             </Grid>
-          </Container>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.code || ''}
+                name="code"
+                label="Code"
+                required
+                fullWidth
+                variant="standard"
+                error={errors?.code}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.duration || ''}
+                name="duration"
+                label="Duration in minutes"
+                required
+                fullWidth
+                variant="standard"
+                error={errors?.duration}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3} md={3} lg={3}>
+              <RHFInput
+                control={control}
+                defaultValue={data?.priority}
+                name="priority"
+                label="Priority"
+                fullWidth
+                variant="standard"
+                error={errors?.priority}
+              />
+            </Grid>
+          </Grid>
         </form>
 
         <div style={{ margin: '2rem 0' }}>
@@ -571,6 +595,7 @@ const FormDialog = props => {
                 penaltySubTypeId: null,
                 name: '',
                 code: '',
+                priority: '',
               }}
               updatePenaltyType={updatePenaltyType}
               mutationLoadingUpdate={mutationLoadingUpdate}
@@ -698,7 +723,7 @@ const SubType = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
+        const { name, code, priority } = dataToCheck
 
         data?.penaltySubTypeId
           ? updatePenaltyType({
@@ -709,11 +734,10 @@ const SubType = props => {
                 update: {
                   subTypes: {
                     where: {
-                      penaltySubTypeId: data?.penaltySubTypeId,
+                      node: { penaltySubTypeId: data?.penaltySubTypeId },
                     },
                     update: {
-                      name,
-                      code,
+                      node: { name, code, priority: `${priority}` },
                     },
                   },
                 },
@@ -726,7 +750,7 @@ const SubType = props => {
                 },
 
                 create: {
-                  subTypes: { node: { name, code } },
+                  subTypes: { node: { name, code, priority: `${priority}` } },
                 },
               },
             })
@@ -738,73 +762,73 @@ const SubType = props => {
   )
 
   return (
-    <Container>
-      <form
-        onSubmit={null}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={12} lg={12}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={5} md={5} lg={5}>
-                <RHFInput
-                  control={control}
-                  defaultValue={data?.name || ''}
-                  name="name"
-                  label="SubType Name"
-                  required
-                  fullWidth
-                  variant="standard"
-                  error={errors?.name}
-                />
-              </Grid>
-              <Grid item xs={12} sm={5} md={5} lg={5}>
-                <RHFInput
-                  control={control}
-                  defaultValue={data?.code || ''}
-                  name="code"
-                  label="SubType Code"
-                  required
-                  fullWidth
-                  variant="standard"
-                  error={errors?.code}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={1} md={1} lg={1}>
-                {data?.penaltySubTypeId && (
-                  <LoadingButton
-                    onClick={() => {
-                      deletePenaltySubType()
-                    }}
-                    type="button"
-                    loading={mutationLoadingDeletePenaltySubType}
-                  >
-                    {mutationLoadingDeletePenaltySubType
-                      ? 'Deleting...'
-                      : 'Delete'}
-                  </LoadingButton>
-                )}
-              </Grid>
-
-              <Grid item xs={12} sm={1} md={1} lg={1}>
-                <LoadingButton
-                  onClick={() => {
-                    handleSubmit(onSubmit)()
-                  }}
-                  type="button"
-                  loading={mutationLoadingUpdate}
-                >
-                  {mutationLoadingUpdate ? 'Saving...' : 'Save'}
-                </LoadingButton>
-              </Grid>
-            </Grid>
-          </Grid>
+    <form
+      onSubmit={null}
+      className={classes.form}
+      noValidate
+      autoComplete="off"
+    >
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={4} md={4} lg={4}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.name || ''}
+            name="name"
+            label="SubType Name"
+            required
+            fullWidth
+            variant="standard"
+            error={errors?.name}
+          />
         </Grid>
-      </form>
-    </Container>
+        <Grid item xs={12} sm={3} md={3} lg={3}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.code || ''}
+            name="code"
+            label="SubType Code"
+            required
+            fullWidth
+            variant="standard"
+            error={errors?.code}
+          />
+        </Grid>
+        <Grid item xs={12} sm={3} md={3} lg={3}>
+          <RHFInput
+            control={control}
+            defaultValue={data?.priority}
+            name="priority"
+            label="Priority"
+            fullWidth
+            variant="standard"
+            error={errors?.priority}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={2} md={2} lg={2}>
+          {data?.penaltySubTypeId && (
+            <LoadingButton
+              onClick={() => {
+                deletePenaltySubType()
+              }}
+              type="button"
+              loading={mutationLoadingDeletePenaltySubType}
+            >
+              {mutationLoadingDeletePenaltySubType ? 'Deleting...' : 'Delete'}
+            </LoadingButton>
+          )}
+          <LoadingButton
+            onClick={() => {
+              handleSubmit(onSubmit)()
+            }}
+            type="button"
+            loading={mutationLoadingUpdate}
+          >
+            {mutationLoadingUpdate ? 'Saving...' : 'Save'}
+          </LoadingButton>
+        </Grid>
+      </Grid>
+    </form>
   )
 }
 

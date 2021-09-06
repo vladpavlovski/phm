@@ -49,6 +49,13 @@ export const GET_GAME = gql`
       info
       foreignId
       description
+      timekeeper
+      referee
+      status
+      photos
+      report
+      paymentHost
+      paymentGuest
       teamsConnection {
         edges {
           host
@@ -437,10 +444,38 @@ const Game = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <RHFInput
+                          defaultValue={gameData?.timekeeper}
+                          control={control}
+                          name="timekeeper"
+                          label="Timekeeper"
+                          fullWidth
+                          multiline
+                          maxRows={4}
+                          variant="standard"
+                          error={errors?.timekeeper}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData?.referee}
+                          control={control}
+                          name="referee"
+                          label="Referee"
+                          fullWidth
+                          multiline
+                          maxRows={4}
+                          variant="standard"
+                          error={errors?.referee}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
                           defaultValue={gameData?.description}
                           control={control}
                           name="description"
                           label="Description"
+                          multiline
+                          maxRows={4}
                           fullWidth
                           variant="standard"
                           error={errors.description}
@@ -453,6 +488,8 @@ const Game = () => {
                           name="info"
                           label="Info"
                           fullWidth
+                          multiline
+                          maxRows={4}
                           variant="standard"
                           error={errors?.info}
                         />
@@ -504,7 +541,7 @@ const Game = () => {
                           )}
                           fullWidth
                           size="medium"
-                          // target="_blank"
+                          target="_blank"
                           variant={'outlined'}
                           className={classes.submit}
                           startIcon={<PlayCircleIcon />}
@@ -522,6 +559,7 @@ const Game = () => {
                 gameId={gameId}
                 teams={gameData?.teamsConnection?.edges}
                 players={gameData?.playersConnection?.edges}
+                gameData={gameData}
               />
             )}
           </>

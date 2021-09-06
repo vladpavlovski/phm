@@ -117,3 +117,13 @@ export const getInitials = value => {
 export const escapeRegExp = value => {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
+
+export const sortByPriority = (a, b) => {
+  if (Number(a?.priority) < Number(b?.priority)) {
+    return -1
+  }
+  if (Number(a?.priority) > Number(b?.priority)) {
+    return 1
+  }
+  return 0
+}

@@ -192,14 +192,14 @@ const Phases = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params?.row?.startDate?.formatted,
+        valueGetter: params => params?.row?.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params?.row?.endDate?.formatted,
+        valueGetter: params => params?.row?.endDate,
         valueFormatter: params => formatDate(params.value),
       },
 

@@ -13,8 +13,10 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 
-import { PlayerSelect } from './components'
+import { PlayerSelect, RemainingTime } from './components'
 import GameEventFormContext from '../../context'
+
+import { sortByPriority } from '../../../../../../utils'
 
 const formInitialState = {
   remainingTime: '00:00',
@@ -28,7 +30,13 @@ const formInitialState = {
 }
 
 const GoalForm = props => {
-  const { gameEventSettings, activeStep, players, gameSettings } = props
+  const {
+    gameEventSettings,
+    activeStep,
+    players,
+    gameSettings,
+    handleNextStep,
+  } = props
 
   const { setNextButtonDisabled, gameEventData, setGameEventData } =
     React.useContext(GameEventFormContext)
@@ -58,29 +66,10 @@ const GoalForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <TextField
-            placeholder="Remaining time"
-            label="Remaining time"
-            name="Remaining time"
-            fullWidth
-            autoFocus
-            variant="standard"
-            value={gameEventData?.remainingTime}
-            onChange={e => {
-              setGameEventData(state => ({
-                ...state,
-                remainingTime: e.target.value,
-              }))
-            }}
-            required={!activeStepData.optional}
-            error={!gameEventData?.remainingTime}
-            helperText={
-              !gameEventData?.remainingTime &&
-              'Remaining time should be defined'
-            }
-            inputProps={{
-              autoComplete: 'off',
-            }}
+          <RemainingTime
+            gameEventData={gameEventData}
+            setGameEventData={setGameEventData}
+            activeStepData={activeStepData}
           />
         </Grid>
       )}
@@ -90,6 +79,8 @@ const GoalForm = props => {
             players={players}
             onClick={scoredBy => {
               setGameEventData(state => ({ ...state, scoredBy }))
+              setNextButtonDisabled(false)
+              handleNextStep()
             }}
             selected={gameEventData?.scoredBy}
           />
@@ -103,6 +94,7 @@ const GoalForm = props => {
             )}
             onClick={firstAssist => {
               setGameEventData(state => ({ ...state, firstAssist }))
+              handleNextStep()
             }}
             selected={gameEventData?.firstAssist}
           />
@@ -116,6 +108,7 @@ const GoalForm = props => {
             )}
             onClick={secondAssist => {
               setGameEventData(state => ({ ...state, secondAssist }))
+              handleNextStep()
             }}
             selected={gameEventData?.secondAssist}
           />
@@ -127,7 +120,7 @@ const GoalForm = props => {
             <Autocomplete
               disableClearable
               id="combo-box-goal-type"
-              options={gameSettings?.goalTypes}
+              options={[...gameSettings?.goalTypes].sort(sortByPriority)}
               value={gameEventData?.goalType}
               renderInput={params => (
                 <TextField {...params} autoFocus label="Goal type" />
@@ -148,7 +141,9 @@ const GoalForm = props => {
               <Autocomplete
                 disableClearable
                 id="combo-box-goal-sub-type"
-                options={gameEventData?.goalType?.subTypes}
+                options={[...gameEventData?.goalType?.subTypes].sort(
+                  sortByPriority
+                )}
                 value={gameEventData?.goalSubType}
                 renderInput={params => (
                   <TextField {...params} label="Goal Sub type" />
@@ -174,7 +169,7 @@ const GoalForm = props => {
             <Autocomplete
               disableClearable
               id="combo-box-shot-type"
-              options={gameSettings?.shotTypes}
+              options={[...gameSettings?.shotTypes].sort(sortByPriority)}
               value={gameEventData?.shotType}
               renderInput={params => (
                 <TextField {...params} autoFocus label="Shot type" />
@@ -196,7 +191,9 @@ const GoalForm = props => {
                 // disablePortal
                 disableClearable
                 id="combo-box-shot-sub-type"
-                options={gameEventData?.shotType?.subTypes}
+                options={[...gameEventData?.shotType?.subTypes].sort(
+                  sortByPriority
+                )}
                 value={gameEventData?.shotSubType}
                 renderInput={params => (
                   <TextField {...params} label="Shot Sub type" />

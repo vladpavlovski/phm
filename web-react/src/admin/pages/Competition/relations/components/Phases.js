@@ -600,7 +600,7 @@ const FormDialog = props => {
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'day']}
-                      defaultValue={data?.startDate?.formatted}
+                      defaultValue={data?.startDate}
                       error={errors?.startDate}
                     />
                   </Grid>
@@ -615,7 +615,7 @@ const FormDialog = props => {
                       openTo="year"
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'day']}
-                      defaultValue={data?.endDate?.formatted}
+                      defaultValue={data?.endDate}
                       error={errors?.endDate}
                     />
                   </Grid>

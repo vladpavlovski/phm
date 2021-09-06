@@ -2,18 +2,19 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { gql, useQuery, useApolloClient } from '@apollo/client'
 import { Helmet } from 'react-helmet'
-
+import { LinkButton } from '../../../../components/LinkButton'
 import Container from '@material-ui/core/Container'
 import Paper from '@material-ui/core/Paper'
 import { Grid } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
 import Toolbar from '@material-ui/core/Toolbar'
 import Img from 'react-cool-img'
-
+import ArrowBackIcon from '@material-ui/icons/ArrowBack'
 import { useStyles } from '../../commonComponents/styled'
 import { Title } from '../../../../components/Title'
 import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
+import { getAdminOrgGameRoute } from '../../../../routes'
 
 import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
@@ -95,30 +96,36 @@ export const GET_GAME_PLAY = gql`
           shotTargetId
           name
           code
+          priority
         }
         shotStyles {
           shotStyleId
           name
           code
+          priority
         }
         shotTypes {
           shotTypeId
           name
           code
+          priority
           subTypes {
             shotSubTypeId
             name
             code
+            priority
           }
         }
         goalTypes {
           goalTypeId
           name
           code
+          priority
           subTypes {
             goalSubTypeId
             name
             code
+            priority
           }
         }
         penaltyTypes {
@@ -126,15 +133,18 @@ export const GET_GAME_PLAY = gql`
           name
           code
           duration
+          priority
           subTypes {
             penaltySubTypeId
             name
             code
+            priority
           }
         }
         injuryTypes {
           injuryTypeId
           name
+          priority
         }
       }
     }
@@ -143,7 +153,7 @@ export const GET_GAME_PLAY = gql`
 
 const Play = () => {
   const classes = useStyles()
-  const { gameId } = useParams()
+  const { gameId, organizationSlug } = useParams()
 
   const client = useApolloClient()
   const { goalsEventsCounter } = React.useContext(GameEventFormContext)
@@ -247,18 +257,21 @@ const Play = () => {
                 }}
               >
                 <Typography variant="h6" component="div">
-                  {gameData?.name}
+                  <LinkButton
+                    startIcon={<ArrowBackIcon />}
+                    to={getAdminOrgGameRoute(organizationSlug, gameId)}
+                  >
+                    {gameData?.name}
+                  </LinkButton>
                 </Typography>
                 <Typography variant="h6" component="div">
                   {gameData?.type}
                 </Typography>
                 <Typography variant="h6" component="div">
-                  {formatDate(gameData?.startDate?.formatted)} -{' '}
-                  {formatDate(gameData?.endDate?.formatted)}
-                </Typography>
-                <Typography variant="h6" component="div">
-                  {formatTime(gameData?.startTime?.formatted)} -{' '}
-                  {formatTime(gameData?.endTime?.formatted)}
+                  {formatTime(gameData?.startTime)} -{' '}
+                  {formatTime(gameData?.endTime)}
+                  {', '}
+                  {formatDate(gameData?.startDate)}
                 </Typography>
               </div>
             </Paper>

@@ -343,7 +343,7 @@ const TeamCard = props => {
     >
       <Toolbar disableGutters className={classes.toolbarForm}>
         <div>
-          <Title>{`Team ${host ? 'Host' : 'Guest'}${
+          <Title>{`${host ? 'Host' : 'Guest'}${
             team ? `: ${team?.name}` : ''
           }`}</Title>
         </div>

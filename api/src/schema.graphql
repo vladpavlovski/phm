@@ -704,6 +704,13 @@ type Game {
   foreignId: String
   info: String
   description: String
+  timekeeper: String
+  referee: String
+  status: String
+  photos: String
+  report: String
+  paymentHost: Boolean
+  paymentGuest: Boolean
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   teams: [Team!]!
@@ -1454,6 +1461,7 @@ type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1474,6 +1482,7 @@ type ShotTarget {
   shotTargetId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1483,6 +1492,7 @@ type ShotStyle {
   shotStyleId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1492,6 +1502,7 @@ type ShotType {
   shotTypeId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1502,6 +1513,7 @@ type ShotSubType {
   shotSubTypeId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   shotType: [ShotType] @relationship(type: "SET_UP", direction: IN)
@@ -1511,6 +1523,7 @@ type GoalType {
   goalTypeId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
   subTypes: [GoalSubType] @relationship(type: "SET_UP", direction: OUT)
 }
@@ -1519,6 +1532,7 @@ type GoalSubType {
   goalSubTypeId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   goalType: GoalType @relationship(type: "SET_UP", direction: IN)
@@ -1529,6 +1543,7 @@ type PenaltyType {
   name: String!
   code: String!
   duration: Float!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1539,6 +1554,7 @@ type PenaltySubType {
   penaltySubTypeId: ID! @id
   name: String!
   code: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   penaltyType: PenaltyType @relationship(type: "SET_UP", direction: IN)
@@ -1549,6 +1565,7 @@ type GameEventLocation {
   name: String!
   fieldX: String!
   fieldY: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1559,6 +1576,7 @@ type PositionType {
   name: String!
   short: String
   description: String
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1621,6 +1639,7 @@ type FinalResult {
 type InjuryType {
   injuryTypeId: ID! @id
   name: String!
+  priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
