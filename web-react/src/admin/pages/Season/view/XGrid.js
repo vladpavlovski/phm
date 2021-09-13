@@ -13,20 +13,16 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_SEASONS = gql`
-  query getSeasons($organizationSlug: String!) {
-    seasons: seasonsByOrganization(organizationSlug: $organizationSlug) {
+  query getSeasons($where: SeasonWhere) {
+    seasons(where: $where) {
       seasonId
       name
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
+      startDate
+      endDate
       nick
     }
   }
@@ -36,11 +32,9 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_SEASONS, {
-    variables: { organizationSlug },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
+    variables: { where: {} },
   })
-
+  // org: { urlSlug: organizationSlug }
   const columns = useMemo(
     () => [
       {
@@ -58,7 +52,7 @@ const XGridTable = () => {
         headerName: 'Start Date',
         width: 180,
         valueGetter: params => {
-          return params.row.startDate.formatted
+          return params.row.startDate
         },
         valueFormatter: params => {
           return dayjs(params.value).format('LL')
@@ -69,7 +63,7 @@ const XGridTable = () => {
         headerName: 'End Date',
         width: 180,
         valueGetter: params => {
-          return params.row.endDate.formatted
+          return params.row.endDate
         },
         valueFormatter: params => {
           return dayjs(params.value).format('LL')
@@ -117,7 +111,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

@@ -1,9 +1,8 @@
-import React, { useCallback, useState, useMemo, useContext } from 'react'
+import React from 'react'
 import { gql, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
@@ -11,20 +10,20 @@ import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
+import EditIcon from '@material-ui/icons/Edit'
+import Tooltip from '@material-ui/core/Tooltip'
+import ButtonBase from '@material-ui/core/ButtonBase'
+import { LinkButton } from '../../../../../../components/LinkButton'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
-import { GET_PLAYERS } from './index'
 import TeamPlayersContext from './context'
 
-const MERGE_PLAYER_JERSEY = gql`
-  mutation mergePlayerJersey($playerId: ID!, $jerseyId: ID!) {
-    mergePlayerJersey: MergePlayerJerseys(
-      from: { playerId: $playerId }
-      to: { jerseyId: $jerseyId }
-    ) {
-      from {
+export const UPDATE_PLAYER = gql`
+  mutation updatePlayer($where: PlayerWhere, $update: PlayerUpdateInput) {
+    updatePlayers(where: $where, update: $update) {
+      players {
         playerId
         firstName
         lastName
@@ -34,37 +33,10 @@ const MERGE_PLAYER_JERSEY = gql`
           name
           number
         }
-      }
-      to {
-        jerseyId
-        name
-        number
-      }
-    }
-  }
-`
-
-const REMOVE_PLAYER_JERSEY = gql`
-  mutation removePlayerJersey($playerId: ID!, $jerseyId: ID!) {
-    removePlayerJersey: RemovePlayerJerseys(
-      from: { playerId: $playerId }
-      to: { jerseyId: $jerseyId }
-    ) {
-      from {
-        playerId
-        firstName
-        lastName
-        name
-        jerseys {
-          jerseyId
+        positions {
+          positionId
           name
-          number
         }
-      }
-      to {
-        jerseyId
-        name
-        number
       }
     }
   }
@@ -72,31 +44,29 @@ const REMOVE_PLAYER_JERSEY = gql`
 
 export const SetPlayerJersey = props => {
   const { player } = props
-  const classes = useStyles()
 
-  const { setPlayerJerseyDialogOpen, setPlayerData } = useContext(
-    TeamPlayersContext
-  )
+  const { setPlayerJerseyDialogOpen, setPlayerData } =
+    React.useContext(TeamPlayersContext)
 
   return (
-    <Button
-      type="button"
+    <LinkButton
+      component={ButtonBase}
+      variant="text"
+      icon
       onClick={() => {
         setPlayerData(player)
         setPlayerJerseyDialogOpen(true)
       }}
-      variant={'outlined'}
-      size="small"
-      className={classes.submit}
-      startIcon={<AddIcon />}
     >
-      Set Jersey
-    </Button>
+      <Tooltip arrow title="Set Jersey" placement="top">
+        <EditIcon />
+      </Tooltip>
+    </LinkButton>
   )
 }
 
 export const PlayerJerseyDialog = props => {
-  const { teamId, team } = props
+  const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const {
@@ -104,125 +74,28 @@ export const PlayerJerseyDialog = props => {
     setPlayerJerseyDialogOpen,
     playerData: player,
     setPlayerData,
-  } = useContext(TeamPlayersContext)
+  } = React.useContext(TeamPlayersContext)
 
-  const handleCloseDialog = useCallback(() => {
+  const handleCloseDialog = React.useCallback(() => {
     setPlayerJerseyDialogOpen(false)
     setPlayerData(null)
   }, [])
 
-  const [mergePlayerJersey] = useMutation(MERGE_PLAYER_JERSEY, {
-    update(cache, { data: { mergePlayerJersey } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-
-        const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = mergePlayerJersey.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.playerId === updatedPlayer.playerId ? updatedPlayer : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              players: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.mergePlayerJersey.from.name} now is ${data.mergePlayerJersey.to.name} for ${team?.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+  const [updatePlayer] = useMutation(UPDATE_PLAYER, {
+    onCompleted: () => {
+      enqueueSnackbar(`Player updated!`, {
+        variant: 'success',
+      })
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error: ${error}`, {
         variant: 'error',
       })
       console.error(error)
     },
   })
 
-  const [removePlayerJersey] = useMutation(REMOVE_PLAYER_JERSEY, {
-    update(cache, { data: { removePlayerJersey } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-        const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = removePlayerJersey.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.playerId === updatedPlayer.playerId ? updatedPlayer : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              players: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data?.removePlayerJersey?.from?.name} not anymore ${data?.removePlayerJersey?.to?.name} for ${team?.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const teamJerseysColumns = useMemo(
+  const teamJerseysColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -244,8 +117,7 @@ export const PlayerJerseyDialog = props => {
             <ToggleJersey
               jerseyId={params.value}
               player={player}
-              merge={mergePlayerJersey}
-              remove={removePlayerJersey}
+              updatePlayer={updatePlayer}
             />
           )
         },
@@ -294,8 +166,8 @@ export const PlayerJerseyDialog = props => {
 }
 
 const ToggleJersey = props => {
-  const { jerseyId, player, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { jerseyId, player, updatePlayer } = props
+  const [isMember, setIsMember] = React.useState(
     !!player?.jerseys?.find(p => p.jerseyId === jerseyId)
   )
 
@@ -305,19 +177,36 @@ const ToggleJersey = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    jerseyId,
-                    playerId: player.playerId,
+            updatePlayer({
+              variables: {
+                where: {
+                  playerId: player.playerId,
+                },
+                update: {
+                  jerseys: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                jerseyId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                jerseyId,
+                              },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    jerseyId,
-                    playerId: player.playerId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="teamMember"
@@ -332,8 +221,7 @@ ToggleJersey.propTypes = {
   playerId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
+  updatePlayer: PropTypes.func,
 }
 
 SetPlayerJersey.propTypes = {

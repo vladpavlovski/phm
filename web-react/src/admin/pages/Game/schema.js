@@ -11,4 +11,11 @@ export const schema = object().shape({
   endDate: date().nullable(),
   startTime: date().nullable(),
   endTime: date().nullable(),
+  gameVenue: object()
+    .shape({
+      name: string(),
+      venueId: string(),
+      __typename: string(),
+    })
+    .nullable(),
 })

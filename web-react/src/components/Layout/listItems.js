@@ -62,7 +62,7 @@ const MainListItems = props => {
   const [generalOpen, setGeneralOpen] = useGeneralMenuState(false)
 
   return (
-    <>
+    <div style={{ maxHeight: 'calc(100vh - 64px)', overflow: 'auto' }}>
       <List>
         <ListSubheader>System</ListSubheader>
         <ListItemLink
@@ -355,7 +355,7 @@ const MainListItems = props => {
           </List>
         </>
       )}
-    </>
+    </div>
   )
 }
 

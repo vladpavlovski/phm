@@ -2,7 +2,6 @@ import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -36,10 +35,20 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_RESULT_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: ResultTypeWhere, $whereRulePack: RulePackWhere) {
+    resultTypes(where: $where) {
+      resultTypeId
       name
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_RESULT_TYPE = gql`
+  mutation createResultType($input: [ResultTypeCreateInput!]!) {
+    createResultTypes(input: $input) {
       resultTypes {
         resultTypeId
         name
@@ -48,24 +57,13 @@ const GET_RESULT_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_RESULT_TYPE = gql`
-  mutation mergeRulePackResultType(
-    $rulePackId: ID!
-    $resultTypeId: ID!
-    $name: String
+const UPDATE_RESULT_TYPE = gql`
+  mutation updateResultType(
+    $where: ResultTypeWhere
+    $update: ResultTypeUpdateInput
   ) {
-    resultType: MergeResultType(resultTypeId: $resultTypeId, name: $name) {
-      resultTypeId
-      name
-    }
-    resultTypeRulePack: MergeResultTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { resultTypeId: $resultTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updateResultTypes(where: $where, update: $update) {
+      resultTypes {
         resultTypeId
         name
       }
@@ -74,9 +72,9 @@ const MERGE_RULEPACK_RESULT_TYPE = gql`
 `
 
 const DELETE_RESULT_TYPE = gql`
-  mutation deleteResultType($resultTypeId: ID!) {
-    deleted: DeleteResultType(resultTypeId: $resultTypeId) {
-      resultTypeId
+  mutation deleteResultType($where: ResultTypeWhere) {
+    deleteResultTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -98,18 +96,20 @@ const ResultTypes = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_RESULT_TYPES, {
-    fetchPolicy: 'cache-and-network',
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
   })
-
-  const rulePack = queryData?.rulePack?.[0]
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -121,31 +121,29 @@ const ResultTypes = props => {
   const [deleteResultType, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_RESULT_TYPE,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_RESULT_TYPES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].resultTypes.filter(
+          const updatedData = queryResult.resultTypes.filter(
             p => p.resultTypeId !== deleted.resultTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                resultTypes: updatedData,
-              },
-            ],
+            resultTypes: updatedData,
           }
           cache.writeQuery({
             query: GET_RESULT_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -209,13 +207,14 @@ const ResultTypes = props => {
               dialogDescription={'Result type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deleteResultType({
                   variables: {
-                    resultTypeId: params.row.resultTypeId,
+                    where: { resultTypeId: params.row.resultTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -257,7 +256,7 @@ const ResultTypes = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <XGrid
                 columns={rulePackResultTypesColumns}
-                rows={setIdFromEntityId(rulePack.resultTypes, 'resultTypeId')}
+                rows={setIdFromEntityId(queryData?.resultTypes, 'resultTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -269,7 +268,7 @@ const ResultTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -289,81 +288,123 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackResultType,
-    { loading: loadingMergeResultType },
-  ] = useMutation(MERGE_RULEPACK_RESULT_TYPE, {
-    update(cache, { data: { resultTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_RESULT_TYPES,
-          variables: {
-            rulePackId,
-          },
-        })
+  const [createResultType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_RESULT_TYPE,
+    {
+      update(cache, { data: { createResultTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_RESULT_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createResultTypes?.resultTypes?.[0]
 
-        const existingData = queryResult.rulePack[0].resultTypes
-        const newItem = resultTypeRulePack.to
-        let updatedData = []
-        if (existingData.find(ed => ed.resultTypeId === newItem.resultTypeId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const existingData = queryResult?.resultTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            resultTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_RESULT_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    }
+  )
+
+  const [updateResultType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_RESULT_TYPE,
+    {
+      update(cache, { data: { updateResultTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_RESULT_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+
+          const newItem = updateResultTypes?.resultTypes?.[0]
+
+          const existingData = queryResult?.resultTypes
+          const updatedData = existingData?.map(ed =>
             ed.resultTypeId === newItem.resultTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              resultTypes: updatedData,
+          const updatedResult = {
+            resultTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_RESULT_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_RESULT_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.resultTypeRulePack.to.name} added to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
+        const { name } = dataToCheck
 
-        mergeRulePackResultType({
-          variables: {
-            rulePackId,
-            name,
-            code,
-            resultTypeId: data?.resultTypeId || uuidv4(),
-          },
-        })
+        data?.resultTypeId
+          ? updateResultType({
+              variables: {
+                where: {
+                  resultTypeId: data?.resultTypeId,
+                },
+                update: {
+                  name,
+                },
+              },
+            })
+          : createResultType({
+              variables: {
+                input: {
+                  name,
+                  rulePack: {
+                    connect: {
+                      where: {
+                        node: { rulePackId },
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -419,8 +460,13 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergeResultType}>
-            {loadingMergeResultType ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
+          >
+            {mutationLoadingCreate || mutationLoadingUpdate
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>

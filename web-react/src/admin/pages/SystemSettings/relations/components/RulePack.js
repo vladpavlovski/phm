@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
-import { useParams } from 'react-router-dom'
+
+// import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -25,95 +25,33 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgRulePackRoute } from '../../../../../routes'
+// import { getAdminOrgRulePackRoute } from '../../../../../routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_RULEPACKS = gql`
-  query getSystemSettingsRulePack($systemSettingsId: ID) {
-    systemSettings: SystemSettings(systemSettingsId: $systemSettingsId) {
-      systemSettingsId
-      name
-      rulePack {
-        rulePackId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_SYSTEM_SETTINGS_RULEPACK = gql`
-  mutation removeSystemSettingsRulePack(
-    $systemSettingsId: ID!
-    $rulePackId: ID!
-  ) {
-    systemSettingsRulePack: RemoveSystemSettingsRulePack(
-      from: { systemSettingsId: $systemSettingsId }
-      to: { rulePackId: $rulePackId }
-    ) {
-      from {
-        systemSettingsId
-        name
-      }
-      to {
-        rulePackId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_RULEPACKS = gql`
   query getRulePacks {
-    rulePacks: RulePack {
+    rulePacks {
       rulePackId
       name
     }
   }
 `
 
-const MERGE_SYSTEM_SETTINGS_RULEPACK = gql`
-  mutation mergeSystemSettingsRulePack(
-    $systemSettingsId: ID!
-    $rulePackId: ID!
-  ) {
-    systemSettingsRulePack: MergeSystemSettingsRulePack(
-      from: { systemSettingsId: $systemSettingsId }
-      to: { rulePackId: $rulePackId }
-    ) {
-      from {
-        systemSettingsId
-        name
-      }
-      to {
-        rulePackId
-        name
-      }
-    }
-  }
-`
-
 const RulePack = props => {
-  const { systemSettingsId } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const { organizationSlug } = useParams()
-  const [openAddSystemSettings, setOpenAddSystemSettings] = useState(false)
+  const { systemSettingsId, systemSettings, updateSystemSettings } = props
 
-  const handleCloseAddSystemSettings = useCallback(() => {
+  const classes = useStyles()
+  // const { organizationSlug } = useParams()
+  const [openAddSystemSettings, setOpenAddSystemSettings] =
+    React.useState(false)
+
+  const handleCloseAddSystemSettings = React.useCallback(() => {
     setOpenAddSystemSettings(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_RULEPACKS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const systemSettings = queryData?.systemSettings?.[0]
 
   const [
     getAllSystemSettings,
@@ -122,121 +60,16 @@ const RulePack = props => {
       error: queryAllSystemSettingsError,
       data: queryAllSystemSettingsData,
     },
-  ] = useLazyQuery(GET_ALL_RULEPACKS, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_ALL_RULEPACKS)
 
-  const [
-    removeRulePackSystemSettings,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_SYSTEM_SETTINGS_RULEPACK, {
-    update(cache) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_RULEPACKS,
-          variables: {
-            systemSettingsId,
-          },
-        })
-
-        const updatedResult = {
-          systemSettings: [
-            {
-              ...queryResult?.systemSettings?.[0],
-              rulePack: null,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_RULEPACKS,
-          data: updatedResult,
-          variables: {
-            systemSettingsId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${systemSettings.name} not guided by ${data.systemSettingsRulePack.to.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [mergeRulePackSystemSettings] = useMutation(
-    MERGE_SYSTEM_SETTINGS_RULEPACK,
-    {
-      update(cache, { data: { systemSettingsRulePack } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_RULEPACKS,
-            variables: {
-              systemSettingsId,
-            },
-          })
-
-          const newItem = systemSettingsRulePack.to
-          const updatedResult = {
-            systemSettings: [
-              {
-                ...queryResult?.systemSettings?.[0],
-                rulePack: newItem,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_RULEPACKS,
-            data: updatedResult,
-            variables: {
-              systemSettingsId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${systemSettings.name} guided by ${data.systemSettingsRulePack.to.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { systemSettingsId } })
-    }
-  }, [])
-
-  const handleOpenAddSystemSettings = useCallback(() => {
+  const handleOpenAddSystemSettings = React.useCallback(() => {
     if (!queryAllSystemSettingsData) {
       getAllSystemSettings()
     }
     setOpenAddSystemSettings(true)
   }, [])
 
-  const systemSettingsRulePackColumns = useMemo(
+  const systemSettingsRulePackColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -249,11 +82,11 @@ const RulePack = props => {
         headerName: 'Edit',
         width: 150,
         disableColumnMenu: true,
-        renderCell: params => {
+        renderCell: () => {
           return (
             <LinkButton
               startIcon={<GavelIcon />}
-              to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
+              // to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
             >
               Rule Pack
             </LinkButton>
@@ -270,7 +103,6 @@ const RulePack = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -282,10 +114,22 @@ const RulePack = props => {
               dialogNegativeText={'No, keep rulePack'}
               dialogPositiveText={'Yes, detach rulePack'}
               onDialogClosePositive={() => {
-                removeRulePackSystemSettings({
+                updateSystemSettings({
                   variables: {
-                    systemSettingsId,
-                    rulePackId: params.row.rulePackId,
+                    where: {
+                      systemSettingsId,
+                    },
+                    update: {
+                      rulePack: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              rulePackId: params.row.rulePackId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -294,10 +138,10 @@ const RulePack = props => {
         },
       },
     ],
-    [organizationSlug]
+    []
   )
 
-  const allRulePackColumns = useMemo(
+  const allRulePackColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -315,8 +159,7 @@ const RulePack = props => {
               rulePackId={params.value}
               systemSettingsId={systemSettingsId}
               systemSettings={systemSettings}
-              merge={mergeRulePackSystemSettings}
-              remove={removeRulePackSystemSettings}
+              updateSystemSettings={updateSystemSettings}
             />
           )
         },
@@ -326,7 +169,7 @@ const RulePack = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="rulePacks-content"
@@ -337,37 +180,31 @@ const RulePack = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddSystemSettings}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add RulePack
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 110 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={systemSettingsRulePackColumns}
-                rows={setIdFromEntityId(
-                  systemSettings?.rulePack ? [systemSettings?.rulePack] : [],
-                  'rulePackId'
-                )}
-                loading={queryAllSystemSettingsLoading}
-                hideFooter
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddSystemSettings}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add RulePack
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 110 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={systemSettingsRulePackColumns}
+            rows={setIdFromEntityId(
+              systemSettings?.rulePack ? [systemSettings?.rulePack] : [],
+              'rulePackId'
+            )}
+            loading={queryAllSystemSettingsLoading}
+            hideFooter
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -421,8 +258,9 @@ const RulePack = props => {
 }
 
 const ToggleNewRulePack = props => {
-  const { systemSettingsId, rulePackId, systemSettings, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { systemSettingsId, rulePackId, systemSettings, updateSystemSettings } =
+    props
+  const [isMember, setIsMember] = React.useState(
     systemSettings?.rulePack?.rulePackId === rulePackId
   )
 
@@ -434,18 +272,41 @@ const ToggleNewRulePack = props => {
             checked={isMember}
             onChange={() => {
               isMember
-                ? remove({
+                ? updateSystemSettings({
                     variables: {
-                      systemSettingsId,
-                      rulePackId,
+                      where: {
+                        systemSettingsId,
+                      },
+                      update: {
+                        rulePack: {
+                          disconnect: {
+                            where: {
+                              node: {
+                                rulePackId,
+                              },
+                            },
+                          },
+                        },
+                      },
                     },
                   })
-                : merge({
+                : updateSystemSettings({
                     variables: {
-                      systemSettingsId,
-                      rulePackId,
+                      where: {
+                        systemSettingsId,
+                      },
+                      update: {
+                        rulePack: {
+                          connect: {
+                            where: {
+                              node: { rulePackId },
+                            },
+                          },
+                        },
+                      },
                     },
                   })
+
               setIsMember(!isMember)
             }}
             name="rulePackMember"

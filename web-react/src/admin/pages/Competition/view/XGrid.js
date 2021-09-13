@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import Container from '@material-ui/core/Container'
@@ -14,14 +14,12 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 const GET_COMPETITIONS = gql`
-  query getOrganizations($organizationSlug: String!) {
-    competitions: competitionsByOrganization(
-      organizationSlug: $organizationSlug
-    ) {
+  query getOrganizations($where: CompetitionWhere) {
+    competitions(where: $where) {
       competitionId
       name
       nick
@@ -33,12 +31,10 @@ const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_COMPETITIONS, {
-    variables: { organizationSlug },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
+    variables: { where: { org: { urlSlug: organizationSlug } } },
   })
 
-  const columns = useMemo(
+  const columns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -71,7 +67,7 @@ const XGridTable = () => {
   )
 
   const windowSize = useWindowSize()
-  const toolbarRef = useRef()
+  const toolbarRef = React.useRef()
 
   return (
     <Container maxWidth="lg" className={classes.container}>
@@ -92,7 +88,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

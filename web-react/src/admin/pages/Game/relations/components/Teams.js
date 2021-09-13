@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import Img from 'react-cool-img'
-// import Container from '@material-ui/core/Container'
+
 import Grid from '@material-ui/core/Grid'
 import Paper from '@material-ui/core/Paper'
 import Button from '@material-ui/core/Button'
@@ -16,61 +16,23 @@ import Toolbar from '@material-ui/core/Toolbar'
 import AddIcon from '@material-ui/icons/Add'
 import RemoveIcon from '@material-ui/icons/Remove'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { XGrid } from '@material-ui/x-grid'
 import { Title } from '../../../../../components/Title'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
-import { setIdFromEntityId } from '../../../../../utils'
+import { QuickSearchToolbar } from '../../../../../components/QuickSearchToolbar'
+import { setIdFromEntityId, escapeRegExp } from '../../../../../utils'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
 
-import { GET_GAME } from '../../index'
+import { GET_GAME, UPDATE_GAME } from '../../index'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams {
-    teams: Team {
+    teams {
       teamId
       name
       logo
-    }
-  }
-`
-
-export const MERGE_GAME_TEAM = gql`
-  mutation mergeGameTeam($gameId: ID!, $teamId: ID!, $host: Boolean) {
-    gameTeam: MergeTeamGames(
-      game: { gameId: $gameId }
-      team: { teamId: $teamId }
-      data: { host: $host }
-    ) {
-      game {
-        gameId
-        name
-      }
-      team {
-        teamId
-        name
-        logo
-      }
-      host
-    }
-  }
-`
-
-export const REMOVE_GAME_TEAM = gql`
-  mutation removeGameTeam($gameId: ID!, $teamId: ID!) {
-    gameTeam: RemoveTeamGames(
-      game: { gameId: $gameId }
-      team: { teamId: $teamId }
-    ) {
-      game {
-        gameId
-        name
-      }
-      team {
-        teamId
-        name
-      }
     }
   }
 `
@@ -82,10 +44,11 @@ const Teams = props => {
   const [teamDialog, setTeamDialog] = useState(false)
   const isHost = useRef(true)
 
-  const teamHost = useMemo(() => teams.find(t => t.host)?.team || null, [teams])
-  const teamGuest = useMemo(() => teams.find(t => !t.host)?.team || null, [
-    teams,
-  ])
+  const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
+  const teamGuest = useMemo(
+    () => teams.find(t => !t.host)?.node || null,
+    [teams]
+  )
 
   const [
     getAllTeams,
@@ -98,25 +61,24 @@ const Teams = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [mergeGameTeam, { loading: loadingMergeGameTeam }] = useMutation(
-    MERGE_GAME_TEAM,
+  const [updateGame, { loading: loadingMergeGameTeam }] = useMutation(
+    UPDATE_GAME,
     {
-      update(cache, { data: { gameTeam } }) {
+      update(cache, { data: { updateGame } }) {
         try {
           const queryResult = cache.readQuery({
             query: GET_GAME,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
-          const { host, team } = gameTeam
-          const updatedData = [...queryResult.game?.[0].teams, { host, team }]
+          const updatedData = updateGame?.games?.[0]?.teamsConnection
 
           const updatedResult = {
-            game: [
+            games: [
               {
-                ...queryResult.game?.[0],
-                teams: updatedData,
+                ...queryResult.games?.[0],
+                teamsConnection: updatedData,
               },
             ],
           }
@@ -124,20 +86,17 @@ const Teams = props => {
             query: GET_GAME,
             data: updatedResult,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
         } catch (error) {
           console.error(error)
         }
       },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data?.gameTeam?.team?.name} add to game ${data?.gameTeam?.game?.name}!`,
-          {
-            variant: 'success',
-          }
-        )
+      onCompleted: () => {
+        enqueueSnackbar(`Game updated`, {
+          variant: 'success',
+        })
       },
       onError: error => {
         enqueueSnackbar(`${error}`, {
@@ -198,11 +157,23 @@ const Teams = props => {
               startIcon={<AddIcon />}
               type="button"
               onClick={() => {
-                mergeGameTeam({
+                updateGame({
                   variables: {
-                    gameId,
-                    teamId: params.value,
-                    host: isHost.current,
+                    where: {
+                      gameId,
+                    },
+                    update: {
+                      teams: {
+                        connect: {
+                          where: {
+                            node: { teamId: params.value },
+                          },
+                          edge: {
+                            host: isHost.current,
+                          },
+                        },
+                      },
+                    },
                   },
                 })
                 handleCloseTeamDialog()
@@ -219,6 +190,33 @@ const Teams = props => {
     [gameId]
   )
 
+  const teamsData = useMemo(
+    () =>
+      queryAllTeamsData && setIdFromEntityId(queryAllTeamsData.teams, 'teamId'),
+    [queryAllTeamsData]
+  )
+
+  const [searchText, setSearchText] = React.useState('')
+  const [allTeams, setAllTeams] = React.useState([])
+
+  const requestSearch = useCallback(
+    searchValue => {
+      setSearchText(searchValue)
+      const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
+      const filteredRows = teamsData.filter(row => {
+        return Object.keys(row).some(field => {
+          return searchRegex.test(row[field]?.toString())
+        })
+      })
+      setAllTeams(filteredRows)
+    },
+    [teamsData]
+  )
+
+  React.useEffect(() => {
+    teamsData && setAllTeams(teamsData)
+  }, [teamsData])
+
   return (
     <>
       <Grid container spacing={2}>
@@ -233,6 +231,7 @@ const Teams = props => {
 
         <Grid item xs={12} md={6} lg={6}>
           <TeamCard
+            host={false}
             team={teamGuest}
             openTeamDialog={openTeamDialog}
             gameId={gameId}
@@ -258,11 +257,18 @@ const Teams = props => {
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <XGrid
                   columns={allTeamsColumns}
-                  rows={setIdFromEntityId(queryAllTeamsData.teams, 'teamId')}
+                  rows={allTeams}
                   disableSelectionOnClick
                   loading={queryAllTeamsLoading}
                   components={{
-                    Toolbar: GridToolbar,
+                    Toolbar: QuickSearchToolbar,
+                  }}
+                  componentsProps={{
+                    toolbar: {
+                      value: searchText,
+                      onChange: event => requestSearch(event.target.value),
+                      clearSearch: () => requestSearch(''),
+                    },
                   }}
                 />
               </div>
@@ -284,27 +290,24 @@ const TeamCard = props => {
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
-  const [removeGameTeam, { loading: loadingRemoveGameTeam }] = useMutation(
-    REMOVE_GAME_TEAM,
+  const [updateGame, { loading: loadingRemoveGameTeam }] = useMutation(
+    UPDATE_GAME,
     {
-      update(cache, { data: { gameTeam } }) {
+      update(cache, { data: { updateGame } }) {
         try {
           const queryResult = cache.readQuery({
             query: GET_GAME,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
-          const { team } = gameTeam
-          const updatedData = queryResult.game?.[0].teams.filter(
-            t => t.team.teamId !== team.teamId
-          )
+          const updatedData = updateGame?.games?.[0]?.teamsConnection
 
           const updatedResult = {
-            game: [
+            games: [
               {
-                ...queryResult.game?.[0],
-                teams: updatedData,
+                ...queryResult.games?.[0],
+                teamsConnection: updatedData,
               },
             ],
           }
@@ -312,20 +315,17 @@ const TeamCard = props => {
             query: GET_GAME,
             data: updatedResult,
             variables: {
-              gameId,
+              where: { gameId },
             },
           })
         } catch (error) {
           console.error(error)
         }
       },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data?.gameTeam?.team?.name} team removed from game ${data?.gameTeam?.game?.name}!`,
-          {
-            variant: 'info',
-          }
-        )
+      onCompleted: () => {
+        enqueueSnackbar(`Game updated`, {
+          variant: 'success',
+        })
       },
       onError: error => {
         enqueueSnackbar(`${error}`, {
@@ -343,7 +343,7 @@ const TeamCard = props => {
     >
       <Toolbar disableGutters className={classes.toolbarForm}>
         <div>
-          <Title>{`Team ${host ? 'Host' : 'Guest'}${
+          <Title>{`${host ? 'Host' : 'Guest'}${
             team ? `: ${team?.name}` : ''
           }`}</Title>
         </div>
@@ -376,10 +376,22 @@ const TeamCard = props => {
               dialogNegativeText={'No, keep team'}
               dialogPositiveText={'Yes, remove team'}
               onDialogClosePositive={() =>
-                removeGameTeam({
+                updateGame({
                   variables: {
-                    gameId,
-                    teamId: team.teamId,
+                    where: {
+                      gameId,
+                    },
+                    update: {
+                      teams: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              teamId: team.teamId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }

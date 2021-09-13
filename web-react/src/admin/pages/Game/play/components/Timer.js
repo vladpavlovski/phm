@@ -16,10 +16,8 @@ const Timer = props => {
   const [expiryTimestampBase, setExpiryTimestamp] = useGamePlayTimer(
     timeInMinutes || DEFAULT_TIMER
   )
-  const [
-    gamePlayTimerRunning,
-    setGamePlayTimerRunning,
-  ] = useGamePlayTimerRunning(false)
+  const [gamePlayTimerRunning, setGamePlayTimerRunning] =
+    useGamePlayTimerRunning(false)
 
   const expiryTimestamp = new Date()
   expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + expiryTimestampBase)
@@ -28,19 +26,12 @@ const Timer = props => {
     setExpiryTimestamp(expiryTimestampBase)
   })
 
-  const {
-    seconds,
-    minutes,
-    isRunning,
-    start,
-    pause,
-    resume,
-    restart,
-  } = useTimer({
-    autoStart: gamePlayTimerRunning,
-    expiryTimestamp,
-    onExpire: () => console.warn('onExpire called'),
-  })
+  const { seconds, minutes, isRunning, start, pause, resume, restart } =
+    useTimer({
+      autoStart: gamePlayTimerRunning,
+      expiryTimestamp,
+      onExpire: () => console.warn('onExpire called'),
+    })
 
   const {
     seconds: timeSeconds,

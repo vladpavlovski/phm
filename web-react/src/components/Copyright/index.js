@@ -6,7 +6,7 @@ const Copyright = () => (
   <Typography variant="body2" color="textSecondary" align="center">
     {'Copyright © '}
     <Link color="inherit" href="https://phmcup.cz/">
-      PHM Cup
+      HMS - Hockey Management System
     </Link>{' '}
     {new Date().getFullYear()}
     {'.'}
