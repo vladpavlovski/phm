@@ -2,21 +2,20 @@ import React, { useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 
 import TextField from '@material-ui/core/TextField'
-import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
-
-import { useStyles } from '../../../../commonComponents/styled'
+import EditIcon from '@material-ui/icons/Edit'
+import Tooltip from '@material-ui/core/Tooltip'
+import { LinkButton } from '../../../../../../components/LinkButton'
+import ButtonBase from '@material-ui/core/ButtonBase'
 
 export const SetLineupPosition = props => {
-  const { player, gameId, mergeGamePlayer } = props
-  const classes = useStyles()
-  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] = useState(
-    false
-  )
+  const { player, gameId, updateGame } = props
+  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
+    useState(false)
 
   const [positionValue, setPositionValue] = useState(player?.position || '')
 
@@ -26,18 +25,18 @@ export const SetLineupPosition = props => {
 
   return (
     <>
-      <Button
-        type="button"
+      <LinkButton
+        component={ButtonBase}
+        variant="text"
+        icon
         onClick={() => {
           setLineupPositionDialogOpen(true)
         }}
-        variant={'outlined'}
-        size="small"
-        className={classes.submit}
-        startIcon={<AddIcon />}
       >
-        Set Position
-      </Button>
+        <Tooltip arrow title="Change Position" placement="top">
+          <EditIcon />
+        </Tooltip>
+      </LinkButton>
       <Dialog
         fullWidth
         maxWidth="xs"
@@ -78,11 +77,23 @@ export const SetLineupPosition = props => {
             type="button"
             disabled={!positionValue}
             onClick={() => {
-              mergeGamePlayer({
+              updateGame({
                 variables: {
-                  gameId,
-                  playerId: player?.playerId,
-                  position: positionValue,
+                  where: {
+                    gameId,
+                  },
+                  update: {
+                    players: {
+                      connect: {
+                        where: {
+                          node: { playerId: player?.playerId },
+                        },
+                        edge: {
+                          position: positionValue,
+                        },
+                      },
+                    },
+                  },
                 },
               })
               handleCloseDialog()

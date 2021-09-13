@@ -6,15 +6,8 @@ import TimePicker from '@material-ui/lab/TimePicker'
 import { getDateFromTime } from '../../utils'
 
 const RHFTimepicker = props => {
-  const {
-    control,
-    name,
-    defaultValue,
-    variant,
-    error,
-    fullWidth,
-    ...rest
-  } = props
+  const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
+    props
   return (
     <Controller
       name={name}

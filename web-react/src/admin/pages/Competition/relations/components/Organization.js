@@ -1,181 +1,79 @@
-import React, { useCallback, useState } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
-
+import { gql, useLazyQuery } from '@apollo/client'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
+import TextField from '@material-ui/core/TextField'
+import Autocomplete from '@material-ui/core/Autocomplete'
+import Grid from '@material-ui/core/Grid'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
-import { TextField, Autocomplete, Grid } from '@material-ui/core'
-
 const GET_ORGANIZATIONS = gql`
-  query getCompetitionOrganizations($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
-      competitionId
-      name
-      organization {
-        organizationId
-        name
-      }
-    }
-    organizations: Organization {
+  query getCompetitionOrganizations($where: OrganizationWhere) {
+    organizations(where: $where) {
       organizationId
       name
     }
   }
 `
 
-const MERGE_COMPETITION_ORGANIZATION = gql`
-  mutation mergeCompetitionOrganization(
-    $competitionId: ID!
-    $organizationIdToMerge: ID!
-  ) {
-    competitionOrganizationMerge: MergeCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToMerge }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        organizationId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_MERGE_COMPETITION_ORGANIZATION = gql`
-  mutation removeMergeCompetitionOrganization(
-    $competitionId: ID!
-    $organizationIdToRemove: ID!
-    $organizationIdToMerge: ID!
-  ) {
-    competitionOrganizationRemove: RemoveCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToRemove }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        organizationId
-        name
-      }
-    }
-    competitionOrganizationMerge: MergeCompetitionOrganization(
-      from: { competitionId: $competitionId }
-      to: { organizationId: $organizationIdToMerge }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        organizationId
-        name
-      }
-    }
-  }
-`
-
 const Organization = props => {
-  const { competitionId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { competitionId, competition, updateCompetition } = props
+
   const classes = useStyles()
 
-  const [selectedOrganization, setSelectedOrganization] = useState(null)
+  const [selectedOrganization, setSelectedOrganization] = React.useState(
+    competition?.org
+  )
 
   const [
     getData,
-    { loading: queryLoading, error: queryError, data: queryData },
+    { loading: queryLoading, data: queryData, error: queryError },
   ] = useLazyQuery(GET_ORGANIZATIONS, {
-    fetchPolicy: 'cache-and-network',
-    onCompleted: data => {
-      setSelectedOrganization(data?.competition?.[0]?.organization)
+    onCompleted: () => {
+      setSelectedOrganization(competition?.org)
     },
   })
 
-  const competition = queryData?.competition?.[0]
-
-  const [removeMergeOrganizationCompetition] = useMutation(
-    REMOVE_MERGE_COMPETITION_ORGANIZATION,
-    {
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-        setSelectedOrganization(data.competitionOrganizationMerge.to)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeOrganizationCompetition] = useMutation(
-    MERGE_COMPETITION_ORGANIZATION,
-    {
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${competition.name} owned by ${data.competitionOrganizationMerge.to.name}!`,
-          {
-            variant: 'success',
-          }
-        )
-        setSelectedOrganization(data.competitionOrganizationMerge.to)
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const openAccordion = useCallback(() => {
+  const openAccordion = React.useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData()
     }
   }, [])
 
-  const handleOrganizationChange = useCallback(
+  const handleOrganizationChange = React.useCallback(
     data => {
-      if (
-        selectedOrganization &&
-        selectedOrganization?.organizationId !== data?.organizationId
-      ) {
-        removeMergeOrganizationCompetition({
-          variables: {
+      setSelectedOrganization(data)
+      updateCompetition({
+        variables: {
+          where: {
             competitionId,
-            organizationIdToRemove: selectedOrganization.organizationId,
-            organizationIdToMerge: data.organizationId,
           },
-        })
-      } else {
-        mergeOrganizationCompetition({
-          variables: {
-            competitionId,
-            organizationIdToMerge: data.organizationId,
+          update: {
+            org: {
+              connect: {
+                where: {
+                  node: { organizationId: data?.organizationId },
+                },
+              },
+              disconnect: {
+                where: {
+                  node: {
+                    organizationId:
+                      selectedOrganization?.organizationId || null,
+                  },
+                },
+              },
+            },
           },
-        })
-      }
+        },
+      })
     },
     [competitionId, selectedOrganization]
   )
@@ -203,10 +101,13 @@ const Organization = props => {
                   name="organization"
                   value={selectedOrganization}
                   getOptionLabel={option => option.name}
-                  isOptionEqualToValue={(option, value) =>
+                  // isOptionEqualToValue={(option, value) =>
+                  //   option.organizationId === value.organizationId
+                  // }
+                  getOptionSelected={(option, value) =>
                     option.organizationId === value.organizationId
                   }
-                  options={queryData.organizations}
+                  options={queryData?.organizations}
                   onChange={(_, data) => {
                     handleOrganizationChange(data)
                   }}
@@ -239,5 +140,4 @@ const Organization = props => {
 Organization.propTypes = {
   competitionId: PropTypes.string,
 }
-
 export { Organization }

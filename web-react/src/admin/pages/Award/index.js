@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useContext } from 'react'
+import React from 'react'
 
 import { useParams, useHistory } from 'react-router-dom'
 
@@ -8,9 +8,9 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-
-import { Container, Grid, Paper } from '@material-ui/core'
-
+import Container from '@material-ui/core/Container'
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
 import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { checkId, isValidUuid, decomposeDate } from '../../../utils'
+import { isValidUuid, decomposeDate } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -31,64 +31,56 @@ import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
 
 const GET_AWARD = gql`
-  query getAward($awardId: ID!) {
-    award: Award(awardId: $awardId) {
+  query getAward($where: AwardWhere) {
+    awards(where: $where) {
       awardId
       name
       nick
       short
       description
       type
-      foundDate {
-        formatted
-      }
+      foundDate
+      # seasons {
+      #   seasonId
+      #   name
+      #   nick
+      #   startDate
+      #   endDate
+      # }
     }
   }
 `
 
-const MERGE_AWARD = gql`
-  mutation mergeAward(
-    $awardId: ID!
-    $name: String
-    $nick: String
-    $short: String
-    $description: String
-    $type: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $organizationId: ID!
-  ) {
-    mergeAward: MergeAward(
-      awardId: $awardId
-      name: $name
-      nick: $nick
-      short: $short
-      description: $description
-      type: $type
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
-      }
-    ) {
-      awardId
-    }
-    mergeAwardOrg: MergeAwardOrgs(
-      from: { awardId: $awardId }
-      to: { organizationId: $organizationId }
-    ) {
-      from {
+const CREATE_AWARD = gql`
+  mutation createAward($input: [AwardCreateInput!]!) {
+    createAwards(input: $input) {
+      awards {
         awardId
       }
     }
   }
 `
 
+export const UPDATE_AWARD = gql`
+  mutation updateAward($where: AwardWhere, $update: AwardUpdateInput) {
+    updateAward: updateAwards(where: $where, update: $update) {
+      awards {
+        awardId
+        name
+        nick
+        short
+        description
+        type
+        foundDate
+      }
+    }
+  }
+`
+
 const DELETE_AWARD = gql`
-  mutation deleteAward($awardId: ID!) {
-    deleteAward: DeleteAward(awardId: $awardId) {
-      awardId
+  mutation deleteAward($where: AwardWhere) {
+    deleteAwards(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -97,7 +89,7 @@ const Award = () => {
   const history = useHistory()
   const classes = useStyles()
   const { awardId, organizationSlug } = useParams()
-  const { organizationData } = useContext(OrganizationContext)
+  const { organizationData } = React.useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -105,57 +97,93 @@ const Award = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_AWARD, {
-    fetchPolicy: 'network-only',
-    variables: { awardId },
+    variables: { where: { awardId } },
     skip: awardId === 'new',
   })
 
   const [
-    mergeAward,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_AWARD, {
+    createAward,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_AWARD, {
     onCompleted: data => {
       if (awardId === 'new') {
-        const newId = data.mergeAward.awardId
-        history.replace(getAdminOrgAwardRoute(organizationSlug, newId))
+        const newId = data?.createAwards?.awards?.[0]?.awardId
+        newId && history.replace(getAdminOrgAwardRoute(organizationSlug, newId))
       }
       enqueueSnackbar('Award saved!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
     },
   })
 
   const [
-    deleteAward,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_AWARD, {
+    updateAward,
+    { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  ] = useMutation(UPDATE_AWARD, {
     onCompleted: () => {
-      history.push(getAdminOrgAwardsRoute(organizationSlug))
-      enqueueSnackbar('Award was deleted!')
+      enqueueSnackbar('Award updated!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
     },
   })
 
-  const awardData = useMemo(() => (queryData && queryData.award[0]) || {}, [
-    queryData,
-  ])
+  const [deleteAward, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_AWARD, {
+      variables: { where: { awardId } },
+      onCompleted: () => {
+        history.push(getAdminOrgAwardsRoute(organizationSlug))
+        enqueueSnackbar('Award was deleted!')
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
+        })
+      },
+    })
+
+  const awardData = queryData?.awards?.[0]
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const onSubmit = useCallback(
+  const onSubmit = React.useCallback(
     dataToCheck => {
       try {
         const { foundDate, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          awardId: checkId(awardId),
           ...decomposeDate(foundDate, 'foundDate'),
-          organizationId: organizationData?.organizationId,
+          orgs: {
+            connect: {
+              where: {
+                node: { organizationId: organizationData?.organizationId },
+              },
+            },
+          },
         }
 
-        mergeAward({
-          variables: dataToSubmit,
-        })
+        awardId === 'new'
+          ? createAward({
+              variables: {
+                input: dataToSubmit,
+              },
+            })
+          : updateAward({
+              variables: {
+                where: {
+                  awardId,
+                },
+                update: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -169,7 +197,9 @@ const Award = () => {
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
       {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+        <Error
+          message={mutationErrorMerge?.message || mutationErrorCreate?.message}
+        />
       )}
       {(awardData || awardId === 'new') &&
         !queryLoading &&
@@ -183,7 +213,7 @@ const Award = () => {
               autoComplete="off"
             >
               <Helmet>
-                <title>{awardData.name || 'Award'}</title>
+                <title>{awardData?.name || 'Award'}</title>
               </Helmet>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={12} lg={12}>
@@ -194,14 +224,16 @@ const Award = () => {
                       </div>
                       <div>
                         {formState.isDirty && (
-                          <ButtonSave loading={mutationLoadingMerge} />
+                          <ButtonSave
+                            loading={
+                              mutationLoadingMerge || mutationLoadingCreate
+                            }
+                          />
                         )}
                         {awardId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={() => {
-                              deleteAward({ variables: { awardId } })
-                            }}
+                            onClick={deleteAward}
                           />
                         )}
                       </div>
@@ -210,7 +242,7 @@ const Award = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={awardData.name}
+                          defaultValue={awardData?.name}
                           control={control}
                           name="name"
                           label="Name"
@@ -222,7 +254,7 @@ const Award = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={awardData.nick}
+                          defaultValue={awardData?.nick}
                           control={control}
                           name="nick"
                           label="Nick"
@@ -233,7 +265,7 @@ const Award = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={awardData.short}
+                          defaultValue={awardData?.short}
                           control={control}
                           name="short"
                           label="Short"
@@ -245,7 +277,7 @@ const Award = () => {
 
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={awardData.description}
+                          defaultValue={awardData?.description}
                           control={control}
                           name="description"
                           label="Description"
@@ -256,7 +288,7 @@ const Award = () => {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput
-                          defaultValue={awardData.type}
+                          defaultValue={awardData?.type}
                           control={control}
                           name="type"
                           label="Type"
@@ -276,7 +308,7 @@ const Award = () => {
                           openTo="year"
                           inputFormat={'DD/MM/YYYY'}
                           views={['year', 'month', 'day']}
-                          defaultValue={awardData?.foundDate?.formatted}
+                          defaultValue={awardData?.foundDate}
                           error={errors.foundDate}
                         />
                       </Grid>
@@ -285,7 +317,13 @@ const Award = () => {
                 </Grid>
               </Grid>
             </form>
-            {isValidUuid(awardId) && <Relations awardId={awardId} />}
+            {isValidUuid(awardId) && (
+              <Relations
+                awardId={awardId}
+                award={awardData}
+                updateAward={updateAward}
+              />
+            )}
           </>
         )}
     </Container>

@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,82 +32,24 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_COMPETITIONS = gql`
-  query getVenueCompetitions($venueId: ID) {
-    venue: Venue(venueId: $venueId) {
-      venueId
-      name
-      competitions {
-        competitionId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_VENUE_COMPETITION = gql`
-  mutation removeVenueCompetition($venueId: ID!, $competitionId: ID!) {
-    venueCompetition: RemoveVenueCompetitions(
-      from: { competitionId: $competitionId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_COMPETITIONS = gql`
   query getCompetitions {
-    competitions: Competition {
+    competitions {
       competitionId
       name
     }
   }
 `
 
-const MERGE_VENUE_COMPETITION = gql`
-  mutation mergeVenueCompetitions($venueId: ID!, $competitionId: ID!) {
-    venueCompetition: MergeVenueCompetitions(
-      from: { competitionId: $competitionId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        competitionId
-        name
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 const Competitions = props => {
-  const { venueId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { venueId, venue, updateVenue } = props
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [openAddVenue, setOpenAddVenue] = useState(false)
+  const [openAddVenue, setOpenAddVenue] = React.useState(false)
 
-  const handleCloseAddVenue = useCallback(() => {
+  const handleCloseAddVenue = React.useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_COMPETITIONS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const venue = queryData?.venue?.[0]
 
   const [
     getAllVenues,
@@ -120,117 +62,14 @@ const Competitions = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [
-    removeCompetitionVenue,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_VENUE_COMPETITION, {
-    update(cache, { data: { venueCompetition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_COMPETITIONS,
-          variables: {
-            venueId,
-          },
-        })
-        const updatedData = queryResult?.venue?.[0]?.competitions.filter(
-          p => p.competitionId !== venueCompetition.from.competitionId
-        )
-
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              competitions: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_COMPETITIONS,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venueCompetition.from.name} not takes plays on ${venue.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [mergeCompetitionVenue] = useMutation(MERGE_VENUE_COMPETITION, {
-    update(cache, { data: { venueCompetition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_COMPETITIONS,
-          variables: {
-            venueId,
-          },
-        })
-        const existingData = queryResult?.venue?.[0]?.competitions
-        const newItem = venueCompetition.from
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              competitions: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_COMPETITIONS,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venueCompetition.from.name} takes plays on ${venue.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { venueId } })
-    }
-  }, [])
-
-  const handleOpenAddVenue = useCallback(() => {
+  const handleOpenAddVenue = React.useCallback(() => {
     if (!queryAllVenuesData) {
       getAllVenues()
     }
     setOpenAddVenue(true)
   }, [])
 
-  const venueCompetitionsColumns = useMemo(
+  const venueCompetitionsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -264,7 +103,6 @@ const Competitions = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -276,10 +114,22 @@ const Competitions = props => {
               dialogNegativeText={'No, keep competition'}
               dialogPositiveText={'Yes, detach competition'}
               onDialogClosePositive={() => {
-                removeCompetitionVenue({
+                updateVenue({
                   variables: {
-                    venueId,
-                    competitionId: params.row.competitionId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId: params.row.competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -291,7 +141,7 @@ const Competitions = props => {
     []
   )
 
-  const allCompetitionsColumns = useMemo(
+  const allCompetitionsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -310,8 +160,7 @@ const Competitions = props => {
               competitionId={params.value}
               venueId={venueId}
               venue={venue}
-              merge={mergeCompetitionVenue}
-              remove={removeCompetitionVenue}
+              updateVenue={updateVenue}
             />
           )
         },
@@ -321,7 +170,7 @@ const Competitions = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="competitions-content"
@@ -332,36 +181,30 @@ const Competitions = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Competition
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={venueCompetitionsColumns}
-                rows={setIdFromEntityId(venue.competitions, 'competitionId')}
-                loading={queryAllVenuesLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Competition
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={venueCompetitionsColumns}
+            rows={setIdFromEntityId(venue.competitions, 'competitionId')}
+            loading={queryAllVenuesLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -411,8 +254,8 @@ const Competitions = props => {
 }
 
 const ToggleNewCompetition = props => {
-  const { venueId, competitionId, venue, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { venueId, competitionId, venue, updateVenue } = props
+  const [isMember, setIsMember] = React.useState(
     !!venue.competitions.find(p => p.competitionId === competitionId)
   )
 
@@ -422,19 +265,34 @@ const ToggleNewCompetition = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    venueId,
-                    competitionId,
+            updateVenue({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  competitions: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                competitionId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { competitionId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    venueId,
-                    competitionId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="competitionMember"
@@ -450,13 +308,14 @@ ToggleNewCompetition.propTypes = {
   venueId: PropTypes.string,
   competitionId: PropTypes.string,
   competition: PropTypes.object,
-  removeCompetitionVenue: PropTypes.func,
-  mergeCompetitionVenue: PropTypes.func,
+  updateVenue: PropTypes.func,
   loading: PropTypes.bool,
 }
 
 Competitions.propTypes = {
   venueId: PropTypes.string,
+  updateVenue: PropTypes.func,
+  venue: PropTypes.object,
 }
 
 export { Competitions }

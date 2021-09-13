@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+// import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -20,36 +20,14 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { formatDate, setIdFromEntityId } from '../../../../../utils'
 
-const REMOVE_AWARD_SEASON = gql`
-  mutation removeAwardSeason($awardId: ID!, $seasonId: ID!) {
-    awardSeason: RemoveAwardSeasons(
-      from: { seasonId: $seasonId }
-      to: { awardId: $awardId }
-    ) {
-      from {
-        seasonId
-        name
-      }
-      to {
-        awardId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_SEASONS = gql`
   query getSeasons {
-    seasons: Season {
+    seasons {
       seasonId
       name
       nick
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
+      startDate
+      endDate
       awards {
         awardId
         name
@@ -58,26 +36,8 @@ export const GET_ALL_SEASONS = gql`
   }
 `
 
-const MERGE_AWARD_SEASON = gql`
-  mutation mergeAwardSeason($awardId: ID!, $seasonId: ID!) {
-    awardSeason: MergeAwardSeasons(
-      from: { seasonId: $seasonId }
-      to: { awardId: $awardId }
-    ) {
-      from {
-        seasonId
-        name
-      }
-      to {
-        awardId
-        name
-      }
-    }
-  }
-`
-
 const Seasons = props => {
-  const { awardId } = props
+  const { awardId, award, updateAward } = props
   const { organizationSlug } = useParams()
   const classes = useStyles()
 
@@ -86,13 +46,13 @@ const Seasons = props => {
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_ALL_SEASONS)
 
-  const openAccordion = useCallback(() => {
+  const openAccordion = React.useCallback(() => {
     if (!queryData) {
-      getData({ variables: { awardId } })
+      getData()
     }
   }, [])
 
-  const awardSeasonsColumns = useMemo(
+  const awardSeasonsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -111,6 +71,8 @@ const Seasons = props => {
               seasonId={params.row.seasonId}
               awardId={awardId}
               season={params.row}
+              award={award}
+              updateAward={updateAward}
             />
           )
         },
@@ -120,14 +82,14 @@ const Seasons = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params.row.startDate.formatted,
+        valueGetter: params => params.row.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params.row.endDate.formatted,
+        valueGetter: params => params.row.endDate,
         valueFormatter: params => formatDate(params.value),
       },
 
@@ -165,21 +127,18 @@ const Seasons = props => {
         {queryLoading && !queryError && <Loader />}
         {queryError && !queryLoading && <Error message={queryError.message} />}
         {queryData && (
-          <>
-            {/* {place for toolbar} */}
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                disableMultipleSelection
-                disableSelectionOnClick
-                columns={awardSeasonsColumns}
-                rows={setIdFromEntityId(queryData?.seasons, 'seasonId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
+          <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <XGrid
+              disableMultipleSelection
+              disableSelectionOnClick
+              columns={awardSeasonsColumns}
+              rows={setIdFromEntityId(queryData?.seasons, 'seasonId')}
+              loading={queryLoading}
+              components={{
+                Toolbar: GridToolbar,
+              }}
+            />
+          </div>
         )}
       </AccordionDetails>
     </Accordion>
@@ -187,43 +146,10 @@ const Seasons = props => {
 }
 
 const ToggleAward = props => {
-  const { seasonId, awardId, season } = props
-  const [isMember, setIsMember] = useState(
+  const { seasonId, awardId, season, updateAward } = props
+  const [isMember, setIsMember] = React.useState(
     !!season?.awards?.find(p => p.awardId === awardId)
   )
-  const { enqueueSnackbar } = useSnackbar()
-  const [mergeAwardSeason] = useMutation(MERGE_AWARD_SEASON, {
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.awardSeason.to.name} add to ${data.awardSeason.from.name} season!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [removeAwardSeason] = useMutation(REMOVE_AWARD_SEASON, {
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.awardSeason.to.name} remove from ${data.awardSeason.from.name} season`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
 
   return (
     <FormControlLabel
@@ -231,19 +157,34 @@ const ToggleAward = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? removeAwardSeason({
-                  variables: {
-                    awardId,
-                    seasonId,
+            updateAward({
+              variables: {
+                where: {
+                  awardId,
+                },
+                update: {
+                  seasons: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                seasonId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { seasonId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : mergeAwardSeason({
-                  variables: {
-                    awardId,
-                    seasonId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="seasonMember"

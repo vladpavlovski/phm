@@ -33,37 +33,34 @@ import { useStyles } from '../../../commonComponents/styled'
 import { formatDate, setIdFromEntityId } from '../../../../../utils'
 
 const GET_SEASONS = gql`
-  query getSeasons($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
+  query getSeasons($where: CompetitionWhere) {
+    competition: competitions(where: $where) {
       competitionId
       name
       seasons {
         seasonId
         name
         nick
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
+        startDate
+        endDate
       }
     }
   }
 `
 
-const REMOVE_TEAM_SEASON = gql`
-  mutation removeCompetitionSeason($competitionId: ID!, $seasonId: ID!) {
-    competitionSeason: RemoveCompetitionSeasons(
-      from: { competitionId: $competitionId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
+const UPDATE_SEASON = gql`
+  mutation updateSeason($where: SeasonWhere, $update: SeasonUpdateInput) {
+    updateSeasons(where: $where, update: $update) {
+      seasons {
         seasonId
         name
+        nick
+        startDate
+        endDate
+        competitions {
+          competitionId
+          name
+        }
       }
     }
   }
@@ -71,40 +68,12 @@ const REMOVE_TEAM_SEASON = gql`
 
 export const GET_ALL_SEASONS = gql`
   query getSeasons {
-    seasons: Season {
+    seasons {
       seasonId
       name
       nick
-      startDate {
-        formatted
-      }
-      endDate {
-        formatted
-      }
-    }
-  }
-`
-
-const MERGE_TEAM_SEASON = gql`
-  mutation mergeCompetitionSeason($competitionId: ID!, $seasonId: ID!) {
-    competitionSeason: MergeCompetitionSeasons(
-      from: { competitionId: $competitionId }
-      to: { seasonId: $seasonId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
-        seasonId
-        name
-        nick
-        startDate {
-          formatted
-        }
-        endDate {
-          formatted
-        }
-      }
+      startDate
+      endDate
     }
   }
 `
@@ -115,6 +84,7 @@ const Seasons = props => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddSeason, setOpenAddSeason] = useState(false)
+  const updateStatus = React.useRef()
 
   const handleCloseAddSeason = useCallback(() => {
     setOpenAddSeason(false)
@@ -133,110 +103,64 @@ const Seasons = props => {
     },
   ] = useLazyQuery(GET_ALL_SEASONS)
 
-  const [mergeCompetitionSeason] = useMutation(MERGE_TEAM_SEASON, {
-    update(cache, { data: { competitionSeason } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SEASONS,
-          variables: {
-            competitionId,
-          },
-        })
-
-        const existingSeasons = queryResult.competition[0].seasons
-        const newSeason = competitionSeason.to
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              seasons: [newSeason, ...existingSeasons],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_SEASONS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${competition.name} add to ${data.competitionSeason.to.name} season!`,
+  const [updateSeason, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_SEASON,
+    {
+      update(
+        cache,
         {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const competition =
-    queryData && queryData.competition && queryData.competition[0]
-
-  const [
-    removeCompetitionSeason,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_TEAM_SEASON, {
-    update(cache, { data: { competitionSeason } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SEASONS,
-          variables: {
-            competitionId,
+          data: {
+            updateSeasons: { seasons },
           },
-        })
-
-        const updatedSeasons = queryResult.competition[0].seasons.filter(
-          p => p.seasonId !== competitionSeason.to.seasonId
-        )
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              seasons: updatedSeasons,
+        }
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_SEASONS,
+            variables: {
+              where: { competitionId },
             },
-          ],
+          })
+
+          const updatedData =
+            updateStatus.current === 'disconnect'
+              ? queryResult?.competition?.[0]?.seasons?.filter(
+                  p => p.seasonId !== seasons?.[0]?.seasonId
+                )
+              : [...queryResult?.competition?.[0]?.seasons, ...seasons]
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult?.competition?.[0],
+                seasons: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_SEASONS,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_SEASONS,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${competition.name} remove from ${data.competitionSeason.to.name} season`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+      onCompleted: () => {
+        // getData()
+        updateStatus.current = null
+        enqueueSnackbar('Season updated!', { variant: 'success' })
+      },
+    }
+  )
+
+  const competition = queryData?.competition?.[0] || {}
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData({ variables: { where: { competitionId } } })
     }
   }, [])
 
@@ -265,14 +189,14 @@ const Seasons = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params.row.startDate.formatted,
+        valueGetter: params => params.row?.startDate,
         valueFormatter: params => formatDate(params.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params.row.endDate.formatted,
+        valueGetter: params => params.row?.endDate,
         valueFormatter: params => formatDate(params.value),
       },
 
@@ -302,7 +226,7 @@ const Seasons = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
+              loading={mutationLoadingUpdate}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -312,10 +236,23 @@ const Seasons = props => {
               dialogNegativeText={'No, keep in season'}
               dialogPositiveText={'Yes, detach season'}
               onDialogClosePositive={() => {
-                removeCompetitionSeason({
+                updateStatus.current = 'disconnect'
+                updateSeason({
                   variables: {
-                    competitionId,
-                    seasonId: params.row.seasonId,
+                    where: {
+                      seasonId: params.row?.seasonId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -345,15 +282,15 @@ const Seasons = props => {
         field: 'startDate',
         headerName: 'Start Date',
         width: 180,
-        valueGetter: params => params.row.startDate.formatted,
-        valueFormatter: params => formatDate(params.value),
+        valueGetter: params => params.row?.startDate,
+        valueFormatter: params => formatDate(params?.value),
       },
       {
         field: 'endDate',
         headerName: 'End Date',
         width: 180,
-        valueGetter: params => params.row.endDate.formatted,
-        valueFormatter: params => formatDate(params.value),
+        valueGetter: params => params.row?.endDate,
+        valueFormatter: params => formatDate(params?.value),
       },
       {
         field: 'seasonId',
@@ -366,14 +303,14 @@ const Seasons = props => {
               seasonId={params.value}
               competitionId={competitionId}
               competition={competition}
-              merge={mergeCompetitionSeason}
-              remove={removeCompetitionSeason}
+              update={updateSeason}
+              updateStatus={updateStatus}
             />
           )
         },
       },
     ],
-    [competition]
+    [competition, competitionId]
   )
 
   return (
@@ -476,9 +413,9 @@ const Seasons = props => {
 }
 
 const ToggleNewSeason = props => {
-  const { seasonId, competitionId, competition, remove, merge } = props
+  const { seasonId, competitionId, competition, update, updateStatus } = props
   const [isMember, setIsMember] = useState(
-    !!competition.seasons.find(p => p.seasonId === seasonId)
+    !!competition?.seasons?.find(p => p.seasonId === seasonId)
   )
 
   return (
@@ -488,18 +425,41 @@ const ToggleNewSeason = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? update({
                   variables: {
-                    competitionId,
-                    seasonId,
+                    where: {
+                      seasonId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : update({
                   variables: {
-                    competitionId,
-                    seasonId,
+                    where: {
+                      seasonId,
+                    },
+                    update: {
+                      competitions: {
+                        connect: {
+                          where: {
+                            node: { competitionId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+            updateStatus.current = isMember ? 'disconnect' : null
             setIsMember(!isMember)
           }}
           name="seasonMember"
@@ -515,8 +475,7 @@ ToggleNewSeason.propTypes = {
   playerId: PropTypes.string,
   competitionId: PropTypes.string,
   competition: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
+  update: PropTypes.func,
 }
 
 Seasons.propTypes = {

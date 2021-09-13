@@ -1,10 +1,9 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+// import Accordion from '@material-ui/core/Accordion'
+// import AccordionSummary from '@material-ui/core/AccordionSummary'
+// import AccordionDetails from '@material-ui/core/AccordionDetails'
+// import Typography from '@material-ui/core/Typography'
+// import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Teams } from './components/Teams'
@@ -15,19 +14,18 @@ import { Phases } from './components/Phases'
 import { Groups } from './components/Groups'
 
 const Relations = props => {
-  const { sponsorId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Teams sponsorId={sponsorId} />
-      <Players sponsorId={sponsorId} />
-      <Awards sponsorId={sponsorId} />
-      <Competitions sponsorId={sponsorId} />
-      <Phases sponsorId={sponsorId} />
-      <Groups sponsorId={sponsorId} />
+      <Teams {...props} />
+      <Players {...props} />
+      <Awards {...props} />
+      <Competitions {...props} />
+      <Phases {...props} />
+      <Groups {...props} />
 
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="transfers-content"
@@ -38,9 +36,9 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>staff Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
 
-      <Accordion>
+      {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="media-content"
@@ -51,11 +49,9 @@ const Relations = props => {
         <AccordionDetails>
           <Typography>media Table</Typography>
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
     </div>
   )
 }
-
-Relations.propTypes = { sponsorId: PropTypes.string }
 
 export { Relations }

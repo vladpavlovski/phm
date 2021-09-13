@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -31,46 +30,9 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_GROUPS = gql`
-  query getVenueGroups($venueId: ID) {
-    venue: Venue(venueId: $venueId) {
-      venueId
-      name
-      groups {
-        groupId
-        name
-        competition {
-          name
-        }
-      }
-    }
-  }
-`
-
-const REMOVE_VENUE_GROUP = gql`
-  mutation removeVenueGroup($venueId: ID!, $groupId: ID!) {
-    venueGroup: RemoveVenueGroups(
-      from: { groupId: $groupId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        groupId
-        name
-        competition {
-          name
-        }
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_GROUPS = gql`
   query getGroups {
-    groups: Group {
+    groups {
       groupId
       name
       competition {
@@ -80,44 +42,15 @@ export const GET_ALL_GROUPS = gql`
   }
 `
 
-const MERGE_VENUE_GROUP = gql`
-  mutation mergeVenueGroups($venueId: ID!, $groupId: ID!) {
-    venueGroup: MergeVenueGroups(
-      from: { groupId: $groupId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        groupId
-        name
-        competition {
-          name
-        }
-      }
-      to {
-        venueId
-        name
-      }
-    }
-  }
-`
-
 const Groups = props => {
-  const { venueId } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const [openAddVenue, setOpenAddVenue] = useState(false)
+  const { venueId, venue, updateVenue } = props
 
-  const handleCloseAddVenue = useCallback(() => {
+  const classes = useStyles()
+  const [openAddVenue, setOpenAddVenue] = React.useState(false)
+
+  const handleCloseAddVenue = React.useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_GROUPS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const venue = queryData?.venue?.[0]
 
   const [
     getAllVenues,
@@ -130,117 +63,14 @@ const Groups = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeGroupVenue, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_VENUE_GROUP,
-    {
-      update(cache, { data: { venueGroup } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_GROUPS,
-            variables: {
-              venueId,
-            },
-          })
-          const updatedData = queryResult?.venue?.[0]?.groups.filter(
-            p => p.groupId !== venueGroup.from.groupId
-          )
-
-          const updatedResult = {
-            venue: [
-              {
-                ...queryResult?.venue?.[0],
-                groups: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GROUPS,
-            data: updatedResult,
-            variables: {
-              venueId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.venueGroup.from.name} not takes plays on ${venue.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeGroupVenue] = useMutation(MERGE_VENUE_GROUP, {
-    update(cache, { data: { venueGroup } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GROUPS,
-          variables: {
-            venueId,
-          },
-        })
-        const existingData = queryResult?.venue?.[0]?.groups
-        const newItem = venueGroup.from
-        const updatedResult = {
-          venue: [
-            {
-              ...queryResult?.venue?.[0],
-              groups: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_GROUPS,
-          data: updatedResult,
-          variables: {
-            venueId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.venueGroup.from.name} takes plays on ${venue.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { venueId } })
-    }
-  }, [])
-
-  const handleOpenAddVenue = useCallback(() => {
+  const handleOpenAddVenue = React.useCallback(() => {
     if (!queryAllVenuesData) {
       getAllVenues()
     }
     setOpenAddVenue(true)
   }, [])
 
-  const venueGroupsColumns = useMemo(
+  const venueGroupsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -279,7 +109,6 @@ const Groups = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to detach group from venue?'}
@@ -289,10 +118,22 @@ const Groups = props => {
               dialogNegativeText={'No, keep group'}
               dialogPositiveText={'Yes, detach group'}
               onDialogClosePositive={() => {
-                removeGroupVenue({
+                updateVenue({
                   variables: {
-                    venueId,
-                    groupId: params.row?.groupId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      groups: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              groupId: params.row?.groupId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -304,7 +145,7 @@ const Groups = props => {
     []
   )
 
-  const allGroupsColumns = useMemo(
+  const allGroupsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -330,8 +171,7 @@ const Groups = props => {
               groupId={params.value}
               venueId={venueId}
               venue={venue}
-              merge={mergeGroupVenue}
-              remove={removeGroupVenue}
+              updateVenue={updateVenue}
             />
           )
         },
@@ -341,7 +181,7 @@ const Groups = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="groups-content"
@@ -350,36 +190,30 @@ const Groups = props => {
         <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Group
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={venueGroupsColumns}
-                rows={setIdFromEntityId(venue.groups, 'groupId')}
-                loading={queryAllVenuesLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Group
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={venueGroupsColumns}
+            rows={setIdFromEntityId(venue.groups, 'groupId')}
+            loading={queryAllVenuesLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -426,8 +260,8 @@ const Groups = props => {
 }
 
 const ToggleNewGroup = props => {
-  const { venueId, groupId, venue, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { venueId, groupId, venue, updateVenue } = props
+  const [isMember, setIsMember] = React.useState(
     !!venue.groups.find(p => p.groupId === groupId)
   )
 
@@ -437,19 +271,35 @@ const ToggleNewGroup = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    venueId,
-                    groupId,
+            updateVenue({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  groups: {
+                    ...(isMember
+                      ? {
+                          disconnect: {
+                            where: {
+                              node: {
+                                groupId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          connect: {
+                            where: {
+                              node: { groupId },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    venueId,
-                    groupId,
-                  },
-                })
+                },
+              },
+            })
+
             setIsMember(!isMember)
           }}
           name="groupMember"
@@ -465,13 +315,14 @@ ToggleNewGroup.propTypes = {
   venueId: PropTypes.string,
   groupId: PropTypes.string,
   group: PropTypes.object,
-  removeGroupVenue: PropTypes.func,
-  mergeGroupVenue: PropTypes.func,
+  updateVenue: PropTypes.func,
   loading: PropTypes.bool,
 }
 
 Groups.propTypes = {
   venueId: PropTypes.string,
+  updateVenue: PropTypes.func,
+  venue: PropTypes.object,
 }
 
 export { Groups }

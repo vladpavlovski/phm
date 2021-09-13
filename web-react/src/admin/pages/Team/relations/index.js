@@ -17,12 +17,12 @@ import { Occupations } from './components/Occupations'
 import { Persons } from './components/persons'
 
 const Relations = props => {
-  const { teamId, data } = props
+  const { teamId, team, updateTeam } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Membership teamId={teamId} />
+      <Membership teamId={teamId} updateTeam={updateTeam} />
       {/* <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -52,11 +52,16 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion> */}
 
-      <Players teamId={teamId} />
-      <Jerseys teamId={teamId} />
-      <Positions teamId={teamId} />
-      <Occupations teamId={teamId} persons={data?.persons} />
-      <Persons teamId={teamId} team={data} />
+      <Players teamId={teamId} team={team} updateTeam={updateTeam} />
+      <Jerseys teamId={teamId} team={team} updateTeam={updateTeam} />
+      <Positions teamId={teamId} team={team} updateTeam={updateTeam} />
+      <Occupations
+        teamId={teamId}
+        persons={team?.persons}
+        team={team}
+        updateTeam={updateTeam}
+      />
+      <Persons teamId={teamId} team={team} updateTeam={updateTeam} />
 
       {/* <Accordion>
         <AccordionSummary
@@ -73,7 +78,7 @@ const Relations = props => {
         </AccordionDetails>
       </Accordion> */}
 
-      <Sponsors teamId={teamId} />
+      <Sponsors teamId={teamId} team={team} updateTeam={updateTeam} />
 
       {/* <Accordion>
         <AccordionSummary
@@ -103,6 +108,10 @@ const Relations = props => {
   )
 }
 
-Relations.propTypes = { teamId: PropTypes.string }
+Relations.propTypes = {
+  teamId: PropTypes.string,
+  team: PropTypes.object,
+  updateTeam: PropTypes.func,
+}
 
 export { Relations }

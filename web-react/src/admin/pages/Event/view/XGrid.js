@@ -21,17 +21,13 @@ import {
 } from '../../../../utils'
 
 const GET_EVENTS = gql`
-  query getEvents($organizationSlug: String!) {
-    events: eventsByOrganization(organizationSlug: $organizationSlug) {
+  query getEvents($where: EventWhere) {
+    events(where: $where) {
       eventId
       name
       description
-      date {
-        formatted
-      }
-      time {
-        formatted
-      }
+      date
+      time
     }
   }
 `
@@ -41,13 +37,11 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_EVENTS, {
     variables: {
-      organizationSlug,
+      where: { org: { urlSlug: organizationSlug } },
     },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
   })
-
-  // console.log('data:', data)
 
   const columns = useMemo(
     () => [
@@ -66,16 +60,18 @@ const XGridTable = () => {
         headerName: 'Date',
         width: 180,
         disableColumnMenu: true,
-        valueGetter: params => params?.row?.date?.formatted,
-        valueFormatter: params => formatDate(params?.value),
+        valueGetter: params => params?.row?.date,
+        valueFormatter: params =>
+          formatDate(typeof params?.value === 'string' ? params?.value : ''),
       },
       {
         field: 'time',
         headerName: 'Time',
         width: 100,
         disableColumnMenu: true,
-        valueGetter: params => params?.row?.time?.formatted,
-        valueFormatter: params => formatTime(params?.value),
+        valueGetter: params => params?.row?.time,
+        valueFormatter: params =>
+          formatTime(typeof params?.value === 'string' ? params?.value : ''),
       },
       {
         field: 'eventId',

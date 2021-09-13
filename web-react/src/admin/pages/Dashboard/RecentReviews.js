@@ -16,9 +16,7 @@ const GET_RECENT_REVIEWS_QUERY = gql`
       business {
         name
       }
-      date {
-        formatted
-      }
+      date
       text
       stars
     }
@@ -46,7 +44,7 @@ export default function RecentReviews() {
         <TableBody>
           {data.Review.map(row => (
             <TableRow key={row.id}>
-              <TableCell>{row.date.formatted}</TableCell>
+              <TableCell>{row.date}</TableCell>
               <TableCell>{row.business.name}</TableCell>
               <TableCell>{row.user.name}</TableCell>
               <TableCell>{row.text}</TableCell>
