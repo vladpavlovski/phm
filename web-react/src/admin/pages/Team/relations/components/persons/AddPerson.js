@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
@@ -21,16 +20,13 @@ import {
   getXGridValueFromArray,
 } from '../../../../../../utils'
 
-import { GET_TEAM } from '../../../index'
-
 export const GET_ALL_PERSONS = gql`
   query getPersons {
-    persons: Person {
+    people {
       personId
       name
       firstName
       lastName
-      name
       teams {
         teamId
         name
@@ -43,35 +39,14 @@ export const GET_ALL_PERSONS = gql`
   }
 `
 
-const MERGE_TEAM_PERSON = gql`
-  mutation mergeTeamPerson($teamId: ID!, $personId: ID!) {
-    teamPerson: MergeTeamPersons(
-      from: { teamId: $teamId }
-      to: { personId: $personId }
-    ) {
-      to {
-        personId
-        name
-        firstName
-        lastName
-        occupations {
-          occupationId
-          name
-        }
-      }
-    }
-  }
-`
-
 const AddPerson = props => {
-  const { teamId, team, removeTeamPerson } = props
+  const { teamId, team, updateTeam } = props
 
-  const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
 
-  const [openAddPerson, setOpenAddPerson] = useState(false)
+  const [openAddPerson, setOpenAddPerson] = React.useState(false)
 
-  const handleCloseAddPerson = useCallback(() => {
+  const handleCloseAddPerson = React.useCallback(() => {
     setOpenAddPerson(false)
   }, [])
 
@@ -86,57 +61,14 @@ const AddPerson = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [mergeTeamPerson] = useMutation(MERGE_TEAM_PERSON, {
-    update(cache, { data: { teamPerson } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAM,
-          variables: {
-            teamId,
-          },
-        })
-        const existingPersons = queryResult?.team[0].persons
-        const newPerson = teamPerson.to
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult?.team[0],
-              persons: [newPerson, ...existingPersons],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAM,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(`${data.teamPerson.to.name} added to ${team.name}!`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const handleOpenAddPerson = useCallback(() => {
+  const handleOpenAddPerson = React.useCallback(() => {
     if (!queryAllPersonsData) {
       getAllPersons()
     }
     setOpenAddPerson(true)
   }, [])
 
-  const allPersonsColumns = useMemo(
+  const allPersonsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -171,8 +103,7 @@ const AddPerson = props => {
               personId={params.value}
               teamId={teamId}
               team={team}
-              merge={mergeTeamPerson}
-              remove={removeTeamPerson}
+              updateTeam={updateTeam}
             />
           )
         },
@@ -217,7 +148,7 @@ const AddPerson = props => {
                   <XGrid
                     columns={allPersonsColumns}
                     rows={setIdFromEntityId(
-                      queryAllPersonsData.persons,
+                      queryAllPersonsData?.people,
                       'personId'
                     )}
                     disableSelectionOnClick
@@ -245,8 +176,8 @@ const AddPerson = props => {
 }
 
 const ToggleNewPerson = props => {
-  const { personId, teamId, team, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { personId, teamId, team, updateTeam } = props
+  const [isMember, setIsMember] = React.useState(
     !!team.persons.find(p => p.personId === personId)
   )
 
@@ -256,19 +187,36 @@ const ToggleNewPerson = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    teamId,
-                    personId,
+            updateTeam({
+              variables: {
+                where: {
+                  teamId,
+                },
+                update: {
+                  persons: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                personId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                personId,
+                              },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    teamId,
-                    personId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="teamMember"

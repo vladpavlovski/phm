@@ -32,13 +32,48 @@ import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
 
 const GET_RULEPACK = gql`
-  query getRulePack($rulePackId: ID!) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
+  query getRulePack($where: RulePackWhere) {
+    rulePacks(where: $where) {
       rulePackId
       name
     }
   }
 `
+
+// const UPDATE_RULEPACK = gql`
+//   mutation updateRulePack($where: RulePackWhere, $update: RulePackUpdateInput) {
+//     updateRulePacks(where: $where, update: $update) {
+//       # games {
+//       #   gameId
+//       #   teamsConnection {
+//       #     edges {
+//       #       host
+//       #       node {
+//       #         teamId
+//       #         name
+//       #         nick
+//       #         logo
+//       #       }
+//       #     }
+//       #   }
+//       #   playersConnection {
+//       #     edges {
+//       #       host
+//       #       jersey
+//       #       position
+//       #       node {
+//       #         avatar
+//       #         playerId
+//       #         name
+//       #         firstName
+//       #         lastName
+//       #       }
+//       #     }
+//       #   }
+//       # }
+//     }
+//   }
+// `
 
 const MERGE_RULEPACK = gql`
   mutation mergeRulePack(
@@ -61,9 +96,9 @@ const MERGE_RULEPACK = gql`
 `
 
 const DELETE_RULEPACK = gql`
-  mutation deleteRulePack($rulePackId: ID!) {
-    deleteRulePack: DeleteRulePack(rulePackId: $rulePackId) {
-      rulePackId
+  mutation deleteRulePack($where: RulePackWhere) {
+    deleteRulePacks(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -81,7 +116,7 @@ const RulePack = () => {
     error: queryError,
   } = useQuery(GET_RULEPACK, {
     fetchPolicy: 'network',
-    variables: { rulePackId },
+    variables: { where: { rulePackId } },
     skip: rulePackId === 'new',
   })
 
@@ -98,17 +133,15 @@ const RulePack = () => {
     },
   })
 
-  const [
-    deleteRulePack,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_RULEPACK, {
-    onCompleted: () => {
-      history.push(getAdminOrgRulePacksRoute(organizationSlug))
-      enqueueSnackbar('RulePack was deleted!')
-    },
-  })
+  const [deleteRulePack, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_RULEPACK, {
+      onCompleted: () => {
+        history.push(getAdminOrgRulePacksRoute(organizationSlug))
+        enqueueSnackbar('RulePack was deleted!')
+      },
+    })
 
-  const rulePackData = queryData?.rulePack[0] || {}
+  const rulePackData = queryData?.rulePacks[0] || {}
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
@@ -172,7 +205,9 @@ const RulePack = () => {
                           <ButtonDelete
                             loading={loadingDelete}
                             onClick={() => {
-                              deleteRulePack({ variables: { rulePackId } })
+                              deleteRulePack({
+                                variables: { where: { rulePackId } },
+                              })
                             }}
                           />
                         )}

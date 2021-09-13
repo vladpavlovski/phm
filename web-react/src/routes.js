@@ -6,6 +6,7 @@ export const LOG_IN = '/login'
 export const LOG_OUT = '/logout'
 export const NOT_FOUND = '/notfound'
 export const NETWORK_ERROR = '/network-error'
+
 export const ADMIN_DASHBOARD = '/admin/dashboard'
 
 export const ADMIN_USERS = '/admin/users'
@@ -46,6 +47,8 @@ export const ADMIN_ORG_EVENT = '/admin/event/:organizationSlug/:eventId'
 export const ADMIN_ORG_GAMES = '/admin/games/:organizationSlug'
 export const ADMIN_ORG_GAME = '/admin/game/:organizationSlug/:gameId'
 export const ADMIN_ORG_GAME_PLAY = '/admin/game/:organizationSlug/:gameId/play'
+
+export const WEB_LEAGUE_GAMES = '/web/league/:organizationSlug/games'
 
 export const getAdminOrgPlayersRoute = organizationSlug =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
@@ -126,3 +129,6 @@ export const getAdminOrgGameRoute = (organizationSlug, gameId) =>
 
 export const getAdminOrgGamePlayRoute = (organizationSlug, gameId) =>
   generatePath(ADMIN_ORG_GAME_PLAY, { organizationSlug, gameId })
+
+export const getLeagueOrgGamesRoute = organizationSlug =>
+  generatePath(WEB_LEAGUE_GAMES, { organizationSlug })

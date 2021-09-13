@@ -8,6 +8,7 @@ import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
+import IconButton from '@material-ui/core/IconButton'
 
 const ButtonDialog = props => {
   const {
@@ -15,7 +16,9 @@ const ButtonDialog = props => {
     onDialogCloseNegative,
     onClick,
     loading,
+    loadingPosition,
     text,
+    icon,
     textLoading,
     dialogTitle,
     dialogDescription,
@@ -31,16 +34,29 @@ const ButtonDialog = props => {
   }, [])
   return (
     <>
-      <LoadingButton
-        {...rest}
-        onClick={() => {
-          setOpenDialog(true)
-          onClick && onClick()
-        }}
-        loading={loading}
-      >
-        {loading ? textLoading : text}
-      </LoadingButton>
+      {icon ? (
+        <IconButton
+          onClick={() => {
+            setOpenDialog(true)
+            onClick && onClick()
+          }}
+          {...rest}
+        >
+          {icon}
+        </IconButton>
+      ) : (
+        <LoadingButton
+          {...rest}
+          onClick={() => {
+            setOpenDialog(true)
+            onClick && onClick()
+          }}
+          loadingPosition={loadingPosition}
+          loading={loading}
+        >
+          {loading ? textLoading : text}
+        </LoadingButton>
+      )}
       <Dialog
         open={openDialog}
         onClose={handleClose}
@@ -93,6 +109,7 @@ ButtonDialog.defaultProps = {
     'This action will permanently delete this entity. Are you sure?',
   dialogNegativeText: 'No, leave it',
   dialogPositiveText: 'Sure, delete it!',
+  icon: false,
 }
 
 ButtonDialog.propTypes = {
@@ -111,6 +128,7 @@ ButtonDialog.propTypes = {
   dialogDescription: PropTypes.string,
   dialogNegativeText: PropTypes.string,
   dialogPositiveText: PropTypes.string,
+  icon: PropTypes.any,
 }
 
 export { ButtonDialog }

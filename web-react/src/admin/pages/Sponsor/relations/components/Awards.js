@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import React from 'react'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,39 +32,9 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_AWARDS = gql`
-  query getSponsor($sponsorId: ID) {
-    sponsor: Sponsor(sponsorId: $sponsorId) {
-      _id
-      sponsorId
-      name
-      awards {
-        awardId
-        name
-        description
-      }
-    }
-  }
-`
-
-const REMOVE_SPONSOR_AWARD = gql`
-  mutation removeSponsorAward($sponsorId: ID!, $awardId: ID!) {
-    sponsorAward: RemoveSponsorAwards(
-      from: { awardId: $awardId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        awardId
-        name
-        description
-      }
-    }
-  }
-`
-
 export const GET_ALL_AWARDS = gql`
   query getAwards {
-    awards: Award {
+    awards {
       awardId
       name
       description
@@ -72,39 +42,16 @@ export const GET_ALL_AWARDS = gql`
   }
 `
 
-const MERGE_SPONSOR_AWARD = gql`
-  mutation mergeSponsorAward($sponsorId: ID!, $awardId: ID!) {
-    sponsorAward: MergeSponsorAwards(
-      from: { awardId: $awardId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        awardId
-        name
-        description
-      }
-    }
-  }
-`
-
 const Awards = props => {
-  const { sponsorId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { sponsorId, sponsor, updateSponsor } = props
+
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [openAddAward, setOpenAddAward] = useState(false)
+  const [openAddAward, setOpenAddAward] = React.useState(false)
 
-  const handleCloseAddAward = useCallback(() => {
+  const handleCloseAddAward = React.useCallback(() => {
     setOpenAddAward(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_AWARDS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const sponsor = queryData && queryData.sponsor && queryData.sponsor[0]
 
   const [
     getAllAwards,
@@ -113,121 +60,16 @@ const Awards = props => {
       error: queryAllAwardsError,
       data: queryAllAwardsData,
     },
-  ] = useLazyQuery(GET_ALL_AWARDS, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_ALL_AWARDS)
 
-  const [removeSponsorAward, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_SPONSOR_AWARD,
-    {
-      update(cache, { data: { sponsorAward } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_AWARDS,
-            variables: {
-              sponsorId,
-            },
-          })
-          const updatedAwards = queryResult.sponsor[0].awards.filter(
-            p => p.awardId !== sponsorAward.from.awardId
-          )
-
-          const updatedResult = {
-            sponsor: [
-              {
-                ...queryResult.sponsor[0],
-                awards: updatedAwards,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_AWARDS,
-            data: updatedResult,
-            variables: {
-              sponsorId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.sponsorAward.from.name} not sponsored by ${sponsor.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeSponsorAward] = useMutation(MERGE_SPONSOR_AWARD, {
-    update(cache, { data: { sponsorAward } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_AWARDS,
-          variables: {
-            sponsorId,
-          },
-        })
-        const existingAwards = queryResult.sponsor[0].awards
-        const newAward = sponsorAward.from
-        const updatedResult = {
-          sponsor: [
-            {
-              ...queryResult.sponsor[0],
-              awards: [newAward, ...existingAwards],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_AWARDS,
-          data: updatedResult,
-          variables: {
-            sponsorId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.sponsorAward.from.name} sponsored by ${sponsor.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { sponsorId } })
-    }
-  }, [])
-
-  const handleOpenAddAward = useCallback(() => {
+  const handleOpenAddAward = React.useCallback(() => {
     if (!queryAllAwardsData) {
       getAllAwards()
     }
     setOpenAddAward(true)
   }, [])
 
-  const sponsorAwardsColumns = useMemo(
+  const sponsorAwardsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -267,7 +109,6 @@ const Awards = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -277,10 +118,22 @@ const Awards = props => {
               dialogNegativeText={'No, keep award'}
               dialogPositiveText={'Yes, detach award'}
               onDialogClosePositive={() => {
-                removeSponsorAward({
+                updateSponsor({
                   variables: {
-                    sponsorId,
-                    awardId: params.row.awardId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      awards: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              awardId: params.row.awardId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -292,7 +145,7 @@ const Awards = props => {
     [organizationSlug]
   )
 
-  const allAwardsColumns = useMemo(
+  const allAwardsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -316,8 +169,7 @@ const Awards = props => {
               awardId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
-              merge={mergeSponsorAward}
-              remove={removeSponsorAward}
+              updateSponsor={updateSponsor}
             />
           )
         },
@@ -327,7 +179,7 @@ const Awards = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="awards-content"
@@ -336,36 +188,30 @@ const Awards = props => {
         <Typography className={classes.accordionFormTitle}>Awards</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddAward}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Award
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={sponsorAwardsColumns}
-                rows={setIdFromEntityId(sponsor.awards, 'awardId')}
-                loading={queryAllAwardsLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddAward}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Award
+            </Button>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={sponsorAwardsColumns}
+            rows={setIdFromEntityId(sponsor?.awards, 'awardId')}
+            loading={queryAllAwardsLoading}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -388,7 +234,10 @@ const Awards = props => {
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <XGrid
                   columns={allAwardsColumns}
-                  rows={setIdFromEntityId(queryAllAwardsData.awards, 'awardId')}
+                  rows={setIdFromEntityId(
+                    queryAllAwardsData?.awards,
+                    'awardId'
+                  )}
                   disableSelectionOnClick
                   loading={queryAllAwardsLoading}
                   components={{
@@ -414,8 +263,8 @@ const Awards = props => {
 }
 
 const ToggleNewAward = props => {
-  const { awardId, sponsorId, sponsor, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { awardId, sponsorId, sponsor, updateSponsor } = props
+  const [isMember, setIsMember] = React.useState(
     !!sponsor.awards.find(p => p.awardId === awardId)
   )
 
@@ -426,18 +275,41 @@ const ToggleNewAward = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updateSponsor({
                   variables: {
-                    sponsorId,
-                    awardId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      awards: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              awardId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updateSponsor({
                   variables: {
-                    sponsorId,
-                    awardId,
+                    where: {
+                      sponsorId,
+                    },
+                    update: {
+                      awards: {
+                        connect: {
+                          where: {
+                            node: { awardId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+
             setIsMember(!isMember)
           }}
           name="sponsorMember"
@@ -453,12 +325,13 @@ ToggleNewAward.propTypes = {
   awardId: PropTypes.string,
   sponsorId: PropTypes.string,
   sponsor: PropTypes.object,
-  removeSponsorAward: PropTypes.func,
-  mergeSponsorAward: PropTypes.func,
+  updateSponsor: PropTypes.func,
 }
 
 Awards.propTypes = {
   sponsorId: PropTypes.string,
+  updateSponsor: PropTypes.func,
+  sponsor: PropTypes.object,
 }
 
 export { Awards }

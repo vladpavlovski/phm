@@ -5,6 +5,7 @@ import {
   ApolloClient,
   HttpLink,
   InMemoryCache,
+  from,
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { useAuth0 } from '@auth0/auth0-react'
@@ -44,7 +45,7 @@ const AuthorizedApolloProvider = ({ children }) => {
     }
   )
 
-  const authLink = setContext(async (_, { headers }) => {
+  const authLink = setContext(async (_, { headers, ...context }) => {
     const token = await getAccessTokenSilently()
 
     return {
@@ -52,11 +53,12 @@ const AuthorizedApolloProvider = ({ children }) => {
         ...headers,
         ...(token && { authorization: token ? `Bearer ${token}` : '' }),
       },
+      ...context,
     }
   })
 
   const client = new ApolloClient({
-    link: authLink.concat(httpLink, errorLink),
+    link: from([httpLink, authLink, errorLink]),
     cache,
     connectToDevTools: config.dev,
   })

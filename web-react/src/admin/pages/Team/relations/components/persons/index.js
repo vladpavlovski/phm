@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import React from 'react'
+
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -18,8 +18,6 @@ import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { getAdminOrgPersonRoute } from '../../../../../../routes'
 import { LinkButton } from '../../../../../../components/LinkButton'
-// import { Loader } from '../../../../../../components/Loader'
-// import { Error } from '../../../../../../components/Error'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
 import {
@@ -34,81 +32,13 @@ import {
 import { TeamPersonsProvider } from './context/Provider'
 import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
 
-import { GET_TEAM } from '../../../index'
-
-const REMOVE_TEAM_PERSON = gql`
-  mutation removeTeamPerson($teamId: ID!, $personId: ID!) {
-    teamPerson: RemoveTeamPersons(
-      from: { teamId: $teamId }
-      to: { personId: $personId }
-    ) {
-      to {
-        personId
-        firstName
-        lastName
-        name
-      }
-    }
-  }
-`
-
 const Persons = props => {
-  const { teamId, team } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { teamId, team, updateTeam } = props
+
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const [removeTeamPerson, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_TEAM_PERSON,
-    {
-      update(cache, { data: { teamPerson } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_TEAM,
-            variables: {
-              teamId,
-            },
-          })
-          const updatedPersons = queryResult.team[0].persons.filter(
-            p => p.personId !== teamPerson.to.personId
-          )
 
-          const updatedResult = {
-            team: [
-              {
-                ...queryResult.team[0],
-                persons: updatedPersons,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_TEAM,
-            data: updatedResult,
-            variables: {
-              teamId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.teamPerson.to.name} removed from ${team.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const teamPersonsColumns = useMemo(
+  const teamPersonsColumns = React.useMemo(
     () => [
       {
         field: 'avatar',
@@ -176,7 +106,6 @@ const Persons = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to remove person from the team?'}
@@ -184,10 +113,22 @@ const Persons = props => {
               dialogNegativeText={'No, keep the person'}
               dialogPositiveText={'Yes, remove person'}
               onDialogClosePositive={() => {
-                removeTeamPerson({
+                updateTeam({
                   variables: {
-                    teamId,
-                    personId: params.row.personId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      persons: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              personId: params.row.personId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -220,7 +161,7 @@ const Persons = props => {
                   <AddPerson
                     team={team}
                     teamId={teamId}
-                    removeTeamPerson={removeTeamPerson}
+                    updateTeam={updateTeam}
                   />
 
                   <LinkButton

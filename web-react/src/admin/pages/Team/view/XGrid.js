@@ -12,16 +12,33 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
+import { Loader } from '../../../../components/Loader'
+import {
+  setIdFromEntityId,
+  getXGridHeight,
+  getXGridValueFromArray,
+} from '../../../../utils'
 
 export const GET_TEAMS = gql`
-  query getTeams($organizationSlug: String!) {
-    teams: teamsByOrganization(organizationSlug: $organizationSlug) {
+  query getTeams($where: TeamWhere) {
+    teams(where: $where) {
       teamId
       name
       logo
       nick
+      status
+      competitions {
+        competitionId
+        name
+      }
+      phases {
+        phaseId
+        name
+      }
+      groups {
+        groupId
+        name
+      }
     }
   }
 `
@@ -31,7 +48,11 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
   const { error, loading, data } = useQuery(GET_TEAMS, {
     variables: {
-      organizationSlug,
+      where: {
+        orgs: {
+          urlSlug: organizationSlug,
+        },
+      },
     },
     notifyOnNetworkStatusChange: true,
     fetchPolicy: 'cache-and-network',
@@ -39,6 +60,22 @@ const XGridTable = () => {
 
   const columns = useMemo(
     () => [
+      {
+        field: 'teamId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgTeamRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
       {
         field: 'logo',
         headerName: 'Logo',
@@ -66,19 +103,32 @@ const XGridTable = () => {
         width: 150,
       },
       {
-        field: 'teamId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrgTeamRoute(organizationSlug, params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
+        field: 'status',
+        headerName: 'Status',
+        width: 150,
+      },
+      {
+        field: 'competitions',
+        headerName: 'Competitions',
+        width: 150,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row?.competitions, 'name')
+        },
+      },
+      {
+        field: 'phases',
+        headerName: 'Phases',
+        width: 150,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row?.phases, 'name')
+        },
+      },
+      {
+        field: 'groups',
+        headerName: 'Groups',
+        width: 150,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row?.groups, 'name')
         },
       },
     ],
@@ -107,7 +157,7 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
+          {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div

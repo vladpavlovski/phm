@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { gql, useMutation } from '@apollo/client'
 
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Button from '@material-ui/core/Button'
 import AddTaskIcon from '@material-ui/icons/AddTask'
 import Dialog from '@material-ui/core/Dialog'
@@ -15,6 +16,7 @@ import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
 import Typography from '@material-ui/core/Typography'
 import { v4 as uuidv4 } from 'uuid'
+import dayjs from 'dayjs'
 
 import { GameEventTypes } from './GameEventTypes'
 import { getEventData } from './gameEvents'
@@ -46,7 +48,7 @@ const MERGE_GAME_EVENT_SIMPLE = gql`
     $shotSubType: String
     $penaltyType: String
     $penaltySubType: String
-    $duration: Float
+    $duration: String
     $metaPlayerPenalizedId: ID
     $metaPlayerExecutedById: ID
     $metaPlayerFacedAgainstId: ID
@@ -118,7 +120,6 @@ const GameEventWizard = props => {
     gameEventData,
     setGameEventData,
   } = React.useContext(GameEventFormContext)
-
   const previousGameEventSimpleId = React.useRef()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -131,46 +132,43 @@ const GameEventWizard = props => {
     variables: {
       teamId: team?.teamId,
       gameId: gameData?.gameId,
-      gameEventSimpleId: uuidv4(),
+      gameEventSimpleId: gameEventData?.gameEventSimpleId || uuidv4(),
       previousGameEventSimpleId: previousGameEventSimpleId.current || null,
       metaPlayerScoredById:
-        gameEventData?.scoredBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.scoredBy?.node?.meta?.metaPlayerId || null,
       metaPlayerAllowedById:
-        gameEventData?.allowedBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.allowedBy?.node?.meta?.metaPlayerId || null,
       metaPlayerFirstAssistId:
-        gameEventData?.firstAssist?.player?.meta?.metaPlayerId || null,
+        gameEventData?.firstAssist?.node?.meta?.metaPlayerId || null,
       metaPlayerSecondAssistId:
-        gameEventData?.secondAssist?.player?.meta?.metaPlayerId || null,
+        gameEventData?.secondAssist?.node?.meta?.metaPlayerId || null,
       metaPlayerSavedById:
-        gameEventData?.savedBy?.player?.meta?.metaPlayerId || null,
-      metaPlayerWonById:
-        gameEventData?.wonBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.savedBy?.node?.meta?.metaPlayerId || null,
+      metaPlayerWonById: gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
       metaPlayerLostById:
-        gameEventData?.lostBy?.player?.meta?.metaPlayerId || null,
-      eventType: gameEventSettings?.name || null,
-      eventTypeCode: gameEventSettings?.type || null,
-      timestamp: gameEventData?.timestamp || null,
-      period: period || null,
-      remainingTime: gameEventData?.remainingTime || null,
-      goalType: gameEventData?.goalType?.name || null,
-      goalSubType: gameEventData?.goalSubType?.name || null,
-      shotType: gameEventData?.shotType?.name || null,
-      shotSubType: gameEventData?.shotSubType?.name || null,
-      penaltyType: gameEventData?.penaltyType?.name || null,
-      penaltySubType: gameEventData?.penaltySubType?.name || null,
-      duration: gameEventData?.duration
-        ? parseFloat(gameEventData?.duration)
-        : null,
+        gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
+      eventType: gameEventSettings?.name || '',
+      eventTypeCode: gameEventSettings?.type || '',
+      timestamp: gameEventData?.timestamp || '',
+      period: period || '',
+      remainingTime: gameEventData?.remainingTime || '',
+      goalType: gameEventData?.goalType?.name || '',
+      goalSubType: gameEventData?.goalSubType?.name || '',
+      shotType: gameEventData?.shotType?.name || '',
+      shotSubType: gameEventData?.shotSubType?.name || '',
+      penaltyType: gameEventData?.penaltyType?.name || '',
+      penaltySubType: gameEventData?.penaltySubType?.name || '',
+      duration: `${gameEventData?.duration}` || '',
       metaPlayerPenalizedId:
-        gameEventData?.penalized?.player?.meta?.metaPlayerId || null,
+        gameEventData?.penalized?.node?.meta?.metaPlayerId || null,
       metaPlayerExecutedById:
-        gameEventData?.executedBy?.player?.meta?.metaPlayerId || null,
+        gameEventData?.executedBy?.node?.meta?.metaPlayerId || null,
       metaPlayerFacedAgainstId:
-        gameEventData?.facedAgainst?.player?.meta?.metaPlayerId || null,
-      description: gameEventData?.description || null,
-      injuryType: gameEventData?.injuryType?.name || null,
+        gameEventData?.facedAgainst?.node?.meta?.metaPlayerId || null,
+      description: gameEventData?.description || '',
+      injuryType: gameEventData?.injuryType?.name || '',
       metaPlayerSufferedId:
-        gameEventData?.suffered?.player?.meta?.metaPlayerId || null,
+        gameEventData?.suffered?.node?.meta?.metaPlayerId || null,
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =
@@ -189,6 +187,7 @@ const GameEventWizard = props => {
       console.error(error)
     },
   })
+
   const isStepOptional = React.useCallback(
     step => {
       return gameEventSettings?.steps?.[step]?.optional
@@ -242,17 +241,64 @@ const GameEventWizard = props => {
 
   return (
     <>
-      <Button
-        type="button"
+      <ButtonGroup
+        orientation="vertical"
+        aria-label="vertical outlined button group"
         variant="contained"
-        color="primary"
-        onClick={() => {
-          setOpenGameEventDialog(host ? 'host' : 'guest')
-        }}
-        startIcon={<AddTaskIcon />}
       >
-        {`New ${team?.nick} Event`}
-      </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            setOpenGameEventDialog(host ? 'host' : 'guest')
+          }}
+          startIcon={<AddTaskIcon />}
+        >
+          {`Game Event`}
+        </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            const data = getEventData('save')
+            setGameEventSettings(data)
+            setGameEventData({
+              remainingTime: '',
+              savedBy: null,
+              timestamp: dayjs().format(),
+            })
+
+            setTimeout(() => {
+              createGameEventSimple()
+              handleClose()
+            }, 1000)
+          }}
+        >
+          {`Save`}
+        </Button>
+        <Button
+          type="button"
+          color="primary"
+          onClick={() => {
+            const data = getEventData('faceOff')
+            setGameEventSettings(data)
+            setGameEventData({
+              remainingTime: '',
+              wonBy: null,
+              lostBy: null,
+              timestamp: dayjs().format(),
+            })
+
+            setTimeout(() => {
+              createGameEventSimple()
+              handleClose()
+            }, 1000)
+          }}
+        >
+          {`FaceOff`}
+        </Button>
+      </ButtonGroup>
+
       <Dialog
         fullWidth
         disableEscapeKeyDown
@@ -315,6 +361,7 @@ const GameEventWizard = props => {
                 players={players}
                 playersRival={playersRival}
                 gameSettings={gameSettings}
+                handleNextStep={handleNext}
               />
             </Box>
           )}
@@ -363,10 +410,6 @@ const GameEventWizard = props => {
       </Dialog>
     </>
   )
-}
-
-GameEventWizard.defaultProps = {
-  team: null,
 }
 
 GameEventWizard.propTypes = {

@@ -2,18 +2,19 @@ import React from 'react'
 import { useParams } from 'react-router-dom'
 import { gql, useQuery, useApolloClient } from '@apollo/client'
 import { Helmet } from 'react-helmet'
-
+import { LinkButton } from '../../../../components/LinkButton'
 import Container from '@material-ui/core/Container'
 import Paper from '@material-ui/core/Paper'
 import { Grid } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
 import Toolbar from '@material-ui/core/Toolbar'
 import Img from 'react-cool-img'
-
+import ArrowBackIcon from '@material-ui/icons/ArrowBack'
 import { useStyles } from '../../commonComponents/styled'
 import { Title } from '../../../../components/Title'
 import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
+import { getAdminOrgGameRoute } from '../../../../routes'
 
 import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
@@ -26,50 +27,49 @@ import { Periods, GameEventWizard, EventsTable } from './components'
 import GameEventFormContext from './context'
 
 export const GET_GAME_PLAY = gql`
-  query getGame($gameId: ID!) {
-    game: Game(gameId: $gameId) {
+  query getGame(
+    $whereGame: GameWhere
+    $whereSystemSettings: SystemSettingsWhere
+  ) {
+    game: games(where: $whereGame) {
       gameId
       name
       type
       info
       foreignId
       description
-      teams {
-        team {
-          teamId
-          name
-          nick
-          logo
-        }
-        host
-      }
-      players {
-        player {
-          avatar
-          playerId
-          name
-          firstName
-          lastName
-          meta {
-            metaPlayerId
+      teamsConnection {
+        edges {
+          host
+          node {
+            teamId
+            name
+            nick
+            logo
           }
         }
-        host
-        jersey
-        position
       }
-      startDate {
-        formatted
+      playersConnection {
+        edges {
+          host
+          jersey
+          position
+          node {
+            avatar
+            playerId
+            name
+            firstName
+            lastName
+            meta {
+              metaPlayerId
+            }
+          }
+        }
       }
-      endDate {
-        formatted
-      }
-      startTime {
-        formatted
-      }
-      endTime {
-        formatted
-      }
+      startDate
+      endDate
+      startTime
+      endTime
       event {
         eventId
         name
@@ -82,7 +82,7 @@ export const GET_GAME_PLAY = gql`
         }
       }
     }
-    systemSettings: SystemSettings(systemSettingsId: "system-settings") {
+    systemSettings(where: $whereSystemSettings) {
       rulePack {
         name
         periods {
@@ -96,30 +96,36 @@ export const GET_GAME_PLAY = gql`
           shotTargetId
           name
           code
+          priority
         }
         shotStyles {
           shotStyleId
           name
           code
+          priority
         }
         shotTypes {
           shotTypeId
           name
           code
+          priority
           subTypes {
             shotSubTypeId
             name
             code
+            priority
           }
         }
         goalTypes {
           goalTypeId
           name
           code
+          priority
           subTypes {
             goalSubTypeId
             name
             code
+            priority
           }
         }
         penaltyTypes {
@@ -127,15 +133,18 @@ export const GET_GAME_PLAY = gql`
           name
           code
           duration
+          priority
           subTypes {
             penaltySubTypeId
             name
             code
+            priority
           }
         }
         injuryTypes {
           injuryTypeId
           name
+          priority
         }
       }
     }
@@ -144,7 +153,7 @@ export const GET_GAME_PLAY = gql`
 
 const Play = () => {
   const classes = useStyles()
-  const { gameId } = useParams()
+  const { gameId, organizationSlug } = useParams()
 
   const client = useApolloClient()
   const { goalsEventsCounter } = React.useContext(GameEventFormContext)
@@ -161,7 +170,10 @@ const Play = () => {
     error: queryError,
   } = useQuery(GET_GAME_PLAY, {
     fetchPolicy: 'network-only',
-    variables: { gameId },
+    variables: {
+      whereGame: { gameId },
+      whereSystemSettings: { systemSettingsId: 'system-settings' },
+    },
     skip: gameId === 'new',
   })
 
@@ -169,26 +181,26 @@ const Play = () => {
   const gameSettings = queryData?.systemSettings[0]?.rulePack || null
 
   const teamHost = React.useMemo(
-    () => gameData?.teams?.find(t => t.host)?.team,
+    () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
     [gameData]
   )
 
   const teamGuest = React.useMemo(
-    () => gameData?.teams?.find(t => !t.host)?.team,
+    () => gameData?.teamsConnection?.edges?.find(t => !t.host)?.node,
     [gameData]
   )
   const playersHost = React.useMemo(
-    () => gameData?.players?.filter(t => t.host),
+    () => gameData?.playersConnection?.edges?.filter(t => t.host),
     [gameData]
   )
   const playersGuest = React.useMemo(
-    () => gameData?.players?.filter(t => !t.host),
+    () => gameData?.playersConnection?.edges?.filter(t => !t.host),
     [gameData]
   )
 
   React.useEffect(() => {
-    console.log('gameData:', gameData)
-    console.log('gameSettings:', gameSettings)
+    // console.log('gameData:', gameData)
+    // console.log('gameSettings:', gameSettings)
     if (gameData) {
       const allGoals = gameData?.gameEventsSimple?.filter(
         ges => ges.eventType.toLowerCase() === 'goal'
@@ -203,14 +215,18 @@ const Play = () => {
 
   React.useEffect(() => {
     if (goalsEventsCounter) {
-      const { gameEventsSimple } = client.readQuery({
+      const { gameEventSimples } = client.readQuery({
         query: GET_GAME_EVENTS_SIMPLE,
         variables: {
-          gameId,
+          where: {
+            game: {
+              gameId,
+            },
+          },
         },
       })
 
-      const allGoals = gameEventsSimple?.filter(
+      const allGoals = gameEventSimples?.filter(
         ges => ges.eventType.toLowerCase() === 'goal'
       )
       const goalsHost =
@@ -241,18 +257,21 @@ const Play = () => {
                 }}
               >
                 <Typography variant="h6" component="div">
-                  {gameData?.name}
+                  <LinkButton
+                    startIcon={<ArrowBackIcon />}
+                    to={getAdminOrgGameRoute(organizationSlug, gameId)}
+                  >
+                    {gameData?.name}
+                  </LinkButton>
                 </Typography>
                 <Typography variant="h6" component="div">
                   {gameData?.type}
                 </Typography>
                 <Typography variant="h6" component="div">
-                  {formatDate(gameData?.startDate?.formatted)} -{' '}
-                  {formatDate(gameData?.endDate?.formatted)}
-                </Typography>
-                <Typography variant="h6" component="div">
-                  {formatTime(gameData?.startTime?.formatted)} -{' '}
-                  {formatTime(gameData?.endTime?.formatted)}
+                  {formatTime(gameData?.startTime)} -{' '}
+                  {formatTime(gameData?.endTime)}
+                  {', '}
+                  {formatDate(gameData?.startDate)}
                 </Typography>
               </div>
             </Paper>
@@ -356,8 +375,8 @@ const Play = () => {
           </Grid>
           <Grid item xs={12}>
             <EventsTable
-              teams={gameData?.teams}
-              players={gameData?.players}
+              teams={gameData?.teamsConnection?.edges}
+              players={gameData?.playersConnection?.edges}
               gameData={gameData}
               gameSettings={gameSettings}
             />

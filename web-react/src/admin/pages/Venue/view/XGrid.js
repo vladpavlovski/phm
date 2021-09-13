@@ -12,12 +12,12 @@ import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
-// import { Loader } from '../../../../components/Loader'
+import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
 
 export const GET_VENUES = gql`
   query getVenues {
-    venues: Venue {
+    venues {
       venueId
       name
       nick
@@ -28,26 +28,10 @@ export const GET_VENUES = gql`
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const { error, loading, data } = useQuery(GET_VENUES, {
-    variables: { organizationSlug },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
-  })
-
-  // console.log('data:', data)
+  const { error, loading, data } = useQuery(GET_VENUES)
 
   const columns = useMemo(
     () => [
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 200,
-      },
       {
         field: 'venueId',
         headerName: 'Edit',
@@ -64,6 +48,16 @@ const XGridTable = () => {
           )
         },
       },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 200,
+      },
     ],
     [organizationSlug]
   )
@@ -78,7 +72,7 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title>{'Seasons'}</Title>
+                <Title>{'Venues'}</Title>
               </div>
               <div>
                 <LinkButton
@@ -90,8 +84,8 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {/* {loading && !error && <Loader />} */}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          {error && <Error message={error.message} />}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}

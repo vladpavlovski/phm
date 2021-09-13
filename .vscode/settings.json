@@ -6,8 +6,5 @@
     "source.fixAll": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.words": [
-    "describedby",
-    "labelledby"
-  ]
+  "cSpell.words": ["describedby", "labelledby"]
 }

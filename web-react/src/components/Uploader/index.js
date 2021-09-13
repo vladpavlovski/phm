@@ -33,14 +33,8 @@ const formatFileName = (filename, folderName = 'common') => {
 }
 
 const Uploader = props => {
-  const {
-    buttonProps,
-    buttonText,
-    filesLimit,
-    onSubmit,
-    folderName,
-    ...rest
-  } = props
+  const { buttonProps, buttonText, filesLimit, onSubmit, folderName, ...rest } =
+    props
   const [open, setOpen] = useState(false)
   const [fileObjects, setFileObjects] = useState([])
 

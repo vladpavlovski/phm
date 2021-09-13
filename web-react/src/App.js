@@ -7,8 +7,10 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import objectSupport from 'dayjs/plugin/objectSupport'
 
 import 'react-imported-component/macro'
+import 'dayjs/locale/cs'
 import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
 import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
 import Load from './utils/load'
@@ -65,10 +67,14 @@ const AdminEventView = Load(() => import('./admin/pages/Event/view'))
 const AdminGame = Load(() => import('./admin/pages/Game'))
 const AdminGameView = Load(() => import('./admin/pages/Game/view'))
 const AdminGamePlay = Load(() => import('./admin/pages/Game/play'))
+const WebLeagueGames = Load(() => import('./league/pages/Games'))
 
+const userLanguage = window?.navigator?.language
+dayjs.locale(userLanguage)
 dayjs.extend(duration)
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(objectSupport)
 
 const App = ({ history }) => {
   return (
@@ -83,7 +89,13 @@ const App = ({ history }) => {
                 <LayoutProvider>
                   <Layout>
                     <Switch>
+                      <Route
+                        path={ROUTES.WEB_LEAGUE_GAMES}
+                        exact
+                        component={WebLeagueGames}
+                      />
                       <PrivateRoute exact path="/" component={Dashboard} />
+
                       <PrivateRoute
                         exact
                         path={ROUTES.ADMIN_DASHBOARD}
@@ -241,13 +253,14 @@ const App = ({ history }) => {
                           component={AdminGamePlay}
                         />
                       </GameEventFormProvider>
+
                       {/* {NEW ROUTES ADD BEFORE THIS ROW} */}
                       <Route
                         path={ROUTES.NETWORK_ERROR}
                         exact
                         component={NetworkError}
                       />
-                      <Route path="*" exact component={NotFound} />
+                      <Route path="*" component={NotFound} />
                     </Switch>
                   </Layout>
                 </LayoutProvider>

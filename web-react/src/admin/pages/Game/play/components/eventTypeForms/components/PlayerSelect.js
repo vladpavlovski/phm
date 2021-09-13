@@ -3,7 +3,6 @@ import Button from '@material-ui/core/Button'
 
 const PlayerSelect = props => {
   const { players, onClick, selected } = props
-
   return (
     <div
       style={{
@@ -19,15 +18,15 @@ const PlayerSelect = props => {
           <Button
             type="button"
             size="large"
-            style={{ width: '10%' }}
-            key={p.player.playerId}
+            style={{ width: '15%', marginBottom: '2rem' }}
+            key={p.node.playerId}
             variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
             color="primary"
             onClick={() => {
               onClick(p)
             }}
           >
-            {p.jersey || 'not defined'}
+            {`${p.jersey || ''} - ${p.node?.lastName}`}
           </Button>
         )
       })}

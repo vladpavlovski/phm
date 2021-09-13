@@ -5,6 +5,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
+import { useSnackbar } from 'notistack'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import Img from 'react-cool-img'
@@ -19,7 +20,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from '../../../components/Uploader'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid, checkId } from '../../../utils'
+import { decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -32,43 +33,9 @@ import { Relations } from './relations'
 import * as ROUTES from '../../../routes'
 import OrganizationContext from '../../../context/organization'
 
-const GET_ORGANIZATION_BY_SLUG = gql`
-  query getOrganizationBySlug($organizationSlug: String!) {
-    organization: organizationBySlug(organizationSlug: $organizationSlug) {
-      organizationId
-      name
-      nick
-      short
-      status
-      legalName
-      logo
-      urlSlug
-      ownerId
-      foundDate {
-        formatted
-      }
-      persons {
-        personId
-        firstName
-        lastName
-        name
-        avatar
-        occupations {
-          occupationId
-          name
-        }
-      }
-      occupations {
-        occupationId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ORGANIZATION = gql`
-  query getOrganization($organizationId: ID!) {
-    organization: Organization(organizationId: $organizationId) {
+  query getOrganization($where: OrganizationWhere) {
+    organizations(where: $where) {
       organizationId
       name
       nick
@@ -78,9 +45,7 @@ export const GET_ORGANIZATION = gql`
       logo
       urlSlug
       ownerId
-      foundDate {
-        formatted
-      }
+      foundDate
       persons {
         personId
         firstName
@@ -100,46 +65,51 @@ export const GET_ORGANIZATION = gql`
   }
 `
 
-const MERGE_ORGANIZATION = gql`
-  mutation mergeOrganization(
-    $organizationId: ID!
-    $name: String
-    $legalName: String
-    $nick: String
-    $short: String
-    $status: String
-    $foundDateDay: Int
-    $foundDateMonth: Int
-    $foundDateYear: Int
-    $logo: String
-    $urlSlug: String!
-    $ownerId: ID
-  ) {
-    mergeOrganization: MergeOrganization(
-      organizationId: $organizationId
-      name: $name
-      legalName: $legalName
-      nick: $nick
-      short: $short
-      status: $status
-      logo: $logo
-      urlSlug: $urlSlug
-      ownerId: $ownerId
-      foundDate: {
-        day: $foundDateDay
-        month: $foundDateMonth
-        year: $foundDateYear
+const CREATE_ORGANIZATION = gql`
+  mutation createOrganization($input: [OrganizationCreateInput!]!) {
+    createOrganizations(input: $input) {
+      organizations {
+        organizationId
+        name
+        nick
+        short
+        status
+        legalName
+        logo
+        urlSlug
+        ownerId
+        foundDate
       }
-    ) {
-      organizationId
+    }
+  }
+`
+
+const UPDATE_ORGANIZATION = gql`
+  mutation updateOrganization(
+    $where: OrganizationWhere
+    $update: OrganizationUpdateInput
+  ) {
+    updateOrganizations(where: $where, update: $update) {
+      organizations {
+        organizationId
+        name
+        nick
+        short
+        status
+        legalName
+        logo
+        urlSlug
+        ownerId
+        foundDate
+      }
     }
   }
 `
 
 const DELETE_ORGANIZATION = gql`
-  mutation deleteOrganization($organizationId: ID!) {
-    deleteOrganization: DeleteOrganization(organizationId: $organizationId) {
-      organizationId
+  mutation deleteOrganization($where: OrganizationWhere) {
+    deleteOrganizations(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -147,6 +117,7 @@ const DELETE_ORGANIZATION = gql`
 const Organization = () => {
   const history = useHistory()
   const classes = useStyles()
+  const { enqueueSnackbar } = useSnackbar()
   const { organizationSlug } = useParams()
   const client = useApolloClient()
   const { user } = useAuth0()
@@ -156,12 +127,12 @@ const Organization = () => {
     data: queryData,
     loading: queryLoading,
     error: queryError,
-  } = useQuery(GET_ORGANIZATION_BY_SLUG, {
-    variables: { organizationSlug },
+  } = useQuery(GET_ORGANIZATION, {
+    variables: { where: { urlSlug: organizationSlug } },
     skip: organizationSlug === 'new',
-    onCompleted: ({ organization }) => {
-      if (organization) {
-        const { organizationId, urlSlug, name, nick } = organization
+    onCompleted: data => {
+      if (data) {
+        const { organizationId, urlSlug, name, nick } = data?.organizations?.[0]
         setOrganizationData({
           organizationId,
           urlSlug,
@@ -175,27 +146,35 @@ const Organization = () => {
   })
 
   const [
-    mergeOrganization,
-    { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  ] = useMutation(MERGE_ORGANIZATION, {
+    createOrganization,
+    { loading: mutationLoadingCreate, error: mutationErrorCreate },
+  ] = useMutation(CREATE_ORGANIZATION, {
     onCompleted: data => {
       if (organizationSlug === 'new') {
         const newId = data.mergeOrganization.organizationId
         history.replace(getAdminOrganizationRoute(newId))
       }
+      enqueueSnackbar('Organization created!', { variant: 'success' })
     },
   })
 
-  const [
-    deleteOrganization,
-    { loading: loadingDelete, error: errorDelete },
-  ] = useMutation(DELETE_ORGANIZATION, {
-    onCompleted: () => {
-      history.push(ADMIN_ORGANIZATIONS)
-    },
-  })
+  const [updateOrganization, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_ORGANIZATION,
+    {
+      onCompleted: () => {
+        enqueueSnackbar('Organization updated!', { variant: 'success' })
+      },
+    }
+  )
 
-  const orgData = queryData?.organization || {}
+  const [deleteOrganization, { loading: loadingDelete, error: errorDelete }] =
+    useMutation(DELETE_ORGANIZATION, {
+      onCompleted: () => {
+        history.push(ADMIN_ORGANIZATIONS)
+      },
+    })
+
+  const orgData = queryData?.organizations?.[0]
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -209,13 +188,23 @@ const Organization = () => {
         const dataToSubmit = {
           ...rest,
           ownerId: orgData?.ownerId || user?.sub,
-          organizationId: checkId(orgData.organizationId),
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        mergeOrganization({
-          variables: dataToSubmit,
-        })
+        orgData.organizationId
+          ? updateOrganization({
+              variables: {
+                where: {
+                  organizationId: orgData.organizationId,
+                },
+                update: dataToSubmit,
+              },
+            })
+          : createOrganization({
+              variables: {
+                input: dataToSubmit,
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -230,7 +219,7 @@ const Organization = () => {
       const queryResult = client.readQuery({
         query: GET_ORGANIZATION,
         variables: {
-          organizationId: orgData.organizationId,
+          where: { organizationId: orgData.organizationId },
         },
       })
 
@@ -245,7 +234,7 @@ const Organization = () => {
           ],
         },
         variables: {
-          organizationId: orgData.organizationId,
+          where: { organizationId: orgData.organizationId },
         },
       })
       handleSubmit(onSubmit)()
@@ -258,13 +247,12 @@ const Organization = () => {
       {queryLoading && !queryError && <Loader />}
       {queryError && !queryLoading && <Error message={queryError.message} />}
       {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
+      {mutationErrorCreate && !mutationLoadingCreate && (
+        <Error message={mutationErrorCreate.message} />
       )}
       {(orgData || organizationSlug === 'new') &&
-        !queryLoading &&
         !queryError &&
-        !mutationErrorMerge && (
+        !mutationErrorCreate && (
           <form
             onSubmit={handleSubmit(onSubmit)}
             className={classes.form}
@@ -272,7 +260,7 @@ const Organization = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{orgData.name || 'Organization'}</title>
+              <title>{orgData?.name || 'Organization'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
@@ -310,11 +298,15 @@ const Organization = () => {
                 <Paper className={classes.paper}>
                   <Toolbar disableGutters className={classes.toolbarForm}>
                     <div>
-                      <Title>{'Organization'}</Title>
+                      <Title>{orgData?.name || 'Organization'}</Title>
                     </div>
                     <div>
                       {formState.isDirty && (
-                        <ButtonSave loading={mutationLoadingMerge} />
+                        <ButtonSave
+                          loading={
+                            mutationLoadingCreate || mutationLoadingUpdate
+                          }
+                        />
                       )}
                       {organizationSlug !== 'new' && (
                         <ButtonDelete
@@ -322,7 +314,9 @@ const Organization = () => {
                           onClick={() => {
                             deleteOrganization({
                               variables: {
-                                organizationId: orgData.organizationId,
+                                where: {
+                                  organizationId: orgData.organizationId,
+                                },
                               },
                             })
                           }}
@@ -414,7 +408,7 @@ const Organization = () => {
                         disableFuture
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
-                        defaultValue={orgData?.foundDate?.formatted}
+                        defaultValue={orgData?.foundDate}
                         error={errors?.foundDate}
                       />
                     </Grid>
