@@ -1,4 +1,4 @@
-FROM node:erbium-buster-slim
+FROM node:12.22.3-buster-slim
 
 RUN mkdir -p /app
 WORKDIR /app
