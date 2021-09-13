@@ -1,8 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
-import { v4 as uuidv4 } from 'uuid'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -36,10 +35,22 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_POSITION_TYPES = gql`
-  query getRulePack($rulePackId: ID) {
-    rulePack: RulePack(rulePackId: $rulePackId) {
-      rulePackId
+  query getRulePack($where: PositionTypeWhere, $whereRulePack: RulePackWhere) {
+    positionTypes(where: $where) {
+      positionTypeId
       name
+      short
+      description
+    }
+    rulePacks(where: $whereRulePack) {
+      name
+    }
+  }
+`
+
+const CREATE_POSITION_TYPE = gql`
+  mutation createPositionType($input: [PositionTypeCreateInput!]!) {
+    createPositionTypes(input: $input) {
       positionTypes {
         positionTypeId
         name
@@ -50,31 +61,13 @@ const GET_POSITION_TYPES = gql`
   }
 `
 
-const MERGE_RULEPACK_POSITION_TYPE = gql`
-  mutation mergeRulePackPositionType(
-    $rulePackId: ID!
-    $positionTypeId: ID!
-    $name: String!
-    $short: String
-    $description: String
+const UPDATE_POSITION_TYPE = gql`
+  mutation updatePositionType(
+    $where: PositionTypeWhere
+    $update: PositionTypeUpdateInput
   ) {
-    positionType: MergePositionType(
-      positionTypeId: $positionTypeId
-      name: $name
-      short: $short
-      description: $description
-    ) {
-      positionTypeId
-      name
-    }
-    positionTypeRulePack: MergePositionTypeRulePack(
-      from: { rulePackId: $rulePackId }
-      to: { positionTypeId: $positionTypeId }
-    ) {
-      from {
-        name
-      }
-      to {
+    updatePositionTypes(where: $where, update: $update) {
+      positionTypes {
         positionTypeId
         name
         short
@@ -85,9 +78,9 @@ const MERGE_RULEPACK_POSITION_TYPE = gql`
 `
 
 const DELETE_POSITION_TYPE = gql`
-  mutation deletePositionType($positionTypeId: ID!) {
-    deleted: DeletePositionType(positionTypeId: $positionTypeId) {
-      positionTypeId
+  mutation deletePositionType($where: PositionTypeWhere) {
+    deletePositionTypes(where: $where) {
+      nodesDeleted
     }
   }
 `
@@ -115,14 +108,16 @@ const PositionTypes = props => {
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
   ] = useLazyQuery(GET_POSITION_TYPES, {
+    variables: {
+      where: { rulePack: { rulePackId } },
+      whereRulePack: { rulePackId },
+    },
     fetchPolicy: 'cache-and-network',
   })
 
-  const rulePack = queryData?.rulePack?.[0]
-
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { rulePackId } })
+      getData()
     }
   }, [])
 
@@ -134,31 +129,29 @@ const PositionTypes = props => {
   const [deletePositionType, { loading: mutationLoadingRemove }] = useMutation(
     DELETE_POSITION_TYPE,
     {
-      update(cache, { data: { deleted } }) {
+      update(cache) {
         try {
+          const deleted = formData.current
           const queryResult = cache.readQuery({
             query: GET_POSITION_TYPES,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.rulePack[0].positionTypes.filter(
+          const updatedData = queryResult.positionTypes.filter(
             p => p.positionTypeId !== deleted.positionTypeId
           )
 
           const updatedResult = {
-            rulePack: [
-              {
-                ...queryResult.rulePack[0],
-                positionTypes: updatedData,
-              },
-            ],
+            positionTypes: updatedData,
           }
           cache.writeQuery({
             query: GET_POSITION_TYPES,
             data: updatedResult,
             variables: {
-              rulePackId,
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -233,13 +226,14 @@ const PositionTypes = props => {
               dialogDescription={'Position type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
-              onDialogClosePositive={() =>
+              onDialogClosePositive={() => {
+                formData.current = params.row
                 deletePositionType({
                   variables: {
-                    positionTypeId: params.row.positionTypeId,
+                    where: { positionTypeId: params.row.positionTypeId },
                   },
                 })
-              }
+              }}
             />
           )
         },
@@ -283,7 +277,7 @@ const PositionTypes = props => {
               <XGrid
                 columns={rulePackPositionTypesColumns}
                 rows={setIdFromEntityId(
-                  rulePack.positionTypes,
+                  queryData?.positionTypes,
                   'positionTypeId'
                 )}
                 loading={queryLoading}
@@ -297,7 +291,7 @@ const PositionTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={rulePack}
+        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -317,81 +311,119 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeRulePackPositionType,
-    { loading: loadingMergePositionType },
-  ] = useMutation(MERGE_RULEPACK_POSITION_TYPE, {
-    update(cache, { data: { positionTypeRulePack } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_POSITION_TYPES,
-          variables: {
-            rulePackId,
-          },
+  const [createPositionType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_POSITION_TYPE,
+    {
+      update(cache, { data: { createPositionTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_POSITION_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
+          const newItem = createPositionTypes?.positionTypes?.[0]
+
+          const existingData = queryResult?.positionTypes
+          const updatedData = [newItem, ...existingData]
+          const updatedResult = {
+            positionTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_POSITION_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
+            },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type saved!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
+      },
+    }
+  )
 
-        const existingData = queryResult.rulePack[0].positionTypes
-        const newItem = positionTypeRulePack.to
+  const [updatePositionType, { loading: mutationLoadingMerge }] = useMutation(
+    UPDATE_POSITION_TYPE,
+    {
+      update(cache, { data: { updatePositionTypes } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_POSITION_TYPES,
+            variables: {
+              where: { rulePack: { rulePackId } },
+              whereRulePack: { rulePackId },
+            },
+          })
 
-        let updatedData = []
-        if (
-          existingData.find(ed => ed.positionTypeId === newItem.positionTypeId)
-        ) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
+          const newItem = updatePositionTypes?.positionTypes?.[0]
+
+          const existingData = queryResult?.positionTypes
+          const updatedData = existingData?.map(ed =>
             ed.positionTypeId === newItem.positionTypeId ? newItem : ed
           )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          rulePack: [
-            {
-              ...queryResult.rulePack[0],
-              positionTypes: updatedData,
+          const updatedResult = {
+            positionTypes: updatedData,
+          }
+          cache.writeQuery({
+            query: GET_POSITION_TYPES,
+            data: updatedResult,
+            variables: {
+              where: { rulePack: { rulePackId } },
             },
-          ],
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_POSITION_TYPES,
-          data: updatedResult,
-          variables: {
-            rulePackId,
-          },
+      },
+      onCompleted: () => {
+        enqueueSnackbar('Position type updated!', { variant: 'success' })
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error: ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.positionTypeRulePack.to.name} saved to ${rulePack.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    }
+  )
 
   const onSubmit = useCallback(
-    dataToCheck => {
+    dataToSubmit => {
       try {
-        mergeRulePackPositionType({
-          variables: {
-            rulePackId,
-            ...dataToCheck,
-            positionTypeId: data?.positionTypeId || uuidv4(),
-          },
-        })
+        data?.positionTypeId
+          ? updatePositionType({
+              variables: {
+                where: {
+                  positionTypeId: data?.positionTypeId,
+                },
+                update: dataToSubmit,
+              },
+            })
+          : createPositionType({
+              variables: {
+                input: {
+                  ...dataToSubmit,
+                  rulePack: {
+                    connect: {
+                      where: {
+                        node: { rulePackId },
+                      },
+                    },
+                  },
+                },
+              },
+            })
       } catch (error) {
         console.error(error)
       }
@@ -469,17 +501,18 @@ const FormDialog = props => {
           >
             {'Cancel'}
           </Button>
-          <LoadingButton type="submit" loading={loadingMergePositionType}>
-            {loadingMergePositionType ? 'Saving...' : 'Save'}
+          <LoadingButton
+            type="submit"
+            loading={mutationLoadingCreate || mutationLoadingMerge}
+          >
+            {mutationLoadingCreate || mutationLoadingMerge
+              ? 'Saving...'
+              : 'Save'}
           </LoadingButton>
         </DialogActions>
       </form>
     </Dialog>
   )
-}
-
-PositionTypes.propTypes = {
-  rulePackId: PropTypes.string,
 }
 
 export { PositionTypes }

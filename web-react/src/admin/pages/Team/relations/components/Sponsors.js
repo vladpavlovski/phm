@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,67 +32,18 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_SPONSORS = gql`
-  query getSponsors($teamId: ID) {
-    team: Team(teamId: $teamId) {
-      teamId
-      name
-      sponsors {
-        sponsorId
-        name
-        description
-      }
-    }
-  }
-`
-
-const REMOVE_TEAM_SPONSOR = gql`
-  mutation removeTeamSponsor($teamId: ID!, $sponsorId: ID!) {
-    teamSponsor: RemoveTeamSponsors(
-      from: { teamId: $teamId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        teamId
-      }
-      to {
-        sponsorId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
-    sponsors: Sponsor {
+    sponsors {
       sponsorId
       name
     }
   }
 `
 
-const MERGE_TEAM_SPONSOR = gql`
-  mutation mergeTeamSponsor($teamId: ID!, $sponsorId: ID!) {
-    teamSponsor: MergeTeamSponsors(
-      from: { teamId: $teamId }
-      to: { sponsorId: $sponsorId }
-    ) {
-      from {
-        teamId
-      }
-      to {
-        sponsorId
-        name
-        description
-      }
-    }
-  }
-`
-
 const Sponsors = props => {
-  const { teamId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { teamId, team, updateTeam } = props
+
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
@@ -100,10 +51,6 @@ const Sponsors = props => {
   const handleCloseAddSponsor = useCallback(() => {
     setOpenAddSponsor(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SPONSORS)
 
   const [
     getAllSponsors,
@@ -113,109 +60,6 @@ const Sponsors = props => {
       data: queryAllSponsorsData,
     },
   ] = useLazyQuery(GET_ALL_SPONSORS)
-
-  const [mergeTeamSponsor] = useMutation(MERGE_TEAM_SPONSOR, {
-    update(cache, { data: { teamSponsor } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_SPONSORS,
-          variables: {
-            teamId,
-          },
-        })
-
-        const existingSponsors = queryResult.team[0].sponsors
-        const newSponsor = teamSponsor.to
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              sponsors: [newSponsor, ...existingSponsors],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_SPONSORS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(`${data.teamSponsor.to.name} is ${team.name} sponsor!`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const team = queryData && queryData.team && queryData.team[0]
-
-  const [removeTeamSponsor, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_TEAM_SPONSOR,
-    {
-      update(cache, { data: { teamSponsor } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_SPONSORS,
-            variables: {
-              teamId,
-            },
-          })
-
-          const updatedSponsors = queryResult.team[0].sponsors.filter(
-            p => p.sponsorId !== teamSponsor.to.sponsorId
-          )
-
-          const updatedResult = {
-            team: [
-              {
-                ...queryResult.team[0],
-                sponsors: updatedSponsors,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_SPONSORS,
-            data: updatedResult,
-            variables: {
-              teamId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.teamSponsor.to.name} not sponsor ${team.name}`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { teamId } })
-    }
-  }, [])
 
   const handleOpenAddSponsor = useCallback(() => {
     if (!queryAllSponsorsData) {
@@ -264,20 +108,33 @@ const Sponsors = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to remove player from the team?'}
-              dialogDescription={
-                'The player will remain in the database. You can add him to any team later.'
+              dialogTitle={
+                'Do you really want to remove sponsor from the team?'
               }
-              dialogNegativeText={'No, keep the player'}
-              dialogPositiveText={'Yes, remove player'}
+              dialogDescription={
+                'The sponsor will remain in the database. You can add him to any team later.'
+              }
+              dialogNegativeText={'No, keep the sponsor'}
+              dialogPositiveText={'Yes, remove sponsor'}
               onDialogClosePositive={() => {
-                removeTeamSponsor({
+                updateTeam({
                   variables: {
-                    teamId,
-                    sponsorId: params.row.sponsorId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      sponsors: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              sponsorId: params.row.sponsorId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -312,8 +169,7 @@ const Sponsors = props => {
               sponsorId={params.value}
               teamId={teamId}
               team={team}
-              merge={mergeTeamSponsor}
-              remove={removeTeamSponsor}
+              updateTeam={updateTeam}
             />
           )
         },
@@ -323,7 +179,7 @@ const Sponsors = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="sponsors-content"
@@ -332,44 +188,36 @@ const Sponsors = props => {
         <Typography className={classes.accordionFormTitle}>Sponsors</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddSponsor}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Sponsor
-                </Button>
-                {/* TODO: MAKE Modal */}
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddSponsor}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Sponsor
+            </Button>
 
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminOrgSponsorRoute(organizationSlug, 'new')}
-                >
-                  Create
-                </LinkButton>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={teamSponsorsColumns}
-                rows={setIdFromEntityId(team.sponsors, 'sponsorId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+            <LinkButton
+              startIcon={<CreateIcon />}
+              to={getAdminOrgSponsorRoute(organizationSlug, 'new')}
+            >
+              Create
+            </LinkButton>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={teamSponsorsColumns}
+            rows={setIdFromEntityId(team?.sponsors, 'sponsorId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -423,7 +271,7 @@ const Sponsors = props => {
 }
 
 const ToggleNewSponsor = props => {
-  const { sponsorId, teamId, team, remove, merge } = props
+  const { sponsorId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = useState(
     !!team.sponsors.find(p => p.sponsorId === sponsorId)
   )
@@ -435,16 +283,38 @@ const ToggleNewSponsor = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updateTeam({
                   variables: {
-                    teamId,
-                    sponsorId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      sponsors: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              sponsorId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updateTeam({
                   variables: {
-                    teamId,
-                    sponsorId,
+                    where: {
+                      teamId,
+                    },
+                    update: {
+                      sponsors: {
+                        connect: {
+                          where: {
+                            node: { sponsorId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
             setIsMember(!isMember)
@@ -453,17 +323,13 @@ const ToggleNewSponsor = props => {
           color="primary"
         />
       }
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
 }
 
 ToggleNewSponsor.propTypes = {
-  playerId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
 }
 
 Sponsors.propTypes = {

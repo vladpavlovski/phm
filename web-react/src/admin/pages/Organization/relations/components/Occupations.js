@@ -137,57 +137,56 @@ const Occupations = props => {
   const organization =
     queryData && queryData.organization && queryData.organization[0]
 
-  const [
-    deleteOrganizationOccupation,
-    { loading: mutationLoadingDelete },
-  ] = useMutation(DELETE_ORGANIZATION_OCCUPATION, {
-    update(cache, { data: { organizationOccupation } }) {
-      // TODO:
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_OCCUPATIONS,
-          variables: {
-            organizationId,
-          },
-        })
-
-        const updatedOccupations = queryResult.organization[0].occupations.filter(
-          p => p.occupationId !== organizationOccupation.to.occupationId
-        )
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult.organization[0],
-              occupations: updatedOccupations,
+  const [deleteOrganizationOccupation, { loading: mutationLoadingDelete }] =
+    useMutation(DELETE_ORGANIZATION_OCCUPATION, {
+      update(cache, { data: { organizationOccupation } }) {
+        // TODO:
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_OCCUPATIONS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+
+          const updatedOccupations =
+            queryResult.organization[0].occupations.filter(
+              p => p.occupationId !== organizationOccupation.to.occupationId
+            )
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult.organization[0],
+                occupations: updatedOccupations,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_OCCUPATIONS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_OCCUPATIONS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationOccupation.to.name} not occupation ${organization.name}`,
+          {
+            variant: 'info',
+          }
+        )
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationOccupation.to.name} not occupation ${organization.name}`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+    })
 
   // const [
   //   createDefaultOccupations,
@@ -403,13 +402,8 @@ const schema = object().shape({
 })
 
 const FormDialog = props => {
-  const {
-    organization,
-    organizationId,
-    openDialog,
-    handleCloseDialog,
-    data,
-  } = props
+  const { organization, organizationId, openDialog, handleCloseDialog, data } =
+    props
 
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
@@ -418,68 +412,68 @@ const FormDialog = props => {
     resolver: yupResolver(schema),
   })
 
-  const [
-    mergeOrganizationOccupation,
-    { loading: loadingMergeOccupationType },
-  ] = useMutation(MERGE_ORGANIZATION_OCCUPATION, {
-    update(cache, { data: { organizationOccupation } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_OCCUPATIONS,
-          variables: {
-            organizationId,
-          },
-        })
-
-        const existingData = queryResult.organization[0].occupations
-        const newItem = organizationOccupation.to
-
-        let updatedData = []
-        if (existingData.find(ed => ed.occupationId === newItem.occupationId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.occupationId === newItem.occupationId ? newItem : ed
-          )
-        } else {
-          // add new item if item not in array
-          updatedData = [newItem, ...existingData]
-        }
-
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult.organization[0],
-              occupations: updatedData,
+  const [mergeOrganizationOccupation, { loading: loadingMergeOccupationType }] =
+    useMutation(MERGE_ORGANIZATION_OCCUPATION, {
+      update(cache, { data: { organizationOccupation } }) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_OCCUPATIONS,
+            variables: {
+              organizationId,
             },
-          ],
+          })
+
+          const existingData = queryResult.organization[0].occupations
+          const newItem = organizationOccupation.to
+
+          let updatedData = []
+          if (
+            existingData.find(ed => ed.occupationId === newItem.occupationId)
+          ) {
+            // replace if item exist in array
+            updatedData = existingData.map(ed =>
+              ed.occupationId === newItem.occupationId ? newItem : ed
+            )
+          } else {
+            // add new item if item not in array
+            updatedData = [newItem, ...existingData]
+          }
+
+          const updatedResult = {
+            organization: [
+              {
+                ...queryResult.organization[0],
+                occupations: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_OCCUPATIONS,
+            data: updatedResult,
+            variables: {
+              organizationId,
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_OCCUPATIONS,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
+      },
+      onCompleted: data => {
+        enqueueSnackbar(
+          `${data.organizationOccupation.to.name} saved to ${organization.name}!`,
+          {
+            variant: 'success',
+          }
+        )
+        handleCloseDialog()
+      },
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.organizationOccupation.to.name} saved to ${organization.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-      handleCloseDialog()
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {

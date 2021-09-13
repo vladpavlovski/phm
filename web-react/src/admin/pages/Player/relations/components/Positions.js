@@ -1,7 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
 import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
@@ -10,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 
 import AddIcon from '@material-ui/icons/Add'
-// import CreateIcon from '@material-ui/icons/Create'
+
 import Toolbar from '@material-ui/core/Toolbar'
 import LinkOffIcon from '@material-ui/icons/LinkOff'
 import Dialog from '@material-ui/core/Dialog'
@@ -24,216 +22,21 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-// import { getAdminPositionRoute } from '../../../../../routes'
-// import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_POSITIONS = gql`
-  query getPlayerPositions($playerId: ID) {
-    player: Player(playerId: $playerId) {
-      playerId
-      name
-      positions {
-        positionId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_TEAM_PLAYER = gql`
-  mutation removePositionPlayer($playerId: ID!, $positionId: ID!) {
-    positionPlayer: RemovePositionPlayers(
-      from: { playerId: $playerId }
-      to: { positionId: $positionId }
-    ) {
-      from {
-        playerId
-        name
-      }
-      to {
-        positionId
-        name
-      }
-    }
-  }
-`
-
-export const GET_ALL_AVAILABLE_POSITIONS = gql`
-  query getPositions($playerId: ID!) {
-    player: Player(playerId: $playerId) {
-      playerId
-      teams {
-        teamId
-        name
-        positions {
-          positionId
-          name
-        }
-      }
-    }
-  }
-`
-
-const MERGE_TEAM_PLAYER = gql`
-  mutation mergePositionPlayer($playerId: ID!, $positionId: ID!) {
-    positionPlayer: MergePositionPlayers(
-      from: { playerId: $playerId }
-      to: { positionId: $positionId }
-    ) {
-      from {
-        playerId
-        name
-      }
-      to {
-        positionId
-        name
-      }
-    }
-  }
-`
-
 const Positions = props => {
-  const { playerId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { playerId, player, updatePlayer } = props
+
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
   const handleCloseAddPlayer = useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_POSITIONS, {
-    variables: { playerId },
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const player = queryData?.player?.[0]
-
-  const [
-    getAllPlayers,
-    {
-      loading: queryAllPositionsLoading,
-      error: queryAllPositionsError,
-      data: queryAllPositionsData,
-    },
-  ] = useLazyQuery(GET_ALL_AVAILABLE_POSITIONS, {
-    variables: { playerId },
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const [
-    removePositionPlayer,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_TEAM_PLAYER, {
-    update(cache, { data: { positionPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_POSITIONS,
-          variables: {
-            playerId,
-          },
-        })
-        const updatedData = queryResult.player[0].positions.filter(
-          p => p.positionId !== positionPlayer.to.positionId
-        )
-
-        const updatedResult = {
-          player: [
-            {
-              ...queryResult.player[0],
-              positions: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_POSITIONS,
-          data: updatedResult,
-          variables: {
-            playerId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.positionPlayer.to.name} removed from ${player.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const [mergePositionPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-    update(cache, { data: { positionPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_POSITIONS,
-          variables: {
-            playerId,
-          },
-        })
-        const existingData = queryResult.player[0].positions
-        const newItem = positionPlayer.to
-        const updatedResult = {
-          player: [
-            {
-              ...queryResult.player[0],
-              positions: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_POSITIONS,
-          data: updatedResult,
-          variables: {
-            playerId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.positionPlayer.to.name} added to ${player.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData()
-    }
-  }, [])
 
   const handleOpenAddPlayer = useCallback(() => {
-    if (!queryAllPositionsData) {
-      getAllPlayers()
-    }
     setOpenAddPlayer(true)
   }, [])
 
@@ -245,6 +48,12 @@ const Positions = props => {
         width: 150,
       },
       {
+        field: 'teamName',
+        headerName: 'Team',
+        width: 150,
+        valueGetter: params => params.row?.team?.name,
+      },
+      {
         field: 'removeButton',
         headerName: 'Remove',
         width: 120,
@@ -254,7 +63,6 @@ const Positions = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -266,10 +74,22 @@ const Positions = props => {
               dialogNegativeText={'No, keep position'}
               dialogPositiveText={'Yes, remove position'}
               onDialogClosePositive={() => {
-                removePositionPlayer({
+                updatePlayer({
                   variables: {
-                    playerId,
-                    positionId: params.row.positionId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      positions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              positionId: params.row.positionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -289,6 +109,11 @@ const Positions = props => {
         width: 150,
       },
       {
+        field: 'teamName',
+        headerName: 'Team',
+        width: 150,
+      },
+      {
         field: 'positionId',
         headerName: 'Member',
         width: 150,
@@ -299,8 +124,7 @@ const Positions = props => {
               positionId={params.value}
               playerId={playerId}
               player={player}
-              merge={mergePositionPlayer}
-              remove={removePositionPlayer}
+              updatePlayer={updatePlayer}
             />
           )
         },
@@ -310,7 +134,7 @@ const Positions = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="positions-content"
@@ -321,36 +145,31 @@ const Positions = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddPlayer}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add To Position
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={playerPositionsColumns}
-                rows={setIdFromEntityId(player.positions, 'positionId')}
-                loading={queryAllPositionsLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
+        <>
+          <Toolbar disableGutters className={classes.toolbarForm}>
+            <div />
+            <div>
+              <Button
+                onClick={handleOpenAddPlayer}
+                variant={'outlined'}
+                size="small"
+                className={classes.submit}
+                startIcon={<AddIcon />}
+              >
+                Add To Position
+              </Button>
             </div>
-          </>
-        )}
+          </Toolbar>
+          <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <XGrid
+              columns={playerPositionsColumns}
+              rows={setIdFromEntityId(player.positions, 'positionId')}
+              components={{
+                Toolbar: GridToolbar,
+              }}
+            />
+          </div>
+        </>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -360,33 +179,23 @@ const Positions = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllPositionsLoading && !queryAllPositionsError && <Loader />}
-        {queryAllPositionsError && !queryAllPositionsLoading && (
-          <Error message={queryAllPositionsError.message} />
-        )}
-        {queryAllPositionsData &&
-          !queryAllPositionsLoading &&
-          !queryAllPositionsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new position`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
-                    columns={allPositionsColumns}
-                    rows={setIdFromEntityId(
-                      composePositions(queryAllPositionsData.player[0].teams),
-                      'positionId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllPositionsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
+        <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new position`}</DialogTitle>
+        <DialogContent>
+          <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <XGrid
+              columns={allPositionsColumns}
+              rows={setIdFromEntityId(
+                composePositions(player?.teams),
+                'positionId'
+              )}
+              disableSelectionOnClick
+              components={{
+                Toolbar: GridToolbar,
+              }}
+            />
+          </div>
+        </DialogContent>
+
         <DialogActions>
           <Button
             onClick={() => {
@@ -402,10 +211,16 @@ const Positions = props => {
 }
 
 const composePositions = teams =>
-  teams.reduce((acc, team) => [...acc, ...team.positions], [])
+  teams.reduce((acc, team) => {
+    const teamPositions = team.positions.map(p => ({
+      ...p,
+      teamName: team?.name,
+    }))
+    return [...acc, ...teamPositions]
+  }, [])
 
 const ToggleNewPosition = props => {
-  const { playerId, positionId, player, remove, merge } = props
+  const { playerId, positionId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.positions.find(p => p.positionId === positionId)
   )
@@ -417,16 +232,38 @@ const ToggleNewPosition = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updatePlayer({
                   variables: {
-                    playerId,
-                    positionId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      positions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              positionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updatePlayer({
                   variables: {
-                    playerId,
-                    positionId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      positions: {
+                        connect: {
+                          where: {
+                            node: { positionId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
             setIsMember(!isMember)
@@ -435,7 +272,6 @@ const ToggleNewPosition = props => {
           color="primary"
         />
       }
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
 }

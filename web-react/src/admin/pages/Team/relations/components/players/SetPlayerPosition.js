@@ -1,9 +1,8 @@
-import React, { useCallback, useState, useMemo, useContext } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import React from 'react'
+import { useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import AddIcon from '@material-ui/icons/Add'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
@@ -11,88 +10,42 @@ import DialogTitle from '@material-ui/core/DialogTitle'
 import Button from '@material-ui/core/Button'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
+import EditIcon from '@material-ui/icons/Edit'
+import Tooltip from '@material-ui/core/Tooltip'
+import ButtonBase from '@material-ui/core/ButtonBase'
+import { LinkButton } from '../../../../../../components/LinkButton'
 
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
-import { GET_PLAYERS } from './index'
 import TeamPlayersContext from './context'
-
-const MERGE_PLAYER_POSITION = gql`
-  mutation mergePlayerPosition($playerId: ID!, $positionId: ID!) {
-    mergePlayerPosition: MergePlayerPositions(
-      from: { playerId: $playerId }
-      to: { positionId: $positionId }
-    ) {
-      from {
-        playerId
-        firstName
-        lastName
-        name
-        positions {
-          positionId
-          name
-        }
-      }
-      to {
-        positionId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_PLAYER_POSITION = gql`
-  mutation removePlayerPosition($playerId: ID!, $positionId: ID!) {
-    removePlayerPosition: RemovePlayerPositions(
-      from: { playerId: $playerId }
-      to: { positionId: $positionId }
-    ) {
-      from {
-        playerId
-        firstName
-        lastName
-        name
-        positions {
-          positionId
-          name
-        }
-      }
-      to {
-        positionId
-        name
-      }
-    }
-  }
-`
+import { UPDATE_PLAYER } from './SetPlayerJersey'
 
 export const SetPlayerPosition = props => {
   const { player } = props
-  const classes = useStyles()
 
-  const { setPlayerPositionDialogOpen, setPlayerData } = useContext(
-    TeamPlayersContext
-  )
+  const { setPlayerPositionDialogOpen, setPlayerData } =
+    React.useContext(TeamPlayersContext)
 
   return (
-    <Button
-      type="button"
+    <LinkButton
+      component={ButtonBase}
+      variant="text"
+      icon
       onClick={() => {
         setPlayerData(player)
         setPlayerPositionDialogOpen(true)
       }}
-      variant={'outlined'}
-      size="small"
-      className={classes.submit}
-      startIcon={<AddIcon />}
     >
-      Set Position
-    </Button>
+      <Tooltip arrow title="Set Position" placement="top">
+        <EditIcon />
+      </Tooltip>
+    </LinkButton>
   )
 }
 
 export const PlayerPositionDialog = props => {
-  const { teamId, team } = props
+  const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const {
@@ -100,125 +53,28 @@ export const PlayerPositionDialog = props => {
     setPlayerPositionDialogOpen,
     playerData: player,
     setPlayerData,
-  } = useContext(TeamPlayersContext)
+  } = React.useContext(TeamPlayersContext)
 
-  const handleCloseDialog = useCallback(() => {
+  const handleCloseDialog = React.useCallback(() => {
     setPlayerPositionDialogOpen(false)
     setPlayerData(null)
   }, [])
 
-  const [mergePlayerPosition] = useMutation(MERGE_PLAYER_POSITION, {
-    update(cache, { data: { mergePlayerPosition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-
-        const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = mergePlayerPosition.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.playerId === updatedPlayer.playerId ? updatedPlayer : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              players: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.mergePlayerPosition.from.name} now is ${data.mergePlayerPosition.to.name} for ${team?.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+  const [updatePlayer] = useMutation(UPDATE_PLAYER, {
+    onCompleted: () => {
+      enqueueSnackbar(`Player updated!`, {
+        variant: 'success',
+      })
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error: ${error}`, {
         variant: 'error',
       })
       console.error(error)
     },
   })
 
-  const [removePlayerPosition] = useMutation(REMOVE_PLAYER_POSITION, {
-    update(cache, { data: { removePlayerPosition } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_PLAYERS,
-          variables: {
-            teamId,
-          },
-        })
-        const existingData = queryResult?.team?.[0].players
-        const updatedPlayer = removePlayerPosition.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.playerId === updatedPlayer.playerId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.playerId === updatedPlayer.playerId ? updatedPlayer : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              players: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_PLAYERS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data?.removePlayerPosition?.from?.name} not anymore ${data?.removePlayerPosition?.to?.name} for ${team?.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const teamPositionsColumns = useMemo(
+  const teamPositionsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -235,8 +91,7 @@ export const PlayerPositionDialog = props => {
             <TogglePosition
               positionId={params.value}
               player={player}
-              merge={mergePlayerPosition}
-              remove={removePlayerPosition}
+              updatePlayer={updatePlayer}
             />
           )
         },
@@ -263,7 +118,6 @@ export const PlayerPositionDialog = props => {
                 columns={teamPositionsColumns}
                 rows={setIdFromEntityId(team?.positions, 'positionId')}
                 disableSelectionOnClick
-                // loading={queryTeamPositionsLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -280,8 +134,8 @@ export const PlayerPositionDialog = props => {
 }
 
 const TogglePosition = props => {
-  const { positionId, player, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { positionId, player, updatePlayer } = props
+  const [isMember, setIsMember] = React.useState(
     !!player?.positions?.find(p => p.positionId === positionId)
   )
 
@@ -291,19 +145,36 @@ const TogglePosition = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    positionId,
-                    playerId: player.playerId,
+            updatePlayer({
+              variables: {
+                where: {
+                  playerId: player.playerId,
+                },
+                update: {
+                  positions: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                positionId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                positionId,
+                              },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    positionId,
-                    playerId: player.playerId,
-                  },
-                })
+                },
+              },
+            })
             setIsMember(!isMember)
           }}
           name="teamMember"

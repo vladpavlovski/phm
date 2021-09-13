@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
+
 import { useParams } from 'react-router-dom'
 
 import Accordion from '@material-ui/core/Accordion'
@@ -32,67 +32,18 @@ import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_TEAMS = gql`
-  query getPlayerTeams($playerId: ID) {
-    player: Player(playerId: $playerId) {
-      playerId
-      name
-      teams {
-        teamId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_TEAM_PLAYER = gql`
-  mutation removeTeamPlayer($playerId: ID!, $teamId: ID!) {
-    teamPlayer: RemoveTeamPlayers(
-      from: { playerId: $playerId }
-      to: { teamId: $teamId }
-    ) {
-      from {
-        playerId
-        name
-      }
-      to {
-        teamId
-        name
-      }
-    }
-  }
-`
-
 export const GET_ALL_TEAMS = gql`
-  query getTeams {
-    teams: Team {
+  query getTeams($where: TeamWhere) {
+    teams(where: $where) {
       teamId
       name
     }
   }
 `
 
-const MERGE_TEAM_PLAYER = gql`
-  mutation mergeTeamPlayer($playerId: ID!, $teamId: ID!) {
-    teamPlayer: MergeTeamPlayers(
-      from: { playerId: $playerId }
-      to: { teamId: $teamId }
-    ) {
-      from {
-        playerId
-        name
-      }
-      to {
-        teamId
-        name
-      }
-    }
-  }
-`
-
 const Teams = props => {
-  const { playerId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { playerId, player, updatePlayer } = props
+
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
@@ -100,129 +51,28 @@ const Teams = props => {
   const handleCloseAddPlayer = useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_TEAMS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const player = queryData?.player?.[0]
 
   const [
-    getAllPlayers,
+    getAllTeams,
     {
       loading: queryAllPlayersLoading,
       error: queryAllPlayersError,
       data: queryAllPlayersData,
     },
   ] = useLazyQuery(GET_ALL_TEAMS, {
+    variables: {
+      where: {
+        orgs: {
+          urlSlug: organizationSlug,
+        },
+      },
+    },
     fetchPolicy: 'cache-and-network',
   })
 
-  const [removeTeamPlayer, { loading: mutationLoadingRemove }] = useMutation(
-    REMOVE_TEAM_PLAYER,
-    {
-      update(cache, { data: { teamPlayer } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_TEAMS,
-            variables: {
-              playerId,
-            },
-          })
-          const updatedData = queryResult.player[0].teams.filter(
-            p => p.teamId !== teamPlayer.to.teamId
-          )
-
-          const updatedResult = {
-            player: [
-              {
-                ...queryResult.player[0],
-                teams: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_TEAMS,
-            data: updatedResult,
-            variables: {
-              playerId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${player.name} removed from ${data.teamPlayer.to.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
-
-  const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-    update(cache, { data: { teamPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAMS,
-          variables: {
-            playerId,
-          },
-        })
-        const existingData = queryResult.player[0].teams
-        const newItem = teamPlayer.to
-        const updatedResult = {
-          player: [
-            {
-              ...queryResult.player[0],
-              teams: [newItem, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAMS,
-          data: updatedResult,
-          variables: {
-            playerId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(`${player.name} added to ${data.teamPlayer.to.name}!`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { playerId } })
-    }
-  }, [])
-
   const handleOpenAddPlayer = useCallback(() => {
     if (!queryAllPlayersData) {
-      getAllPlayers()
+      getAllTeams()
     }
     setOpenAddPlayer(true)
   }, [])
@@ -261,7 +111,6 @@ const Teams = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to remove player from the team?'}
@@ -271,10 +120,22 @@ const Teams = props => {
               dialogNegativeText={'No, keep the player'}
               dialogPositiveText={'Yes, remove player'}
               onDialogClosePositive={() => {
-                removeTeamPlayer({
+                updatePlayer({
                   variables: {
-                    playerId,
-                    teamId: params.row.teamId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      teams: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              teamId: params.row.teamId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -305,8 +166,7 @@ const Teams = props => {
               teamId={params.value}
               playerId={playerId}
               player={player}
-              merge={mergeTeamPlayer}
-              remove={removeTeamPlayer}
+              updatePlayer={updatePlayer}
             />
           )
         },
@@ -316,7 +176,7 @@ const Teams = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="teams-content"
@@ -325,44 +185,39 @@ const Teams = props => {
         <Typography className={classes.accordionFormTitle}>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddPlayer}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add To Team
-                </Button>
-                {/* TODO: MAKE Modal */}
+        <>
+          <Toolbar disableGutters className={classes.toolbarForm}>
+            <div />
+            <div>
+              <Button
+                onClick={handleOpenAddPlayer}
+                variant={'outlined'}
+                size="small"
+                className={classes.submit}
+                startIcon={<AddIcon />}
+              >
+                Add To Team
+              </Button>
 
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminOrgTeamRoute(organizationSlug, 'new')}
-                >
-                  Create
-                </LinkButton>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={playerTeamsColumns}
-                rows={setIdFromEntityId(player.teams, 'teamId')}
-                loading={queryAllPlayersLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
+              <LinkButton
+                startIcon={<CreateIcon />}
+                to={getAdminOrgTeamRoute(organizationSlug, 'new')}
+              >
+                Create
+              </LinkButton>
             </div>
-          </>
-        )}
+          </Toolbar>
+          <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <XGrid
+              columns={playerTeamsColumns}
+              rows={setIdFromEntityId(player.teams, 'teamId')}
+              loading={queryAllPlayersLoading}
+              components={{
+                Toolbar: GridToolbar,
+              }}
+            />
+          </div>
+        </>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -414,7 +269,7 @@ const Teams = props => {
 }
 
 const ToggleNewTeam = props => {
-  const { playerId, teamId, player, remove, merge } = props
+  const { playerId, teamId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.teams.find(p => p.teamId === teamId)
   )
@@ -426,18 +281,41 @@ const ToggleNewTeam = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? updatePlayer({
                   variables: {
-                    playerId,
-                    teamId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      teams: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              teamId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : updatePlayer({
                   variables: {
-                    playerId,
-                    teamId,
+                    where: {
+                      playerId,
+                    },
+                    update: {
+                      teams: {
+                        connect: {
+                          where: {
+                            node: { teamId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+
             setIsMember(!isMember)
           }}
           name="teamMember"

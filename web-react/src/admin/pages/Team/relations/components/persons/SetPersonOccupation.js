@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo, useContext } from 'react'
+import React from 'react'
 import { gql, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
@@ -15,16 +15,12 @@ import Switch from '@material-ui/core/Switch'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
-import { GET_TEAM } from '../../../index'
 import TeamPersonsContext from './context'
 
-const MERGE_PERSON_OCCUPATION = gql`
-  mutation mergePersonOccupation($personId: ID!, $occupationId: ID!) {
-    mergePersonOccupation: MergePersonOccupations(
-      from: { personId: $personId }
-      to: { occupationId: $occupationId }
-    ) {
-      from {
+const UPDATE_PERSON = gql`
+  mutation updatePerson($where: PersonWhere, $update: PersonUpdateInput) {
+    updatePeople(where: $where, update: $update) {
+      people {
         personId
         firstName
         lastName
@@ -33,34 +29,6 @@ const MERGE_PERSON_OCCUPATION = gql`
           occupationId
           name
         }
-      }
-      to {
-        occupationId
-        name
-      }
-    }
-  }
-`
-
-const REMOVE_PERSON_OCCUPATION = gql`
-  mutation removePersonOccupation($personId: ID!, $occupationId: ID!) {
-    removePersonOccupation: RemovePersonOccupations(
-      from: { personId: $personId }
-      to: { occupationId: $occupationId }
-    ) {
-      from {
-        personId
-        firstName
-        lastName
-        name
-        occupations {
-          occupationId
-          name
-        }
-      }
-      to {
-        occupationId
-        name
       }
     }
   }
@@ -70,9 +38,8 @@ export const SetPersonOccupation = props => {
   const { person } = props
   const classes = useStyles()
 
-  const { setPersonOccupationDialogOpen, setPersonData } = useContext(
-    TeamPersonsContext
-  )
+  const { setPersonOccupationDialogOpen, setPersonData } =
+    React.useContext(TeamPersonsContext)
 
   return (
     <Button
@@ -92,7 +59,7 @@ export const SetPersonOccupation = props => {
 }
 
 export const PersonOccupationDialog = props => {
-  const { teamId, team } = props
+  const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const {
@@ -100,125 +67,28 @@ export const PersonOccupationDialog = props => {
     setPersonOccupationDialogOpen,
     personData: person,
     setPersonData,
-  } = useContext(TeamPersonsContext)
+  } = React.useContext(TeamPersonsContext)
 
-  const handleCloseDialog = useCallback(() => {
+  const handleCloseDialog = React.useCallback(() => {
     setPersonOccupationDialogOpen(false)
     setPersonData(null)
   }, [])
 
-  const [mergePersonOccupation] = useMutation(MERGE_PERSON_OCCUPATION, {
-    update(cache, { data: { mergePersonOccupation } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAM,
-          variables: {
-            teamId,
-          },
-        })
-
-        const existingData = queryResult?.team?.[0].persons
-        const updatedPerson = mergePersonOccupation.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.personId === updatedPerson.personId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.personId === updatedPerson.personId ? updatedPerson : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              persons: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAM,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.mergePersonOccupation.from.name} now is ${data.mergePersonOccupation.to.name} for ${team?.name}!`,
-        {
-          variant: 'success',
-        }
-      )
+  const [updatePerson] = useMutation(UPDATE_PERSON, {
+    onCompleted: () => {
+      enqueueSnackbar(`Person updated!`, {
+        variant: 'success',
+      })
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error : ${error}`, {
         variant: 'error',
       })
       console.error(error)
     },
   })
 
-  const [removePersonOccupation] = useMutation(REMOVE_PERSON_OCCUPATION, {
-    update(cache, { data: { removePersonOccupation } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_TEAM,
-          variables: {
-            teamId,
-          },
-        })
-        const existingData = queryResult?.team?.[0].persons
-        const updatedPerson = removePersonOccupation.from
-
-        let updatedData = []
-        if (existingData.find(ed => ed.personId === updatedPerson.personId)) {
-          // replace if item exist in array
-          updatedData = existingData.map(ed =>
-            ed.personId === updatedPerson.personId ? updatedPerson : ed
-          )
-        }
-
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              persons: updatedData,
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_TEAM,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data?.removePersonOccupation?.from?.name} not anymore ${data?.removePersonOccupation?.to?.name} for ${team?.name}!`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const teamOccupationsColumns = useMemo(
+  const teamOccupationsColumns = React.useMemo(
     () => [
       {
         field: 'name',
@@ -235,8 +105,7 @@ export const PersonOccupationDialog = props => {
             <ToggleOccupation
               occupationId={params.value}
               person={person}
-              merge={mergePersonOccupation}
-              remove={removePersonOccupation}
+              updatePerson={updatePerson}
             />
           )
         },
@@ -278,8 +147,8 @@ export const PersonOccupationDialog = props => {
 }
 
 const ToggleOccupation = props => {
-  const { occupationId, person, remove, merge } = props
-  const [isMember, setIsMember] = useState(
+  const { occupationId, person, updatePerson } = props
+  const [isMember, setIsMember] = React.useState(
     !!person?.occupations?.find(p => p.occupationId === occupationId)
   )
 
@@ -289,19 +158,37 @@ const ToggleOccupation = props => {
         <Switch
           checked={isMember}
           onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    occupationId,
-                    personId: person.personId,
+            updatePerson({
+              variables: {
+                where: {
+                  personId: person.personId,
+                },
+                update: {
+                  occupations: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                occupationId,
+                              },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                occupationId,
+                              },
+                            },
+                          },
+                        }),
                   },
-                })
-              : merge({
-                  variables: {
-                    occupationId,
-                    personId: person.personId,
-                  },
-                })
+                },
+              },
+            })
+
             setIsMember(!isMember)
           }}
           name="teamMember"
@@ -316,8 +203,7 @@ ToggleOccupation.propTypes = {
   personId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
+  updatePerson: PropTypes.func,
 }
 
 SetPersonOccupation.propTypes = {

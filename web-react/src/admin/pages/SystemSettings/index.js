@@ -5,15 +5,11 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-
 import { Container, Grid, Paper } from '@material-ui/core'
-
 import Toolbar from '@material-ui/core/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
-
 import { RHFInput } from '../../../components/RHFInput'
-import { checkId } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -24,27 +20,30 @@ import { Error } from '../../../components/Error'
 import { Relations } from './relations'
 
 const GET_SYSTEM_SETTINGS = gql`
-  query getSystemSettings($systemSettingsId: ID!) {
-    systemSettings: SystemSettings(systemSettingsId: $systemSettingsId) {
+  query getSystemSettings($where: SystemSettingsWhere) {
+    systemSettings(where: $where) {
       systemSettingsId
       name
       language
+      rulePack {
+        rulePackId
+        name
+      }
     }
   }
 `
 
-const MERGE_SYSTEM_SETTINGS = gql`
-  mutation mergeSystemSettings(
-    $systemSettingsId: ID!
-    $name: String
-    $language: String
+const UPDATE_SYSTEM_SETTINGS = gql`
+  mutation updateSystemSettings(
+    $where: SystemSettingsWhere
+    $update: SystemSettingsUpdateInput
   ) {
-    mergeSystemSettings: MergeSystemSettings(
-      systemSettingsId: $systemSettingsId
-      name: $name
-      language: $language
-    ) {
-      systemSettingsId
+    updateSystemSettings(where: $where, update: $update) {
+      systemSettings {
+        systemSettingsId
+        name
+        language
+      }
     }
   }
 `
@@ -59,18 +58,30 @@ const SystemSettings = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_SYSTEM_SETTINGS, {
-    fetchPolicy: 'network-only',
-    variables: { systemSettingsId },
+    variables: { where: { systemSettingsId } },
   })
 
   const [
-    mergeSystemSettings,
+    updateSystemSettings,
     {
       loading: mutationLoadingMerge,
       error: mutationErrorMerge,
       data: mutationDataMerge,
     },
-  ] = useMutation(MERGE_SYSTEM_SETTINGS, {
+  ] = useMutation(UPDATE_SYSTEM_SETTINGS, {
+    update(cache, { data }) {
+      try {
+        cache.writeQuery({
+          query: GET_SYSTEM_SETTINGS,
+          data: {
+            systemSettings: data?.updateSystemSettings?.systemSettings,
+          },
+          variables: { where: { systemSettingsId } },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
     onCompleted: () => {
       enqueueSnackbar('SystemSettings saved!', { variant: 'success' })
     },
@@ -83,17 +94,15 @@ const SystemSettings = () => {
   })
 
   const onSubmit = useCallback(
-    dataToCheck => {
+    dataToSubmit => {
       try {
-        const { ...rest } = dataToCheck
-
-        const dataToSubmit = {
-          ...rest,
-          systemSettingsId: checkId(systemSettingsId),
-        }
-
-        mergeSystemSettings({
-          variables: dataToSubmit,
+        updateSystemSettings({
+          variables: {
+            where: {
+              systemSettingsId,
+            },
+            update: dataToSubmit,
+          },
         })
       } catch (error) {
         console.error(error)
@@ -164,7 +173,11 @@ const SystemSettings = () => {
             </Grid>
           </form>
           {(systemSettingsData || mutationDataMerge) && (
-            <Relations systemSettingsId={systemSettingsId} />
+            <Relations
+              systemSettingsId={systemSettingsId}
+              systemSettings={systemSettingsData}
+              updateSystemSettings={updateSystemSettings}
+            />
           )}
         </>
       )}

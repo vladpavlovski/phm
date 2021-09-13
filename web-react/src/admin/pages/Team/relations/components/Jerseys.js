@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import { XGrid, GridToolbar } from '@material-ui/x-grid'
 import { useSnackbar } from 'notistack'
 
@@ -21,30 +21,10 @@ import LoadingButton from '@material-ui/lab/LoadingButton'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
 
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
-const GET_JERSEYS = gql`
-  query getTeam($teamId: ID) {
-    team: Team(teamId: $teamId) {
-      teamId
-      name
-      jerseys {
-        jerseyId
-        name
-        number
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-    }
-  }
-`
+import { GET_TEAM } from '../../index'
 
 const CREATE_JERSEYS = gql`
   mutation createJerseys($teamId: ID!, $nameBase: String!) {
@@ -56,74 +36,29 @@ const CREATE_JERSEYS = gql`
   }
 `
 
-const GET_TEAM_PLAYERS = gql`
-  query getTeamPlayers($teamId: ID) {
-    team: Team(teamId: $teamId) {
-      teamId
-      players {
-        playerId
-        name
-        firstName
-        lastName
-        jerseys {
-          jerseyId
-        }
-      }
-    }
-  }
-`
-
-const MERGE_JERSEY_PLAYER = gql`
-  mutation mergeJerseyPlayer($jerseyId: ID!, $playerId: ID!) {
-    jerseyPlayer: MergeJerseyPlayer(
-      from: { playerId: $playerId }
-      to: { jerseyId: $jerseyId }
-    ) {
-      from {
-        playerId
-        name
-        firstName
-        lastName
-      }
-      to {
+const UPDATE_JERSEY = gql`
+  mutation updateJersey($where: JerseyWhere, $update: JerseyUpdateInput) {
+    updateJerseys(where: $where, update: $update) {
+      jerseys {
         jerseyId
         name
         number
         player {
           playerId
-          name
           firstName
           lastName
+          name
+          jerseys {
+            jerseyId
+          }
         }
-      }
-    }
-  }
-`
-
-const REMOVE_JERSEY_PLAYER = gql`
-  mutation removeJerseyPlayer($jerseyId: ID!, $playerId: ID!) {
-    jerseyPlayer: RemoveJerseyPlayer(
-      from: { playerId: $playerId }
-      to: { jerseyId: $jerseyId }
-    ) {
-      from {
-        playerId
-        name
-        firstName
-        lastName
-      }
-      to {
-        jerseyId
-        name
-        name
-        number
       }
     }
   }
 `
 
 const Jerseys = props => {
-  const { teamId } = props
+  const { teamId, team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
@@ -133,28 +68,6 @@ const Jerseys = props => {
   const handleCloseAddJersey = useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_JERSEYS, {
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const team = queryData && queryData.team && queryData.team[0]
-
-  const [
-    getTeamPlayers,
-    {
-      loading: queryTeamPlayersLoading,
-      error: queryTeamPlayersError,
-      data: queryTeamPlayersData,
-    },
-  ] = useLazyQuery(GET_TEAM_PLAYERS, {
-    variables: {
-      teamId,
-    },
-    fetchPolicy: 'cache-and-network',
-  })
 
   const [createJerseys, { loading: queryCreateLoading }] = useMutation(
     CREATE_JERSEYS,
@@ -167,26 +80,22 @@ const Jerseys = props => {
       update(cache, { data: { jerseys } }) {
         try {
           const queryResult = cache.readQuery({
-            query: GET_JERSEYS,
-            variables: {
-              teamId,
-            },
+            query: GET_TEAM,
+            variables: { where: { teamId } },
           })
 
           const updatedResult = {
             team: [
               {
-                ...queryResult.team[0],
+                ...queryResult.teams[0],
                 jerseys,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_JERSEYS,
             data: updatedResult,
-            variables: {
-              teamId,
-            },
+            query: GET_TEAM,
+            variables: { where: { teamId } },
           })
         } catch (error) {
           console.error(error)
@@ -207,18 +116,18 @@ const Jerseys = props => {
   )
 
   const handleOpenAddPlayer = useCallback(jerseyId => {
-    if (!queryTeamPlayersData) {
-      getTeamPlayers()
-    }
+    // if (!queryTeamPlayersData) {
+    //   getTeamPlayers()
+    // }
     modalJerseyId.current = jerseyId
     setOpenAddPlayer(true)
   }, [])
 
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { teamId } })
-    }
-  }, [])
+  // const openAccordion = useCallback(() => {
+  //   if (!queryData) {
+  //     getData({ variables: { teamId } })
+  //   }
+  // }, [])
 
   const teamJerseysColumns = useMemo(
     () => [
@@ -289,11 +198,11 @@ const Jerseys = props => {
         },
       },
     ],
-    [queryTeamPlayersData]
+    []
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="jerseys-content"
@@ -302,15 +211,11 @@ const Jerseys = props => {
         <Typography className={classes.accordionFormTitle}>Jerseys</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            {team?.jerseys?.length === 0 && (
-              <Toolbar disableGutters className={classes.toolbarForm}>
-                <div />
-                <div>
-                  {/* <Button
+        {team?.jerseys?.length === 0 && (
+          <Toolbar disableGutters className={classes.toolbarForm}>
+            <div />
+            <div>
+              {/* <Button
                     onClick={handleOpenAddJersey}
                     variant={'outlined'}
                     size="small"
@@ -319,59 +224,45 @@ const Jerseys = props => {
                   >
                     Add Jersey
                   </Button> */}
-                  {/* TODO: MAKE Modal */}
+              {/* TODO: MAKE Modal */}
 
-                  {/* <LinkButton
+              {/* <LinkButton
                   startIcon={<CreateIcon />}
                   // to={getAdminJerseyRoute('new')}
                 >
                   
                 </LinkButton> */}
-                  <LoadingButton
-                    type="button"
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    onClick={createJerseys}
-                    className={classes.submit}
-                    startIcon={<CreateIcon />}
-                    loading={queryCreateLoading}
-                    loadingPosition="start"
-                  >
-                    {queryCreateLoading ? 'Creating...' : 'Create'}
-                  </LoadingButton>
-                  {/* <Button
-                    onClick={() => {
-                      createJerseys()
-                    }}
-                    variant={'outlined'}
-                    size="small"
-                    className={classes.submit}
-                    startIcon={<CreateIcon />}
-                  >
-                    Create
-                  </Button> */}
-                </div>
-              </Toolbar>
-            )}
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
-                columns={teamJerseysColumns}
-                rows={setIdFromEntityId(team.jerseys, 'jerseyId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-                sortModel={[
-                  {
-                    field: 'number',
-                    sort: 'asc',
-                  },
-                ]}
-              />
+              <LoadingButton
+                type="button"
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={createJerseys}
+                className={classes.submit}
+                startIcon={<CreateIcon />}
+                loading={queryCreateLoading}
+                loadingPosition="start"
+              >
+                {'Create'}
+              </LoadingButton>
             </div>
-          </>
+          </Toolbar>
         )}
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <XGrid
+            columns={teamJerseysColumns}
+            rows={setIdFromEntityId(team.jerseys, 'jerseyId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+            sortModel={[
+              {
+                field: 'number',
+                sort: 'asc',
+              },
+            ]}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -381,33 +272,20 @@ const Jerseys = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryTeamPlayersLoading && !queryTeamPlayersError && <Loader />}
-        {queryTeamPlayersError && !queryTeamPlayersLoading && (
-          <Error message={queryTeamPlayersError.message} />
-        )}
-        {queryTeamPlayersData &&
-          !queryTeamPlayersLoading &&
-          !queryTeamPlayersError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add jersey to player`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
-                    columns={teamPlayersColumns}
-                    rows={setIdFromEntityId(
-                      queryTeamPlayersData.team[0].players,
-                      'playerId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryTeamPlayersLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
+        <DialogTitle id="alert-dialog-title">{`Add jersey to player`}</DialogTitle>
+        <DialogContent>
+          <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <XGrid
+              columns={teamPlayersColumns}
+              rows={setIdFromEntityId(team.players, 'playerId')}
+              disableSelectionOnClick
+              components={{
+                Toolbar: GridToolbar,
+              }}
+            />
+          </div>
+        </DialogContent>
+
         <DialogActions>
           <Button
             onClick={() => {
@@ -425,99 +303,46 @@ const Jerseys = props => {
 const TogglePlayerJersey = props => {
   const { jerseyId, teamId, player, playerId } = props
   const { enqueueSnackbar } = useSnackbar()
+  console.log('player:', player)
   const [isOwner, setIsOwner] = useState(
     !!player?.jerseys?.find(j => j?.jerseyId === jerseyId)
   )
 
-  const [mergeJerseyPlayer] = useMutation(MERGE_JERSEY_PLAYER, {
-    update(cache, { data: { jerseyPlayer } }) {
+  const [updateJersey] = useMutation(UPDATE_JERSEY, {
+    update(cache, { data }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_JERSEYS,
-          variables: {
-            teamId,
-          },
+          query: GET_TEAM,
+          variables: { where: { teamId } },
         })
-        const existingData = queryResult.team[0].jerseys
-        const newData = jerseyPlayer.to
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult.team[0],
-              jerseys: [newData, ...existingData],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_JERSEYS,
-          data: updatedResult,
-          variables: {
-            teamId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.jerseyPlayer.from.name} added to ${data.jerseyPlayer.to.name}!`,
-        {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
 
-  const [removeJerseyPlayer] = useMutation(REMOVE_JERSEY_PLAYER, {
-    update(cache, { data: { jerseyPlayer } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_JERSEYS,
-          variables: {
-            teamId,
-          },
+        const newData = data?.updateJerseys?.jerseys?.[0]
+
+        const updatedData = queryResult?.teams?.[0]?.jerseys?.map(j => {
+          if (j.jerseyId === newData?.jerseyId) {
+            return { ...j, player: newData?.player }
+          }
+          return j
         })
-        const existingData = queryResult?.team[0].jerseys
-        const newData = jerseyPlayer.to
-        const updatedResult = {
-          team: [
-            {
-              ...queryResult?.team[0],
-              jerseys: [newData, ...existingData],
-            },
-          ],
-        }
+
         cache.writeQuery({
-          query: GET_JERSEYS,
-          data: updatedResult,
-          variables: {
-            teamId,
+          query: GET_TEAM,
+          data: {
+            teams: [{ ...queryResult?.teams[0], jerseys: updatedData }],
           },
+          variables: { where: { teamId } },
         })
       } catch (error) {
         console.error(error)
       }
     },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${data.jerseyPlayer.from.name} removed from ${data.jerseyPlayer.to.name}!`,
-        {
-          variant: 'info',
-        }
-      )
+    onCompleted: () => {
+      enqueueSnackbar('Jersey updated!', { variant: 'success' })
     },
     onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
+      enqueueSnackbar(`Error: ${error}`, {
         variant: 'error',
       })
-      console.error(error)
     },
   })
 
@@ -528,16 +353,38 @@ const TogglePlayerJersey = props => {
           checked={isOwner}
           onChange={() => {
             isOwner
-              ? removeJerseyPlayer({
+              ? updateJersey({
                   variables: {
-                    playerId,
-                    jerseyId,
+                    where: {
+                      jerseyId,
+                    },
+                    update: {
+                      player: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              playerId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : mergeJerseyPlayer({
+              : updateJersey({
                   variables: {
-                    playerId,
-                    jerseyId,
+                    where: {
+                      jerseyId,
+                    },
+                    update: {
+                      player: {
+                        connect: {
+                          where: {
+                            node: { playerId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
             setIsOwner(!isOwner)

@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import { useStyles } from '../../commonComponents/styled'
 import { Seasons } from './components/Seasons'
@@ -15,26 +14,23 @@ import { Stars } from './components/Stars'
 import { Sponsors } from './components/Sponsors'
 
 const Relations = props => {
-  const { awardId } = props
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <Seasons awardId={awardId} />
-      <Competitions awardId={awardId} />
-      <Phases awardId={awardId} />
-      <Groups awardId={awardId} />
-      <Teams awardId={awardId} />
-      <Games awardId={awardId} />
-      <Players awardId={awardId} />
-      <Persons awardId={awardId} />
-      <Venues awardId={awardId} />
-      <Stars awardId={awardId} />
-      <Sponsors awardId={awardId} />
+      <Seasons {...props} />
+      <Competitions {...props} />
+      <Phases {...props} />
+      <Groups {...props} />
+      <Teams {...props} />
+      <Games {...props} />
+      <Players {...props} />
+      <Persons {...props} />
+      <Venues {...props} />
+      <Stars {...props} />
+      <Sponsors {...props} />
     </div>
   )
 }
-
-Relations.propTypes = { awardId: PropTypes.string }
 
 export { Relations }

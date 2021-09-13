@@ -1,5 +1,5 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import dayjs from 'dayjs'
 import Img from 'react-cool-img'
@@ -28,8 +28,8 @@ import { setIdFromEntityId } from '../../../../../utils'
 import GameEventFormContext from '../context'
 
 export const GET_GAME_EVENTS_SIMPLE = gql`
-  query getGameEventsSimple($gameId: ID!) {
-    gameEventsSimple: gameEventsSimpleByGameId(gameId: $gameId) {
+  query getGameEventsSimple($where: GameEventSimpleWhere) {
+    gameEventSimples(where: $where) {
       gameEventSimpleId
       timestamp
       period
@@ -157,20 +157,30 @@ export const GET_GAME_EVENTS_SIMPLE = gql`
 `
 
 const DELETE_GAME_EVENT_SIMPLE = gql`
-  mutation deleteGameEventSimple($gameEventSimpleId: ID!) {
-    DeleteGameEventSimple(gameEventSimpleId: $gameEventSimpleId) {
-      gameEventSimpleId
+  mutation deleteGameEventSimple($where: GameEventSimpleWhere) {
+    deleteGameEventSimples(where: $where) {
+      nodesDeleted
     }
   }
 `
+
+const PlayerNameFormat = props => {
+  const { name, jersey } = props
+
+  return (
+    <>
+      {jersey && <strong>({jersey})</strong>}&nbsp;
+      <span>{name}</span>
+    </>
+  )
+}
 
 const EventsTable = props => {
   const { gameData, gameSettings, players, teams } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const [openDeleteEventDialog, setOpenDeleteEventDialog] = React.useState(
-    false
-  )
+  const [openDeleteEventDialog, setOpenDeleteEventDialog] =
+    React.useState(false)
 
   const gameEventSimpleIdToDelete = React.useRef()
 
@@ -183,38 +193,32 @@ const EventsTable = props => {
   } = React.useContext(GameEventFormContext)
   const { data, error, loading, refetch } = useQuery(GET_GAME_EVENTS_SIMPLE, {
     variables: {
-      gameId: gameData?.gameId,
+      where: { game: { gameId: gameData?.gameId } },
     },
-    // skip: !!gameData?.gameId,
   })
 
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
     update(cache) {
       try {
-        console.log(
-          'gameEventSimpleIdToDelete.current:',
-          gameEventSimpleIdToDelete.current
-        )
         const queryResult = cache.readQuery({
           query: GET_GAME_EVENTS_SIMPLE,
           variables: {
-            gameId: gameData?.gameId,
+            where: { game: { gameId: gameData?.gameId } },
           },
         })
-        console.log('queryResult:', queryResult)
-        const updatedEvents = queryResult?.gameEventsSimple?.filter(
-          ges => ges?.gameEventSimpleId !== gameEventSimpleIdToDelete.current
-        )
-        console.log('updatedEvents:', updatedEvents)
+
+        const updatedEvents =
+          queryResult?.gameEventSimples?.filter(
+            ges => ges?.gameEventSimpleId !== gameEventSimpleIdToDelete.current
+          ) || []
         const updatedResult = {
-          gameEventsSimple: [...updatedEvents],
+          gameEventSimples: [...updatedEvents],
         }
-        console.log('updatedResult:', updatedResult)
         cache.writeQuery({
           query: GET_GAME_EVENTS_SIMPLE,
           data: updatedResult,
           variables: {
-            gameId: gameData?.gameId,
+            where: { game: { gameId: gameData?.gameId } },
           },
         })
       } catch (error) {
@@ -247,7 +251,7 @@ const EventsTable = props => {
       {
         field: 'period',
         headerName: 'Period',
-        width: 80,
+        width: 100,
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
@@ -310,61 +314,61 @@ const EventsTable = props => {
                     scoredBy:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.scoredBy?.player?.playerId
                       ) || null,
                     firstAssist:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.firstAssist?.player?.playerId
                       ) || null,
                     secondAssist:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.secondAssist?.player?.playerId
                       ) || null,
                     wonBy:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.wonBy?.player?.playerId
                       ) || null,
                     lostBy:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.lostBy?.player?.playerId
                       ) || null,
                     suffered:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.suffered?.player?.playerId
                       ) || null,
                     penalized:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.penalized?.player?.playerId
                       ) || null,
                     executedBy:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.executedBy?.player?.playerId
                       ) || null,
                     facedAgainst:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.facedAgainst?.player?.playerId
                       ) || null,
                     savedBy:
                       players?.find(
                         p =>
-                          p?.player?.playerId ===
+                          p?.node?.playerId ===
                           params.row?.savedBy?.player?.playerId
                       ) || null,
                   }
@@ -405,7 +409,7 @@ const EventsTable = props => {
       {
         field: 'remainingTime',
         headerName: 'Remaining Time',
-        width: 140,
+        width: 80,
         disableColumnMenu: true,
         resizable: false,
       },
@@ -438,44 +442,49 @@ const EventsTable = props => {
         field: 'eventType',
         headerName: 'Event',
         width: 120,
-        disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
       },
 
       {
         field: 'scoredBy',
         headerName: 'Scored by',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p =>
-                p?.player?.playerId === params.row?.scoredBy?.player?.playerId
+              p => p?.node?.playerId === params.row?.scoredBy?.player.playerId
             )?.jersey || null
-          return jersey && `${params?.row?.scoredBy?.player?.name} (${jersey})`
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.scoredBy?.player?.name}
+            />
+          )
         },
       },
 
       {
         field: 'firstAssist',
         headerName: 'First Assist',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
               p =>
-                p?.player?.playerId ===
-                params.row?.firstAssist?.player?.playerId
+                p?.node?.playerId === params.row?.firstAssist?.player.playerId
             )?.jersey || null
           return (
-            jersey && `${params?.row?.firstAssist?.player?.name} (${jersey})`
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.firstAssist?.player?.name}
+            />
           )
         },
       },
@@ -483,30 +492,77 @@ const EventsTable = props => {
       {
         field: 'secondAssist',
         headerName: 'Second Assist',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
               p =>
-                p?.player?.playerId ===
-                params.row?.secondAssist?.player?.playerId
+                p?.node?.playerId === params.row?.secondAssist?.player.playerId
             )?.jersey || null
           return (
-            jersey && `${params?.row?.secondAssist?.player?.name} (${jersey})`
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.secondAssist?.player?.name}
+            />
           )
         },
       },
       {
         field: 'goalType',
         headerName: 'Goal Type',
+        width: 200,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+      {
+        field: 'penalized',
+        headerName: 'Penalized',
+        width: 200,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+        renderCell: params => {
+          const jersey =
+            players?.find(
+              p => p?.node?.playerId === params.row?.penalized?.player.playerId
+            )?.jersey || null
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.penalized?.player?.name}
+            />
+          )
+        },
+      },
+      {
+        field: 'penaltyType',
+        headerName: 'Penalty Type',
         width: 180,
         disableColumnMenu: true,
         resizable: false,
         sortable: false,
       },
+      {
+        field: 'duration',
+        headerName: 'Duration',
+        width: 100,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+      {
+        field: 'penaltySubType',
+        headerName: 'Penalty SubType',
+        width: 180,
+        disableColumnMenu: true,
+        resizable: false,
+        sortable: false,
+      },
+
       {
         field: 'goalSubType',
         headerName: 'Goal subType',
@@ -534,124 +590,103 @@ const EventsTable = props => {
       {
         field: 'wonBy',
         headerName: 'Won By',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p => p?.player?.playerId === params.row?.wonBy?.player?.playerId
+              p => p?.node?.playerId === params.row?.wonBy?.player.playerId
             )?.jersey || null
-          return jersey && `${params?.row?.wonBy?.player?.name} (${jersey})`
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.wonBy?.player?.name}
+            />
+          )
         },
       },
       {
         field: 'lostBy',
         headerName: 'Lost By',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p => p?.player?.playerId === params.row?.lostBy?.player?.playerId
+              p => p?.node?.playerId === params.row?.lostBy?.player.playerId
             )?.jersey || null
-          return jersey && `${params?.row?.lostBy?.player?.name} (${jersey})`
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.lostBy?.player?.name}
+            />
+          )
         },
       },
-      {
-        field: 'penalized',
-        headerName: 'Penalized',
-        width: 180,
-        disableColumnMenu: true,
-        resizable: false,
-        sortable: false,
-        valueGetter: params => {
-          const jersey =
-            players?.find(
-              p =>
-                p?.player?.playerId === params.row?.penalized?.player?.playerId
-            )?.jersey || null
-          return jersey && `${params?.row?.penalized?.player?.name} (${jersey})`
-        },
-      },
-      {
-        field: 'penaltyType',
-        headerName: 'Penalty Type',
-        width: 180,
-        disableColumnMenu: true,
-        resizable: false,
-        sortable: false,
-      },
-      {
-        field: 'penaltySubType',
-        headerName: 'Penalty SubType',
-        width: 180,
-        disableColumnMenu: true,
-        resizable: false,
-        sortable: false,
-      },
-      {
-        field: 'duration',
-        headerName: 'Duration',
-        width: 100,
-        disableColumnMenu: true,
-        resizable: false,
-        sortable: false,
-      },
+
       {
         field: 'executedBy',
         headerName: 'Executed By',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p =>
-                p?.player?.playerId === params.row?.executedBy?.player?.playerId
+              p => p?.node?.playerId === params.row?.executedBy?.player.playerId
             )?.jersey || null
           return (
-            jersey && `${params?.row?.executedBy?.player?.name} (${jersey})`
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.executedBy?.player?.name}
+            />
           )
         },
       },
       {
         field: 'facedAgainst',
         headerName: 'Faced Against',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
               p =>
-                p?.player?.playerId ===
-                params.row?.facedAgainst?.player?.playerId
+                p?.node?.playerId === params.row?.facedAgainst?.player.playerId
             )?.jersey || null
           return (
-            jersey && `${params?.row?.facedAgainst?.player?.name} (${jersey})`
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.facedAgainst?.player?.name}
+            />
           )
         },
       },
       {
         field: 'suffered',
         headerName: 'Suffered',
-        width: 180,
+        width: 200,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p =>
-                p?.player?.playerId === params.row?.suffered?.player?.playerId
+              p => p?.node?.playerId === params.row?.suffered?.player.playerId
             )?.jersey || null
-          return jersey && `${params?.row?.suffered?.player?.name} (${jersey})`
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.suffered?.player?.name}
+            />
+          )
         },
       },
       {
@@ -667,14 +702,19 @@ const EventsTable = props => {
         headerName: 'Saved By',
         width: 180,
         disableColumnMenu: true,
-        resizable: false,
+        resizable: true,
         sortable: false,
-        valueGetter: params => {
+        renderCell: params => {
           const jersey =
             players?.find(
-              p => p?.player?.playerId === params.row?.savedBy?.player?.playerId
+              p => p?.node?.playerId === params.row?.savedBy?.player.playerId
             )?.jersey || null
-          return jersey && `${params?.row?.savedBy?.player?.name} (${jersey})`
+          return (
+            <PlayerNameFormat
+              jersey={jersey}
+              name={params?.row?.savedBy?.player?.name}
+            />
+          )
         },
       },
       {
@@ -709,7 +749,7 @@ const EventsTable = props => {
           <XGrid
             columns={columns}
             rows={setIdFromEntityId(
-              [...data?.gameEventsSimple].sort((x, y) => {
+              [...data?.gameEventSimples].sort((x, y) => {
                 const date1 = new Date(x.timestamp)
                 const date2 = new Date(y.timestamp)
                 return date2 - date1
@@ -718,7 +758,6 @@ const EventsTable = props => {
             )}
             loading={loading}
             density="compact"
-            disableColumnMenu
             disableColumnSelector
             disableSelectionOnClick
             disableMultipleSelection
@@ -756,7 +795,9 @@ const EventsTable = props => {
               setOpenDeleteEventDialog(false)
               deleteGameEventSimple({
                 variables: {
-                  gameEventSimpleId: gameEventSimpleIdToDelete.current,
+                  where: {
+                    gameEventSimpleId: gameEventSimpleIdToDelete.current,
+                  },
                 },
               })
             }}
@@ -767,10 +808,6 @@ const EventsTable = props => {
       </Dialog>
     </Paper>
   )
-}
-
-EventsTable.propTypes = {
-  gameData: PropTypes.object,
 }
 
 export { EventsTable }

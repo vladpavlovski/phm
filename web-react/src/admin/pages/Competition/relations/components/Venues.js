@@ -33,8 +33,8 @@ import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
 
 const GET_VENUES = gql`
-  query getVenues($competitionId: ID) {
-    competition: Competition(competitionId: $competitionId) {
+  query getVenues($where: CompetitionWhere) {
+    competition: competitions(where: $where) {
       competitionId
       name
       venues {
@@ -47,26 +47,43 @@ const GET_VENUES = gql`
   }
 `
 
-const REMOVE_TEAM_VENUE = gql`
-  mutation removeCompetitionVenue($competitionId: ID!, $venueId: ID!) {
-    competitionVenue: RemoveCompetitionVenues(
-      from: { competitionId: $competitionId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
+const UPDATE_VENUE = gql`
+  mutation updateVenue($where: VenueWhere, $update: VenueUpdateInput) {
+    updateVenues(where: $where, update: $update) {
+      venues {
         venueId
         name
+        nick
+        capacity
+        competitions {
+          competitionId
+          name
+        }
       }
     }
   }
 `
 
+// const REMOVE_TEAM_VENUE = gql`
+//   mutation removeCompetitionVenue($competitionId: ID!, $venueId: ID!) {
+//     competitionVenue: RemoveCompetitionVenues(
+//       from: { competitionId: $competitionId }
+//       to: { venueId: $venueId }
+//     ) {
+//       from {
+//         competitionId
+//       }
+//       to {
+//         venueId
+//         name
+//       }
+//     }
+//   }
+// `
+
 export const GET_ALL_VENUES = gql`
   query getVenues {
-    venues: Venue {
+    venues {
       venueId
       name
       nick
@@ -75,24 +92,24 @@ export const GET_ALL_VENUES = gql`
   }
 `
 
-const MERGE_TEAM_VENUE = gql`
-  mutation mergeCompetitionVenue($competitionId: ID!, $venueId: ID!) {
-    competitionVenue: MergeCompetitionVenues(
-      from: { competitionId: $competitionId }
-      to: { venueId: $venueId }
-    ) {
-      from {
-        competitionId
-      }
-      to {
-        venueId
-        name
-        nick
-        capacity
-      }
-    }
-  }
-`
+// const MERGE_TEAM_VENUE = gql`
+//   mutation mergeCompetitionVenue($competitionId: ID!, $venueId: ID!) {
+//     competitionVenue: MergeCompetitionVenues(
+//       from: { competitionId: $competitionId }
+//       to: { venueId: $venueId }
+//     ) {
+//       from {
+//         competitionId
+//       }
+//       to {
+//         venueId
+//         name
+//         nick
+//         capacity
+//       }
+//     }
+//   }
+// `
 
 const Venues = props => {
   const { competitionId } = props
@@ -100,6 +117,7 @@ const Venues = props => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
   const [openAddVenue, setOpenAddVenue] = useState(false)
+  const updateStatus = React.useRef()
 
   const handleCloseAddVenue = useCallback(() => {
     setOpenAddVenue(false)
@@ -118,110 +136,162 @@ const Venues = props => {
     },
   ] = useLazyQuery(GET_ALL_VENUES)
 
-  const [mergeCompetitionVenue] = useMutation(MERGE_TEAM_VENUE, {
-    update(cache, { data: { competitionVenue } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_VENUES,
-          variables: {
-            competitionId,
-          },
-        })
+  // const [mergeCompetitionVenue] = useMutation(MERGE_TEAM_VENUE, {
+  //   update(cache, { data: { competitionVenue } }) {
+  //     try {
+  //       const queryResult = cache.readQuery({
+  //         query: GET_VENUES,
+  //         variables: {
+  //           competitionId,
+  //         },
+  //       })
 
-        const existingVenues = queryResult.competition[0].venues
-        const newVenue = competitionVenue.to
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              venues: [newVenue, ...existingVenues],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_VENUES,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${competition.name} add to ${data.competitionVenue.to.name} venue!`,
+  //       const existingVenues = queryResult.competition[0].venues
+  //       const newVenue = competitionVenue.to
+  //       const updatedResult = {
+  //         competition: [
+  //           {
+  //             ...queryResult.competition[0],
+  //             venues: [newVenue, ...existingVenues],
+  //           },
+  //         ],
+  //       }
+  //       cache.writeQuery({
+  //         query: GET_VENUES,
+  //         data: updatedResult,
+  //         variables: {
+  //           competitionId,
+  //         },
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   },
+  //   onCompleted: data => {
+  //     enqueueSnackbar(
+  //       `${competition.name} add to ${data.competitionVenue.to.name} venue!`,
+  //       {
+  //         variant: 'success',
+  //       }
+  //     )
+  //   },
+  //   onError: error => {
+  //     enqueueSnackbar(`Error happened :( ${error}`, {
+  //       variant: 'error',
+  //     })
+  //     console.error(error)
+  //   },
+  // })
+
+  const competition = queryData?.competition?.[0]
+
+  const [updateVenue, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_VENUE,
+    {
+      update(
+        cache,
         {
-          variant: 'success',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
-
-  const competition =
-    queryData && queryData.competition && queryData.competition[0]
-
-  const [
-    removeCompetitionVenue,
-    { loading: mutationLoadingRemove },
-  ] = useMutation(REMOVE_TEAM_VENUE, {
-    update(cache, { data: { competitionVenue } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_VENUES,
-          variables: {
-            competitionId,
+          data: {
+            updateVenues: { venues },
           },
-        })
-
-        const updatedVenues = queryResult.competition[0].venues.filter(
-          p => p.venueId !== competitionVenue.to.venueId
-        )
-
-        const updatedResult = {
-          competition: [
-            {
-              ...queryResult.competition[0],
-              venues: updatedVenues,
+        }
+      ) {
+        try {
+          const queryResult = cache.readQuery({
+            query: GET_VENUES,
+            variables: {
+              where: { competitionId },
             },
-          ],
+          })
+
+          const updatedData =
+            updateStatus.current === 'disconnect'
+              ? queryResult?.competition?.[0]?.venues?.filter(
+                  p => p.venueId !== venues?.[0]?.venueId
+                )
+              : [...queryResult?.competition?.[0]?.venues, ...venues]
+
+          const updatedResult = {
+            competition: [
+              {
+                ...queryResult?.competition?.[0],
+                venues: updatedData,
+              },
+            ],
+          }
+          cache.writeQuery({
+            query: GET_VENUES,
+            data: updatedResult,
+            variables: {
+              where: { competitionId },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_VENUES,
-          data: updatedResult,
-          variables: {
-            competitionId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: data => {
-      enqueueSnackbar(
-        `${competition.name} remove from ${data.competitionVenue.to.name} venue`,
-        {
-          variant: 'info',
-        }
-      )
-    },
-    onError: error => {
-      enqueueSnackbar(`Error happened :( ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+      },
+      onCompleted: () => {
+        // getData()
+        updateStatus.current = null
+        enqueueSnackbar('Season updated!', { variant: 'success' })
+      },
+    }
+  )
+
+  // const [
+  //   removeCompetitionVenue,
+  //   { loading: mutationLoadingRemove },
+  // ] = useMutation(REMOVE_TEAM_VENUE, {
+  //   update(cache, { data: { competitionVenue } }) {
+  //     try {
+  //       const queryResult = cache.readQuery({
+  //         query: GET_VENUES,
+  //         variables: {
+  //           competitionId,
+  //         },
+  //       })
+
+  //       const updatedVenues = queryResult.competition[0].venues.filter(
+  //         p => p.venueId !== competitionVenue.to.venueId
+  //       )
+
+  //       const updatedResult = {
+  //         competition: [
+  //           {
+  //             ...queryResult.competition[0],
+  //             venues: updatedVenues,
+  //           },
+  //         ],
+  //       }
+  //       cache.writeQuery({
+  //         query: GET_VENUES,
+  //         data: updatedResult,
+  //         variables: {
+  //           competitionId,
+  //         },
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   },
+  //   onCompleted: data => {
+  //     enqueueSnackbar(
+  //       `${competition.name} remove from ${data.competitionVenue.to.name} venue`,
+  //       {
+  //         variant: 'info',
+  //       }
+  //     )
+  //   },
+  //   onError: error => {
+  //     enqueueSnackbar(`Error happened :( ${error}`, {
+  //       variant: 'error',
+  //     })
+  //   },
+  // })
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
-      getData({ variables: { competitionId } })
+      getData({ variables: { where: { competitionId } } })
     }
   }, [])
 
@@ -250,6 +320,7 @@ const Venues = props => {
         field: 'capacity',
         headerName: 'Capacity',
         width: 180,
+        valueGetter: params => params.row?.capacity?.low || '',
       },
 
       {
@@ -278,7 +349,7 @@ const Venues = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingRemove}
+              loading={mutationLoadingUpdate}
               size="small"
               startIcon={<LinkOffIcon />}
               dialogTitle={
@@ -288,12 +359,31 @@ const Venues = props => {
               dialogNegativeText={'No, keep in venue'}
               dialogPositiveText={'Yes, detach venue'}
               onDialogClosePositive={() => {
-                removeCompetitionVenue({
+                updateStatus.current = 'disconnect'
+                updateVenue({
                   variables: {
-                    competitionId,
-                    venueId: params.row.venueId,
+                    where: {
+                      venueId: params.row?.venueId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+                // removeCompetitionVenue({
+                //   variables: {
+                //     competitionId,
+                //     venueId: params.row.venueId,
+                //   },
+                // })
               }}
             />
           )
@@ -321,6 +411,7 @@ const Venues = props => {
         field: 'capacity',
         headerName: 'Capacity',
         width: 180,
+        valueGetter: params => params.row?.capacity?.low || '',
       },
       {
         field: 'venueId',
@@ -333,8 +424,10 @@ const Venues = props => {
               venueId={params.value}
               competitionId={competitionId}
               competition={competition}
-              merge={mergeCompetitionVenue}
-              remove={removeCompetitionVenue}
+              update={updateVenue}
+              updateStatus={updateStatus}
+              // merge={mergeCompetitionVenue}
+              // remove={removeCompetitionVenue}
             />
           )
         },
@@ -438,7 +531,7 @@ const Venues = props => {
 }
 
 const ToggleNewVenue = props => {
-  const { venueId, competitionId, competition, remove, merge } = props
+  const { venueId, competitionId, competition, update, updateStatus } = props
   const [isMember, setIsMember] = useState(
     !!competition.venues.find(p => p.venueId === venueId)
   )
@@ -450,18 +543,42 @@ const ToggleNewVenue = props => {
           checked={isMember}
           onChange={() => {
             isMember
-              ? remove({
+              ? update({
                   variables: {
-                    competitionId,
-                    venueId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      competitions: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
-              : merge({
+              : update({
                   variables: {
-                    competitionId,
-                    venueId,
+                    where: {
+                      venueId,
+                    },
+                    update: {
+                      competitions: {
+                        connect: {
+                          where: {
+                            node: { competitionId },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
+            updateStatus.current = isMember ? 'disconnect' : null
+
             setIsMember(!isMember)
           }}
           name="venueMember"
@@ -477,8 +594,7 @@ ToggleNewVenue.propTypes = {
   playerId: PropTypes.string,
   competitionId: PropTypes.string,
   competition: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
+  update: PropTypes.func,
 }
 
 Venues.propTypes = {

@@ -2,7 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
-import TextField from '@material-ui/core/TextField'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Table from '@material-ui/core/Table'
@@ -12,7 +11,7 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 
-import { PlayerSelect } from './components'
+import { PlayerSelect, RemainingTime } from './components'
 import GameEventFormContext from '../../context'
 
 const formInitialState = {
@@ -22,13 +21,16 @@ const formInitialState = {
 }
 
 const PenaltyShotForm = props => {
-  const { gameEventSettings, activeStep, players, playersRival } = props
-
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-  } = React.useContext(GameEventFormContext)
+    gameEventSettings,
+    activeStep,
+    players,
+    playersRival,
+    handleNextStep,
+  } = props
+
+  const { setNextButtonDisabled, gameEventData, setGameEventData } =
+    React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
@@ -52,29 +54,10 @@ const PenaltyShotForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <TextField
-            placeholder="Remaining time"
-            label="Remaining time"
-            name="Remaining time"
-            fullWidth
-            autoFocus
-            variant="standard"
-            value={gameEventData?.remainingTime}
-            onChange={e => {
-              setGameEventData(state => ({
-                ...state,
-                remainingTime: e.target.value,
-              }))
-            }}
-            required={!activeStepData.optional}
-            error={!gameEventData?.remainingTime}
-            helperText={
-              !gameEventData?.remainingTime &&
-              'Remaining time should be defined'
-            }
-            inputProps={{
-              autoComplete: 'off',
-            }}
+          <RemainingTime
+            gameEventData={gameEventData}
+            setGameEventData={setGameEventData}
+            activeStepData={activeStepData}
           />
         </Grid>
       )}
@@ -85,6 +68,8 @@ const PenaltyShotForm = props => {
             players={players}
             onClick={executedBy => {
               setGameEventData(state => ({ ...state, executedBy }))
+              setNextButtonDisabled(false)
+              handleNextStep()
             }}
             selected={gameEventData?.executedBy}
           />
@@ -96,6 +81,8 @@ const PenaltyShotForm = props => {
             players={playersRival}
             onClick={facedAgainst => {
               setGameEventData(state => ({ ...state, facedAgainst }))
+              setNextButtonDisabled(false)
+              handleNextStep()
             }}
             selected={gameEventData?.facedAgainst}
           />
