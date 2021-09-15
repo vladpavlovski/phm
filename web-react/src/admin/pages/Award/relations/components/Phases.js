@@ -3,15 +3,14 @@ import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Switch from '@mui/material/Switch'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
@@ -136,7 +135,7 @@ const Phases = props => {
           <>
             {/* {place for toolbar} */}
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 disableMultipleSelection
                 disableSelectionOnClick
                 columns={awardPhasesColumns}
@@ -194,30 +193,26 @@ const ToggleAward = props => {
   })
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? removeAwardPhase({
-                  variables: {
-                    awardId,
-                    phaseId,
-                  },
-                })
-              : mergeAwardPhase({
-                  variables: {
-                    awardId,
-                    phaseId,
-                  },
-                })
-            setIsMember(!isMember)
-          }}
-          name="phaseMember"
-          color="primary"
-        />
-      }
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? removeAwardPhase({
+              variables: {
+                awardId,
+                phaseId,
+              },
+            })
+          : mergeAwardPhase({
+              variables: {
+                awardId,
+                phaseId,
+              },
+            })
+        setIsMember(!isMember)
+      }}
+      name="phaseMember"
+      color="primary"
       label={isMember ? 'Award' : 'Not award'}
     />
   )

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Switch, Route, Router } from 'react-router-dom'
-import { ThemeProvider } from '@material-ui/core/styles'
-import CssBaseline from '@material-ui/core/CssBaseline'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
 
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
@@ -11,8 +11,8 @@ import objectSupport from 'dayjs/plugin/objectSupport'
 
 import 'react-imported-component/macro'
 import 'dayjs/locale/cs'
-import AdapterDayJs from '@material-ui/lab/AdapterDayjs'
-import LocalizationProvider from '@material-ui/lab/LocalizationProvider'
+import AdapterDayJs from '@mui/lab/AdapterDayjs'
+import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import Load from './utils/load'
 import { muiTheme, GlobalStyle } from './styles/global'
 

@@ -7,15 +7,15 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 
 import { LinkButton } from '../../../components/LinkButton'
-import Toolbar from '@material-ui/core/Toolbar'
-import PlayCircleIcon from '@material-ui/icons/PlayCircle'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import TextField from '@material-ui/core/TextField'
+import Toolbar from '@mui/material/Toolbar'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -511,12 +511,12 @@ const Game = () => {
                             />
                           )}
                           getOptionLabel={option => option.name}
-                          // isOptionEqualToValue={(option, value) =>
-                          //   option.venueId === value.venueId
-                          // }
-                          getOptionSelected={(option, value) =>
+                          isOptionEqualToValue={(option, value) =>
                             option.venueId === value.venueId
                           }
+                          // getOptionSelected={(option, value) =>
+                          //   option.venueId === value.venueId
+                          // }
                           onChange={(_, options) =>
                             setValue('gameVenue', options)
                           }

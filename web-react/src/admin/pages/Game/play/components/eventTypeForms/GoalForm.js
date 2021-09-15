@@ -2,16 +2,16 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
-import TextField from '@material-ui/core/TextField'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
+import TextField from '@mui/material/TextField'
+import Autocomplete from '@mui/material/Autocomplete'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
 import GameEventFormContext from '../../context'
@@ -126,10 +126,10 @@ const GoalForm = props => {
                 <TextField {...params} autoFocus label="Goal type" />
               )}
               getOptionLabel={option => option.name}
-              // isOptionEqualToValue={(option, value) =>
-              //   option.type === value.type
-              // }
-              getOptionSelected={(option, value) => option.type === value.type}
+              isOptionEqualToValue={(option, value) =>
+                option.type === value.type
+              }
+              // getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, goalType) => {
                 setGameEventData(state => ({ ...state, goalType }))
               }}
@@ -149,12 +149,12 @@ const GoalForm = props => {
                   <TextField {...params} label="Goal Sub type" />
                 )}
                 getOptionLabel={option => option.name}
-                // isOptionEqualToValue={(option, value) =>
-                //   option.type === value.type
-                // }
-                getOptionSelected={(option, value) =>
+                isOptionEqualToValue={(option, value) =>
                   option.type === value.type
                 }
+                // getOptionSelected={(option, value) =>
+                //   option.type === value.type
+                // }
                 onChange={(_, goalSubType) => {
                   setGameEventData(state => ({ ...state, goalSubType }))
                 }}
@@ -175,10 +175,10 @@ const GoalForm = props => {
                 <TextField {...params} autoFocus label="Shot type" />
               )}
               getOptionLabel={option => option.name}
-              // isOptionEqualToValue={(option, value) =>
-              //   option.type === value.type
-              // }
-              getOptionSelected={(option, value) => option.type === value.type}
+              isOptionEqualToValue={(option, value) =>
+                option.type === value.type
+              }
+              // getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, shotType) => {
                 setGameEventData(state => ({ ...state, shotType }))
               }}
@@ -199,12 +199,12 @@ const GoalForm = props => {
                   <TextField {...params} label="Shot Sub type" />
                 )}
                 getOptionLabel={option => option.name}
-                // isOptionEqualToValue={(option, value) =>
-                //   option.type === value.type
-                // }
-                getOptionSelected={(option, value) =>
+                isOptionEqualToValue={(option, value) =>
                   option.type === value.type
                 }
+                // getOptionSelected={(option, value) =>
+                //   option.type === value.type
+                // }
                 onChange={(_, shotSubType) => {
                   setGameEventData(state => ({ ...state, shotSubType }))
                 }}

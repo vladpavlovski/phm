@@ -2,18 +2,18 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AccountBox from '@material-ui/icons/AccountBox'
-import CreateIcon from '@material-ui/icons/Create'
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Tooltip from '@material-ui/core/Tooltip'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
-import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AccountBox from '@mui/icons-material/AccountBox'
+import CreateIcon from '@mui/icons-material/Create'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Tooltip from '@mui/material/Tooltip'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { getAdminOrgPlayerRoute } from '../../../../../../routes'
 import { LinkButton } from '../../../../../../components/LinkButton'
@@ -224,7 +224,7 @@ const Players = props => {
             </div>
           </Toolbar>
           <div style={{ height: 600 }} className={classes.xGridDialog}>
-            <XGrid
+            <DataGridPro
               columns={teamPlayersColumns}
               rows={setIdFromEntityId(team.players, 'playerId')}
               components={{

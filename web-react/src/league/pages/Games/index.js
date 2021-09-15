@@ -1,7 +1,7 @@
 import React from 'react'
-import Grid from '@material-ui/core/Grid'
+import Grid from '@mui/material/Grid'
 import { Helmet } from 'react-helmet'
-import XGrid from './XGrid'
+import XGridTable from './XGrid'
 import LayoutContext from '../../../context/layout'
 
 const View = () => {
@@ -18,7 +18,7 @@ const View = () => {
         <title>Games</title>
       </Helmet>
       <Grid item xs={12}>
-        <XGrid />
+        <XGridTable />
       </Grid>
     </Grid>
   )

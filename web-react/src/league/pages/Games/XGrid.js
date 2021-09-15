@@ -2,9 +2,9 @@ import React, { useMemo, useRef } from 'react'
 import { useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 
-import { Container, Grid, Paper } from '@material-ui/core'
-import Toolbar from '@material-ui/core/Toolbar'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../admin/pages/commonComponents/styled'
 import { Title } from '../../../components/Title'
 import { Error } from '../../../components/Error'
@@ -58,7 +58,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 density="compact"
                 columns={columns}
                 rows={setIdFromEntityId(data.games, 'gameId')}

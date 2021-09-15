@@ -1,12 +1,12 @@
 import React, { useMemo, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import Grid from '@material-ui/core/Grid'
-import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
-import AddIcon from '@material-ui/icons/Add'
-import { XGrid } from '@material-ui/x-grid'
-import DashboardIcon from '@material-ui/icons/Dashboard'
-import Tooltip from '@material-ui/core/Tooltip'
+import Grid from '@mui/material/Grid'
+import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { DataGridPro } from '@mui/x-data-grid-pro'
+import DashboardIcon from '@mui/icons-material/Dashboard'
+import Tooltip from '@mui/material/Tooltip'
 
 import OrganizationContext from '../../../../context/organization'
 import { useStyles } from '../../commonComponents/styled'
@@ -103,7 +103,7 @@ const Organizations = () => {
         {error && !loading && <Error message={error.message} />}
         {data && (
           <div style={{ height: 440 }} className={classes.xGridWrapper}>
-            <XGrid
+            <DataGridPro
               columns={columns}
               rows={setIdFromEntityId(data.organizations, 'organizationId')}
               loading={loading}

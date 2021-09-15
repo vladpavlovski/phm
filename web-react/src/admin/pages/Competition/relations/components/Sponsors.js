@@ -4,25 +4,25 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AddIcon from '@material-ui/icons/Add'
-import CreateIcon from '@material-ui/icons/Create'
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import AccountBox from '@material-ui/icons/AccountBox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AddIcon from '@mui/icons-material/Add'
+import CreateIcon from '@mui/icons-material/Create'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
+import AccountBox from '@mui/icons-material/AccountBox'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgSponsorRoute } from '../../../../../routes'
@@ -310,7 +310,7 @@ const Sponsors = props => {
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={competitionSponsorsColumns}
                 rows={setIdFromEntityId(competition.sponsors, 'sponsorId')}
                 loading={queryLoading}
@@ -341,7 +341,7 @@ const Sponsors = props => {
               <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${competition?.name}`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
+                  <DataGridPro
                     columns={allSponsorsColumns}
                     rows={setIdFromEntityId(
                       queryAllSponsorsData.sponsors,
@@ -378,53 +378,49 @@ const ToggleNewSponsor = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? update({
-                  variables: {
-                    where: {
-                      sponsorId,
-                    },
-                    update: {
-                      competitions: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              competitionId,
-                            },
-                          },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? update({
+              variables: {
+                where: {
+                  sponsorId,
+                },
+                update: {
+                  competitions: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          competitionId,
                         },
                       },
                     },
                   },
-                })
-              : update({
-                  variables: {
-                    where: {
-                      sponsorId,
-                    },
-                    update: {
-                      competitions: {
-                        connect: {
-                          where: {
-                            competitionId,
-                          },
-                        },
+                },
+              },
+            })
+          : update({
+              variables: {
+                where: {
+                  sponsorId,
+                },
+                update: {
+                  competitions: {
+                    connect: {
+                      where: {
+                        competitionId,
                       },
                     },
                   },
-                })
-            updateStatus.current = isMember ? 'disconnect' : null
-            setIsMember(!isMember)
-          }}
-          name="sponsorMember"
-          color="primary"
-        />
-      }
+                },
+              },
+            })
+        updateStatus.current = isMember ? 'disconnect' : null
+        setIsMember(!isMember)
+      }}
+      name="sponsorMember"
+      color="primary"
       label={isMember ? 'Member' : 'Not member'}
     />
   )

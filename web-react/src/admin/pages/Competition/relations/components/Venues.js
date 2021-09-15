@@ -4,25 +4,25 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AddIcon from '@material-ui/icons/Add'
-import CreateIcon from '@material-ui/icons/Create'
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import AccountBox from '@material-ui/icons/AccountBox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AddIcon from '@mui/icons-material/Add'
+import CreateIcon from '@mui/icons-material/Create'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
+import AccountBox from '@mui/icons-material/AccountBox'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgVenueRoute } from '../../../../../routes'
@@ -472,7 +472,7 @@ const Venues = props => {
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={competitionVenuesColumns}
                 rows={setIdFromEntityId(competition.venues, 'venueId')}
                 loading={queryLoading}
@@ -503,7 +503,7 @@ const Venues = props => {
             } to new venue`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <XGrid
+                <DataGridPro
                   columns={allVenuesColumns}
                   rows={setIdFromEntityId(queryAllVenuesData.venues, 'venueId')}
                   disableSelectionOnClick
@@ -537,54 +537,50 @@ const ToggleNewVenue = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? update({
-                  variables: {
-                    where: {
-                      venueId,
-                    },
-                    update: {
-                      competitions: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              competitionId,
-                            },
-                          },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? update({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  competitions: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          competitionId,
                         },
                       },
                     },
                   },
-                })
-              : update({
-                  variables: {
-                    where: {
-                      venueId,
-                    },
-                    update: {
-                      competitions: {
-                        connect: {
-                          where: {
-                            node: { competitionId },
-                          },
-                        },
+                },
+              },
+            })
+          : update({
+              variables: {
+                where: {
+                  venueId,
+                },
+                update: {
+                  competitions: {
+                    connect: {
+                      where: {
+                        node: { competitionId },
                       },
                     },
                   },
-                })
-            updateStatus.current = isMember ? 'disconnect' : null
+                },
+              },
+            })
+        updateStatus.current = isMember ? 'disconnect' : null
 
-            setIsMember(!isMember)
-          }}
-          name="venueMember"
-          color="primary"
-        />
-      }
+        setIsMember(!isMember)
+      }}
+      name="venueMember"
+      color="primary"
       label={isMember ? 'Member' : 'Not member'}
     />
   )

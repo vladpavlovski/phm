@@ -5,11 +5,11 @@ import Img from 'react-cool-img'
 import dayjs from 'dayjs'
 import createPersistedState from 'use-persisted-state'
 
-import { Container, Grid, Paper } from '@material-ui/core'
-import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
-import AddIcon from '@material-ui/icons/Add'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
@@ -24,8 +24,8 @@ import {
   formatTime,
 } from '../../../../utils'
 
-import Button from '@material-ui/core/Button'
-import ButtonGroup from '@material-ui/core/ButtonGroup'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
 
@@ -146,7 +146,7 @@ export const getColumns = organizationSlug => [
     headerName: 'Score',
     disableColumnMenu: true,
     resizable: false,
-    width: 70,
+    width: 100,
     renderCell: params => {
       const teamHost = params?.row?.teamsConnection?.edges?.find(
         t => t?.host
@@ -170,8 +170,10 @@ export const getColumns = organizationSlug => [
             fontFamily: 'Digital Numbers Regular',
           }}
         >
-          <div style={{ fontSize: '2rem' }}>
-            <span>{goalsHost}</span>:<span>{goalsGuest}</span>
+          <div style={{ fontSize: '1.8rem' }}>
+            <span>{goalsHost}</span>
+            <span style={{ fontSize: '1.4rem' }}>:</span>
+            <span>{goalsGuest}</span>
           </div>
         </div>
       )
@@ -536,7 +538,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 density="compact"
                 columns={getColumns(organizationSlug)}
                 rows={setIdFromEntityId(data.games, 'gameId')}

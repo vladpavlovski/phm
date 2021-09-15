@@ -4,25 +4,25 @@ import PropTypes from 'prop-types'
 
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AccountBox from '@material-ui/icons/AccountBox'
-import AddIcon from '@material-ui/icons/Add'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AccountBox from '@mui/icons-material/AccountBox'
+import AddIcon from '@mui/icons-material/Add'
 
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgSponsorRoute } from '../../../../../routes'
@@ -193,7 +193,7 @@ const Sponsors = props => {
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             columns={playerSponsorsColumns}
             rows={setIdFromEntityId(player.sponsors, 'sponsorId')}
             loading={queryAllPlayersLoading}
@@ -222,7 +222,7 @@ const Sponsors = props => {
               <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new sponsor`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
+                  <DataGridPro
                     columns={allSponsorsColumns}
                     rows={setIdFromEntityId(
                       queryAllPlayersData.sponsors,
@@ -259,52 +259,48 @@ const ToggleNewSponsor = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? updatePlayer({
-                  variables: {
-                    where: {
-                      playerId,
-                    },
-                    update: {
-                      sponsors: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              sponsorId,
-                            },
-                          },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? updatePlayer({
+              variables: {
+                where: {
+                  playerId,
+                },
+                update: {
+                  sponsors: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          sponsorId,
                         },
                       },
                     },
                   },
-                })
-              : updatePlayer({
-                  variables: {
-                    where: {
-                      playerId,
-                    },
-                    update: {
-                      sponsors: {
-                        connect: {
-                          where: {
-                            node: { sponsorId },
-                          },
-                        },
+                },
+              },
+            })
+          : updatePlayer({
+              variables: {
+                where: {
+                  playerId,
+                },
+                update: {
+                  sponsors: {
+                    connect: {
+                      where: {
+                        node: { sponsorId },
                       },
                     },
                   },
-                })
-            setIsMember(!isMember)
-          }}
-          name="sponsorMember"
-          color="primary"
-        />
-      }
+                },
+              },
+            })
+        setIsMember(!isMember)
+      }}
+      name="sponsorMember"
+      color="primary"
     />
   )
 }

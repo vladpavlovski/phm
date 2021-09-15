@@ -5,20 +5,20 @@ import dayjs from 'dayjs'
 import Img from 'react-cool-img'
 import { useSnackbar } from 'notistack'
 
-import EditIcon from '@material-ui/icons/Edit'
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
-import Tooltip from '@material-ui/core/Tooltip'
-import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
-import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import DialogTitle from '@material-ui/core/DialogTitle'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import Tooltip from '@mui/material/Tooltip'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 
-import { XGrid } from '@material-ui/x-grid'
+import { DataGridPro } from '@mui/x-data-grid-pro'
 
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
@@ -746,7 +746,7 @@ const EventsTable = props => {
       {error && !loading && <Error message={error.message} />}
       {data && (
         <div style={{ height: '60rem' }} className={classes.xGridWrapper}>
-          <XGrid
+          <DataGridPro
             columns={columns}
             rows={setIdFromEntityId(
               [...data?.gameEventSimples].sort((x, y) => {

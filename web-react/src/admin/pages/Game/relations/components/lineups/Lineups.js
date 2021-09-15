@@ -4,28 +4,28 @@ import { useParams } from 'react-router-dom'
 import { useSnackbar } from 'notistack'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
-import ButtonGroup from '@material-ui/core/ButtonGroup'
-import Button from '@material-ui/core/Button'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Toolbar from '@material-ui/core/Toolbar'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import AddIcon from '@material-ui/icons/Add'
-import AccountBox from '@material-ui/icons/AccountBox'
-import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline'
-import Tooltip from '@material-ui/core/Tooltip'
-import Typography from '@material-ui/core/Typography'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import HowToRegIcon from '@material-ui/icons/HowToReg'
-import ClearIcon from '@material-ui/icons/Clear'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Toolbar from '@mui/material/Toolbar'
+//
+import Switch from '@mui/material/Switch'
+import AddIcon from '@mui/icons-material/Add'
+import AccountBox from '@mui/icons-material/AccountBox'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import HowToRegIcon from '@mui/icons-material/HowToReg'
+import ClearIcon from '@mui/icons-material/Clear'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { LinkButton } from '../../../../../../components/LinkButton'
 import { Title } from '../../../../../../components/Title'
 import { Loader } from '../../../../../../components/Loader'
@@ -618,7 +618,7 @@ const LineupList = props => {
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             density="compact"
             columns={gameLineupColumns}
             rows={lineupPlayers}
@@ -653,7 +653,7 @@ const LineupList = props => {
                   </Typography>
                 </div>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
+                  <DataGridPro
                     density="compact"
                     columns={teamPlayersColumns}
                     rows={teamPlayers}
@@ -713,51 +713,45 @@ const TogglePlayerGame = props => {
   }, [])
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            updateGame({
-              variables: {
-                where: {
-                  gameId,
-                },
-                update: {
-                  players: {
-                    ...(isMember
-                      ? {
-                          disconnect: {
-                            where: {
-                              node: {
-                                playerId: player.playerId,
-                              },
-                            },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        updateGame({
+          variables: {
+            where: {
+              gameId,
+            },
+            update: {
+              players: {
+                ...(isMember
+                  ? {
+                      disconnect: {
+                        where: {
+                          node: {
+                            playerId: player.playerId,
                           },
-                        }
-                      : {
-                          connect: {
-                            where: {
-                              node: { playerId: player.playerId },
-                            },
-                            edge: {
-                              host,
-                              position,
-                              jersey,
-                            },
-                          },
-                        }),
-                  },
-                },
+                        },
+                      },
+                    }
+                  : {
+                      connect: {
+                        where: {
+                          node: { playerId: player.playerId },
+                        },
+                        edge: {
+                          host,
+                          position,
+                          jersey,
+                        },
+                      },
+                    }),
               },
-            })
+            },
+          },
+        })
 
-            setIsMember(!isMember)
-          }}
-          name="phaseMember"
-          color="primary"
-        />
-      }
+        setIsMember(!isMember)
+      }}
     />
   )
 }

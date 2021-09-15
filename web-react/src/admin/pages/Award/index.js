@@ -8,10 +8,8 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
-import Toolbar from '@material-ui/core/Toolbar'
+
+import { Container, Grid, Paper, Toolbar } from '@mui/material'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'

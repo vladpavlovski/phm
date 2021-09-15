@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
 
 const LinkButton = props => {
   const { icon, children, ...restProps } = props

@@ -4,25 +4,25 @@ import PropTypes from 'prop-types'
 
 // import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import GavelIcon from '@material-ui/icons/Gavel'
-import AddIcon from '@material-ui/icons/Add'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import GavelIcon from '@mui/icons-material/Gavel'
+import AddIcon from '@mui/icons-material/Add'
 
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 // import { getAdminOrgRulePackRoute } from '../../../../../routes'
@@ -195,7 +195,7 @@ const RulePack = props => {
           </div>
         </Toolbar>
         <div style={{ height: 110 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             columns={systemSettingsRulePackColumns}
             rows={setIdFromEntityId(
               systemSettings?.rulePack ? [systemSettings?.rulePack] : [],
@@ -227,7 +227,7 @@ const RulePack = props => {
               <DialogTitle id="alert-dialog-title">{`Add default rulePack to ${systemSettings?.name}`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <XGrid
+                  <DataGridPro
                     columns={allRulePackColumns}
                     rows={setIdFromEntityId(
                       queryAllSystemSettingsData.rulePacks,
@@ -266,53 +266,49 @@ const ToggleNewRulePack = props => {
 
   return (
     (!systemSettings?.rulePack || isMember) && (
-      <FormControlLabel
-        control={
-          <Switch
-            checked={isMember}
-            onChange={() => {
-              isMember
-                ? updateSystemSettings({
-                    variables: {
-                      where: {
-                        systemSettingsId,
-                      },
-                      update: {
-                        rulePack: {
-                          disconnect: {
-                            where: {
-                              node: {
-                                rulePackId,
-                              },
-                            },
+      <Switch
+        checked={isMember}
+        onChange={() => {
+          isMember
+            ? updateSystemSettings({
+                variables: {
+                  where: {
+                    systemSettingsId,
+                  },
+                  update: {
+                    rulePack: {
+                      disconnect: {
+                        where: {
+                          node: {
+                            rulePackId,
                           },
                         },
                       },
                     },
-                  })
-                : updateSystemSettings({
-                    variables: {
-                      where: {
-                        systemSettingsId,
-                      },
-                      update: {
-                        rulePack: {
-                          connect: {
-                            where: {
-                              node: { rulePackId },
-                            },
-                          },
+                  },
+                },
+              })
+            : updateSystemSettings({
+                variables: {
+                  where: {
+                    systemSettingsId,
+                  },
+                  update: {
+                    rulePack: {
+                      connect: {
+                        where: {
+                          node: { rulePackId },
                         },
                       },
                     },
-                  })
+                  },
+                },
+              })
 
-              setIsMember(!isMember)
-            }}
-            name="rulePackMember"
-            color="primary"
-          />
-        }
+          setIsMember(!isMember)
+        }}
+        name="rulePackMember"
+        color="primary"
         label={isMember ? 'Guided' : 'Not Guided'}
       />
     )

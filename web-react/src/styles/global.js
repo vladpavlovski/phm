@@ -1,5 +1,5 @@
 import { createGlobalStyle } from 'styled-components'
-import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles'
+import { createTheme, responsiveFontSizes } from '@mui/material/styles'
 
 export const GlobalStyle = createGlobalStyle`
   * {
@@ -11,9 +11,9 @@ export const GlobalStyle = createGlobalStyle`
     }
   }
 
-  html {
+  /* html {
     font-size: 62.5%;
-  }
+  } */
 
   div[role="tooltip"], div[role="presentation"] {
     z-index: 1350;
@@ -21,10 +21,10 @@ export const GlobalStyle = createGlobalStyle`
 
 `
 
-export const muiTheme = createMuiTheme({
-  typography: {
-    htmlFontSize: 10,
-  },
+export const muiTheme = createTheme({
+  // typography: {
+  //   htmlFontSize: 10,
+  // },
   popupIndicator: {
     padding: '2px',
   },

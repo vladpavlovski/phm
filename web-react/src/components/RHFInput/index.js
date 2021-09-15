@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import TextField from '@material-ui/core/TextField'
+import TextField from '@mui/material/TextField'
 
 const RHFInput = props => {
   const { control, name, defaultValue, error, ...restProps } = props

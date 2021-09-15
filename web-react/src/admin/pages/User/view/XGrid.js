@@ -1,9 +1,9 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Container, Grid, Paper } from '@material-ui/core'
-import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminUserRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
@@ -97,7 +97,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 columns={columns}
                 rows={setIdFromEntityId(data.users, 'userId')}
                 loading={loading}

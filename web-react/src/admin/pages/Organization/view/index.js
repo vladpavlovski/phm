@@ -1,10 +1,10 @@
 import React, { useContext, useEffect } from 'react'
 
-import { Grid } from '@material-ui/core'
+import { Grid } from '@mui/material'
 import { Helmet } from 'react-helmet'
 
 import LayoutContext from '../../../../context/layout'
-import XGrid from './XGrid'
+import XGridTable from './XGrid'
 
 const View = () => {
   const { setBarTitle } = useContext(LayoutContext)
@@ -22,7 +22,7 @@ const View = () => {
       </Helmet>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <XGrid />
+          <XGridTable />
         </Grid>
       </Grid>
     </>

@@ -9,11 +9,11 @@ import { useSnackbar } from 'notistack'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import Img from 'react-cool-img'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 
-import Toolbar from '@material-ui/core/Toolbar'
+import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'

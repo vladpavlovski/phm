@@ -8,9 +8,9 @@ import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { Container, Grid, Paper } from '@material-ui/core'
+import { Container, Grid, Paper } from '@mui/material'
 import Img from 'react-cool-img'
-import Toolbar from '@material-ui/core/Toolbar'
+import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'

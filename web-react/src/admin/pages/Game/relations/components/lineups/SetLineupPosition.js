@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 
-import TextField from '@material-ui/core/TextField'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import EditIcon from '@material-ui/icons/Edit'
-import Tooltip from '@material-ui/core/Tooltip'
+import TextField from '@mui/material/TextField'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
+import EditIcon from '@mui/icons-material/Edit'
+import Tooltip from '@mui/material/Tooltip'
 import { LinkButton } from '../../../../../../components/LinkButton'
-import ButtonBase from '@material-ui/core/ButtonBase'
+import ButtonBase from '@mui/material/ButtonBase'
 
 export const SetLineupPosition = props => {
   const { player, gameId, updateGame } = props
