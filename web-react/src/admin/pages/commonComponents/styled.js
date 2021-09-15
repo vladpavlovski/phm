@@ -47,12 +47,12 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
   gameTeamLogo: {
-    maxWidth: '30rem',
-    maxHeight: '25rem',
+    maxWidth: '20rem',
+    maxHeight: '20rem',
   },
   gamePlayTeamLogo: {
-    width: '15rem',
-    height: '15rem',
+    width: '10rem',
+    height: '10rem',
   },
 }))
 

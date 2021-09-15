@@ -7,7 +7,7 @@ import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import AccountBox from '@mui/icons-material/AccountBox'
+// import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
@@ -23,8 +23,8 @@ import Switch from '@mui/material/Switch'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminGroupRoute } from '../../../../../routes'
-import { LinkButton } from '../../../../../components/LinkButton'
+// import { getAdminGroupRoute } from '../../../../../routes'
+// import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
@@ -82,22 +82,22 @@ const Groups = props => {
         width: 200,
         valueGetter: params => params?.row?.competition?.name,
       },
-      {
-        field: 'groupId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<AccountBox />}
-              to={getAdminGroupRoute(params.value)}
-            >
-              Profile
-            </LinkButton>
-          )
-        },
-      },
+      // {
+      //   field: 'groupId',
+      //   headerName: 'Edit',
+      //   width: 120,
+      //   disableColumnMenu: true,
+      //   renderCell: params => {
+      //     return (
+      //       <LinkButton
+      //         startIcon={<AccountBox />}
+      //         to={getAdminGroupRoute(params.value)}
+      //       >
+      //         Profile
+      //       </LinkButton>
+      //     )
+      //   },
+      // },
       {
         field: 'removeButton',
         headerName: 'Remove',
