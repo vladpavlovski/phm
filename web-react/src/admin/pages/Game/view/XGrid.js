@@ -146,7 +146,7 @@ export const getColumns = organizationSlug => [
     headerName: 'Score',
     disableColumnMenu: true,
     resizable: false,
-    width: 70,
+    width: 130,
     renderCell: params => {
       const teamHost = params?.row?.teamsConnection?.edges?.find(
         t => t?.host
@@ -268,6 +268,9 @@ const XGridTable = () => {
         org: {
           urlSlug: organizationSlug,
         },
+      },
+      whereGameEvents: {
+        eventTypeCode: 'goal',
       },
     },
   })
