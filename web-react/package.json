@@ -18,6 +18,7 @@
     "classnames": "^2.3.1",
     "dayjs": "^1.10.4",
     "graphql": "^15.5.0",
+    "js-search": "^2.0.0",
     "lodash.debounce": "^4.0.8",
     "material-ui-dropzone": "^3.5.0",
     "notistack": "1.0.6-alpha.0",

@@ -9,21 +9,22 @@ import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { XGrid } from '@material-ui/x-grid'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
+import { useWindowSize, useDebounce } from '../../../../utils/hooks'
 import { Loader } from '../../../../components/Loader'
+import { QuickSearchToolbar } from '../../../../components/QuickSearchToolbar'
 import {
   setIdFromEntityId,
   getXGridHeight,
   formatDate,
   formatTime,
 } from '../../../../utils'
-
+import * as JsSearch from 'js-search'
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
 
@@ -85,7 +86,7 @@ export const getColumns = organizationSlug => [
   {
     field: 'gameId',
     headerName: 'Edit',
-    width: 120,
+    width: 140,
     disableColumnMenu: true,
     renderCell: params => {
       return (
@@ -101,16 +102,17 @@ export const getColumns = organizationSlug => [
   {
     field: 'startDate',
     headerName: 'Date',
-    width: 220,
+    width: 160,
     disableColumnMenu: true,
     valueGetter: params => params?.row?.startDate,
-    valueFormatter: params => formatDate(params?.value, 'dddd, MMMM D, YYYY'),
+    valueFormatter: params => formatDate(params?.value, 'dddd, DD.MM.YYYY'),
   },
   {
     field: 'startTime',
     headerName: 'Time',
-    width: 100,
+    width: 70,
     disableColumnMenu: true,
+    sortable: false,
     valueGetter: params => params?.row?.startTime,
     valueFormatter: params => {
       return typeof params?.value === 'string' ? formatTime(params?.value) : ''
@@ -119,25 +121,32 @@ export const getColumns = organizationSlug => [
   {
     field: 'venue',
     headerName: 'Venue',
-    width: 200,
+    width: 130,
     valueGetter: params => params?.row?.venue?.name,
   },
   {
     field: 'hostTeam',
     headerName: 'Host team',
-    width: 200,
+    width: 230,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(t => t?.host)?.node
 
       return (
-        <>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            width: '100%',
+            alignItems: 'center',
+          }}
+        >
+          <span>{team?.name}</span>
           <Img
             src={team?.logo}
-            style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
+            style={{ width: '4rem', height: '4rem', marginLeft: '1rem' }}
             alt={team?.name}
           />
-          <span>{team?.name}</span>
-        </>
+        </div>
       )
     },
   },
@@ -166,6 +175,7 @@ export const getColumns = organizationSlug => [
       return (
         <div
           style={{
+            width: '100%',
             textAlign: 'center',
             fontFamily: 'Digital Numbers Regular',
           }}
@@ -180,21 +190,28 @@ export const getColumns = organizationSlug => [
   {
     field: 'guestTeam',
     headerName: 'Guest team',
-    width: 200,
+    width: 230,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(
         t => !t?.host
       )?.node
 
       return (
-        <>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            width: '100%',
+            alignItems: 'center',
+          }}
+        >
           <Img
             src={team?.logo}
             style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
             alt={team?.name}
           />
           <span>{team?.name}</span>
-        </>
+        </div>
       )
     },
   },
@@ -253,6 +270,22 @@ export const getColumns = organizationSlug => [
     width: 250,
   },
 ]
+const searchGames = new JsSearch.Search('name')
+searchGames.addIndex('description')
+searchGames.addIndex('info')
+searchGames.addIndex('foreignId')
+searchGames.addIndex(['group', 'name'])
+searchGames.addIndex(['group', 'competition', 'name'])
+searchGames.addIndex(['phase', 'name'])
+searchGames.addIndex(['phase', 'competition', 'name'])
+searchGames.addIndex('referee')
+searchGames.addIndex('startDate')
+searchGames.addIndex('startTime')
+searchGames.addIndex('timekeeper')
+searchGames.addIndex('type')
+searchGames.addIndex(['venue', 'name'])
+searchGames.addIndex('hostTeamName')
+searchGames.addIndex('guestTeamName')
 
 const XGridTable = () => {
   const classes = useStyles()
@@ -303,186 +336,37 @@ const XGridTable = () => {
 
   const data = gamesView === 'all' ? dataGamesAll : dataGamesToday
 
-  // const columns = useMemo(
-  //   () => [
-  //     {
-  //       field: 'gameId',
-  //       headerName: 'Edit',
-  //       width: 120,
-  //       disableColumnMenu: true,
-  //       renderCell: params => {
-  //         return (
-  //           <LinkButton
-  //             startIcon={<EditIcon />}
-  //             to={getAdminOrgGameRoute(organizationSlug, params.value)}
-  //           >
-  //             Edit
-  //           </LinkButton>
-  //         )
-  //       },
-  //     },
-  //     {
-  //       field: 'startDate',
-  //       headerName: 'Date',
-  //       width: 220,
-  //       disableColumnMenu: true,
-  //       valueGetter: params => params?.row?.startDate,
-  //       valueFormatter: params =>
-  //         formatDate(params?.value, 'dddd, MMMM D, YYYY'),
-  //     },
-  //     {
-  //       field: 'startTime',
-  //       headerName: 'Time',
-  //       width: 100,
-  //       disableColumnMenu: true,
-  //       valueGetter: params => params?.row?.startTime,
-  //       valueFormatter: params => {
-  //         return typeof params?.value === 'string'
-  //           ? formatTime(params?.value)
-  //           : ''
-  //       },
-  //     },
-  //     {
-  //       field: 'venue',
-  //       headerName: 'Venue',
-  //       width: 200,
-  //       valueGetter: params => params?.row?.venue?.name,
-  //     },
-  //     {
-  //       field: 'hostTeam',
-  //       headerName: 'Host team',
-  //       width: 200,
-  //       renderCell: params => {
-  //         const team = params?.row?.teamsConnection?.edges?.find(
-  //           t => t?.host
-  //         )?.node
+  const gameData = React.useMemo(() => {
+    const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
+      g => {
+        const hostTeamName = g.teamsConnection?.edges?.find(e => e.host)?.node
+          ?.name
+        const guestTeamName = g.teamsConnection?.edges?.find(e => !e.host)?.node
+          ?.name
+        return { ...g, hostTeamName, guestTeamName }
+      }
+    )
 
-  //         return (
-  //           <>
-  //             <Img
-  //               src={team?.logo}
-  //               style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
-  //               alt={team?.name}
-  //             />
-  //             <span>{team?.name}</span>
-  //           </>
-  //         )
-  //       },
-  //     },
-  //     {
-  //       field: 'score',
-  //       headerName: 'Score',
-  //       disableColumnMenu: true,
-  //       resizable: false,
-  //       width: 70,
-  //       renderCell: params => {
-  //         const teamHost = params?.row?.teamsConnection?.edges?.find(
-  //           t => t?.host
-  //         )?.node
+    searchGames.addDocuments(preparedData)
+    return preparedData
+  }, [data])
 
-  //         const teamGuest = params?.row?.teamsConnection?.edges?.find(
-  //           t => !t?.host
-  //         )?.node
+  const [searchText, setSearchText] = React.useState('')
+  const [searchData, setSearchData] = React.useState([])
+  const debouncedSearch = useDebounce(searchText, 500)
 
-  //         const goalsHost = params?.row?.gameEventsSimple?.filter(
-  //           ges => ges?.team?.teamId === teamHost?.teamId
-  //         )?.length
-  //         const goalsGuest = params?.row?.gameEventsSimple?.filter(
-  //           ges => ges?.team?.teamId === teamGuest?.teamId
-  //         )?.length
+  const requestSearch = React.useCallback(searchValue => {
+    setSearchText(searchValue)
+  }, [])
 
-  //         return (
-  //           <div
-  //             style={{
-  //               textAlign: 'center',
-  //               fontFamily: 'Digital Numbers Regular',
-  //             }}
-  //           >
-  //             <div style={{ fontSize: '2rem' }}>
-  //               <span>{goalsHost}</span>:<span>{goalsGuest}</span>
-  //             </div>
-  //           </div>
-  //         )
-  //       },
-  //     },
-  //     {
-  //       field: 'guestTeam',
-  //       headerName: 'Guest team',
-  //       width: 200,
-  //       renderCell: params => {
-  //         const team = params?.row?.teamsConnection?.edges?.find(
-  //           t => !t?.host
-  //         )?.node
+  React.useEffect(() => {
+    const filteredRows = searchGames.search(debouncedSearch)
+    setSearchData(debouncedSearch === '' ? gameData : filteredRows)
+  }, [debouncedSearch, gameData])
 
-  //         return (
-  //           <>
-  //             <Img
-  //               src={team?.logo}
-  //               style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
-  //               alt={team?.name}
-  //             />
-  //             <span>{team?.name}</span>
-  //           </>
-  //         )
-  //       },
-  //     },
-  //     {
-  //       field: 'timekeeper',
-  //       headerName: 'Timekeeper',
-  //       width: 200,
-  //     },
-  //     {
-  //       field: 'referee',
-  //       headerName: 'Referee',
-  //       width: 200,
-  //     },
-  //     {
-  //       field: 'phase',
-  //       headerName: 'Phase',
-  //       width: 120,
-  //       valueGetter: params => params?.row?.phase?.name,
-  //     },
-  //     {
-  //       field: 'group',
-  //       headerName: 'Group',
-  //       width: 120,
-  //       valueGetter: params => params?.row?.group?.name,
-  //     },
-  //     {
-  //       field: 'competition',
-  //       headerName: 'Competition',
-  //       width: 200,
-  //       valueGetter: params => {
-  //         const phaseCompetition = params?.row?.phase?.competition?.name
-  //         const groupCompetition = params?.row?.group?.competition?.name
-  //         return phaseCompetition || groupCompetition
-  //       },
-  //     },
-  //     {
-  //       field: 'name',
-  //       headerName: 'Name',
-  //       width: 150,
-  //       hide: true,
-  //     },
-  //     {
-  //       field: 'foreignId',
-  //       headerName: 'Foreign Id',
-  //       width: 150,
-  //       hide: true,
-  //     },
-  //     {
-  //       field: 'description',
-  //       headerName: 'Description',
-  //       width: 250,
-  //     },
-  //     {
-  //       field: 'info',
-  //       headerName: 'Info',
-  //       width: 250,
-  //     },
-  //   ],
-  //   [organizationSlug]
-  // )
+  React.useEffect(() => {
+    gameData && setSearchData(gameData)
+  }, [gameData])
 
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
@@ -501,7 +385,6 @@ const XGridTable = () => {
                   <Button
                     variant={gamesView === 'all' ? 'contained' : 'outlined'}
                     onClick={() => {
-                      console.log('all')
                       setGamesView('all')
                     }}
                   >
@@ -511,7 +394,6 @@ const XGridTable = () => {
                     variant={gamesView === 'today' ? 'contained' : 'outlined'}
                     onClick={() => {
                       setGamesView('today')
-                      console.log('today')
                     }}
                   >
                     Today
@@ -542,10 +424,17 @@ const XGridTable = () => {
               <XGrid
                 density="compact"
                 columns={getColumns(organizationSlug)}
-                rows={setIdFromEntityId(data.games, 'gameId')}
+                rows={searchData}
                 loading={loadingGamesAll || loadingGamesToday}
                 components={{
-                  Toolbar: GridToolbar,
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: event => requestSearch(event.target.value),
+                    clearSearch: () => requestSearch(''),
+                  },
                 }}
                 sortModel={[
                   {

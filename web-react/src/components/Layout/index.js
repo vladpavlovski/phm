@@ -91,7 +91,7 @@ const Layout = props => {
         </>
       )}
       <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
+        {withAppBar && <div className={classes.appBarSpacer} />}
         <>
           {children}
           <Box pt={0}>
