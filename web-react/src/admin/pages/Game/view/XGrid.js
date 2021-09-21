@@ -9,13 +9,13 @@ import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from '../../../../routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
+import { useWindowSize, useDebounce } from '../../../../utils/hooks'
 import { Loader } from '../../../../components/Loader'
 import {
   setIdFromEntityId,
@@ -24,8 +24,12 @@ import {
   formatTime,
 } from '../../../../utils'
 
+import { QuickSearchToolbar } from '../../../../components/QuickSearchToolbar'
+
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
+
+import * as JsSearch from 'js-search'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
 
@@ -101,16 +105,17 @@ export const getColumns = organizationSlug => [
   {
     field: 'startDate',
     headerName: 'Date',
-    width: 220,
+    width: 150,
     disableColumnMenu: true,
     valueGetter: params => params?.row?.startDate,
-    valueFormatter: params => formatDate(params?.value, 'dddd, MMMM D, YYYY'),
+    valueFormatter: params => formatDate(params?.value, 'dddd, DD.MM.YYYY'),
   },
   {
     field: 'startTime',
     headerName: 'Time',
-    width: 100,
+    width: 70,
     disableColumnMenu: true,
+    sortable: false,
     valueGetter: params => params?.row?.startTime,
     valueFormatter: params => {
       return typeof params?.value === 'string' ? formatTime(params?.value) : ''
@@ -119,25 +124,32 @@ export const getColumns = organizationSlug => [
   {
     field: 'venue',
     headerName: 'Venue',
-    width: 200,
+    width: 150,
     valueGetter: params => params?.row?.venue?.name,
   },
   {
     field: 'hostTeam',
     headerName: 'Host team',
-    width: 200,
+    width: 230,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(t => t?.host)?.node
 
       return (
-        <>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            width: '100%',
+            alignItems: 'center',
+          }}
+        >
+          <span>{team?.name}</span>
           <Img
             src={team?.logo}
-            style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
+            style={{ width: '4rem', height: '4rem', marginLeft: '1rem' }}
             alt={team?.name}
           />
-          <span>{team?.name}</span>
-        </>
+        </div>
       )
     },
   },
@@ -166,11 +178,12 @@ export const getColumns = organizationSlug => [
       return (
         <div
           style={{
+            width: '100%',
             textAlign: 'center',
             fontFamily: 'Digital Numbers Regular',
           }}
         >
-          <div style={{ fontSize: '2rem' }}>
+          <div style={{ fontSize: '1.8rem' }}>
             <span>{goalsHost}</span>:<span>{goalsGuest}</span>
           </div>
         </div>
@@ -180,21 +193,28 @@ export const getColumns = organizationSlug => [
   {
     field: 'guestTeam',
     headerName: 'Guest team',
-    width: 200,
+    width: 230,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(
         t => !t?.host
       )?.node
 
       return (
-        <>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            width: '100%',
+            alignItems: 'center',
+          }}
+        >
           <Img
             src={team?.logo}
             style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
             alt={team?.name}
           />
           <span>{team?.name}</span>
-        </>
+        </div>
       )
     },
   },
@@ -253,6 +273,22 @@ export const getColumns = organizationSlug => [
     width: 250,
   },
 ]
+const searchGames = new JsSearch.Search('name')
+searchGames.addIndex('description')
+searchGames.addIndex('info')
+searchGames.addIndex('foreignId')
+searchGames.addIndex(['group', 'name'])
+searchGames.addIndex(['group', 'competition', 'name'])
+searchGames.addIndex(['phase', 'name'])
+searchGames.addIndex(['phase', 'competition', 'name'])
+searchGames.addIndex('referee')
+searchGames.addIndex('startDate')
+searchGames.addIndex('startTime')
+searchGames.addIndex('timekeeper')
+searchGames.addIndex('type')
+searchGames.addIndex(['venue', 'name'])
+searchGames.addIndex('hostTeamName')
+searchGames.addIndex('guestTeamName')
 
 const XGridTable = () => {
   const classes = useStyles()
@@ -303,6 +339,38 @@ const XGridTable = () => {
 
   const data = gamesView === 'all' ? dataGamesAll : dataGamesToday
 
+  const gameData = React.useMemo(() => {
+    const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
+      g => {
+        const hostTeamName = g.teamsConnection?.edges?.find(e => e.host)?.node
+          ?.name
+        const guestTeamName = g.teamsConnection?.edges?.find(e => !e.host)?.node
+          ?.name
+        return { ...g, hostTeamName, guestTeamName }
+      }
+    )
+
+    searchGames.addDocuments(preparedData)
+    return preparedData
+  }, [data])
+
+  const [searchText, setSearchText] = React.useState('')
+  const [searchData, setSearchData] = React.useState([])
+  const debouncedSearch = useDebounce(searchText, 500)
+
+  const requestSearch = React.useCallback(searchValue => {
+    setSearchText(searchValue)
+  }, [])
+
+  React.useEffect(() => {
+    const filteredRows = searchGames.search(debouncedSearch)
+    setSearchData(debouncedSearch === '' ? gameData : filteredRows)
+  }, [debouncedSearch, gameData])
+
+  React.useEffect(() => {
+    gameData && setSearchData(gameData)
+  }, [gameData])
+
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
 
@@ -320,7 +388,6 @@ const XGridTable = () => {
                   <Button
                     variant={gamesView === 'all' ? 'contained' : 'outlined'}
                     onClick={() => {
-                      console.log('all')
                       setGamesView('all')
                     }}
                   >
@@ -330,7 +397,6 @@ const XGridTable = () => {
                     variant={gamesView === 'today' ? 'contained' : 'outlined'}
                     onClick={() => {
                       setGamesView('today')
-                      console.log('today')
                     }}
                   >
                     Today
@@ -361,10 +427,17 @@ const XGridTable = () => {
               <DataGridPro
                 density="compact"
                 columns={getColumns(organizationSlug)}
-                rows={setIdFromEntityId(data.games, 'gameId')}
+                rows={searchData}
                 loading={loadingGamesAll || loadingGamesToday}
                 components={{
-                  Toolbar: GridToolbar,
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: event => requestSearch(event.target.value),
+                    clearSearch: () => requestSearch(''),
+                  },
                 }}
                 sortModel={[
                   {

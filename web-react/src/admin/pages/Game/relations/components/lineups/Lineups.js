@@ -23,7 +23,10 @@ import Typography from '@mui/material/Typography'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import HowToRegIcon from '@mui/icons-material/HowToReg'
-import ClearIcon from '@mui/icons-material/Clear'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import AddReactionIcon from '@mui/icons-material/AddReaction'
+import BalconyIcon from '@mui/icons-material/Balcony'
+import IconButton from '@mui/material/IconButton'
 
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { LinkButton } from '../../../../../../components/LinkButton'
@@ -157,9 +160,14 @@ const LineupList = props => {
         player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
           ?.name || ''
 
+      const firstJersey = player?.jerseys?.filter(
+        p => p.team?.teamId === team?.teamId
+      )?.[0]
+
       const jersey =
-        player?.jerseys?.filter(p => p.team?.teamId === team?.teamId)?.[0]
-          ?.number?.low || ''
+        typeof firstJersey?.number === 'object'
+          ? firstJersey?.number?.low
+          : firstJersey?.number || null
       return {
         where: {
           node: { playerId: player.playerId },
@@ -169,6 +177,7 @@ const LineupList = props => {
           position,
           jersey,
           captain: false,
+          goalkeeper: false,
         },
       }
     })
@@ -191,53 +200,50 @@ const LineupList = props => {
     setPlayerDialog(false)
   }, [])
 
-  const [updateGame, { loading: loadingUpdateGameTeam }] = useMutation(
-    UPDATE_GAME,
-    {
-      update(cache, { data: { updateGame } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_GAME,
-            variables: {
-              where: { gameId },
-            },
-          })
-          const updatedData = updateGame?.games?.find(
-            g => g.gameId === gameId
-          )?.playersConnection
+  const [updateGame] = useMutation(UPDATE_GAME, {
+    update(cache, { data: { updateGame } }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GAME,
+          variables: {
+            where: { gameId },
+          },
+        })
+        const updatedData = updateGame?.games?.find(
+          g => g.gameId === gameId
+        )?.playersConnection
 
-          const updatedResult = {
-            games: [
-              {
-                ...queryResult.games?.find(g => g.gameId === gameId),
-                playersConnection: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GAME,
-            data: updatedResult,
-            variables: {
-              where: { gameId },
+        const updatedResult = {
+          games: [
+            {
+              ...queryResult.games?.find(g => g.gameId === gameId),
+              playersConnection: updatedData,
             },
-          })
-        } catch (error) {
-          console.error(error)
+          ],
         }
-      },
-      onCompleted: () => {
-        enqueueSnackbar(`Game updated`, {
-          variant: 'success',
+        cache.writeQuery({
+          query: GET_GAME,
+          data: updatedResult,
+          variables: {
+            where: { gameId },
+          },
         })
-      },
-      onError: error => {
-        enqueueSnackbar(`${error}`, {
-          variant: 'error',
-        })
+      } catch (error) {
         console.error(error)
-      },
-    }
-  )
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar(`Game updated`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
 
   const lineupPlayers = useMemo(
     () => setXGridForRelation(players, 'playerId', 'node'),
@@ -314,16 +320,67 @@ const LineupList = props => {
     [gameId, host, team, lineupPlayers]
   )
 
+  const setCaptain = React.useCallback(({ playerId, captain }) => {
+    updateGame({
+      variables: {
+        where: {
+          gameId,
+        },
+        update: {
+          players: {
+            where: {
+              node: {
+                playerId,
+              },
+            },
+            update: {
+              edge: {
+                captain,
+              },
+            },
+          },
+        },
+      },
+    })
+  }, [])
+
+  const setGoalkeeper = React.useCallback(({ playerId, goalkeeper }) => {
+    updateGame({
+      variables: {
+        where: {
+          gameId,
+        },
+        update: {
+          players: {
+            where: {
+              node: {
+                playerId,
+              },
+            },
+            update: {
+              edge: {
+                goalkeeper,
+              },
+            },
+          },
+        },
+      },
+    })
+  }, [])
+
   const gameLineupColumns = useMemo(
     () => [
       {
         field: 'actions',
         headerName: 'Actions',
-        width: 100,
+        width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           const isCaptain = !!params?.row?.captain
           const teamHasCaptain = !!lineupPlayers.find(p => p.captain)
+          const isGoalkeeper = !!params?.row?.goalkeeper
+          const teamHasGoalkeeper = !!lineupPlayers.find(p => p.goalkeeper)
+
           return (
             <>
               <LinkButton
@@ -370,69 +427,70 @@ const LineupList = props => {
                   })
                 }}
               />
-              {!teamHasCaptain && (
-                <LinkButton
+              {!teamHasCaptain ? (
+                <IconButton
                   onClick={() => {
-                    updateGame({
-                      variables: {
-                        where: {
-                          gameId,
-                        },
-                        update: {
-                          players: {
-                            where: {
-                              node: {
-                                playerId: params.row.playerId,
-                              },
-                            },
-                            update: {
-                              edge: {
-                                captain: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    })
+                    setCaptain({ playerId: params.row.playerId, captain: true })
                   }}
                   icon
                 >
                   <Tooltip arrow title="Set Captain" placement="top">
                     <HowToRegIcon />
                   </Tooltip>
-                </LinkButton>
+                </IconButton>
+              ) : (
+                !isCaptain && (
+                  <span
+                    style={{
+                      padding: '1.25rem',
+                    }}
+                  />
+                )
               )}
               {isCaptain && (
-                <LinkButton
+                <IconButton
                   onClick={() => {
-                    updateGame({
-                      variables: {
-                        where: {
-                          gameId,
-                        },
-                        update: {
-                          players: {
-                            where: {
-                              node: {
-                                playerId: params.row.playerId,
-                              },
-                            },
-                            update: {
-                              edge: {
-                                captain: false,
-                              },
-                            },
-                          },
-                        },
-                      },
+                    setCaptain({
+                      playerId: params.row.playerId,
+                      captain: false,
                     })
                   }}
                   icon
                 >
                   <Tooltip arrow title="Remove Captain" placement="top">
-                    <ClearIcon />
+                    <VerifiedUserIcon />
                   </Tooltip>
-                </LinkButton>
+                </IconButton>
+              )}
+              {!teamHasGoalkeeper && (
+                <IconButton
+                  onClick={() => {
+                    setGoalkeeper({
+                      playerId: params.row.playerId,
+                      goalkeeper: true,
+                    })
+                  }}
+                  icon
+                >
+                  <Tooltip arrow title="Set Goalkeeper" placement="top">
+                    <AddReactionIcon />
+                  </Tooltip>
+                </IconButton>
+              )}
+              {isGoalkeeper && (
+                <IconButton
+                  onClick={() => {
+                    setGoalkeeper({
+                      playerId: params.row.playerId,
+                      goalkeeper: false,
+                    })
+                  }}
+                  icon
+                >
+                  <Tooltip arrow title="Remove Goalkeeper" placement="top">
+                    <BalconyIcon />
+                  </Tooltip>
+                </IconButton>
               )}
             </>
           )
@@ -555,7 +613,7 @@ const LineupList = props => {
                 <ButtonDialog
                   text={'Remove Players'}
                   textLoading={'Removing...'}
-                  loading={loadingUpdateGameTeam}
+                  // loading={loadingUpdateGameTeam}
                   size="small"
                   startIcon={<RemoveCircleOutlineIcon />}
                   dialogTitle={'Do you want to remove all players from lineup?'}

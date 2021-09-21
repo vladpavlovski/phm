@@ -73,6 +73,7 @@ export const GET_GAME = gql`
           jersey
           position
           captain
+          goalkeeper
           node {
             avatar
             playerId
@@ -94,6 +95,13 @@ export const GET_GAME = gql`
         venueId
         name
       }
+      gameResult {
+        gameResultId
+      }
+    }
+    venues {
+      venueId
+      name
     }
   }
 `
@@ -138,6 +146,8 @@ export const UPDATE_GAME = gql`
             host
             jersey
             position
+            captain
+            goalkeeper
             node {
               avatar
               playerId
@@ -174,9 +184,30 @@ const Game = () => {
   } = useQuery(GET_GAME, {
     variables: { where: { gameId } },
     skip: gameId === 'new',
+    onCompleted: data => {
+      // create GameResult entity for already exists Game
+      if (!data?.games?.[0]?.gameResult) {
+        updateGame({
+          variables: {
+            where: {
+              gameId,
+            },
+            update: {
+              gameResult: {
+                create: {
+                  node: {},
+                },
+              },
+            },
+          },
+        })
+      }
+    },
   })
 
-  const { data: venuesData } = useQuery(GET_ALL_VENUES)
+  const { data: venuesData } = useQuery(GET_ALL_VENUES, {
+    skip: gameId !== 'new',
+  })
 
   const [
     createGame,
@@ -257,6 +288,13 @@ const Game = () => {
               },
             },
           },
+          ...(gameId === 'new' && {
+            gameResult: {
+              create: {
+                node: {},
+              },
+            },
+          }),
           ...(gameVenue && {
             venue: {
               ...(gameId !== 'new' && {
@@ -498,7 +536,9 @@ const Game = () => {
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <Autocomplete
                           id="combo-box-game-venue"
-                          options={venuesData?.venues || []}
+                          options={
+                            queryData?.venues || venuesData?.venues || []
+                          }
                           // value={gameData?.venue}
                           defaultValue={gameData?.venue}
                           renderInput={params => (
@@ -529,7 +569,7 @@ const Game = () => {
                   <Paper className={classes.paper}>
                     <Toolbar disableGutters className={classes.toolbarForm}>
                       <div>
-                        <Title>{'Result'}</Title>
+                        <Title>{'Play'}</Title>
                       </div>
                     </Toolbar>
                     <Grid container spacing={2}>
@@ -548,6 +588,13 @@ const Game = () => {
                         >
                           Play
                         </LinkButton>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Toolbar disableGutters className={classes.toolbarForm}>
+                          <div>
+                            <Title>{'Game Status'}</Title>
+                          </div>
+                        </Toolbar>
                       </Grid>
                     </Grid>
                   </Paper>

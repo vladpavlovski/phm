@@ -749,7 +749,13 @@ const EventsTable = props => {
           <DataGridPro
             columns={columns}
             rows={setIdFromEntityId(
-              [...data?.gameEventSimples].sort((x, y) => {
+              [
+                ...data?.gameEventSimples.filter(
+                  ges =>
+                    ges?.eventTypeCode !== 'save' &&
+                    ges?.eventTypeCode !== 'faceOff'
+                ),
+              ].sort((x, y) => {
                 const date1 = new Date(x.timestamp)
                 const date2 = new Date(y.timestamp)
                 return date2 - date1

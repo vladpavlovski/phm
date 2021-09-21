@@ -25,6 +25,7 @@ import { GET_GAME_EVENTS_SIMPLE } from './components/EventsTable'
 import { Periods, GameEventWizard, EventsTable } from './components'
 
 import GameEventFormContext from './context'
+import Finalization from './components/Finalization'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
@@ -79,6 +80,40 @@ export const GET_GAME_PLAY = gql`
         eventType
         team {
           teamId
+        }
+      }
+      gameResult {
+        gameResultId
+        periodActive
+        gameStartedAt
+        gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostPenaltyShots
+        guestPenaltyShots
+        hostInjuries
+        guestInjuries
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
+        periodStatistics {
+          periodStatisticId
+          period
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
         }
       }
     }
@@ -146,6 +181,12 @@ export const GET_GAME_PLAY = gql`
           name
           priority
         }
+        resultPoints {
+          resultPointId
+          name
+          code
+          points
+        }
       }
     }
   }
@@ -169,7 +210,6 @@ const Play = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_GAME_PLAY, {
-    fetchPolicy: 'network-only',
     variables: {
       whereGame: { gameId },
       whereSystemSettings: { systemSettingsId: 'system-settings' },
@@ -369,6 +409,12 @@ const Play = () => {
               <Grid container>
                 <Grid item xs={12}>
                   <Periods gameSettings={gameSettings} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Finalization
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
                 </Grid>
               </Grid>
             </Paper>
