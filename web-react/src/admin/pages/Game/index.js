@@ -20,27 +20,27 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { useStyles } from '../commonComponents/styled'
 
-import { LinkButton } from '../../../components/LinkButton'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFTimepicker } from '../../../components/RHFTimepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { Title } from '../../../components/Title'
+import { LinkButton } from 'components/LinkButton'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFTimepicker } from 'components/RHFTimepicker'
+import { RHFInput } from 'components/RHFInput'
+import { Title } from 'components/Title'
 
 import { GameStatus } from './components/GameStatus'
 import { GameReport } from './components/GameReport'
-import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
+import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
 import { schema } from './schema'
 
 import {
   getAdminOrgGamesRoute,
   getAdminOrgGameRoute,
   getAdminOrgGamePlayRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
+} from 'router/routes'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
 
 import { Relations } from './relations'
-import OrganizationContext from '../../../context/organization'
+import OrganizationContext from 'context/organization'
 
 export const GET_GAME = gql`
   query getGame($where: GameWhere) {
