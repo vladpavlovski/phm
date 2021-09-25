@@ -1,6 +1,6 @@
 import React, { useMemo, forwardRef, useContext } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import * as ROUTES from '../../routes'
+import * as ROUTES from '../../router/routes'
 import createPersistedState from 'use-persisted-state'
 
 import Zoom from '@mui/material/Zoom'

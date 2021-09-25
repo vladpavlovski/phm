@@ -23,7 +23,7 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { getAdminUserRoute } from '../../../routes'
+import { getAdminUserRoute } from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'

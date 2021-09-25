@@ -14,7 +14,7 @@ import { useStyles } from '../../commonComponents/styled'
 import { Title } from '../../../../components/Title'
 import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
-import { getAdminOrgGameRoute } from '../../../../routes'
+import { getAdminOrgGameRoute } from '../../../../router/routes'
 
 import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
@@ -372,7 +372,7 @@ const Play = () => {
                   flexWrap: 'wrap',
                 }}
               >
-                <div>
+                <div style={{ display: 'grid' }}>
                   <GameEventWizard
                     host={true}
                     team={teamHost}
@@ -384,7 +384,7 @@ const Play = () => {
                   />
                 </div>
                 <div></div>
-                <div>
+                <div style={{ display: 'grid' }}>
                   <GameEventWizard
                     host={false}
                     team={teamGuest}

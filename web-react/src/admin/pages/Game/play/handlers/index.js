@@ -1,4 +1,4 @@
-const getFieldName = ({ type, host }) => {
+export const getFieldName = ({ type, host }) => {
   const prefix = host ? 'host' : 'guest'
 
   switch (type) {

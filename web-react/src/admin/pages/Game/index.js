@@ -11,7 +11,6 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 
-import { LinkButton } from '../../../components/LinkButton'
 import Toolbar from '@mui/material/Toolbar'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import Autocomplete from '@mui/material/Autocomplete'
@@ -19,21 +18,24 @@ import TextField from '@mui/material/TextField'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { useStyles } from '../commonComponents/styled'
 
+import { LinkButton } from '../../../components/LinkButton'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
 import { RHFTimepicker } from '../../../components/RHFTimepicker'
-
 import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
-import { useStyles } from '../commonComponents/styled'
+
+import { GameStatus } from './components/GameStatus'
+import { GameReport } from './components/GameReport'
+import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
 import { schema } from './schema'
 
 import {
   getAdminOrgGamesRoute,
   getAdminOrgGameRoute,
   getAdminOrgGamePlayRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -95,8 +97,60 @@ export const GET_GAME = gql`
         venueId
         name
       }
+      gameEventsSimple {
+        gameEventSimpleId
+        timestamp
+        period
+        remainingTime
+        eventType
+        eventTypeCode
+        goalType
+        goalSubType
+        shotType
+        shotSubType
+        penaltyType
+        penaltySubType
+        duration
+        injuryType
+        team {
+          teamId
+          nick
+          logo
+        }
+      }
       gameResult {
         gameResultId
+        periodActive
+        gameStartedAt
+        gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostPenaltyShots
+        guestPenaltyShots
+        hostInjuries
+        guestInjuries
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
+        periodStatistics {
+          periodStatisticId
+          period
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
+        }
       }
     }
     venues {
@@ -130,6 +184,18 @@ export const UPDATE_GAME = gql`
     updateGame: updateGames(where: $where, update: $update) {
       games {
         gameId
+        name
+        type
+        info
+        foreignId
+        description
+        timekeeper
+        referee
+        status
+        photos
+        report
+        paymentHost
+        paymentGuest
         teamsConnection {
           edges {
             host
@@ -155,6 +221,73 @@ export const UPDATE_GAME = gql`
               firstName
               lastName
             }
+          }
+        }
+        startDate
+        endDate
+        startTime
+        endTime
+        event {
+          eventId
+          name
+        }
+        venue {
+          venueId
+          name
+        }
+        gameEventsSimple {
+          gameEventSimpleId
+          timestamp
+          period
+          remainingTime
+          eventType
+          eventTypeCode
+          goalType
+          goalSubType
+          shotType
+          shotSubType
+          penaltyType
+          penaltySubType
+          duration
+          injuryType
+          team {
+            teamId
+            nick
+            logo
+          }
+        }
+        gameResult {
+          gameResultId
+          periodActive
+          gameStartedAt
+          gameStatus
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
+          periodStatistics {
+            periodStatisticId
+            period
+            hostGoals
+            guestGoals
+            hostPenalties
+            guestPenalties
+            hostPenaltyShots
+            guestPenaltyShots
+            hostInjuries
+            guestInjuries
+            hostSaves
+            guestSaves
+            hostFaceOffs
+            guestFaceOffs
           }
         }
       }
@@ -231,6 +364,27 @@ const Game = () => {
     updateGame,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
   ] = useMutation(UPDATE_GAME, {
+    update(cache, { data }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GAME,
+          variables: {
+            where: { gameId },
+          },
+        })
+
+        cache.writeQuery({
+          query: GET_GAME,
+          data: {
+            games: data?.updateGame?.games,
+            venues: queryResult?.venues,
+          },
+          variables: { where: { gameId } },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
     onCompleted: () => {
       enqueueSnackbar('Game updated!', { variant: 'success' })
     },
@@ -590,11 +744,13 @@ const Game = () => {
                         </LinkButton>
                       </Grid>
                       <Grid item xs={12}>
-                        <Toolbar disableGutters className={classes.toolbarForm}>
-                          <div>
-                            <Title>{'Game Status'}</Title>
-                          </div>
-                        </Toolbar>
+                        <GameStatus
+                          gameData={gameData}
+                          updateGame={updateGame}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <GameReport gameId={gameData?.gameId} />
                       </Grid>
                     </Grid>
                   </Paper>

@@ -24,7 +24,7 @@ import Switch from '@mui/material/Switch'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgRulePackRoute } from '../../../../../routes'
+import { getAdminOrgRulePackRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'

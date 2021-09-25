@@ -34,7 +34,7 @@ import { Title } from '../../../../../../components/Title'
 import { Loader } from '../../../../../../components/Loader'
 import { Error } from '../../../../../../components/Error'
 import { QuickSearchToolbar } from '../../../../../../components/QuickSearchToolbar'
-import { getAdminOrgPlayerRoute } from '../../../../../../routes'
+import { getAdminOrgPlayerRoute } from '../../../../../../router/routes'
 import {
   setIdFromEntityId,
   escapeRegExp,
@@ -432,7 +432,6 @@ const LineupList = props => {
                   onClick={() => {
                     setCaptain({ playerId: params.row.playerId, captain: true })
                   }}
-                  icon
                 >
                   <Tooltip arrow title="Set Captain" placement="top">
                     <HowToRegIcon />
@@ -455,7 +454,6 @@ const LineupList = props => {
                       captain: false,
                     })
                   }}
-                  icon
                 >
                   <Tooltip arrow title="Remove Captain" placement="top">
                     <VerifiedUserIcon />
@@ -470,7 +468,6 @@ const LineupList = props => {
                       goalkeeper: true,
                     })
                   }}
-                  icon
                 >
                   <Tooltip arrow title="Set Goalkeeper" placement="top">
                     <AddReactionIcon />
@@ -485,7 +482,6 @@ const LineupList = props => {
                       goalkeeper: false,
                     })
                   }}
-                  icon
                 >
                   <Tooltip arrow title="Remove Goalkeeper" placement="top">
                     <BalconyIcon />

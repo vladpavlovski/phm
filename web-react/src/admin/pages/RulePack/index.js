@@ -24,7 +24,7 @@ import { isValidUuid } from '../../../utils'
 import {
   getAdminOrgRulePacksRoute,
   getAdminOrgRulePackRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 

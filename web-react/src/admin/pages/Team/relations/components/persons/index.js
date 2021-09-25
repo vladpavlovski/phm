@@ -16,7 +16,7 @@ import LinkOffIcon from '@mui/icons-material/LinkOff'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPersonRoute } from '../../../../../../routes'
+import { getAdminOrgPersonRoute } from '../../../../../../router/routes'
 import { LinkButton } from '../../../../../../components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'

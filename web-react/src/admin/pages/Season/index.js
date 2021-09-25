@@ -26,7 +26,7 @@ import { schema } from './schema'
 import {
   getAdminOrgSeasonsRoute,
   getAdminOrgSeasonRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 

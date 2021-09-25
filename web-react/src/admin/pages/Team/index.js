@@ -24,7 +24,10 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { getAdminOrgTeamsRoute, getAdminOrgTeamRoute } from '../../../routes'
+import {
+  getAdminOrgTeamsRoute,
+  getAdminOrgTeamRoute,
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'

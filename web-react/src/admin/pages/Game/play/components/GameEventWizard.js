@@ -15,6 +15,7 @@ import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import Typography from '@mui/material/Typography'
+import Divider from '@mui/material/Divider'
 import { v4 as uuidv4 } from 'uuid'
 import dayjs from 'dayjs'
 
@@ -293,7 +294,6 @@ const GameEventWizard = props => {
     setOpenGameEventDialog(false)
     handleReset()
   }, [])
-
   return (
     <>
       <ButtonGroup
@@ -354,7 +354,18 @@ const GameEventWizard = props => {
           {`FaceOff`}
         </Button>
       </ButtonGroup>
-
+      <Divider sx={{ margin: '1rem 0' }} />
+      <Typography variant="subtitle2" gutterBottom component="div">
+        {`Saves: ${gameData?.gameResult?.[host ? 'hostSaves' : 'guestSaves']}`}
+        &nbsp;|&nbsp;
+        {`FaceOffs: ${
+          gameData?.gameResult?.[host ? 'hostFaceOffs' : 'guestFaceOffs']
+        }`}
+        &nbsp;|&nbsp;
+        {`Penalties: ${
+          gameData?.gameResult?.[host ? 'hostPenalties' : 'guestPenalties']
+        }`}
+      </Typography>
       <Dialog
         fullWidth
         disableEscapeKeyDown

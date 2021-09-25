@@ -33,7 +33,7 @@ import { Relations } from './relations'
 import {
   getAdminOrgPlayersRoute,
   getAdminOrgPlayerRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'

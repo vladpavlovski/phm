@@ -13,7 +13,7 @@ import { useStyles } from '../../commonComponents/styled'
 import {
   getAdminOrganizationRoute,
   getAdminOrganizationDashboardRoute,
-} from '../../../../routes'
+} from '../../../../router/routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'

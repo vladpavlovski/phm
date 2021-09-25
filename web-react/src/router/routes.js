@@ -49,6 +49,7 @@ export const ADMIN_ORG_GAME = '/admin/game/:organizationSlug/:gameId'
 export const ADMIN_ORG_GAME_PLAY = '/admin/game/:organizationSlug/:gameId/play'
 
 export const WEB_LEAGUE_GAMES = '/web/league/:organizationSlug/games'
+export const WEB_LEAGUE_GAME_REPORT = '/web/league/gameReport/:gameId'
 
 export const getAdminOrgPlayersRoute = organizationSlug =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
@@ -132,3 +133,6 @@ export const getAdminOrgGamePlayRoute = (organizationSlug, gameId) =>
 
 export const getLeagueOrgGamesRoute = organizationSlug =>
   generatePath(WEB_LEAGUE_GAMES, { organizationSlug })
+
+export const getLeagueOrgGameReportRoute = gameId =>
+  generatePath(WEB_LEAGUE_GAME_REPORT, { gameId })

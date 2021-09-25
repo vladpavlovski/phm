@@ -11,7 +11,7 @@ import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgGameRoute } from '../../../../routes'
+import { getAdminOrgGameRoute } from '../../../../router/routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -80,6 +80,9 @@ export const GET_GAMES = gql`
         team {
           teamId
         }
+      }
+      gameResult {
+        gameStatus
       }
     }
   }
@@ -217,6 +220,12 @@ export const getColumns = organizationSlug => [
         </div>
       )
     },
+  },
+  {
+    field: 'gameStatus',
+    headerName: 'Status',
+    width: 100,
+    valueGetter: params => params?.row?.gameResult?.gameStatus || '',
   },
   {
     field: 'timekeeper',

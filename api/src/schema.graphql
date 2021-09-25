@@ -1631,7 +1631,7 @@ type GameResult {
   gameResultId: ID! @id
   periodActive: String
   gameStartedAt: DateTime
-  gameStatus: String @default(value: "Not started")
+  gameStatus: String @default(value: "Not played")
   hostGoals: Int @default(value: 0)
   guestGoals: Int @default(value: 0)
   hostPenalties: Int @default(value: 0)

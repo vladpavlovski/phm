@@ -26,7 +26,7 @@ import OrganizationContext from '../../../context/organization'
 import {
   getAdminOrgCompetitionsRoute,
   getAdminOrgCompetitionRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'

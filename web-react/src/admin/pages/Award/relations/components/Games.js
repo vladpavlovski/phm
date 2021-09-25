@@ -13,7 +13,7 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import Switch from '@mui/material/Switch'
 
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { getAdminOrgGameRoute } from '../../../../../routes'
+import { getAdminOrgGameRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'

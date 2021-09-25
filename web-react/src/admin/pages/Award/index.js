@@ -21,7 +21,10 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { getAdminOrgAwardsRoute, getAdminOrgAwardRoute } from '../../../routes'
+import {
+  getAdminOrgAwardsRoute,
+  getAdminOrgAwardRoute,
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 

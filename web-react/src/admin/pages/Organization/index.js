@@ -25,12 +25,15 @@ import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import { ADMIN_ORGANIZATIONS, getAdminOrganizationRoute } from '../../../routes'
+import {
+  ADMIN_ORGANIZATIONS,
+  getAdminOrganizationRoute,
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
-import * as ROUTES from '../../../routes'
+import * as ROUTES from '../../../router/routes'
 import OrganizationContext from '../../../context/organization'
 
 export const GET_ORGANIZATION = gql`

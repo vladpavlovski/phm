@@ -3,11 +3,9 @@ import { useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 
 import { Container, Grid } from '@mui/material'
-// import Toolbar from '@mui/material/Toolbar'
 import * as JsSearch from 'js-search'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../admin/pages/commonComponents/styled'
-// import { Title } from '../../../components/Title'
 import { Error } from '../../../components/Error'
 import { useWindowSize, useDebounce } from '../../../utils/hooks'
 import { Loader } from '../../../components/Loader'
@@ -94,14 +92,6 @@ const XGridTable = () => {
     <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          {/* <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
-              <div>
-                <Title>{'Games'}</Title>
-              </div>
-              <div></div>
-            </Toolbar>
-          </Paper> */}
           {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
