@@ -719,42 +719,44 @@ const Game = () => {
                     </Grid>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper className={classes.paper}>
-                    <Toolbar disableGutters className={classes.toolbarForm}>
-                      <div>
-                        <Title>{'Play'}</Title>
-                      </div>
-                    </Toolbar>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <LinkButton
-                          to={getAdminOrgGamePlayRoute(
-                            organizationSlug,
-                            gameId
-                          )}
-                          fullWidth
-                          size="medium"
-                          target="_blank"
-                          variant={'outlined'}
-                          className={classes.submit}
-                          startIcon={<PlayCircleIcon />}
-                        >
-                          Play
-                        </LinkButton>
+                {gameData?.gameId && (
+                  <Grid item xs={12} sm={4}>
+                    <Paper className={classes.paper}>
+                      <Toolbar disableGutters className={classes.toolbarForm}>
+                        <div>
+                          <Title>{'Play'}</Title>
+                        </div>
+                      </Toolbar>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <LinkButton
+                            to={getAdminOrgGamePlayRoute(
+                              organizationSlug,
+                              gameId
+                            )}
+                            fullWidth
+                            size="medium"
+                            target="_blank"
+                            variant={'outlined'}
+                            className={classes.submit}
+                            startIcon={<PlayCircleIcon />}
+                          >
+                            Play
+                          </LinkButton>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameStatus
+                            gameData={gameData}
+                            updateGame={updateGame}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameReport gameId={gameData?.gameId} />
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12}>
-                        <GameStatus
-                          gameData={gameData}
-                          updateGame={updateGame}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <GameReport gameId={gameData?.gameId} />
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                </Grid>
+                    </Paper>
+                  </Grid>
+                )}
               </Grid>
             </form>
             {isValidUuid(gameId) && (
