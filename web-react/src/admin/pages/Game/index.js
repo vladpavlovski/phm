@@ -120,6 +120,9 @@ export const GET_GAME = gql`
       }
       gameResult {
         gameResultId
+        hostWin
+        guestWin
+        draw
         periodActive
         gameStartedAt
         gameStatus
@@ -258,6 +261,9 @@ export const UPDATE_GAME = gql`
         }
         gameResult {
           gameResultId
+          hostWin
+          guestWin
+          draw
           periodActive
           gameStartedAt
           gameStatus

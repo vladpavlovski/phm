@@ -127,3 +127,5 @@ export const sortByPriority = (a, b) => {
   }
   return 0
 }
+
+export const copyToClipboard = text => navigator.clipboard.writeText(text)
