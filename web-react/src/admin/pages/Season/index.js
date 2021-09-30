@@ -217,21 +217,19 @@ const Season = () => {
           ...rest,
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
+          org: {
+            connect: {
+              where: {
+                node: { urlSlug: organizationSlug },
+              },
+            },
+          },
         }
 
         seasonId === 'new'
           ? createSeason({
               variables: {
-                input: {
-                  ...dataToSubmit,
-                  org: {
-                    connect: {
-                      where: {
-                        node: { urlSlug: organizationSlug },
-                      },
-                    },
-                  },
-                },
+                input: dataToSubmit,
               },
             })
           : updateSeason({

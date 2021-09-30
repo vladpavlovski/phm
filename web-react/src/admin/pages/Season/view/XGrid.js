@@ -24,6 +24,9 @@ const GET_SEASONS = gql`
       startDate
       endDate
       nick
+      org {
+        name
+      }
     }
   }
 `
@@ -37,6 +40,22 @@ const XGridTable = () => {
   // org: { urlSlug: organizationSlug }
   const columns = useMemo(
     () => [
+      {
+        field: 'seasonId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',
@@ -70,19 +89,11 @@ const XGridTable = () => {
         },
       },
       {
-        field: 'seasonId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
+        field: 'org',
+        headerName: 'Organization',
+        width: 250,
+        valueGetter: params => {
+          return params.row?.org?.name
         },
       },
     ],

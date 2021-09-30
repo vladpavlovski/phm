@@ -49,11 +49,17 @@ const AdminGameView = Load(() => import('../admin/pages/Game/view'))
 const AdminGamePlay = Load(() => import('../admin/pages/Game/play'))
 const WebLeagueGames = Load(() => import('../league/pages/Games'))
 const WebLeagueGameReport = Load(() => import('../league/pages/GameReport'))
+const WebLeaguePlayers = Load(() => import('../league/pages/Players'))
 
 const RouteSwitcher = () => {
   return (
     <Switch>
       <Route path={ROUTES.WEB_LEAGUE_GAMES} exact component={WebLeagueGames} />
+      <Route
+        path={ROUTES.WEB_LEAGUE_PLAYERS}
+        exact
+        component={WebLeaguePlayers}
+      />
       <Route
         path={ROUTES.WEB_LEAGUE_GAME_REPORT}
         exact

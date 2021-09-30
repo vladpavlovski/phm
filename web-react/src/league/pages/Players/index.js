@@ -5,9 +5,9 @@ import XGridTable from './XGrid'
 
 const View = () => {
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={2}>
       <Helmet>
-        <title>Games</title>
+        <title>Players</title>
       </Helmet>
       <Grid item xs={12}>
         <XGridTable />
