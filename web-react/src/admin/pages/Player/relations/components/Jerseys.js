@@ -2,25 +2,25 @@ import React, { useCallback, useState, useMemo } from 'react'
 
 import PropTypes from 'prop-types'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import AddIcon from '@material-ui/icons/Add'
+import AddIcon from '@mui/icons-material/Add'
 
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
@@ -175,7 +175,7 @@ const Jerseys = props => {
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             columns={playerJerseysColumns}
             rows={setIdFromEntityId(player.jerseys, 'jerseyId')}
             components={{
@@ -195,7 +195,7 @@ const Jerseys = props => {
         <DialogTitle id="alert-dialog-title">{`Assign new jersey to${player?.name}`}</DialogTitle>
         <DialogContent>
           <div style={{ height: 600 }} className={classes.xGridDialog}>
-            <XGrid
+            <DataGridPro
               columns={allJerseysColumns}
               rows={setIdFromEntityId(
                 composeJerseys(player.teams),
@@ -245,52 +245,48 @@ const ToggleNewJersey = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? updatePlayer({
-                  variables: {
-                    where: {
-                      playerId,
-                    },
-                    update: {
-                      jerseys: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              jerseyId,
-                            },
-                          },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? updatePlayer({
+              variables: {
+                where: {
+                  playerId,
+                },
+                update: {
+                  jerseys: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          jerseyId,
                         },
                       },
                     },
                   },
-                })
-              : updatePlayer({
-                  variables: {
-                    where: {
-                      playerId,
-                    },
-                    update: {
-                      jerseys: {
-                        connect: {
-                          where: {
-                            node: { jerseyId },
-                          },
-                        },
+                },
+              },
+            })
+          : updatePlayer({
+              variables: {
+                where: {
+                  playerId,
+                },
+                update: {
+                  jerseys: {
+                    connect: {
+                      where: {
+                        node: { jerseyId },
                       },
                     },
                   },
-                })
-            setIsMember(!isMember)
-          }}
-          name="jerseyMember"
-          color="primary"
-        />
-      }
+                },
+              },
+            })
+        setIsMember(!isMember)
+      }}
+      name="jerseyMember"
+      color="primary"
     />
   )
 }

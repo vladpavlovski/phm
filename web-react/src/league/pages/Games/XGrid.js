@@ -2,33 +2,16 @@ import React, { useMemo, useRef } from 'react'
 import { useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 
-import { Container, Grid } from '@material-ui/core'
-import { XGrid } from '@material-ui/x-grid'
-import { useStyles } from '../../../admin/pages/commonComponents/styled'
-import { Error } from '../../../components/Error'
-import { useWindowSize, useDebounce } from '../../../utils/hooks'
-import { Loader } from '../../../components/Loader'
-import { setIdFromEntityId, getXGridHeight } from '../../../utils'
-import { QuickSearchToolbar } from '../../../components/QuickSearchToolbar'
-import { GET_GAMES, getColumns } from '../../../admin/pages/Game/view/XGrid'
-import * as JsSearch from 'js-search'
+import { Container, Grid } from '@mui/material'
+import { DataGridPro } from '@mui/x-data-grid-pro'
+import { useStyles } from 'admin/pages/commonComponents/styled'
+import { Error } from 'components/Error'
+import { useWindowSize, useXGridSearch } from 'utils/hooks'
+import { Loader } from 'components/Loader'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { setIdFromEntityId, getXGridHeight } from 'utils'
 
-const searchGames = new JsSearch.Search('name')
-searchGames.addIndex('description')
-searchGames.addIndex('info')
-searchGames.addIndex('foreignId')
-searchGames.addIndex(['group', 'name'])
-searchGames.addIndex(['group', 'competition', 'name'])
-searchGames.addIndex(['phase', 'name'])
-searchGames.addIndex(['phase', 'competition', 'name'])
-searchGames.addIndex('referee')
-searchGames.addIndex('startDate')
-searchGames.addIndex('startTime')
-searchGames.addIndex('timekeeper')
-searchGames.addIndex('type')
-searchGames.addIndex(['venue', 'name'])
-searchGames.addIndex('hostTeamName')
-searchGames.addIndex('guestTeamName')
+import { GET_GAMES, getColumns } from 'admin/pages/Game/view/XGrid'
 
 const XGridTable = () => {
   const classes = useStyles()
@@ -66,47 +49,50 @@ const XGridTable = () => {
       }
     )
 
-    searchGames.addDocuments(preparedData)
     return preparedData
   }, [data])
 
-  const [searchText, setSearchText] = React.useState('')
-  const [searchData, setSearchData] = React.useState([])
-  const debouncedSearch = useDebounce(searchText, 500)
+  const searchIndexes = useMemo(
+    () => [
+      'name',
+      'description',
+      'info',
+      'foreignId',
+      'referee',
+      'startDate',
+      'startTime',
+      'timekeeper',
+      'type',
+      'hostTeamName',
+      'guestTeamName',
+      ['venue', 'name'],
+      ['group', 'name'],
+      ['group', 'competition', 'name'],
+      ['phase', 'name'],
+      ['phase', 'competition', 'name'],
+    ],
+    []
+  )
 
-  const requestSearch = React.useCallback(searchValue => {
-    setSearchText(searchValue)
-  }, [])
-
-  React.useEffect(() => {
-    const filteredRows = searchGames.search(debouncedSearch)
-    setSearchData(debouncedSearch === '' ? gameData : filteredRows)
-  }, [debouncedSearch, gameData])
-
-  React.useEffect(() => {
-    gameData && setSearchData(gameData)
-  }, [gameData])
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: gameData,
+  })
 
   return (
     <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          {/* <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
-              <div>
-                <Title>{'Games'}</Title>
-              </div>
-              <div></div>
-            </Toolbar>
-          </Paper> */}
           {loading && !error && <Loader />}
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{
+                height: getXGridHeight(toolbarRef.current, windowSize),
+              }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 density="compact"
                 columns={columns}
                 rows={searchData}

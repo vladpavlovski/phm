@@ -1,19 +1,19 @@
 import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { Container, Grid, Paper } from '@material-ui/core'
-import Toolbar from '@material-ui/core/Toolbar'
-import AddIcon from '@material-ui/icons/Add'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import AddIcon from '@mui/icons-material/Add'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrganizationRoute } from '../../../../routes'
+import { getAdminOrganizationRoute } from '../../../../router/routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
 import { useWindowSize } from '../../../../utils/hooks'
 import { Loader } from '../../../../components/Loader'
 import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
-import EditIcon from '@material-ui/icons/Edit'
-import Tooltip from '@material-ui/core/Tooltip'
+import EditIcon from '@mui/icons-material/Edit'
+import Tooltip from '@mui/material/Tooltip'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
@@ -94,7 +94,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 columns={columns}
                 rows={setIdFromEntityId(data.organizations, 'organizationId')}
                 loading={loading}

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect } from 'react'
 
-import { Grid } from '@material-ui/core'
+import { Grid } from '@mui/material'
 import { Helmet } from 'react-helmet'
-import XGrid from './XGrid'
+import XGridTable from './XGrid'
 
 import LayoutContext from '../../../../context/layout'
 
@@ -21,7 +21,7 @@ const View = () => {
         <title>Events</title>
       </Helmet>
       <Grid item xs={12}>
-        <XGrid />
+        <XGridTable />
       </Grid>
     </Grid>
   )

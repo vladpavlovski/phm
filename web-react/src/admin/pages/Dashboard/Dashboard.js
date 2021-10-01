@@ -1,8 +1,8 @@
 import React, { useContext, useEffect } from 'react'
-import { useTheme } from '@material-ui/core/styles'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
+import { useTheme } from '@mui/material/styles'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 
 import LayoutContext from '../../../context/layout'
 

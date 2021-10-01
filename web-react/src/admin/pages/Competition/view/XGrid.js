@@ -1,15 +1,15 @@
 import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
-import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
-import AddIcon from '@material-ui/icons/Add'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgCompetitionRoute } from '../../../../routes'
+import { getAdminOrgCompetitionRoute } from '../../../../router/routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -95,7 +95,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 columns={columns}
                 rows={setIdFromEntityId(data.competitions, 'competitionId')}
                 loading={loading}

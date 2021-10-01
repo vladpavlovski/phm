@@ -682,9 +682,10 @@ type Team {
 
 interface TakingPartIn {
   host: Boolean
-  jersey: BigInt
+  jersey: Int
   position: String
-  captain: Boolean
+  captain: Boolean @default(value: false)
+  goalkeeper: Boolean @default(value: false)
 }
 
 interface TeamGame {
@@ -732,7 +733,7 @@ type Game {
   event: Event @relationship(type: "TRANSFORM_TO", direction: IN)
   rulePack: RulePack @relationship(type: "GUIDED_BY", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  finalResult: FinalResult @relationship(type: "COMPOSE_RESULT", direction: OUT)
+  gameResult: GameResult @relationship(type: "COMPOSE_RESULT", direction: OUT)
   org: Organization @relationship(type: "PROVIDED_BY", direction: OUT)
 }
 
@@ -1626,12 +1627,52 @@ type Jersey {
   wearItem: WearItem @relationship(type: "FOR_JERSEY", direction: IN)
 }
 
-type FinalResult {
-  finalResultId: ID! @id
+type GameResult {
+  gameResultId: ID! @id
+  periodActive: String
+  gameStartedAt: DateTime
+  gameStatus: String @default(value: "Not played")
+  hostGoals: Int @default(value: 0)
+  guestGoals: Int @default(value: 0)
+  hostPenalties: Int @default(value: 0)
+  guestPenalties: Int @default(value: 0)
+  hostPenaltyShots: Int @default(value: 0)
+  guestPenaltyShots: Int @default(value: 0)
+  hostInjuries: Int @default(value: 0)
+  guestInjuries: Int @default(value: 0)
+  hostSaves: Int @default(value: 0)
+  guestSaves: Int @default(value: 0)
+  hostFaceOffs: Int @default(value: 0)
+  guestFaceOffs: Int @default(value: 0)
+  hostWin: Boolean @default(value: false)
+  guestWin: Boolean @default(value: false)
+  draw: Boolean @default(value: false)
+  periodStatistics: [PeriodStatistic]
+    @relationship(type: "HAS_PERIOD_STATISTICS", direction: OUT)
+  game: Game @relationship(type: "COMPOSE_RESULT", direction: IN)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  game: Game @relationship(type: "COMPOSE_RESULT", direction: IN)
-  # TODO: fields
+}
+
+type PeriodStatistic {
+  periodStatisticId: ID! @id
+  period: String
+  hostGoals: Int @default(value: 0)
+  guestGoals: Int @default(value: 0)
+  hostPenalties: Int @default(value: 0)
+  guestPenalties: Int @default(value: 0)
+  hostPenaltyShots: Int @default(value: 0)
+  guestPenaltyShots: Int @default(value: 0)
+  hostInjuries: Int @default(value: 0)
+  guestInjuries: Int @default(value: 0)
+  hostSaves: Int @default(value: 0)
+  guestSaves: Int @default(value: 0)
+  hostFaceOffs: Int @default(value: 0)
+  guestFaceOffs: Int @default(value: 0)
+  gameResult: GameResult
+    @relationship(type: "HAS_PERIOD_STATISTICS", direction: IN)
+  createdAt: DateTime! @timestamp(operations: [CREATE])
+  updatedAt: DateTime! @timestamp(operations: [UPDATE])
 }
 
 type InjuryType {
@@ -1655,7 +1696,7 @@ type ResultPoint {
   resultPointId: ID! @id
   name: String!
   code: String!
-  points: BigInt!
+  points: Int!
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1671,45 +1712,3 @@ type SystemSettings {
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "GUIDED_DEFAULT_BY", direction: OUT)
 }
-
-#urbis: NOVÉ ENTITY
-
-# Position - má vztah na RulePack - vytovříme seznam pozic kterými si pak řídí jednotlivé Competitions, Games, apd..
-# Position má pak vztah na hráče
-
-# Jersey - číslo hráče na dresu - to je něco co musíme mít jako ke každému týmu je dostupných 0-99 Jersey a tato entita buď má vztah na hráče nebo nemá pokud nemá je toto číslo hráče volné = "not_Assigned" pokud je obsazené tak je "taken_by" Player
-
-# Wear nebo Merch (bude možná lepší pojmenovat Merch)
-
-# - tím zajistíme možnost zakládat různé ať již dresy, nebo jiné produkty které mají vztah na Tým nebo Asociaci nebo na Organizaci, Competition a samozřejmě vztah na Media (protože se ktomu vztahuje nějaký obrázek) a vztah na Season
-
-# nahrazuje property v týmu Jersey Dark a JerseyLight ta bude nahrazena touto entitou a může jich být více
-
-# NOTIFICATION
-
-# - musíme ji zadata ať ten systém posílá informace lidem / týmům
-
-# například Invitation
-
-# změna Availabitility statusu apd..
-# toto je velmi podstatné :)
-
-# A myslím že je nutné zavést něco jako entita "final_result"
-# - protože například na dotaz ukaž mi výsledky týmu by si musel dnes vznést dotaz
-# najdí tým - všechny jeho games v games hledej game event typu goal fired a game event typu goal allowed
-# no a to při 100 zápasech bude těžký dotaz.. ideální by bylo po konci utkání vygenerovat Entitu
-# FINAL RESULTS - a tam se ti vypočítá kolik dal tým golů, kolik dal střel, kolik penalty apd.. a to by se uložilo do Final results jako hodnoty v entitě protože pak většina dotazů bude moct být výrazně rychlejších.. co si o tom myslíš?
-
-# - zde si myslím že budou další RulePack které budeme muset vytvořit jako RESULT_TYPE (hodnoty: WIN,LOST,TIE)
-#vlad TODO: entita RESULT_TYPE
-#vlad TODO: entita RESULT_POINTS
-#vlad TODO: entita final_result
-
-# RESULT_POINTS (tam bude moct být vazba na WIN nebo LOST TIE  a dodá body zda získá 3body, 2body, 1bod, 0bodů)
-
-# - STORY
-
-# - jedná se op přípravu na generované texty - nevím zda to je entita, ale řekněme že každá entita může k sobě mít nějaký text který se na základě vzniku této entity vytovoří
-# například Entita GameEvent Gola má k sobě informace - Player GoalType Timestamp apd.. a tedy by měl někde vzniknout text "story" který bude znít například takto: "V čase 14:27 vstřelil gól po tvrdé střele hráč z týmu Barcelona Lionel Messi"
-
-# - nebo entita Star by měla vygenerovat text (story): "V zápase ID 20003 získal titul Hvězda utkání hráč Martin Novák z týmu Real Madrid"

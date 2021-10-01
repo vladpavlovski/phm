@@ -1,15 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {
-  GridColumnsToolbarButton,
-  GridDensitySelector,
-  GridFilterToolbarButton,
+  GridToolbarColumnsButton,
   GridToolbarExport,
-} from '@material-ui/x-grid'
-import ClearIcon from '@material-ui/icons/Clear'
-import SearchIcon from '@material-ui/icons/Search'
-import IconButton from '@material-ui/core/IconButton'
-import TextField from '@material-ui/core/TextField'
+  GridToolbarDensitySelector,
+  GridToolbarFilterButton,
+} from '@mui/x-data-grid-pro'
+import ClearIcon from '@mui/icons-material/Clear'
+import SearchIcon from '@mui/icons-material/Search'
+import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
 
 const QuickSearchToolbar = props => {
   return (
@@ -23,9 +23,9 @@ const QuickSearchToolbar = props => {
       }}
     >
       <div>
-        <GridColumnsToolbarButton />
-        <GridFilterToolbarButton />
-        <GridDensitySelector />
+        <GridToolbarColumnsButton />
+        <GridToolbarFilterButton />
+        <GridToolbarDensitySelector />
         <GridToolbarExport />
       </div>
       <TextField

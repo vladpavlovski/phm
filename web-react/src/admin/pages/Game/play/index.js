@@ -3,18 +3,18 @@ import { useParams } from 'react-router-dom'
 import { gql, useQuery, useApolloClient } from '@apollo/client'
 import { Helmet } from 'react-helmet'
 import { LinkButton } from '../../../../components/LinkButton'
-import Container from '@material-ui/core/Container'
-import Paper from '@material-ui/core/Paper'
-import { Grid } from '@material-ui/core'
-import Typography from '@material-ui/core/Typography'
-import Toolbar from '@material-ui/core/Toolbar'
+import Container from '@mui/material/Container'
+import Paper from '@mui/material/Paper'
+import { Grid } from '@mui/material'
+import Typography from '@mui/material/Typography'
+import Toolbar from '@mui/material/Toolbar'
 import Img from 'react-cool-img'
-import ArrowBackIcon from '@material-ui/icons/ArrowBack'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useStyles } from '../../commonComponents/styled'
 import { Title } from '../../../../components/Title'
 import { Loader } from '../../../../components/Loader'
 import { Error } from '../../../../components/Error'
-import { getAdminOrgGameRoute } from '../../../../routes'
+import { getAdminOrgGameRoute } from '../../../../router/routes'
 
 import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
@@ -25,6 +25,7 @@ import { GET_GAME_EVENTS_SIMPLE } from './components/EventsTable'
 import { Periods, GameEventWizard, EventsTable } from './components'
 
 import GameEventFormContext from './context'
+import Finalization from './components/Finalization'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
@@ -79,6 +80,40 @@ export const GET_GAME_PLAY = gql`
         eventType
         team {
           teamId
+        }
+      }
+      gameResult {
+        gameResultId
+        periodActive
+        gameStartedAt
+        gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostPenaltyShots
+        guestPenaltyShots
+        hostInjuries
+        guestInjuries
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
+        periodStatistics {
+          periodStatisticId
+          period
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
         }
       }
     }
@@ -146,6 +181,12 @@ export const GET_GAME_PLAY = gql`
           name
           priority
         }
+        resultPoints {
+          resultPointId
+          name
+          code
+          points
+        }
       }
     }
   }
@@ -169,7 +210,6 @@ const Play = () => {
     data: queryData,
     error: queryError,
   } = useQuery(GET_GAME_PLAY, {
-    fetchPolicy: 'network-only',
     variables: {
       whereGame: { gameId },
       whereSystemSettings: { systemSettingsId: 'system-settings' },
@@ -332,7 +372,7 @@ const Play = () => {
                   flexWrap: 'wrap',
                 }}
               >
-                <div>
+                <div style={{ display: 'grid' }}>
                   <GameEventWizard
                     host={true}
                     team={teamHost}
@@ -344,7 +384,7 @@ const Play = () => {
                   />
                 </div>
                 <div></div>
-                <div>
+                <div style={{ display: 'grid' }}>
                   <GameEventWizard
                     host={false}
                     team={teamGuest}
@@ -369,6 +409,12 @@ const Play = () => {
               <Grid container>
                 <Grid item xs={12}>
                   <Periods gameSettings={gameSettings} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Finalization
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
                 </Grid>
               </Grid>
             </Paper>

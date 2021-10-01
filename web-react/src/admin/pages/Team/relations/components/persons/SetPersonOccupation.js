@@ -3,16 +3,16 @@ import { gql, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import AddIcon from '@material-ui/icons/Add'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import AddIcon from '@mui/icons-material/Add'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
 import TeamPersonsContext from './context'
@@ -127,7 +127,7 @@ export const PersonOccupationDialog = props => {
           <DialogTitle id="alert-dialog-title">{`Set ${person?.name} occupations for ${team?.name}`}</DialogTitle>
           <DialogContent>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={teamOccupationsColumns}
                 rows={setIdFromEntityId(team?.occupations, 'occupationId')}
                 disableSelectionOnClick
@@ -153,48 +153,44 @@ const ToggleOccupation = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            updatePerson({
-              variables: {
-                where: {
-                  personId: person.personId,
-                },
-                update: {
-                  occupations: {
-                    ...(!isMember
-                      ? {
-                          connect: {
-                            where: {
-                              node: {
-                                occupationId,
-                              },
-                            },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        updatePerson({
+          variables: {
+            where: {
+              personId: person.personId,
+            },
+            update: {
+              occupations: {
+                ...(!isMember
+                  ? {
+                      connect: {
+                        where: {
+                          node: {
+                            occupationId,
                           },
-                        }
-                      : {
-                          disconnect: {
-                            where: {
-                              node: {
-                                occupationId,
-                              },
-                            },
+                        },
+                      },
+                    }
+                  : {
+                      disconnect: {
+                        where: {
+                          node: {
+                            occupationId,
                           },
-                        }),
-                  },
-                },
+                        },
+                      },
+                    }),
               },
-            })
+            },
+          },
+        })
 
-            setIsMember(!isMember)
-          }}
-          name="teamMember"
-          color="primary"
-        />
-      }
+        setIsMember(!isMember)
+      }}
+      name="teamMember"
+      color="primary"
       label={isMember ? 'In occupation' : 'No occupation'}
     />
   )

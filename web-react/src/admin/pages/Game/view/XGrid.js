@@ -9,24 +9,26 @@ import { Container, Grid, Paper } from '@material-ui/core'
 import Toolbar from '@material-ui/core/Toolbar'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
-import { XGrid } from '@material-ui/x-grid'
+import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgGameRoute } from '../../../../routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
-import { useWindowSize, useDebounce } from '../../../../utils/hooks'
-import { Loader } from '../../../../components/Loader'
-import { QuickSearchToolbar } from '../../../../components/QuickSearchToolbar'
+import { getAdminOrgGameRoute } from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
+import { Title } from 'components/Title'
+import { Error } from 'components/Error'
+import { useWindowSize, useDebounce } from 'utils/hooks'
+import { Loader } from 'components/Loader'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import {
   setIdFromEntityId,
   getXGridHeight,
   formatDate,
   formatTime,
-} from '../../../../utils'
-import * as JsSearch from 'js-search'
+} from 'utils'
+
 import Button from '@material-ui/core/Button'
 import ButtonGroup from '@material-ui/core/ButtonGroup'
+
+import * as JsSearch from 'js-search'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
 
@@ -78,6 +80,9 @@ export const GET_GAMES = gql`
           teamId
         }
       }
+      gameResult {
+        gameStatus
+      }
     }
   }
 `
@@ -102,7 +107,7 @@ export const getColumns = organizationSlug => [
   {
     field: 'startDate',
     headerName: 'Date',
-    width: 160,
+    width: 150,
     disableColumnMenu: true,
     valueGetter: params => params?.row?.startDate,
     valueFormatter: params => formatDate(params?.value, 'dddd, DD.MM.YYYY'),
@@ -121,7 +126,7 @@ export const getColumns = organizationSlug => [
   {
     field: 'venue',
     headerName: 'Venue',
-    width: 130,
+    width: 150,
     valueGetter: params => params?.row?.venue?.name,
   },
   {
@@ -180,7 +185,7 @@ export const getColumns = organizationSlug => [
             fontFamily: 'Digital Numbers Regular',
           }}
         >
-          <div style={{ fontSize: '2rem' }}>
+          <div style={{ fontSize: '1.8rem' }}>
             <span>{goalsHost}</span>:<span>{goalsGuest}</span>
           </div>
         </div>
@@ -214,6 +219,12 @@ export const getColumns = organizationSlug => [
         </div>
       )
     },
+  },
+  {
+    field: 'gameStatus',
+    headerName: 'Status',
+    width: 100,
+    valueGetter: params => params?.row?.gameResult?.gameStatus || '',
   },
   {
     field: 'timekeeper',
@@ -421,7 +432,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 density="compact"
                 columns={getColumns(organizationSlug)}
                 rows={searchData}

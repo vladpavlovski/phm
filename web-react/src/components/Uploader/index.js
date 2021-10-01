@@ -3,11 +3,11 @@ import PropTypes from 'prop-types'
 // import { gql, useLazyQuery } from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
-import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
-import CloseIcon from '@material-ui/icons/Close'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
 
-import { DropzoneDialogBase } from 'material-ui-dropzone'
+import { DropzoneDialogBase } from '../material-ui-dropzone'
 import dayjs from 'dayjs'
 import Compress from 'react-image-file-resizer'
 

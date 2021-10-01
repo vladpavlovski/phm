@@ -7,24 +7,24 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import EditIcon from '@material-ui/icons/Edit'
-import CreateIcon from '@material-ui/icons/Create'
-import Toolbar from '@material-ui/core/Toolbar'
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import EditIcon from '@mui/icons-material/Edit'
+import CreateIcon from '@mui/icons-material/Create'
+import Toolbar from '@mui/material/Toolbar'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import Grid from '@material-ui/core/Grid'
-import LoadingButton from '@material-ui/lab/LoadingButton'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Grid from '@mui/material/Grid'
+import LoadingButton from '@mui/lab/LoadingButton'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
@@ -331,7 +331,7 @@ const PenaltyTypes = props => {
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={rulePackPenaltyTypesColumns}
                 rows={setIdFromEntityId(
                   queryData?.penaltyTypes,

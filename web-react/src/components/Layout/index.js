@@ -8,11 +8,11 @@ import {
   Divider,
   IconButton,
   Box,
-} from '@material-ui/core'
+} from '@mui/material'
 import createPersistedState from 'use-persisted-state'
 import { useLocation } from 'react-router-dom'
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 
 import LayoutContext from '../../context/layout'
 import { Copyright } from '../../components/Copyright'

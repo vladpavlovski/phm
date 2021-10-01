@@ -2,13 +2,13 @@ import React, { useMemo, useRef } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import dayjs from 'dayjs'
 import { useParams } from 'react-router-dom'
-import { Container, Grid, Paper } from '@material-ui/core'
-import Toolbar from '@material-ui/core/Toolbar'
-import EditIcon from '@material-ui/icons/Edit'
-import AddIcon from '@material-ui/icons/Add'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgSeasonRoute } from '../../../../routes'
+import { getAdminOrgSeasonRoute } from '../../../../router/routes'
 import { LinkButton } from '../../../../components/LinkButton'
 import { Title } from '../../../../components/Title'
 import { Error } from '../../../../components/Error'
@@ -24,6 +24,9 @@ const GET_SEASONS = gql`
       startDate
       endDate
       nick
+      org {
+        name
+      }
     }
   }
 `
@@ -37,6 +40,22 @@ const XGridTable = () => {
   // org: { urlSlug: organizationSlug }
   const columns = useMemo(
     () => [
+      {
+        field: 'seasonId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',
@@ -70,19 +89,11 @@ const XGridTable = () => {
         },
       },
       {
-        field: 'seasonId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
+        field: 'org',
+        headerName: 'Organization',
+        width: 250,
+        valueGetter: params => {
+          return params.row?.org?.name
         },
       },
     ],
@@ -118,7 +129,7 @@ const XGridTable = () => {
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
               className={classes.xGridWrapper}
             >
-              <XGrid
+              <DataGridPro
                 columns={columns}
                 rows={setIdFromEntityId(data.seasons, 'seasonId')}
                 loading={loading}

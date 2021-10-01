@@ -2,28 +2,28 @@ import React from 'react'
 import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AccountBox from '@material-ui/icons/AccountBox'
-import AddIcon from '@material-ui/icons/Add'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AccountBox from '@mui/icons-material/AccountBox'
+import AddIcon from '@mui/icons-material/Add'
 
-import Toolbar from '@material-ui/core/Toolbar'
-import LinkOffIcon from '@material-ui/icons/LinkOff'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPhaseRoute } from '../../../../../routes'
+import { getAdminPhaseRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -248,7 +248,7 @@ const Phases = props => {
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             columns={venuePhasesColumns}
             rows={setIdFromEntityId(venue.phases, 'phaseId')}
             loading={queryAllVenuesLoading}
@@ -275,7 +275,7 @@ const Phases = props => {
             <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new phase`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <XGrid
+                <DataGridPro
                   columns={allPhasesColumns}
                   rows={setIdFromEntityId(queryAllVenuesData.phases, 'phaseId')}
                   disableSelectionOnClick
@@ -309,46 +309,42 @@ const ToggleNewPhase = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            updateVenue({
-              variables: {
-                where: {
-                  venueId,
-                },
-                update: {
-                  phases: {
-                    ...(isMember
-                      ? {
-                          disconnect: {
-                            where: {
-                              node: {
-                                phaseId,
-                              },
-                            },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        updateVenue({
+          variables: {
+            where: {
+              venueId,
+            },
+            update: {
+              phases: {
+                ...(isMember
+                  ? {
+                      disconnect: {
+                        where: {
+                          node: {
+                            phaseId,
                           },
-                        }
-                      : {
-                          connect: {
-                            where: {
-                              node: { phaseId },
-                            },
-                          },
-                        }),
-                  },
-                },
+                        },
+                      },
+                    }
+                  : {
+                      connect: {
+                        where: {
+                          node: { phaseId },
+                        },
+                      },
+                    }),
               },
-            })
+            },
+          },
+        })
 
-            setIsMember(!isMember)
-          }}
-          name="phaseMember"
-          color="primary"
-        />
-      }
+        setIsMember(!isMember)
+      }}
+      name="phaseMember"
+      color="primary"
       label={isMember ? 'Member' : 'Not Member'}
     />
   )

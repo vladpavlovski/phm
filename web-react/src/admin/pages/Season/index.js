@@ -9,9 +9,9 @@ import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { Container, Grid, Paper } from '@material-ui/core'
+import { Container, Grid, Paper } from '@mui/material'
 
-import Toolbar from '@material-ui/core/Toolbar'
+import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -26,7 +26,7 @@ import { schema } from './schema'
 import {
   getAdminOrgSeasonsRoute,
   getAdminOrgSeasonRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -217,21 +217,19 @@ const Season = () => {
           ...rest,
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
+          org: {
+            connect: {
+              where: {
+                node: { urlSlug: organizationSlug },
+              },
+            },
+          },
         }
 
         seasonId === 'new'
           ? createSeason({
               variables: {
-                input: {
-                  ...dataToSubmit,
-                  org: {
-                    connect: {
-                      where: {
-                        node: { urlSlug: organizationSlug },
-                      },
-                    },
-                  },
-                },
+                input: dataToSubmit,
               },
             })
           : updateSeason({

@@ -1,13 +1,55 @@
 {
+  "style": {
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 40,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-color": "#000000",
+    "property-font-size": 40,
+    "property-font-weight": "normal"
+  },
   "nodes": [
     {
-      "id": "n0",
+      "id": "n1",
       "position": {
-        "x": -4415.600411045803,
-        "y": 3118.064645950833
+        "x": 129,
+        "y": 7431.513102728668
       },
-      "caption": ":Association",
-      "labels": [],
+      "caption": ":Organization",
+      "labels": [":Organization"],
       "properties": {
         "organizationId": "ID! @id",
         "name": "String",
@@ -22,10 +64,10 @@
       }
     },
     {
-      "id": "n1",
+      "id": "n2",
       "position": {
-        "x": -4031.7296100662493,
-        "y": -3378.6621610108045
+        "x": 1370.0298798938065,
+        "y": -328.02586581049127
       },
       "caption": ":AvailabilityStatus",
       "labels": [],
@@ -38,10 +80,10 @@
       }
     },
     {
-      "id": "n2",
+      "id": "n3",
       "position": {
-        "x": 1304.9007447418378,
-        "y": 4739.5674452018275
+        "x": 5849.501155787641,
+        "y": 9053.015901979663
       },
       "caption": ":Event",
       "labels": [],
@@ -52,13 +94,15 @@
         "date": "Date",
         "time": "Time"
       },
-      "style": {}
+      "style": {
+        "radius": 185
+      }
     },
     {
-      "id": "n3",
+      "id": "n4",
       "position": {
-        "x": -1411.482246562994,
-        "y": 2061.70559128584
+        "x": 3133.1181644828093,
+        "y": 6375.154048063674
       },
       "caption": ":Season",
       "labels": [],
@@ -75,10 +119,10 @@
       }
     },
     {
-      "id": "n4",
+      "id": "n5",
       "position": {
-        "x": -3174.570531151997,
-        "y": 243.91154987645436
+        "x": 1370.0298798938065,
+        "y": 4557.360006654289
       },
       "caption": ":Achievement",
       "labels": [],
@@ -86,10 +130,10 @@
       "style": {}
     },
     {
-      "id": "n5",
+      "id": "n6",
       "position": {
-        "x": -1411.482246562994,
-        "y": 711.4529997123655
+        "x": 3968.2974043655545,
+        "y": 5024.9014564902
       },
       "caption": ":Person",
       "labels": [":EventOrganizer"],
@@ -115,10 +159,10 @@
       }
     },
     {
-      "id": "n6",
+      "id": "n7",
       "position": {
-        "x": -2180.546305504686,
-        "y": -1009.8339214010884
+        "x": 2364.054105541117,
+        "y": 3303.614535376746
       },
       "caption": ":Team",
       "labels": [],
@@ -139,10 +183,10 @@
       }
     },
     {
-      "id": "n7",
+      "id": "n8",
       "position": {
-        "x": -4415.600411045803,
-        "y": 2061.70559128584
+        "x": 129,
+        "y": 6375.154048063674
       },
       "caption": ":Sponsor",
       "labels": [],
@@ -161,10 +205,10 @@
       }
     },
     {
-      "id": "n8",
+      "id": "n9",
       "position": {
-        "x": -3174.570531151997,
-        "y": -2521.1176122277298
+        "x": 1370.0298798938065,
+        "y": 389.5280870432971
       },
       "caption": ":MetaPlayer",
       "labels": [],
@@ -178,10 +222,10 @@
       }
     },
     {
-      "id": "n9",
+      "id": "n10",
       "position": {
-        "x": 1304.9007447418378,
-        "y": 2061.70559128584
+        "x": 5858.214627211848,
+        "y": 3434.4598333275167
       },
       "caption": ":Game",
       "labels": [],
@@ -198,14 +242,15 @@
         "description": "String"
       },
       "style": {
-        "radius": 155
+        "radius": 225,
+        "node-color": "#009ce0"
       }
     },
     {
-      "id": "n10",
+      "id": "n11",
       "position": {
-        "x": -2180.546305504686,
-        "y": 3966.079927297068
+        "x": 2364.054105541117,
+        "y": 8279.528384074903
       },
       "caption": ":Competition",
       "labels": [],
@@ -222,10 +267,10 @@
       }
     },
     {
-      "id": "n11",
+      "id": "n12",
       "position": {
-        "x": 2835.4408801923073,
-        "y": 711.4529997123655
+        "x": 7380.041291238111,
+        "y": 5024.9014564902
       },
       "caption": ":Venue",
       "labels": [],
@@ -243,10 +288,10 @@
       "style": {}
     },
     {
-      "id": "n12",
+      "id": "n13",
       "position": {
-        "x": 2857.1167835984015,
-        "y": 3118.064645950833
+        "x": 7401.717194644205,
+        "y": 7431.513102728668
       },
       "caption": ":Address",
       "labels": [],
@@ -267,10 +312,10 @@
       "style": {}
     },
     {
-      "id": "n13",
+      "id": "n14",
       "position": {
-        "x": -3174.570531151997,
-        "y": 2061.70559128584
+        "x": 1370.0298798938065,
+        "y": 6375.154048063674
       },
       "caption": ":Phase",
       "labels": [],
@@ -288,10 +333,10 @@
       }
     },
     {
-      "id": "n14",
+      "id": "n15",
       "position": {
-        "x": -4415.600411045803,
-        "y": 711.4529997123655
+        "x": 129,
+        "y": 5024.9014564902
       },
       "caption": ":Group",
       "labels": [],
@@ -307,10 +352,10 @@
       }
     },
     {
-      "id": "n15",
+      "id": "n16",
       "position": {
-        "x": -1252.8957434523227,
-        "y": -2388.4292011361235
+        "x": 3280.2026674568806,
+        "y": 345.27644640976746
       },
       "caption": ":PenaltyShot",
       "labels": [],
@@ -323,10 +368,10 @@
       }
     },
     {
-      "id": "n16",
+      "id": "n17",
       "position": {
-        "x": 1304.9007447418378,
-        "y": -2521.1176122277298
+        "x": 5849.501155787641,
+        "y": 389.5280870432971
       },
       "caption": ":GameEvent",
       "labels": [],
@@ -343,10 +388,10 @@
       }
     },
     {
-      "id": "n17",
+      "id": "n18",
       "position": {
-        "x": -1019.1141789494309,
-        "y": -1439.2919185960172
+        "x": 3762.3337012765373,
+        "y": 734.0881975016217
       },
       "caption": ":Goal",
       "labels": [],
@@ -361,10 +406,10 @@
       }
     },
     {
-      "id": "n18",
+      "id": "n19",
       "position": {
-        "x": -576.3030066802488,
-        "y": -1789.0290594429339
+        "x": 4117.743076920763,
+        "y": 414.5555533211762
       },
       "caption": ":Revision",
       "labels": [],
@@ -377,10 +422,10 @@
       }
     },
     {
-      "id": "n19",
+      "id": "n20",
       "position": {
-        "x": -576.3030066802488,
-        "y": -2987.829342829313
+        "x": 4117.743076920763,
+        "y": -784.2447300652028
       },
       "caption": ":Penalty",
       "labels": [],
@@ -396,10 +441,10 @@
       }
     },
     {
-      "id": "n20",
+      "id": "n21",
       "position": {
-        "x": -576.3030066802488,
-        "y": -857.0803954267432
+        "x": 4117.743076920763,
+        "y": 1346.5042173373654
       },
       "caption": ":Pass",
       "labels": [],
@@ -414,10 +459,10 @@
       }
     },
     {
-      "id": "n21",
+      "id": "n22",
       "position": {
-        "x": -3174.570531151997,
-        "y": 711.4529997123655
+        "x": 1370.0298798938065,
+        "y": 5024.9014564902
       },
       "caption": ":Award",
       "labels": [],
@@ -435,10 +480,10 @@
       }
     },
     {
-      "id": "n22",
+      "id": "n23",
       "position": {
-        "x": -1997.80574374361,
-        "y": -2155.020331273213
+        "x": 2546.7946673021934,
+        "y": 755.6253679978132
       },
       "caption": ":Shot",
       "labels": [],
@@ -455,10 +500,10 @@
       }
     },
     {
-      "id": "n23",
+      "id": "n24",
       "position": {
-        "x": -576.3030066802488,
-        "y": -2736.330256164455
+        "x": 4117.743076920763,
+        "y": -532.7456434003448
       },
       "caption": ":Timeout",
       "labels": [],
@@ -471,10 +516,10 @@
       }
     },
     {
-      "id": "n24",
+      "id": "n25",
       "position": {
-        "x": -576.3030066802488,
-        "y": -3441.531639003516
+        "x": 4117.743076920763,
+        "y": -1237.9470262394057
       },
       "caption": ":Fight",
       "labels": [],
@@ -487,10 +532,10 @@
       }
     },
     {
-      "id": "n25",
+      "id": "n26",
       "position": {
-        "x": -576.3030066802488,
-        "y": -4317.4484567778345
+        "x": 4117.743076920763,
+        "y": -2113.8638440137256
       },
       "caption": ":Hit",
       "labels": [],
@@ -503,10 +548,10 @@
       }
     },
     {
-      "id": "n26",
+      "id": "n27",
       "position": {
-        "x": -576.3030066802488,
-        "y": -3209.660654408758
+        "x": 4117.743076920763,
+        "y": -1006.0760416446477
       },
       "caption": ":IntervalOnIce",
       "labels": [],
@@ -521,10 +566,10 @@
       }
     },
     {
-      "id": "n27",
+      "id": "n28",
       "position": {
-        "x": -576.3030066802488,
-        "y": -1111.7926721896733
+        "x": 4117.743076920763,
+        "y": 1091.791940574436
       },
       "caption": ":Offside",
       "labels": [],
@@ -537,10 +582,10 @@
       }
     },
     {
-      "id": "n28",
+      "id": "n29",
       "position": {
-        "x": -576.3030066802488,
-        "y": -3841.3252137710265
+        "x": 4117.743076920763,
+        "y": -1637.7406010069176
       },
       "caption": ":Icing",
       "labels": [],
@@ -553,10 +598,10 @@
       }
     },
     {
-      "id": "n29",
+      "id": "n30",
       "position": {
-        "x": -576.3030066802488,
-        "y": -3640.6906725316594
+        "x": 4117.743076920763,
+        "y": -1437.10605976755
       },
       "caption": ":FaceOff",
       "labels": [],
@@ -569,10 +614,10 @@
       }
     },
     {
-      "id": "n30",
+      "id": "n31",
       "position": {
-        "x": -576.3030066802488,
-        "y": -584.0095520121117
+        "x": 4117.743076920763,
+        "y": 1779.7353797105363
       },
       "caption": ":Star",
       "labels": [],
@@ -585,10 +630,10 @@
       }
     },
     {
-      "id": "n31",
+      "id": "n32",
       "position": {
-        "x": -576.3030066802488,
-        "y": -4061.91289647075
+        "x": 4117.743076920763,
+        "y": -1858.3282837066413
       },
       "caption": ":TakeOver",
       "labels": [],
@@ -601,10 +646,10 @@
       }
     },
     {
-      "id": "n32",
+      "id": "n33",
       "position": {
-        "x": -4415.600411045803,
-        "y": -144.99388564237995
+        "x": 129,
+        "y": 4168.454571135455
       },
       "caption": ":Player",
       "labels": [],
@@ -630,10 +675,10 @@
       }
     },
     {
-      "id": "n33",
+      "id": "n34",
       "position": {
-        "x": -3174.570531151997,
-        "y": -3378.6621610108045
+        "x": 4117.743076920763,
+        "y": -312.7357664878425
       },
       "caption": ":Injury",
       "labels": [],
@@ -650,10 +695,10 @@
       }
     },
     {
-      "id": "n34",
+      "id": "n35",
       "position": {
-        "x": -576.3030066802488,
-        "y": 3966.079927297068
+        "x": 3968.2974043655545,
+        "y": 8279.528384074903
       },
       "caption": ":Invitation",
       "labels": [],
@@ -665,27 +710,10 @@
       "style": {}
     },
     {
-      "id": "n35",
-      "position": {
-        "x": 228.26580545061387,
-        "y": 711.4529997123655
-      },
-      "caption": ":Lineup",
-      "labels": [],
-      "properties": {
-        "lineupId": "ID! @id"
-      },
-      "style": {
-        "node-color": "#16a5a5",
-        "border-color": "#0c797d",
-        "radius": 155
-      }
-    },
-    {
       "id": "n36",
       "position": {
-        "x": -3174.570531151997,
-        "y": -144.99388564237995
+        "x": 1370.0298798938065,
+        "y": 4168.454571135455
       },
       "caption": ":User",
       "labels": [],
@@ -699,8 +727,8 @@
     {
       "id": "n37",
       "position": {
-        "x": -3174.570531151997,
-        "y": -3956.2255179353065
+        "x": 1370.0298798938065,
+        "y": -799.5348293878382
       },
       "caption": ":Suspension",
       "labels": [],
@@ -718,8 +746,8 @@
     {
       "id": "n38",
       "position": {
-        "x": -3174.570531151997,
-        "y": -1680.7167958672444
+        "x": 1370.0298798938065,
+        "y": 2216.473693102243
       },
       "caption": ":Transfer",
       "labels": [],
@@ -735,8 +763,8 @@
     {
       "id": "n39",
       "position": {
-        "x": -3174.570531151997,
-        "y": 3966.079927297068
+        "x": 1370.0298798938065,
+        "y": 8279.528384074903
       },
       "caption": ":RulePack",
       "labels": [],
@@ -752,8 +780,8 @@
     {
       "id": "n40",
       "position": {
-        "x": -3519.206676509668,
-        "y": 4739.5674452018275
+        "x": 1025.3937345361355,
+        "y": 9277.857838784756
       },
       "caption": ":Period",
       "labels": [],
@@ -763,8 +791,8 @@
     {
       "id": "n41",
       "position": {
-        "x": -2817.3873016729676,
-        "y": 4739.5674452018275
+        "x": 1714.6660252514775,
+        "y": 9559.82096466162
       },
       "caption": ":GoalType",
       "labels": [],
@@ -774,8 +802,8 @@
     {
       "id": "n42",
       "position": {
-        "x": -2397.824684977689,
-        "y": 4739.5674452018275
+        "x": 1714.6660252514775,
+        "y": 10214.01045388756
       },
       "caption": ":GoalSubType",
       "labels": [],
@@ -785,8 +813,8 @@
     {
       "id": "n43",
       "position": {
-        "x": -2397.824684977689,
-        "y": 4985.553821560939
+        "x": 2202.9883223574375,
+        "y": 9559.82096466162
       },
       "caption": ":PenaltyType",
       "labels": [],
@@ -796,8 +824,8 @@
     {
       "id": "n44",
       "position": {
-        "x": -2607.605993325328,
-        "y": 4739.5674452018275
+        "x": 2202.9883223574375,
+        "y": 10214.01045388756
       },
       "caption": ":PenaltySubType",
       "labels": [],
@@ -807,8 +835,8 @@
     {
       "id": "n45",
       "position": {
-        "x": -3720.910898870881,
-        "y": 4985.553821560939
+        "x": 823.6895121749226,
+        "y": 9559.82096466162
       },
       "caption": ":PenaltyShotStatus",
       "labels": [],
@@ -818,8 +846,8 @@
     {
       "id": "n46",
       "position": {
-        "x": -2607.605993325328,
-        "y": 4985.553821560939
+        "x": 1958.8271738044577,
+        "y": 9559.82096466162
       },
       "caption": ":ShotType",
       "labels": [],
@@ -829,8 +857,8 @@
     {
       "id": "n47",
       "position": {
-        "x": -3051.327093285201,
-        "y": 4739.5674452018275
+        "x": 1493.2733177606024,
+        "y": 9277.857838784756
       },
       "caption": ":ShotTarget",
       "labels": [],
@@ -840,8 +868,8 @@
     {
       "id": "n48",
       "position": {
-        "x": -3285.2668848974345,
-        "y": 4739.5674452018275
+        "x": 1958.8271738044577,
+        "y": 10214.01045388756
       },
       "caption": ":ShotSubType",
       "labels": [],
@@ -851,8 +879,8 @@
     {
       "id": "n49",
       "position": {
-        "x": -2817.3873016729676,
-        "y": 4985.553821560939
+        "x": 1714.6660252514775,
+        "y": 9277.857838784756
       },
       "caption": ":ShotStyle",
       "labels": [],
@@ -862,8 +890,8 @@
     {
       "id": "n50",
       "position": {
-        "x": -2207.6329771739,
-        "y": 4739.5674452018275
+        "x": 1271.8806102697272,
+        "y": 9277.857838784756
       },
       "caption": ":GameEventLocation",
       "labels": [],
@@ -873,8 +901,8 @@
     {
       "id": "n51",
       "position": {
-        "x": -576.3030066802488,
-        "y": 3118.064645950833
+        "x": 3968.2974043655545,
+        "y": 7431.513102728668
       },
       "caption": ":Media",
       "labels": [],
@@ -886,8 +914,8 @@
     {
       "id": "n52",
       "position": {
-        "x": 508.4387422147697,
-        "y": 3118.064645950833
+        "x": 5053.039153260574,
+        "y": 7431.513102728668
       },
       "caption": ":File",
       "labels": [],
@@ -901,10 +929,10 @@
       "style": {}
     },
     {
-      "id": "n54",
+      "id": "n53",
       "position": {
-        "x": 508.4387422147697,
-        "y": -144.99388564237995
+        "x": 5053.039153260574,
+        "y": 4168.454571135455
       },
       "caption": ":Discussion",
       "labels": [],
@@ -914,10 +942,10 @@
       "style": {}
     },
     {
-      "id": "n55",
+      "id": "n54",
       "position": {
-        "x": -2180.546305504686,
-        "y": -138.4271174668558
+        "x": 2364.054105541117,
+        "y": 4175.021339310979
       },
       "caption": ":Comment",
       "labels": [],
@@ -932,10 +960,10 @@
       }
     },
     {
-      "id": "n57",
+      "id": "n55",
       "position": {
-        "x": -3174.570531151997,
-        "y": 2724.1887048787044
+        "x": 1370.0298798938065,
+        "y": 7431.513102728668
       },
       "caption": ":Payment",
       "labels": [],
@@ -946,10 +974,10 @@
       "style": {}
     },
     {
-      "id": "n58",
+      "id": "n56",
       "position": {
-        "x": -3174.570531151997,
-        "y": -790.2425228826613
+        "x": 1370.0298798938065,
+        "y": 3523.205933895173
       },
       "caption": ":Position",
       "labels": [],
@@ -966,10 +994,10 @@
       }
     },
     {
-      "id": "n61",
+      "id": "n57",
       "position": {
-        "x": -3720.910898870881,
-        "y": 4739.5674452018275
+        "x": 823.6895121749226,
+        "y": 9277.857838784756
       },
       "caption": ":PositionType",
       "labels": [],
@@ -977,16 +1005,17 @@
       "style": {}
     },
     {
-      "id": "n62",
+      "id": "n58",
       "position": {
-        "x": -3174.570531151997,
-        "y": -1009.8339214010884
+        "x": 1370.0298798938065,
+        "y": 3303.614535376746
       },
       "caption": ":Jersey",
       "labels": [],
       "properties": {
         "jerseyId": "ID! @id",
-        "number": "Int"
+        "number": "Int!",
+        "name": "String!"
       },
       "style": {
         "node-color": "#16a5a5",
@@ -994,10 +1023,10 @@
       }
     },
     {
-      "id": "n63",
+      "id": "n59",
       "position": {
-        "x": -3174.570531151997,
-        "y": -1341.8084398775536
+        "x": 1370.0298798938065,
+        "y": 2971.640016900281
       },
       "caption": ":Wear",
       "labels": [],
@@ -1012,10 +1041,10 @@
       }
     },
     {
-      "id": "n64",
+      "id": "n60",
       "position": {
-        "x": -3784.469896295885,
-        "y": -1009.8339214010884
+        "x": 760.1305147499183,
+        "y": 3303.614535376746
       },
       "caption": ":WearItem",
       "labels": [],
@@ -1030,10 +1059,10 @@
       }
     },
     {
-      "id": "n65",
+      "id": "n61",
       "position": {
-        "x": -730.3286849040305,
-        "y": -2155.020331273213
+        "x": 3963.7173986969815,
+        "y": 48.56428149089743
       },
       "caption": ":Save",
       "labels": [],
@@ -1046,10 +1075,10 @@
       }
     },
     {
-      "id": "n66",
+      "id": "n62",
       "position": {
-        "x": -1411.482246562994,
-        "y": 3966.079927297068
+        "x": 3133.1181644828093,
+        "y": 8279.528384074903
       },
       "caption": ":InvitationList",
       "labels": [],
@@ -1059,10 +1088,10 @@
       "style": {}
     },
     {
-      "id": "n67",
+      "id": "n63",
       "position": {
-        "x": 1847.7209722735522,
-        "y": 711.4529997123655
+        "x": 7380.041291238111,
+        "y": 3434.4598333275167
       },
       "caption": ":FinalResult",
       "labels": [],
@@ -1072,10 +1101,10 @@
       "style": {}
     },
     {
-      "id": "n68",
+      "id": "n64",
       "position": {
-        "x": -3519.206676509668,
-        "y": 4985.553821560939
+        "x": 1025.3937345361355,
+        "y": 9559.82096466162
       },
       "caption": ":InjuryType",
       "labels": [],
@@ -1083,10 +1112,10 @@
       "style": {}
     },
     {
-      "id": "n69",
+      "id": "n65",
       "position": {
-        "x": -3285.2668848974345,
-        "y": 4985.553821560939
+        "x": 1259.333526148369,
+        "y": 9559.82096466162
       },
       "caption": ":ResultType",
       "labels": [],
@@ -1094,10 +1123,10 @@
       "style": {}
     },
     {
-      "id": "n70",
+      "id": "n66",
       "position": {
-        "x": -3051.327093285201,
-        "y": 4985.553821560939
+        "x": 1493.2733177606024,
+        "y": 9559.82096466162
       },
       "caption": ":ResultPoint",
       "labels": [],
@@ -1105,10 +1134,10 @@
       "style": {}
     },
     {
-      "id": "n81",
+      "id": "n67",
       "position": {
-        "x": -4415.600411045803,
-        "y": -1001.4407709971254
+        "x": 129,
+        "y": 3312.007685780709
       },
       "caption": ":MetaHistory",
       "labels": [],
@@ -1130,14 +1159,15 @@
       "style": {
         "radius": 165,
         "node-color": "#16a5a5",
-        "border-color": "#0c797d"
+        "border-color": "#0c797d",
+        "property-position": "outside"
       }
     },
     {
-      "id": "n82",
+      "id": "n68",
       "position": {
-        "x": -1411.482246562994,
-        "y": -27.591139399895646
+        "x": 2364.054105541117,
+        "y": 5024.9014564902
       },
       "caption": ":Occupation",
       "labels": [],
@@ -1146,16 +1176,16 @@
         "name": "String"
       },
       "style": {
-        "radius": 80,
+        "radius": 120,
         "node-color": "#16a5a5",
         "border-color": "#0c797d"
       }
     },
     {
-      "id": "n83",
+      "id": "n69",
       "position": {
-        "x": -3174.570531151997,
-        "y": -584.0095520121117
+        "x": 1370.0298798938065,
+        "y": 3729.438904765723
       },
       "caption": ":UserSettings",
       "labels": [],
@@ -1164,173 +1194,265 @@
         "node-color": "#68bc00",
         "border-color": "#194d33"
       }
+    },
+    {
+      "id": "n70",
+      "position": {
+        "x": 129,
+        "y": 8279.528384074903
+      },
+      "caption": "SystemSettings",
+      "labels": ["SystemSettings"],
+      "properties": {
+        "systemSettingsId": "ID!",
+        "language": "String"
+      },
+      "style": {
+        "label-background-color": "#ffffff",
+        "label-color": "#000000",
+        "radius": 305
+      }
+    },
+    {
+      "id": "n72",
+      "position": {
+        "x": 4197.581453429065,
+        "y": 2536.09235946457
+      },
+      "caption": ":GameEventSimple",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "radius": 240,
+        "node-color": "#e27300",
+        "border-color": "#c45100"
+      }
+    },
+    {
+      "id": "n73",
+      "position": {
+        "x": 7380.041291238111,
+        "y": 2402.0410182379824
+      },
+      "caption": ":GameResult",
+      "labels": [],
+      "properties": {
+        "gameResultId": "ID",
+        "periodActive": "String",
+        "gameStartedAt": "DateTime",
+        "gameStatus": "String",
+        "hostGoals": "BigInt",
+        "guestGoals": "BigInt",
+        "hostPenalties": "BigInt",
+        "guestPenalties": "BigInt",
+        "hostPenaltyShots": "BigInt",
+        "guestPenaltyShots": "BigInt",
+        "hostInjuries": "BigInt",
+        "guestInjuries": "BigInt",
+        "hostSaves": "BigInt",
+        "guestSaves": "BigInt",
+        "hostFaceOffs": "BigInt",
+        "guestFaceOffs": "BigInt"
+      },
+      "style": {
+        "radius": 200,
+        "node-color": "#009ce0"
+      }
+    },
+    {
+      "id": "n74",
+      "position": {
+        "x": 7380.041291238111,
+        "y": 1005.9019158203131
+      },
+      "caption": ":PeriodStatistics",
+      "style": {
+        "node-color": "#009ce0",
+        "radius": 185
+      },
+      "labels": [],
+      "properties": {
+        "periodStatisticsId": "Id",
+        "hostGoals": "BigInt",
+        "guestGoals": "BigInt",
+        "hostPenalties": "BigInt",
+        "guestPenalties": "BigInt",
+        "hostPenaltyShots": "BigInt",
+        "guestPenaltyShots": "BigInt",
+        "hostInjuries": "BigInt",
+        "guestInjuries": "BigInt",
+        "hostSaves": "BigInt",
+        "guestSaves": "BigInt",
+        "hostFaceOffs": "BigInt",
+        "guestFaceOffs": "BigInt"
+      }
     }
   ],
   "relationships": [
     {
-      "id": "n1",
-      "fromId": "n9",
-      "toId": "n5",
+      "id": "n0",
+      "fromId": "n10",
+      "toId": "n6",
       "type": "[:HAS_GAME_STAFF]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n3",
-      "fromId": "n10",
-      "toId": "n11",
+      "id": "n1",
+      "fromId": "n11",
+      "toId": "n12",
       "type": "[:TAKES_PLAYS_ON]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "fromId": "n12",
+      "toId": "n13",
+      "type": "[:LOCATED_AT]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n3",
+      "fromId": "n11",
+      "toId": "n14",
+      "type": "[:DIVIDED]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n4",
       "fromId": "n11",
-      "toId": "n12",
-      "type": "[:LOCATED_AT]",
+      "toId": "n15",
+      "type": "[:DIVIDED]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n5",
-      "fromId": "n10",
-      "toId": "n13",
-      "type": "[:DIVIDED]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n6",
-      "fromId": "n10",
-      "toId": "n14",
-      "type": "[:DIVIDED]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n7",
-      "fromId": "n16",
-      "toId": "n17",
+      "fromId": "n17",
+      "toId": "n18",
       "type": "[:CREATE_GOAL]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n9",
-      "fromId": "n17",
-      "toId": "n8",
+      "id": "n6",
+      "fromId": "n18",
+      "toId": "n9",
       "type": "[:SCORED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n10",
-      "fromId": "n16",
-      "toId": "n19",
+      "id": "n7",
+      "fromId": "n17",
+      "toId": "n20",
       "type": "[:CREATE_PENALTY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n11",
-      "fromId": "n19",
-      "toId": "n8",
+      "id": "n8",
+      "fromId": "n20",
+      "toId": "n9",
       "type": "[:PENALIZED]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n12",
-      "fromId": "n9",
-      "toId": "n13",
+      "id": "n9",
+      "fromId": "n10",
+      "toId": "n14",
       "type": "[:COMPLETE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n13",
-      "fromId": "n9",
-      "toId": "n14",
+      "id": "n10",
+      "fromId": "n10",
+      "toId": "n15",
       "type": "[:PARTICIPATE_IN]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n11",
+      "fromId": "n11",
+      "toId": "n1",
+      "type": "[:OWNED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n12",
+      "fromId": "n11",
+      "toId": "n6",
+      "type": "[:HAS_COMPETITION_STAFF]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n13",
+      "fromId": "n11",
+      "toId": "n3",
+      "type": "[:ORGANIZE_AN]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n14",
       "fromId": "n10",
-      "toId": "n0",
-      "type": "[:OWNED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n15",
-      "fromId": "n10",
-      "toId": "n5",
-      "type": "[:HAS_COMPETITION_STAFF]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n16",
-      "fromId": "n10",
-      "toId": "n2",
-      "type": "[:ORGANIZE_AN]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n17",
-      "fromId": "n9",
-      "toId": "n11",
+      "toId": "n12",
       "type": "[:TAKES_PLAYS_ON]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n18",
-      "fromId": "n10",
-      "toId": "n3",
+      "id": "n15",
+      "fromId": "n11",
+      "toId": "n4",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n19",
-      "fromId": "n16",
-      "toId": "n29",
+      "id": "n16",
+      "fromId": "n17",
+      "toId": "n30",
       "type": "[:CREATE_FACEOFF]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n20",
-      "fromId": "n29",
-      "toId": "n8",
+      "id": "n17",
+      "fromId": "n30",
+      "toId": "n9",
       "type": "[:WON_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n21",
-      "fromId": "n16",
-      "toId": "n20",
+      "id": "n18",
+      "fromId": "n17",
+      "toId": "n21",
       "type": "[:CREATE_PASS]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n22",
-      "fromId": "n20",
-      "toId": "n8",
+      "id": "n19",
+      "fromId": "n21",
+      "toId": "n9",
       "type": "[:COLLECTED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n23",
-      "fromId": "n29",
-      "toId": "n8",
+      "id": "n20",
+      "fromId": "n30",
+      "toId": "n9",
       "type": "[:LOST_BY]",
       "properties": {},
       "style": {
@@ -1338,9 +1460,9 @@
       }
     },
     {
-      "id": "n24",
-      "fromId": "n20",
-      "toId": "n8",
+      "id": "n21",
+      "fromId": "n21",
+      "toId": "n9",
       "type": "[:SENT_BY]",
       "properties": {},
       "style": {
@@ -1348,17 +1470,17 @@
       }
     },
     {
-      "id": "n25",
-      "fromId": "n15",
-      "toId": "n8",
+      "id": "n22",
+      "fromId": "n16",
+      "toId": "n9",
       "type": "[:EXECUTED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n26",
-      "fromId": "n15",
-      "toId": "n18",
+      "id": "n23",
+      "fromId": "n16",
+      "toId": "n19",
       "type": "[CHECKED_BY]",
       "properties": {},
       "style": {
@@ -1366,121 +1488,121 @@
       }
     },
     {
-      "id": "n27",
-      "fromId": "n16",
-      "toId": "n15",
+      "id": "n24",
+      "fromId": "n17",
+      "toId": "n16",
       "type": "[:CREATE_PENALTY_SHOT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n28",
-      "fromId": "n15",
-      "toId": "n19",
+      "id": "n25",
+      "fromId": "n16",
+      "toId": "n20",
       "type": "[:CREATED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n29",
-      "fromId": "n16",
-      "toId": "n22",
+      "id": "n26",
+      "fromId": "n17",
+      "toId": "n23",
       "type": "[:CREATE_SHOT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n30",
-      "fromId": "n22",
-      "toId": "n8",
+      "id": "n27",
+      "fromId": "n23",
+      "toId": "n9",
       "type": "[:FIRED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n31",
-      "fromId": "n22",
-      "toId": "n8",
+      "id": "n28",
+      "fromId": "n23",
+      "toId": "n9",
       "type": "[:BLOCKED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n32",
-      "fromId": "n22",
-      "toId": "n15",
+      "id": "n29",
+      "fromId": "n23",
+      "toId": "n16",
       "type": "[:CREATED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n33",
-      "fromId": "n20",
-      "toId": "n22",
+      "id": "n30",
+      "fromId": "n21",
+      "toId": "n23",
       "type": "[:ASSISTANCE]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n34",
-      "fromId": "n16",
-      "toId": "n23",
+      "id": "n31",
+      "fromId": "n17",
+      "toId": "n24",
       "type": "[:CREATE_TIMEOUT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n35",
-      "fromId": "n23",
-      "toId": "n18",
+      "id": "n32",
+      "fromId": "n24",
+      "toId": "n19",
       "type": "[:CANCELED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n36",
-      "fromId": "n16",
-      "toId": "n24",
+      "id": "n33",
+      "fromId": "n17",
+      "toId": "n25",
       "type": "[:CREATE_FIGHT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n37",
-      "fromId": "n24",
-      "toId": "n8",
+      "id": "n34",
+      "fromId": "n25",
+      "toId": "n9",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n38",
-      "fromId": "n16",
-      "toId": "n25",
+      "id": "n35",
+      "fromId": "n17",
+      "toId": "n26",
       "type": "[:CREATE_HIT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n39",
-      "fromId": "n25",
-      "toId": "n8",
+      "id": "n36",
+      "fromId": "n26",
+      "toId": "n9",
       "type": "[:GIVE_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n40",
-      "fromId": "n17",
-      "toId": "n22",
+      "id": "n37",
+      "fromId": "n18",
+      "toId": "n23",
       "type": "[:CREATED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n41",
-      "fromId": "n17",
-      "toId": "n18",
+      "id": "n38",
+      "fromId": "n18",
+      "toId": "n19",
       "type": "[:CHECKED_BY]",
       "properties": {},
       "style": {
@@ -1488,233 +1610,225 @@
       }
     },
     {
-      "id": "n42",
-      "fromId": "n16",
-      "toId": "n26",
+      "id": "n39",
+      "fromId": "n17",
+      "toId": "n27",
       "type": "[:CREATE_INTERVAL_ON_ICE]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n43",
-      "fromId": "n26",
-      "toId": "n8",
+      "id": "n40",
+      "fromId": "n27",
+      "toId": "n9",
       "type": "[:SPENT_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n44",
-      "fromId": "n16",
-      "toId": "n27",
+      "id": "n41",
+      "fromId": "n17",
+      "toId": "n28",
       "type": "[:CREATE_OFFSIDE]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n45",
-      "fromId": "n27",
-      "toId": "n8",
+      "id": "n42",
+      "fromId": "n28",
+      "toId": "n9",
       "type": "[:CAUSED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n46",
-      "fromId": "n16",
-      "toId": "n28",
+      "id": "n43",
+      "fromId": "n17",
+      "toId": "n29",
       "type": "[:CREATE_ICING]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n47",
-      "fromId": "n28",
-      "toId": "n8",
+      "id": "n44",
+      "fromId": "n29",
+      "toId": "n9",
       "type": "[:CAUSED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n48",
-      "fromId": "n16",
-      "toId": "n6",
-      "type": "[:CREATED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n49",
-      "fromId": "n27",
-      "toId": "n18",
+      "id": "n45",
+      "fromId": "n28",
+      "toId": "n19",
       "type": "[:CHECKED_BY]",
       "properties": {},
       "style": {}
     },
     {
+      "id": "n46",
+      "fromId": "n11",
+      "toId": "n8",
+      "type": "[:SPONSORED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n47",
+      "fromId": "n6",
+      "toId": "n8",
+      "type": "[:SPONSORED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n48",
+      "fromId": "n7",
+      "toId": "n8",
+      "type": "[:SPONSORED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n49",
+      "fromId": "n1",
+      "toId": "n8",
+      "type": "[:SPONSORED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
       "id": "n50",
-      "fromId": "n10",
-      "toId": "n7",
+      "fromId": "n22",
+      "toId": "n8",
       "type": "[:SPONSORED_BY]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n51",
-      "fromId": "n5",
-      "toId": "n7",
-      "type": "[:SPONSORED_BY]",
+      "fromId": "n7",
+      "toId": "n22",
+      "type": "[:WIN_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n52",
       "fromId": "n6",
-      "toId": "n7",
-      "type": "[:SPONSORED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n53",
-      "fromId": "n0",
-      "toId": "n7",
-      "type": "[:SPONSORED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n54",
-      "fromId": "n21",
-      "toId": "n7",
-      "type": "[:SPONSORED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n55",
-      "fromId": "n6",
-      "toId": "n21",
+      "toId": "n22",
       "type": "[:WIN_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
+      "id": "n53",
+      "fromId": "n10",
+      "toId": "n22",
+      "type": "[:HAS_AN_AWARD]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n54",
+      "fromId": "n17",
+      "toId": "n31",
+      "type": "[:CREATE_STAR]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n55",
+      "fromId": "n31",
+      "toId": "n9",
+      "type": "[:IS_STAR]",
+      "properties": {},
+      "style": {}
+    },
+    {
       "id": "n56",
-      "fromId": "n5",
-      "toId": "n21",
+      "fromId": "n31",
+      "toId": "n22",
       "type": "[:WIN_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n57",
-      "fromId": "n9",
-      "toId": "n21",
-      "type": "[:HAS_AN_AWARD]",
+      "fromId": "n22",
+      "toId": "n15",
+      "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n58",
-      "fromId": "n16",
-      "toId": "n30",
-      "type": "[:CREATE_STAR]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n59",
-      "fromId": "n30",
-      "toId": "n8",
-      "type": "[:IS_STAR]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n60",
-      "fromId": "n30",
-      "toId": "n21",
-      "type": "[:WIN_AN_AWARD]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n61",
-      "fromId": "n21",
+      "fromId": "n22",
       "toId": "n14",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n62",
-      "fromId": "n21",
-      "toId": "n13",
+      "id": "n59",
+      "fromId": "n22",
+      "toId": "n11",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
+      "id": "n60",
+      "fromId": "n18",
+      "toId": "n19",
+      "type": "[:CANCELED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n61",
+      "fromId": "n16",
+      "toId": "n19",
+      "type": "[:CANCELED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n62",
+      "fromId": "n16",
+      "toId": "n19",
+      "type": "[:CREATED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
       "id": "n63",
-      "fromId": "n21",
-      "toId": "n10",
-      "type": "[:BELONGS_TO]",
+      "fromId": "n17",
+      "toId": "n19",
+      "type": "[:CREATE_REVISION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n64",
       "fromId": "n17",
-      "toId": "n18",
-      "type": "[:CANCELED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n65",
-      "fromId": "n15",
-      "toId": "n18",
-      "type": "[:CANCELED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n66",
-      "fromId": "n15",
-      "toId": "n18",
-      "type": "[:CREATED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n67",
-      "fromId": "n16",
-      "toId": "n18",
-      "type": "[:CREATE_REVISION]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n68",
-      "fromId": "n16",
-      "toId": "n31",
+      "toId": "n32",
       "type": "[:CREATE_TAKEOVER]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n69",
-      "fromId": "n31",
-      "toId": "n8",
+      "id": "n65",
+      "fromId": "n32",
+      "toId": "n9",
       "type": "[:RICHED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n70",
-      "fromId": "n31",
-      "toId": "n8",
+      "id": "n66",
+      "fromId": "n32",
+      "toId": "n9",
       "type": "[:LOST_BY]",
       "properties": {},
       "style": {
@@ -1722,41 +1836,41 @@
       }
     },
     {
-      "id": "n71",
-      "fromId": "n8",
-      "toId": "n32",
+      "id": "n67",
+      "fromId": "n9",
+      "toId": "n33",
       "type": "[:META_FOR]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n72",
-      "fromId": "n32",
-      "toId": "n6",
+      "id": "n68",
+      "fromId": "n33",
+      "toId": "n7",
       "type": "[:PLAY_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n73",
-      "fromId": "n32",
-      "toId": "n7",
+      "id": "n69",
+      "fromId": "n33",
+      "toId": "n8",
       "type": "[:SPONSORED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n74",
-      "fromId": "n32",
-      "toId": "n21",
+      "id": "n70",
+      "fromId": "n33",
+      "toId": "n22",
       "type": "[:WIN_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n75",
-      "fromId": "n15",
-      "toId": "n8",
+      "id": "n71",
+      "fromId": "n16",
+      "toId": "n9",
       "type": "[:FACED_AGAINST]",
       "properties": {},
       "style": {
@@ -1764,9 +1878,9 @@
       }
     },
     {
-      "id": "n76",
-      "fromId": "n22",
-      "toId": "n8",
+      "id": "n72",
+      "fromId": "n23",
+      "toId": "n9",
       "type": "[:FACED_TO]",
       "properties": {},
       "style": {
@@ -1774,72 +1888,64 @@
       }
     },
     {
-      "id": "n77",
-      "fromId": "n17",
-      "toId": "n8",
+      "id": "n73",
+      "fromId": "n18",
+      "toId": "n9",
       "type": "[:ALLOWED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n78",
-      "fromId": "n6",
-      "toId": "n10",
+      "id": "n74",
+      "fromId": "n7",
+      "toId": "n11",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n87",
-      "fromId": "n35",
-      "toId": "n9",
-      "type": "[:GENERATES]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n88",
+      "id": "n75",
       "fromId": "n36",
-      "toId": "n32",
+      "toId": "n33",
       "type": "[:ACCOUNT_FOR]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n89",
-      "fromId": "n33",
-      "toId": "n1",
+      "id": "n76",
+      "fromId": "n34",
+      "toId": "n2",
       "type": "[:SUFFERED_AN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n90",
+      "id": "n77",
       "fromId": "n37",
-      "toId": "n1",
+      "toId": "n2",
       "type": "[:HAS_AN_IMPACT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n91",
-      "fromId": "n1",
-      "toId": "n8",
+      "id": "n78",
+      "fromId": "n2",
+      "toId": "n9",
       "type": "[:GAME_READY_FOR]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n92",
+      "id": "n79",
       "fromId": "n38",
-      "toId": "n8",
+      "toId": "n9",
       "type": "[:TRANSFER_FOR_PLAYER]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n93",
-      "fromId": "n6",
+      "id": "n80",
+      "fromId": "n7",
       "toId": "n38",
       "type": "[:FROM_TEAM]",
       "properties": {},
@@ -1848,23 +1954,23 @@
       }
     },
     {
-      "id": "n94",
-      "fromId": "n0",
+      "id": "n81",
+      "fromId": "n1",
       "toId": "n39",
       "type": "[:GUIDED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n95",
-      "fromId": "n9",
+      "id": "n82",
+      "fromId": "n10",
       "toId": "n39",
       "type": "[:GUIDED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n96",
+      "id": "n83",
       "fromId": "n39",
       "toId": "n40",
       "type": "[:SET_UP]",
@@ -1872,7 +1978,7 @@
       "style": {}
     },
     {
-      "id": "n97",
+      "id": "n84",
       "fromId": "n39",
       "toId": "n41",
       "type": "[:SET_UP]",
@@ -1880,15 +1986,7 @@
       "style": {}
     },
     {
-      "id": "n98",
-      "fromId": "n39",
-      "toId": "n42",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n99",
+      "id": "n85",
       "fromId": "n39",
       "toId": "n43",
       "type": "[:SET_UP]",
@@ -1896,15 +1994,7 @@
       "style": {}
     },
     {
-      "id": "n100",
-      "fromId": "n39",
-      "toId": "n44",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n101",
+      "id": "n86",
       "fromId": "n39",
       "toId": "n45",
       "type": "[:SET_UP]",
@@ -1912,7 +2002,7 @@
       "style": {}
     },
     {
-      "id": "n102",
+      "id": "n87",
       "fromId": "n39",
       "toId": "n46",
       "type": "[:SET_UP]",
@@ -1920,7 +2010,7 @@
       "style": {}
     },
     {
-      "id": "n103",
+      "id": "n88",
       "fromId": "n39",
       "toId": "n47",
       "type": "[:SET_UP]",
@@ -1928,15 +2018,7 @@
       "style": {}
     },
     {
-      "id": "n104",
-      "fromId": "n39",
-      "toId": "n48",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n105",
+      "id": "n89",
       "fromId": "n39",
       "toId": "n49",
       "type": "[:SET_UP]",
@@ -1944,7 +2026,7 @@
       "style": {}
     },
     {
-      "id": "n106",
+      "id": "n90",
       "fromId": "n39",
       "toId": "n50",
       "type": "[:SET_UP]",
@@ -1952,23 +2034,23 @@
       "style": {}
     },
     {
-      "id": "n107",
-      "fromId": "n9",
-      "toId": "n16",
+      "id": "n91",
+      "fromId": "n10",
+      "toId": "n17",
       "type": "[:INITIATES]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n108",
-      "fromId": "n9",
+      "id": "n92",
+      "fromId": "n10",
       "toId": "n51",
       "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n109",
+      "id": "n93",
       "fromId": "n51",
       "toId": "n52",
       "type": "[:HAS_FILE]",
@@ -1979,160 +2061,355 @@
       }
     },
     {
-      "id": "n112",
-      "fromId": "n54",
-      "toId": "n55",
+      "id": "n94",
+      "fromId": "n53",
+      "toId": "n54",
       "type": "[:CONTAINS]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n115",
-      "fromId": "n9",
-      "toId": "n54",
+      "id": "n95",
+      "fromId": "n10",
+      "toId": "n53",
       "type": "[:HAS_DISCUSSION]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n116",
-      "fromId": "n55",
+      "id": "n96",
+      "fromId": "n54",
       "toId": "n51",
       "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n118",
-      "fromId": "n5",
-      "toId": "n57",
+      "id": "n97",
+      "fromId": "n6",
+      "toId": "n55",
       "type": "[:INITIATES_PAYMENT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n119",
-      "fromId": "n57",
-      "toId": "n0",
+      "id": "n98",
+      "fromId": "n55",
+      "toId": "n1",
       "type": "[:RECEIVES_PAYMENT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n120",
-      "fromId": "n57",
-      "toId": "n9",
+      "id": "n99",
+      "fromId": "n55",
+      "toId": "n10",
       "type": "[:PAYMENT_FOR_GAME]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n122",
-      "fromId": "n16",
-      "toId": "n33",
+      "id": "n100",
+      "fromId": "n17",
+      "toId": "n34",
       "type": "[:CREATE_INJURY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n123",
-      "fromId": "n9",
-      "toId": "n33",
+      "id": "n101",
+      "fromId": "n10",
+      "toId": "n34",
       "type": "[:CREATE_INJURY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n124",
-      "fromId": "n19",
+      "id": "n102",
+      "fromId": "n20",
       "toId": "n37",
       "type": "[:CREATE_SUSPENSION]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n125",
+      "id": "n103",
+      "fromId": "n15",
+      "toId": "n39",
+      "type": "[:GUIDED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n104",
       "fromId": "n14",
       "toId": "n39",
       "type": "[:GUIDED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n105",
+      "fromId": "n11",
+      "toId": "n39",
+      "type": "[:GUIDED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n106",
+      "fromId": "n1",
+      "toId": "n6",
+      "type": "[:HAS_ORGANIZATION_STAFF]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n107",
+      "fromId": "n11",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n108",
+      "fromId": "n1",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n109",
+      "fromId": "n8",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n110",
+      "fromId": "n22",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n111",
+      "fromId": "n15",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n112",
+      "fromId": "n14",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n113",
+      "fromId": "n6",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n114",
+      "fromId": "n11",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n115",
+      "fromId": "n1",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n116",
+      "fromId": "n8",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n117",
+      "fromId": "n22",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n118",
+      "fromId": "n15",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n119",
+      "fromId": "n14",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n120",
+      "fromId": "n9",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n121",
+      "fromId": "n6",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n122",
+      "fromId": "n36",
+      "toId": "n6",
+      "type": "[:ACCOUNT_FOR]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n123",
+      "fromId": "n6",
+      "toId": "n5",
+      "type": "[:HAS_ACHIEVEMENT]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n124",
+      "fromId": "n33",
+      "toId": "n5",
+      "type": "[:HAS_ACHIEVEMENT]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n125",
+      "fromId": "n3",
+      "toId": "n10",
+      "type": "[:TRANSFORM_TO]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n126",
-      "fromId": "n13",
-      "toId": "n39",
-      "type": "[:GUIDED_BY]",
+      "fromId": "n3",
+      "toId": "n35",
+      "type": "[:CREATE_INVITATION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n127",
-      "fromId": "n10",
-      "toId": "n39",
-      "type": "[:GUIDED_BY]",
+      "fromId": "n3",
+      "toId": "n13",
+      "type": "[:TAKES_PLACE_AT]",
+      "properties": {},
+      "style": {
+        "attachment-start": "right",
+        "attachment-end": "bottom"
+      }
+    },
+    {
+      "id": "n128",
+      "fromId": "n7",
+      "toId": "n3",
+      "type": "[:ORGANIZE_AN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n128",
-      "fromId": "n0",
+      "id": "n129",
+      "fromId": "n7",
       "toId": "n5",
-      "type": "[:HAS_MANAGER]",
+      "type": "[:HAS_ACHIEVEMENT]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n130",
-      "fromId": "n10",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n33",
+      "toId": "n56",
+      "type": "[:HAS_POSITION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n131",
-      "fromId": "n0",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n7",
+      "toId": "n56",
+      "type": "[:USE_POSITION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n132",
-      "fromId": "n7",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n39",
+      "toId": "n57",
+      "type": "[:SET_UP]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n133",
-      "fromId": "n21",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n7",
+      "toId": "n1",
+      "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n134",
-      "fromId": "n14",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n7",
+      "toId": "n53",
+      "type": "[:HAS_DISCUSSION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n135",
-      "fromId": "n13",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
+      "fromId": "n7",
+      "toId": "n58",
+      "type": "[:USE_JERSEY]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n136",
-      "fromId": "n5",
+      "fromId": "n33",
+      "toId": "n58",
+      "type": "[:HAS_JERSEY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n137",
+      "fromId": "n7",
       "toId": "n51",
       "type": "[:HAS_MEDIA]",
       "properties": {},
@@ -2140,564 +2417,364 @@
     },
     {
       "id": "n138",
-      "fromId": "n10",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n7",
+      "toId": "n59",
+      "type": "[:HAS_WEAR]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n139",
-      "fromId": "n0",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n59",
+      "toId": "n60",
+      "type": "[:HAS_WEAR_ITEM]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n140",
-      "fromId": "n7",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n60",
+      "toId": "n58",
+      "type": "[:FOR_JERSEY]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n141",
-      "fromId": "n21",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n60",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n142",
-      "fromId": "n14",
-      "toId": "n54",
+      "fromId": "n52",
+      "toId": "n53",
       "type": "[:HAS_DISCUSSION]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n143",
-      "fromId": "n13",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n3",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n144",
-      "fromId": "n8",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n59",
+      "toId": "n4",
+      "type": "[:WEAR_FOR]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n145",
-      "fromId": "n5",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
+      "fromId": "n17",
+      "toId": "n61",
+      "type": "[:CREATE_SAVE]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n146",
-      "fromId": "n36",
-      "toId": "n5",
-      "type": "[:ACCOUNT_FOR]",
+      "fromId": "n23",
+      "toId": "n61",
+      "type": "[:CREATE_SAVE]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n147",
-      "fromId": "n5",
-      "toId": "n4",
-      "type": "[:HAS_ACHIEVEMENT]",
+      "fromId": "n61",
+      "toId": "n9",
+      "type": "[:SAVED_BY]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n148",
-      "fromId": "n32",
-      "toId": "n4",
-      "type": "[:HAS_ACHIEVEMENT]",
+      "fromId": "n38",
+      "toId": "n7",
+      "type": "[:TO_TEAM]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n149",
-      "fromId": "n2",
-      "toId": "n9",
-      "type": "[:TRANSFORM_TO]",
+      "fromId": "n12",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n150",
-      "fromId": "n2",
-      "toId": "n34",
-      "type": "[:CREATE_INVITATION]",
+      "fromId": "n35",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n151",
-      "fromId": "n6",
-      "toId": "n35",
-      "type": "[:DEFINE]",
-      "properties": {
-        "host": "Boolean"
-      },
+      "fromId": "n3",
+      "toId": "n62",
+      "type": "[:CREATE_INVITATION_LIST]",
+      "properties": {},
       "style": {}
     },
     {
       "id": "n152",
-      "fromId": "n2",
-      "toId": "n12",
-      "type": "[:TAKES_PLACE_AT]",
+      "fromId": "n35",
+      "toId": "n62",
+      "type": "[:HAS_LIST]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n153",
-      "fromId": "n6",
-      "toId": "n2",
-      "type": "[:ORGANIZE_AN]",
+      "fromId": "n10",
+      "toId": "n63",
+      "type": "[:COMPOSE_RESULT]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n154",
-      "fromId": "n6",
-      "toId": "n4",
-      "type": "[:HAS_ACHIEVEMENT]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n155",
-      "fromId": "n32",
-      "toId": "n58",
-      "type": "[:HAS_POSITION]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n156",
-      "fromId": "n6",
-      "toId": "n58",
-      "type": "[:USE_POSITION]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n157",
       "fromId": "n39",
-      "toId": "n61",
+      "toId": "n64",
       "type": "[:SET_UP]",
       "properties": {},
       "style": {}
     },
     {
+      "id": "n155",
+      "fromId": "n39",
+      "toId": "n65",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n156",
+      "fromId": "n39",
+      "toId": "n66",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n157",
+      "fromId": "n33",
+      "toId": "n3",
+      "type": "[:ORGANIZE_AN]",
+      "properties": {},
+      "style": {}
+    },
+    {
       "id": "n158",
-      "fromId": "n6",
-      "toId": "n0",
-      "type": "[:PARTICIPATE_IN]",
+      "fromId": "n33",
+      "toId": "n51",
+      "type": "[:HAS_MEDIA]",
       "properties": {},
       "style": {}
     },
     {
       "id": "n159",
       "fromId": "n6",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n160",
-      "fromId": "n6",
-      "toId": "n62",
-      "type": "[:USE_JERSEY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n161",
-      "fromId": "n32",
-      "toId": "n62",
-      "type": "[:HAS_JERSEY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n162",
-      "fromId": "n6",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n163",
-      "fromId": "n6",
-      "toId": "n63",
-      "type": "[:HAS_WEAR]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n164",
-      "fromId": "n63",
-      "toId": "n64",
-      "type": "[:HAS_WEAR_ITEM]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n165",
-      "fromId": "n64",
-      "toId": "n62",
-      "type": "[:FOR_JERSEY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n166",
-      "fromId": "n64",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n167",
-      "fromId": "n52",
-      "toId": "n54",
-      "type": "[:HAS_DISCUSSION]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n168",
-      "fromId": "n2",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n169",
-      "fromId": "n63",
-      "toId": "n3",
-      "type": "[:WEAR_FOR]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n170",
-      "fromId": "n16",
-      "toId": "n65",
-      "type": "[:CREATE_SAVE]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n171",
-      "fromId": "n22",
-      "toId": "n65",
-      "type": "[:CREATE_SAVE]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n172",
-      "fromId": "n65",
-      "toId": "n8",
-      "type": "[:SAVED_BY]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n173",
-      "fromId": "n38",
       "toId": "n6",
-      "type": "[:TO_TEAM]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n174",
-      "fromId": "n11",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n175",
-      "fromId": "n34",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n176",
-      "fromId": "n2",
-      "toId": "n66",
-      "type": "[:CREATE_INVITATION_LIST]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n177",
-      "fromId": "n34",
-      "toId": "n66",
-      "type": "[:HAS_LIST]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n178",
-      "fromId": "n9",
-      "toId": "n67",
-      "type": "[:COMPOSE_RESULT]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n179",
-      "fromId": "n39",
-      "toId": "n68",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n180",
-      "fromId": "n39",
-      "toId": "n69",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n181",
-      "fromId": "n39",
-      "toId": "n70",
-      "type": "[:SET_UP]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n185",
-      "fromId": "n32",
-      "toId": "n2",
-      "type": "[:ORGANIZE_AN]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n186",
-      "fromId": "n32",
-      "toId": "n51",
-      "type": "[:HAS_MEDIA]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n207",
-      "fromId": "n5",
-      "toId": "n5",
       "type": "[:HAS_MANAGER]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n208",
-      "fromId": "n55",
-      "toId": "n55",
+      "id": "n160",
+      "fromId": "n54",
+      "toId": "n54",
       "type": "[:REPLY_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n209",
-      "fromId": "n55",
-      "toId": "n55",
+      "id": "n161",
+      "fromId": "n54",
+      "toId": "n54",
       "type": "[:PREVIOUS_COMMENT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n210",
-      "fromId": "n16",
-      "toId": "n16",
+      "id": "n162",
+      "fromId": "n17",
+      "toId": "n17",
       "type": "[:PREVIOUS_GAME_EVENT]",
       "properties": {},
       "style": {
-        "directionality": "directed"
+        "directionality": "directed",
+        "attachment-start": "right",
+        "attachment-end": "top"
       }
     },
     {
-      "id": "n211",
-      "fromId": "n14",
-      "toId": "n13",
+      "id": "n163",
+      "fromId": "n15",
+      "toId": "n14",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n212",
-      "fromId": "n11",
-      "toId": "n5",
+      "id": "n164",
+      "fromId": "n12",
+      "toId": "n6",
       "type": "[:HAS_MANAGER}",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n213",
-      "fromId": "n3",
-      "toId": "n11",
+      "id": "n165",
+      "fromId": "n4",
+      "toId": "n12",
       "type": "[:TAKES_PLAYS_ON]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n214",
-      "fromId": "n13",
-      "toId": "n7",
+      "id": "n166",
+      "fromId": "n14",
+      "toId": "n8",
       "type": "[:SPONSORED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n215",
-      "fromId": "n14",
-      "toId": "n7",
+      "id": "n167",
+      "fromId": "n15",
+      "toId": "n8",
       "type": "[:SPONSORED_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n216",
-      "fromId": "n13",
-      "toId": "n3",
+      "id": "n168",
+      "fromId": "n14",
+      "toId": "n4",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n217",
-      "fromId": "n14",
-      "toId": "n3",
+      "id": "n169",
+      "fromId": "n15",
+      "toId": "n4",
       "type": "[:BELONGS_TO]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n218",
-      "fromId": "n13",
-      "toId": "n11",
-      "type": "[:TAKES_PLAYS_ON]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n219",
+      "id": "n170",
       "fromId": "n14",
-      "toId": "n11",
+      "toId": "n12",
       "type": "[:TAKES_PLAYS_ON]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n220",
-      "fromId": "n3",
-      "toId": "n21",
+      "id": "n171",
+      "fromId": "n15",
+      "toId": "n12",
+      "type": "[:TAKES_PLAYS_ON]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n172",
+      "fromId": "n4",
+      "toId": "n22",
       "type": "[:HAS_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n221",
-      "fromId": "n11",
-      "toId": "n21",
+      "id": "n173",
+      "fromId": "n12",
+      "toId": "n22",
       "type": "[:HAS_AN_AWARD]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n222",
-      "fromId": "n6",
+      "id": "n174",
+      "fromId": "n7",
+      "toId": "n15",
+      "type": "[:PARTICIPATE_IN]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n175",
+      "fromId": "n7",
       "toId": "n14",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n223",
-      "fromId": "n6",
-      "toId": "n13",
+      "id": "n176",
+      "fromId": "n7",
+      "toId": "n4",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n224",
-      "fromId": "n6",
-      "toId": "n3",
-      "type": "[:PARTICIPATE_IN]",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n225",
-      "fromId": "n81",
-      "toId": "n32",
+      "id": "n177",
+      "fromId": "n67",
+      "toId": "n33",
       "type": "[:META_FOR}",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n226",
-      "fromId": "n81",
-      "toId": "n10",
+      "id": "n178",
+      "fromId": "n67",
+      "toId": "n11",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n227",
-      "fromId": "n81",
-      "toId": "n3",
+      "id": "n179",
+      "fromId": "n67",
+      "toId": "n4",
       "type": "[:PARTICIPATE_IN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n228",
+      "id": "n180",
       "fromId": "n36",
-      "toId": "n55",
+      "toId": "n54",
       "type": "[:WRITE_A_COMMENT]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n229",
-      "fromId": "n5",
-      "toId": "n82",
+      "id": "n181",
+      "fromId": "n6",
+      "toId": "n68",
       "type": "[:TYPE_OF]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n230",
-      "fromId": "n6",
-      "toId": "n5",
+      "id": "n182",
+      "fromId": "n7",
+      "toId": "n6",
       "type": "[:HAS_TEAM_STAFF]",
       "properties": {},
       "style": {
@@ -2705,27 +2782,17 @@
       }
     },
     {
-      "id": "n231",
-      "fromId": "n32",
-      "toId": "n35",
-      "type": "[:TAKING_PART_IN]",
-      "properties": {
-        "jersey": "Int"
-      },
-      "style": {}
-    },
-    {
-      "id": "n232",
-      "fromId": "n34",
+      "id": "n183",
+      "fromId": "n35",
       "toId": "n36",
       "type": "[:SENT_BY]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n233",
+      "id": "n184",
       "fromId": "n36",
-      "toId": "n66",
+      "toId": "n62",
       "type": "[:RESPOND_TO_INVITATION]",
       "properties": {
         "status": "String"
@@ -2733,61 +2800,316 @@
       "style": {}
     },
     {
-      "id": "n234",
+      "id": "n185",
       "fromId": "n36",
-      "toId": "n2",
+      "toId": "n3",
       "type": "[:ORGANIZE_AN]",
       "properties": {},
       "style": {}
     },
     {
-      "id": "n235",
+      "id": "n186",
       "fromId": "n36",
-      "toId": "n83",
+      "toId": "n69",
       "type": "[:HAS_SETTINGS]",
       "properties": {},
       "style": {}
+    },
+    {
+      "id": "n187",
+      "fromId": "n43",
+      "toId": "n44",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n188",
+      "fromId": "n41",
+      "toId": "n42",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n189",
+      "fromId": "n46",
+      "toId": "n48",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n190",
+      "fromId": "n70",
+      "toId": "n39",
+      "type": "[:GUIDED_DEFAULT_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n191",
+      "fromId": "n39",
+      "toId": "n56",
+      "type": "[:SET_UP]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n192",
+      "fromId": "n7",
+      "toId": "n10",
+      "type": "[:PLAYS]",
+      "properties": {},
+      "style": {
+        "type-padding": 1,
+        "directionality": "directed",
+        "detail-orientation": "parallel",
+        "detail-position": "inline",
+        "arrow-width": 4,
+        "margin-peer": 50
+      }
+    },
+    {
+      "id": "n193",
+      "fromId": "n1",
+      "toId": "n68",
+      "type": "[:USE_OCCUPATION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n194",
+      "fromId": "n7",
+      "toId": "n68",
+      "type": "[:USE_OCCUPATION]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n195",
+      "fromId": "n8",
+      "toId": "n1",
+      "type": "[:ENGAGED_IN]",
+      "properties": {},
+      "style": {
+        "detail-orientation": "parallel",
+        "detail-position": "above",
+        "directionality": "directed",
+        "attachment-start": "left",
+        "attachment-end": "left"
+      }
+    },
+    {
+      "id": "n196",
+      "fromId": "n39",
+      "toId": "n1",
+      "type": "[:PROVIDED_BY]",
+      "properties": {},
+      "style": {
+        "attachment-end": "bottom"
+      }
+    },
+    {
+      "id": "n197",
+      "fromId": "n3",
+      "toId": "n1",
+      "type": "[:CREATED_IN]",
+      "properties": {},
+      "style": {
+        "attachment-start": "left",
+        "attachment-end": "bottom"
+      }
+    },
+    {
+      "id": "n198",
+      "fromId": "n10",
+      "toId": "n1",
+      "type": "[:PROVIDED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n199",
+      "fromId": "n6",
+      "toId": "n1",
+      "type": "[:ENGAGED_IN]",
+      "properties": {},
+      "style": {
+        "attachment-end": "top"
+      }
+    },
+    {
+      "id": "n200",
+      "fromId": "n22",
+      "toId": "n1",
+      "type": "[:PROVIDED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n203",
+      "fromId": "n10",
+      "toId": "n72",
+      "type": "[:INITIATES_SIMPLE]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n204",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:ALLOWED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n206",
+      "fromId": "n72",
+      "toId": "n72",
+      "type": "[:PREVIOUS_GAME_EVENT]",
+      "properties": {},
+      "style": {
+        "attachment-start": "right",
+        "attachment-end": "top"
+      }
+    },
+    {
+      "id": "n207",
+      "fromId": "n72",
+      "toId": "n7",
+      "type": "[:CREATED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n208",
+      "fromId": "n17",
+      "toId": "n7",
+      "type": "[:CREATED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n209",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:SCORED_BY]",
+      "properties": {},
+      "style": {
+        "detail-orientation": "parallel",
+        "detail-position": "inline",
+        "directionality": "directed",
+        "margin-peer": 50
+      }
+    },
+    {
+      "id": "n210",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:FIRST_ASSIST_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n211",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:SECOND_ASSIST_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n212",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:LOST_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n213",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:WON_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n214",
+      "fromId": "n10",
+      "toId": "n73",
+      "type": "[:COMPOSE_RESULT]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n215",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:PENALIZED]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n216",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:EXECUTED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n217",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:FACED_AGAINST]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n218",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:SUFFERED]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n219",
+      "fromId": "n72",
+      "toId": "n9",
+      "type": "[:SAVED_BY]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n220",
+      "fromId": "n33",
+      "toId": "n10",
+      "type": "[:TAKING_PART_IN]",
+      "properties": {
+        "host": "Boolean",
+        "jersey": "BigInt",
+        "position": "String"
+      },
+      "style": {}
+    },
+    {
+      "id": "n221",
+      "fromId": "n4",
+      "toId": "n1",
+      "type": "[:BELONGS_TO]",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n222",
+      "type": "[:HAS_PERIOD_STATISTICS]",
+      "style": {},
+      "properties": {},
+      "fromId": "n73",
+      "toId": "n74"
     }
-  ],
-  "style": {
-    "node-color": "#4C8EDA",
-    "border-width": 2,
-    "border-color": "#2870c2",
-    "radius": 80,
-    "node-padding": 5,
-    "outside-position": "bottom-right",
-    "caption-position": "inside",
-    "caption-max-width": 200,
-    "caption-color": "#ffffff",
-    "caption-font-size": 65,
-    "caption-font-weight": "normal",
-    "label-position": "inside",
-    "label-color": "#ffffff",
-    "label-background-color": "#0c797d",
-    "label-border-color": "#4C8EDA",
-    "label-border-width": 0,
-    "label-font-size": 30,
-    "label-padding": 2,
-    "label-margin": 2,
-    "directionality": "directed",
-    "detail-position": "inline",
-    "detail-orientation": "parallel",
-    "arrow-width": 5,
-    "arrow-color": "#A5ABB6",
-    "margin-start": 0,
-    "margin-end": 0,
-    "margin-peer": 20,
-    "attachment-start": "normal",
-    "attachment-end": "normal",
-    "type-color": "#000000",
-    "type-background-color": "#ffffff",
-    "type-border-color": "#000000",
-    "type-border-width": 0,
-    "type-font-size": 40,
-    "type-padding": 2,
-    "property-position": "outside",
-    "property-color": "#333333",
-    "property-font-size": 42,
-    "property-font-weight": "normal"
-  }
+  ]
 }

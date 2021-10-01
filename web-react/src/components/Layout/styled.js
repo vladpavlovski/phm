@@ -1,13 +1,13 @@
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
-const drawerWidth = '24rem'
+const drawerWidth = '15rem'
 
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex !important',
   },
   toolbar: {
-    paddingRight: '24px !important', // keep right padding when drawer closed
+    paddingRight: '16px !important', // keep right padding when drawer closed
   },
   toolbarIcon: {
     display: 'flex !important',

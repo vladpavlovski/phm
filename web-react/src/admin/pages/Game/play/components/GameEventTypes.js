@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { experimentalStyled as styled } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
-import ButtonBase from '@material-ui/core/ButtonBase'
-import Typography from '@material-ui/core/Typography'
+import { experimentalStyled as styled } from '@mui/material/styles'
+import Box from '@mui/material/Box'
+import ButtonBase from '@mui/material/ButtonBase'
+import Typography from '@mui/material/Typography'
 
 import { eventTypes } from './gameEvents'
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Controller } from 'react-hook-form'
-import TextField from '@material-ui/core/TextField'
+import TextField from '@mui/material/TextField'
 import { DEFAULT_CONVERTER, converters } from './transformers'
 import PickerDialog from './PickerDialog'
 

@@ -3,16 +3,16 @@ import { gql, useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import AddIcon from '@material-ui/icons/Add'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import AddIcon from '@mui/icons-material/Add'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
 import { GET_ORGANIZATION } from '../../../index'
@@ -258,7 +258,7 @@ export const PersonOccupationDialog = props => {
           <DialogTitle id="alert-dialog-title">{`Set ${person?.name} occupations for ${organization?.name}`}</DialogTitle>
           <DialogContent>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={organizationOccupationsColumns}
                 rows={setIdFromEntityId(
                   organization?.occupations,
@@ -287,30 +287,26 @@ const ToggleOccupation = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? remove({
-                  variables: {
-                    occupationId,
-                    personId: person.personId,
-                  },
-                })
-              : merge({
-                  variables: {
-                    occupationId,
-                    personId: person.personId,
-                  },
-                })
-            setIsMember(!isMember)
-          }}
-          name="organizationMember"
-          color="primary"
-        />
-      }
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? remove({
+              variables: {
+                occupationId,
+                personId: person.personId,
+              },
+            })
+          : merge({
+              variables: {
+                occupationId,
+                personId: person.personId,
+              },
+            })
+        setIsMember(!isMember)
+      }}
+      name="organizationMember"
+      color="primary"
       label={isMember ? 'In occupation' : 'No occupation'}
     />
   )

@@ -4,24 +4,24 @@ import { gql, useLazyQuery } from '@apollo/client'
 import PropTypes from 'prop-types'
 // import { useSnackbar } from 'notistack'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import Box from '@material-ui/core/Box'
-import Collapse from '@material-ui/core/Collapse'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import IconButton from '@material-ui/core/IconButton'
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
+
+import Switch from '@mui/material/Switch'
+import IconButton from '@mui/material/IconButton'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -369,55 +369,43 @@ const OrganizationRow = props => {
           {organization.name}
         </TableCell>
         <TableCell align="left">
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isMember}
-                onChange={() => {
-                  setIsMember(!isMember)
-                  updateTeam({
-                    variables: {
-                      where: {
-                        teamId: team.teamId,
-                      },
-                      update: {
-                        orgs: {
-                          ...(!isMember
-                            ? {
-                                connect: {
-                                  where: {
-                                    node: {
-                                      organizationId:
-                                        organization.organizationId,
-                                    },
-                                  },
+          <Switch
+            checked={isMember}
+            onChange={() => {
+              setIsMember(!isMember)
+              updateTeam({
+                variables: {
+                  where: {
+                    teamId: team.teamId,
+                  },
+                  update: {
+                    orgs: {
+                      ...(!isMember
+                        ? {
+                            connect: {
+                              where: {
+                                node: {
+                                  organizationId: organization.organizationId,
                                 },
-                              }
-                            : {
-                                disconnect: {
-                                  where: {
-                                    node: {
-                                      organizationId:
-                                        organization.organizationId,
-                                    },
-                                  },
+                              },
+                            },
+                          }
+                        : {
+                            disconnect: {
+                              where: {
+                                node: {
+                                  organizationId: organization.organizationId,
                                 },
-                              }),
-                        },
-                      },
+                              },
+                            },
+                          }),
                     },
-                  })
-                  // mergeTeamOrganization({
-                  //   variables: {
-                  //     teamId: team.teamId,
-                  //     organizationId: organization.organizationId,
-                  //   },
-                  // })
-                }}
-                name="isMember"
-                color="primary"
-              />
-            }
+                  },
+                },
+              })
+            }}
+            name="isMember"
+            color="primary"
             label={isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
@@ -513,53 +501,43 @@ const CompetitionRow = props => {
           {competition.name}
         </TableCell>
         <TableCell align="left">
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isMember}
-                onChange={() => {
-                  setIsMember(!isMember)
-                  updateTeam({
-                    variables: {
-                      where: {
-                        teamId: team.teamId,
-                      },
-                      update: {
-                        competitions: {
-                          ...(!isMember
-                            ? {
-                                connect: {
-                                  where: {
-                                    node: {
-                                      competitionId: competition.competitionId,
-                                    },
-                                  },
+          <Switch
+            checked={isMember}
+            onChange={() => {
+              setIsMember(!isMember)
+              updateTeam({
+                variables: {
+                  where: {
+                    teamId: team.teamId,
+                  },
+                  update: {
+                    competitions: {
+                      ...(!isMember
+                        ? {
+                            connect: {
+                              where: {
+                                node: {
+                                  competitionId: competition.competitionId,
                                 },
-                              }
-                            : {
-                                disconnect: {
-                                  where: {
-                                    node: {
-                                      competitionId: competition.competitionId,
-                                    },
-                                  },
+                              },
+                            },
+                          }
+                        : {
+                            disconnect: {
+                              where: {
+                                node: {
+                                  competitionId: competition.competitionId,
                                 },
-                              }),
-                        },
-                      },
+                              },
+                            },
+                          }),
                     },
-                  })
-                  // mergeTeamCompetition({
-                  //   variables: {
-                  //     teamId: team.teamId,
-                  //     competitionId: competition.competitionId,
-                  //   },
-                  // })
-                }}
-                name="isMember"
-                color="primary"
-              />
-            }
+                  },
+                },
+              })
+            }}
+            name="isMember"
+            color="primary"
             label={isMember ? 'Member' : 'Not member'}
           />
         </TableCell>
@@ -648,32 +626,10 @@ const CompetitionRow = props => {
 
 const PhaseRow = props => {
   const { team, phase, updateTeam } = props
-  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.phases.find(p => p.phaseId === phase.phaseId)
   )
-
-  // const [mergeTeamPhase, { loading }] = useMutation(
-  //   isMember ? REMOVE_TEAM_PHASE : MERGE_TEAM_PHASE,
-  //   {
-  //     onCompleted: data => {
-  //       const { teamPhase } = data
-  //       const phrase = isMember
-  //         ? `${teamPhase.from.name} is not in ${teamPhase.to.name} phase`
-  //         : `${teamPhase.from.name} participate in ${teamPhase.to.name} phase`
-  //       enqueueSnackbar(phrase, {
-  //         variant: isMember ? 'info' : 'success',
-  //       })
-  //       setIsMember(!isMember)
-  //     },
-  //     onError: error => {
-  //       enqueueSnackbar(`Error happened :( ${error}`, {
-  //         variant: 'error',
-  //       })
-  //     },
-  //   }
-  // )
 
   return (
     <TableRow>
@@ -681,53 +637,43 @@ const PhaseRow = props => {
         {phase.name}
       </TableCell>
       <TableCell align="left">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isMember}
-              onChange={() => {
-                setIsMember(!isMember)
-                updateTeam({
-                  variables: {
-                    where: {
-                      teamId: team.teamId,
-                    },
-                    update: {
-                      phases: {
-                        ...(!isMember
-                          ? {
-                              connect: {
-                                where: {
-                                  node: {
-                                    phaseId: phase.phaseId,
-                                  },
-                                },
+        <Switch
+          checked={isMember}
+          onChange={() => {
+            setIsMember(!isMember)
+            updateTeam({
+              variables: {
+                where: {
+                  teamId: team.teamId,
+                },
+                update: {
+                  phases: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                phaseId: phase.phaseId,
                               },
-                            }
-                          : {
-                              disconnect: {
-                                where: {
-                                  node: {
-                                    phaseId: phase.phaseId,
-                                  },
-                                },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                phaseId: phase.phaseId,
                               },
-                            }),
-                      },
-                    },
+                            },
+                          },
+                        }),
                   },
-                })
-                // mergeTeamPhase({
-                //   variables: {
-                //     teamId: team.teamId,
-                //     phaseId: phase.phaseId,
-                //   },
-                // })
-              }}
-              name="isMember"
-              color="primary"
-            />
-          }
+                },
+              },
+            })
+          }}
+          name="isMember"
+          color="primary"
           label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
@@ -770,53 +716,43 @@ const GroupRow = props => {
         {group.name}
       </TableCell>
       <TableCell align="left">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isMember}
-              onChange={() => {
-                setIsMember(!isMember)
-                updateTeam({
-                  variables: {
-                    where: {
-                      teamId: team.teamId,
-                    },
-                    update: {
-                      groups: {
-                        ...(!isMember
-                          ? {
-                              connect: {
-                                where: {
-                                  node: {
-                                    groupId: group.groupId,
-                                  },
-                                },
+        <Switch
+          checked={isMember}
+          onChange={() => {
+            setIsMember(!isMember)
+            updateTeam({
+              variables: {
+                where: {
+                  teamId: team.teamId,
+                },
+                update: {
+                  groups: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                groupId: group.groupId,
                               },
-                            }
-                          : {
-                              disconnect: {
-                                where: {
-                                  node: {
-                                    groupId: group.groupId,
-                                  },
-                                },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                groupId: group.groupId,
                               },
-                            }),
-                      },
-                    },
+                            },
+                          },
+                        }),
                   },
-                })
-                // mergeTeamGroup({
-                //   variables: {
-                //     teamId: team.teamId,
-                //     groupId: group.groupId,
-                //   },
-                // })
-              }}
-              name="isMember"
-              color="primary"
-            />
-          }
+                },
+              },
+            })
+          }}
+          name="isMember"
+          color="primary"
           label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
@@ -826,32 +762,10 @@ const GroupRow = props => {
 
 const SeasonRow = props => {
   const { team, season, updateTeam } = props
-  // const { enqueueSnackbar } = useSnackbar()
 
   const [isMember, setIsMember] = useState(
     !!team.seasons.find(g => g.seasonId === season.seasonId)
   )
-
-  // const [mergeTeamGroup, { loading }] = useMutation(
-  //   isMember ? REMOVE_TEAM_SEASON : MERGE_TEAM_SEASON,
-  //   {
-  //     onCompleted: data => {
-  //       const { teamSeason } = data
-  //       const phrase = isMember
-  //         ? `${teamSeason.from.name} is not in ${teamSeason.to.name} season`
-  //         : `${teamSeason.from.name} participate in ${teamSeason.to.name} season`
-  //       enqueueSnackbar(phrase, {
-  //         variant: isMember ? 'info' : 'success',
-  //       })
-  //       setIsMember(!isMember)
-  //     },
-  //     onError: error => {
-  //       enqueueSnackbar(`Error happened :( ${error}`, {
-  //         variant: 'error',
-  //       })
-  //     },
-  //   }
-  // )
 
   return (
     <TableRow>
@@ -859,53 +773,43 @@ const SeasonRow = props => {
         {season.name}
       </TableCell>
       <TableCell align="left">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isMember}
-              onChange={() => {
-                setIsMember(!isMember)
-                updateTeam({
-                  variables: {
-                    where: {
-                      teamId: team.teamId,
-                    },
-                    update: {
-                      seasons: {
-                        ...(!isMember
-                          ? {
-                              connect: {
-                                where: {
-                                  node: {
-                                    seasonId: season.seasonId,
-                                  },
-                                },
+        <Switch
+          checked={isMember}
+          onChange={() => {
+            setIsMember(!isMember)
+            updateTeam({
+              variables: {
+                where: {
+                  teamId: team.teamId,
+                },
+                update: {
+                  seasons: {
+                    ...(!isMember
+                      ? {
+                          connect: {
+                            where: {
+                              node: {
+                                seasonId: season.seasonId,
                               },
-                            }
-                          : {
-                              disconnect: {
-                                where: {
-                                  node: {
-                                    seasonId: season.seasonId,
-                                  },
-                                },
+                            },
+                          },
+                        }
+                      : {
+                          disconnect: {
+                            where: {
+                              node: {
+                                seasonId: season.seasonId,
                               },
-                            }),
-                      },
-                    },
+                            },
+                          },
+                        }),
                   },
-                })
-                // mergeTeamGroup({
-                //   variables: {
-                //     teamId: team.teamId,
-                //     seasonId: season.seasonId,
-                //   },
-                // })
-              }}
-              name="isMember"
-              color="primary"
-            />
-          }
+                },
+              },
+            })
+          }}
+          name="isMember"
+          color="primary"
           label={isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
