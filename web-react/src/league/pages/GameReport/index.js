@@ -272,7 +272,9 @@ const GameReport = () => {
                 <div>
                   {player1 && (
                     <strong>
-                      {`(${player1?.jersey || ''}) - ${player1?.node?.name}`}
+                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                        player1?.node?.name
+                      }`}
                     </strong>
                   )}
                   {params?.row?.penaltyType && (
@@ -296,7 +298,9 @@ const GameReport = () => {
                 <div>
                   {player1 && (
                     <strong>
-                      {`(${player1?.jersey || ''}) - ${player1?.node?.name}`}
+                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                        player1?.node?.name
+                      }`}
                     </strong>
                   )}
                   {player2 && (
