@@ -240,16 +240,22 @@ const GameReport = () => {
                 <div>
                   {player1 && (
                     <strong>
-                      {`(${player1?.jersey || ''}) - ${player1?.node?.name}`}
+                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                        player1?.node?.name
+                      }`}
                     </strong>
                   )}
                   {player2 && (
-                    <span>{` (${player2?.jersey} ${player2?.node?.name}${
-                      player3 ? ', ' : ')'
-                    }`}</span>
+                    <span>
+                      {` (${player2?.jersey || ''} ${player2?.node?.name}${
+                        player3 ? ', ' : ')'
+                      }`}
+                    </span>
                   )}
                   {player3 && (
-                    <span>{`${player3?.jersey} ${player3?.node?.name})`}</span>
+                    <span>{`${!player2 ? ' (' : ''}${player3?.jersey || ''} ${
+                      player3?.node?.name
+                    })`}</span>
                   )}
                   {params?.row?.goalType && (
                     <span>{` - ${params?.row?.goalType} ${
@@ -305,7 +311,7 @@ const GameReport = () => {
         },
       },
     ],
-    [upSm]
+    [upSm, getPlayerByMetaId]
   )
 
   return (

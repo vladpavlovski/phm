@@ -24,20 +24,16 @@ const UPDATE_GAME_RESULT = gql`
 const Finalization = props => {
   const { gameData } = props
   const { enqueueSnackbar } = useSnackbar()
-  //, error: mutationErrorUpdate
-  const [updateGameResult, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_GAME_RESULT,
-    {
-      onCompleted: () => {
-        enqueueSnackbar('Game Result updated!', { variant: 'success' })
-      },
-      onError: error => {
-        enqueueSnackbar(`Error: ${error}`, {
-          variant: 'error',
-        })
-      },
-    }
-  )
+  const [updateGameResult] = useMutation(UPDATE_GAME_RESULT, {
+    onCompleted: () => {
+      enqueueSnackbar('Game Result updated!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
+    },
+  })
 
   const prepareGameFinalization = React.useCallback(() => {
     // console.log('gameSettings:', gameSettings)
@@ -87,7 +83,7 @@ const Finalization = props => {
   return (
     <Button
       fullWidth
-      loading={mutationLoadingUpdate}
+      // loading={mutationLoadingUpdate}
       onClick={prepareGameFinalization}
       variant="contained"
     >
@@ -100,4 +96,4 @@ Finalization.propTypes = {
   gameSettings: PropTypes.object,
 }
 
-export default Finalization
+export { Finalization }

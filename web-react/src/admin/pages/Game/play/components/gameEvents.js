@@ -216,6 +216,6 @@ export const eventTypes = [
   // },
 ]
 
-export const getEventData = type => {
+export const getEventSettings = type => {
   return eventTypes.find(et => et.type === type)
 }

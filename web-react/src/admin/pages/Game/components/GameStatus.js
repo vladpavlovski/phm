@@ -52,6 +52,14 @@ const GameStatus = props => {
         where: { node: { periodStatisticId: ps?.periodStatisticId } },
       }))
     gameResultNew.periodStatistics = []
+    for (let key in gameResultNew) {
+      // skip loop if the property is from prototype
+      if (!Object.prototype.hasOwnProperty.call(gameResultNew, key)) continue
+      if (typeof gameResultNew[key] === 'number') {
+        gameResultNew[key] = 0
+      }
+    }
+
     gameData?.gameEventsSimple?.forEach(ges => {
       const isHostEvent = ges?.team?.teamId === hostTeam?.teamId
       const eventFieldName = getFieldName({

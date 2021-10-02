@@ -763,7 +763,7 @@ const TogglePlayerGame = props => {
       typeof jersey?.number === 'string'
         ? jersey?.number
         : jersey?.number?.low || null
-    return number
+    return parseInt(number)
   }, [])
 
   return (

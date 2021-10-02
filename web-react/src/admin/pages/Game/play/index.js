@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useQuery, useApolloClient } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import { Helmet } from 'react-helmet'
 import { LinkButton } from '../../../../components/LinkButton'
 import Container from '@mui/material/Container'
@@ -11,28 +11,28 @@ import Toolbar from '@mui/material/Toolbar'
 import Img from 'react-cool-img'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useStyles } from '../../commonComponents/styled'
-import { Title } from '../../../../components/Title'
-import { Loader } from '../../../../components/Loader'
-import { Error } from '../../../../components/Error'
-import { getAdminOrgGameRoute } from '../../../../router/routes'
+import { Title } from 'components/Title'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import { getAdminOrgGameRoute } from 'router/routes'
 
 import placeholderPerson from '../../../../img/placeholderPerson.jpg'
 
-import { formatDate, formatTime } from '../../../../utils'
+import { formatDate, formatTime } from 'utils'
 
-import { GET_GAME_EVENTS_SIMPLE } from './components/EventsTable'
-
-import { Periods, GameEventWizard, EventsTable } from './components'
-
-import GameEventFormContext from './context'
-import Finalization from './components/Finalization'
+import {
+  Periods,
+  GameEventWizard,
+  EventsTable,
+  Finalization,
+} from './components'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
     $whereGame: GameWhere
     $whereSystemSettings: SystemSettingsWhere
   ) {
-    game: games(where: $whereGame) {
+    games(where: $whereGame) {
       gameId
       name
       type
@@ -77,9 +77,126 @@ export const GET_GAME_PLAY = gql`
       }
       gameEventsSimple {
         gameEventSimpleId
+        timestamp
+        period
+        remainingTime
         eventType
+        eventTypeCode
+        goalType
+        goalSubType
+        shotType
+        shotSubType
+        penaltyType
+        penaltySubType
+        duration
+        injuryType
         team {
           teamId
+          nick
+          logo
+        }
+        nextGameEvent {
+          gameEventSimpleId
+          timestamp
+        }
+        scoredBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        allowedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        firstAssist {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        secondAssist {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        lostBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        wonBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        penalized {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        executedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        facedAgainst {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        suffered {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        savedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
       }
       gameResult {
@@ -196,15 +313,6 @@ const Play = () => {
   const classes = useStyles()
   const { gameId, organizationSlug } = useParams()
 
-  const client = useApolloClient()
-  const { goalsEventsCounter } = React.useContext(GameEventFormContext)
-
-  const [goalsCounter, setGoalsCounter] = React.useState({
-    host: 0,
-    guest: 0,
-    loaded: false,
-  })
-
   const {
     loading: queryLoading,
     data: queryData,
@@ -217,7 +325,7 @@ const Play = () => {
     skip: gameId === 'new',
   })
 
-  const gameData = queryData?.game?.[0] || null
+  const gameData = queryData?.games?.[0] || null
   const gameSettings = queryData?.systemSettings[0]?.rulePack || null
 
   const teamHost = React.useMemo(
@@ -237,45 +345,6 @@ const Play = () => {
     () => gameData?.playersConnection?.edges?.filter(t => !t.host),
     [gameData]
   )
-
-  React.useEffect(() => {
-    // console.log('gameData:', gameData)
-    // console.log('gameSettings:', gameSettings)
-    if (gameData) {
-      const allGoals = gameData?.gameEventsSimple?.filter(
-        ges => ges.eventType.toLowerCase() === 'goal'
-      )
-      const goalsHost =
-        allGoals?.filter(g => g.team.teamId === teamHost.teamId)?.length || 0
-      const goalsGuest =
-        allGoals?.filter(g => g.team.teamId === teamGuest.teamId)?.length || 0
-      setGoalsCounter({ host: goalsHost, guest: goalsGuest, loaded: true })
-    }
-  }, [gameData])
-
-  React.useEffect(() => {
-    if (goalsEventsCounter) {
-      const { gameEventSimples } = client.readQuery({
-        query: GET_GAME_EVENTS_SIMPLE,
-        variables: {
-          where: {
-            game: {
-              gameId,
-            },
-          },
-        },
-      })
-
-      const allGoals = gameEventSimples?.filter(
-        ges => ges.eventType.toLowerCase() === 'goal'
-      )
-      const goalsHost =
-        allGoals?.filter(g => g.team.teamId === teamHost.teamId)?.length || 0
-      const goalsGuest =
-        allGoals?.filter(g => g.team.teamId === teamGuest.teamId)?.length || 0
-      setGoalsCounter({ host: goalsHost, guest: goalsGuest, loaded: true })
-    }
-  }, [goalsEventsCounter])
 
   return (
     <Container maxWidth={false} className={classes.container}>
@@ -348,12 +417,10 @@ const Play = () => {
                       fontFamily: 'Digital Numbers Regular',
                     }}
                   >
-                    {goalsCounter?.loaded && (
-                      <div style={{ fontSize: '100px' }}>
-                        <span>{goalsCounter?.host}</span>:
-                        <span>{goalsCounter?.guest}</span>
-                      </div>
-                    )}
+                    <div style={{ fontSize: '100px' }}>
+                      <span>{gameData?.gameResult?.hostGoals}</span>:
+                      <span>{gameData?.gameResult?.guestGoals}</span>
+                    </div>
                   </div>
                 </div>
                 <div>
