@@ -706,10 +706,13 @@ type Game {
   timekeeper: String
   referee: String
   status: String
-  photos: String
+  flickrAlbum: String
   report: String
-  paymentHost: Boolean
-  paymentGuest: Boolean
+  paymentHost: String @default(value: "notPaid")
+  paymentGuest: String @default(value: "notPaid")
+  headline: String
+  perex: String
+  body: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   teams: [Team!]!

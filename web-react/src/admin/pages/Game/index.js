@@ -15,6 +15,7 @@ import Toolbar from '@mui/material/Toolbar'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -24,6 +25,7 @@ import { LinkButton } from 'components/LinkButton'
 import { RHFDatepicker } from 'components/RHFDatepicker'
 import { RHFTimepicker } from 'components/RHFTimepicker'
 import { RHFInput } from 'components/RHFInput'
+import { ReactHookFormSelect } from 'components/RHFSelect'
 import { Title } from 'components/Title'
 
 import { GameStatus } from './components/GameStatus'
@@ -54,10 +56,13 @@ export const GET_GAME = gql`
       timekeeper
       referee
       status
-      photos
+      flickrAlbum
       report
       paymentHost
       paymentGuest
+      headline
+      perex
+      body
       teamsConnection {
         edges {
           host
@@ -195,10 +200,13 @@ export const UPDATE_GAME = gql`
         timekeeper
         referee
         status
-        photos
+        flickrAlbum
         report
         paymentHost
         paymentGuest
+        headline
+        perex
+        body
         teamsConnection {
           edges {
             host
@@ -721,6 +729,89 @@ const Game = () => {
                             setValue('gameVenue', options)
                           }
                         />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData?.flickrAlbum}
+                          control={control}
+                          name="flickrAlbum"
+                          label="Flickr Album"
+                          fullWidth
+                          multiline
+                          variant="standard"
+                          error={errors?.flickrAlbum}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.headline}
+                          control={control}
+                          name="headline"
+                          label="Headline"
+                          multiline
+                          maxRows={4}
+                          fullWidth
+                          variant="standard"
+                          error={errors.headline}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.perex}
+                          control={control}
+                          name="perex"
+                          label="Perex"
+                          multiline
+                          maxRows={10}
+                          fullWidth
+                          variant="standard"
+                          error={errors.perex}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.body}
+                          control={control}
+                          name="body"
+                          label="Body"
+                          multiline
+                          maxRows={10}
+                          fullWidth
+                          variant="standard"
+                          error={errors.body}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="paymentHost"
+                          label="Payment Host"
+                          id="paymentHost"
+                          control={control}
+                          defaultValue={
+                            gameData?.paymentHost?.toLowerCase() || ''
+                          }
+                          error={errors.paymentHost}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </ReactHookFormSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="paymentGuest"
+                          label="Payment Guest"
+                          id="paymentGuest"
+                          control={control}
+                          defaultValue={
+                            gameData?.paymentGuest?.toLowerCase() || ''
+                          }
+                          error={errors.paymentGuest}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </ReactHookFormSelect>
                       </Grid>
                     </Grid>
                   </Paper>

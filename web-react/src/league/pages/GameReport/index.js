@@ -31,6 +31,9 @@ const GET_GAME_PLAY = gql`
       name
       type
       info
+      headline
+      perex
+      body
       foreignId
       description
       teamsConnection {
@@ -107,6 +110,9 @@ const GET_GAME_PLAY = gql`
         }
       }
       gameResult {
+        hostWin
+        guestWin
+        draw
         hostGoals
         guestGoals
         hostPenalties
@@ -328,10 +334,10 @@ const GameReport = () => {
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography variant="h4" component="div">
-                  {`${gameData?.name}`}
+                  {`${gameData?.headline}`}
                 </Typography>
                 <Typography variant="subtitle1" component="div">
-                  {`${gameData?.description}`}
+                  {`${gameData?.perex}`}
                 </Typography>
               </Paper>
             </Grid>
@@ -396,6 +402,16 @@ const GameReport = () => {
                     component="div"
                   >
                     {teamHost?.name ?? 'Host team'}
+
+                    <Divider
+                      sx={{
+                        borderColor: gameData?.gameResult?.draw
+                          ? theme?.palette?.warning?.main
+                          : gameData?.gameResult?.hostWin
+                          ? theme?.palette?.success?.main
+                          : theme?.palette?.error?.main,
+                      }}
+                    />
                   </Typography>
 
                   <Typography
@@ -405,6 +421,15 @@ const GameReport = () => {
                     component="div"
                   >
                     {teamGuest?.name ?? 'Guest team'}
+                    <Divider
+                      sx={{
+                        borderColor: gameData?.gameResult?.draw
+                          ? theme?.palette?.warning?.main
+                          : gameData?.gameResult?.guestWin
+                          ? theme?.palette?.success?.main
+                          : theme?.palette?.error?.main,
+                      }}
+                    />
                   </Typography>
                 </Toolbar>
                 <Grid container spacing={0}>
@@ -417,6 +442,16 @@ const GameReport = () => {
                       }}
                     >
                       <Img
+                        style={{
+                          borderWidth: '0.2rem',
+                          borderStyle: 'solid',
+                          borderRadius: '50%',
+                          borderColor: gameData?.gameResult?.draw
+                            ? theme?.palette?.warning?.main
+                            : gameData?.gameResult?.hostWin
+                            ? theme?.palette?.success?.main
+                            : theme?.palette?.error?.main,
+                        }}
                         src={teamHost?.logo}
                         className={classes.gamePlayTeamLogo}
                         alt={teamHost?.name}
@@ -444,6 +479,16 @@ const GameReport = () => {
                       }}
                     >
                       <Img
+                        style={{
+                          borderWidth: '0.2rem',
+                          borderStyle: 'solid',
+                          borderRadius: '50%',
+                          borderColor: gameData?.gameResult?.draw
+                            ? theme?.palette?.warning?.main
+                            : gameData?.gameResult?.guestWin
+                            ? theme?.palette?.success?.main
+                            : theme?.palette?.error?.main,
+                        }}
                         src={teamGuest?.logo}
                         className={classes.gamePlayTeamLogo}
                         alt={teamGuest?.name}
@@ -526,6 +571,13 @@ const GameReport = () => {
                     </TableBody>
                   </Table>
                 )}
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper className={classes.paper}>
+                <Typography variant="body" component="div">
+                  {`${gameData?.perex}`}
+                </Typography>
               </Paper>
             </Grid>
             <Grid item xs={12}>
