@@ -28,8 +28,8 @@ import { RHFInput } from 'components/RHFInput'
 import { ReactHookFormSelect } from 'components/RHFSelect'
 import { Title } from 'components/Title'
 
-import { GameStatus } from './components/GameStatus'
-import { GameReport } from './components/GameReport'
+import { GameStatus, GameReport, GameInvitation } from './components'
+
 import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
 import { schema } from './schema'
 
@@ -849,6 +849,9 @@ const Game = () => {
                         </Grid>
                         <Grid item xs={12}>
                           <GameReport gameId={gameData?.gameId} />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameInvitation gameData={gameData} />
                         </Grid>
                       </Grid>
                     </Paper>
