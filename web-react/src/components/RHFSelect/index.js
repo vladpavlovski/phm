@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { FormControl, InputLabel, Select, Input } from '@material-ui/core'
+import { FormControl, InputLabel, Select, Input } from '@mui/material'
 import { Controller } from 'react-hook-form'
 
 const ITEM_HEIGHT = 48

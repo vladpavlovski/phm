@@ -1,8 +1,8 @@
 import React from 'react'
-import { Button, Paper, Typography } from '@material-ui/core'
-import { Home, ArrowBack } from '@material-ui/icons'
+import { Button, Paper, Typography } from '@mui/material'
+import { Home, ArrowBack } from '@mui/icons-material'
 
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { LinkButton } from '../../components/LinkButton'
 import { useHistory } from 'react-router-dom'
 

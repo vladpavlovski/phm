@@ -1,8 +1,8 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import TextField from '@material-ui/core/TextField'
+import TextField from '@mui/material/TextField'
 import dayjs from 'dayjs'
-import TimePicker from '@material-ui/lab/TimePicker'
+import TimePicker from '@mui/lab/TimePicker'
 import { getDateFromTime } from '../../utils'
 
 const RHFTimepicker = props => {

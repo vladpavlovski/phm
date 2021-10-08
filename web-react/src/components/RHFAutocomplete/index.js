@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { TextField, Autocomplete } from '@material-ui/core'
+import { TextField, Autocomplete } from '@mui/material'
 
 const RHFAutocomplete = props => {
   const { control, name, label, defaultValue, ...restProps } = props

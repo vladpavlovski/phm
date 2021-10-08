@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import createPersistedState from 'use-persisted-state'
 import PropTypes from 'prop-types'
 import { useTimer, useTime } from 'react-timer-hook'
-import Button from '@material-ui/core/Button'
-import ButtonGroup from '@material-ui/core/ButtonGroup'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import { useExitPrompt } from '../../../../../utils/hooks'
 const useGamePlayTimer = createPersistedState('HMS-GamePlayTimer')
 const useGamePlayTimerRunning = createPersistedState('HMS-GamePlayTimerRunning')

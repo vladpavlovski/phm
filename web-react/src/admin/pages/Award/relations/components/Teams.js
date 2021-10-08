@@ -4,17 +4,17 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import AccountBox from '@material-ui/icons/AccountBox'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import AccountBox from '@mui/icons-material/AccountBox'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
-import { getAdminOrgTeamRoute } from '../../../../../routes'
+import Switch from '@mui/material/Switch'
+
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { getAdminOrgTeamRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -148,7 +148,7 @@ const Teams = props => {
           <>
             {/* {place for toolbar} */}
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 disableMultipleSelection
                 disableSelectionOnClick
                 columns={awardTeamsColumns}
@@ -206,30 +206,26 @@ const ToggleAward = props => {
   })
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            isMember
-              ? removeAwardTeam({
-                  variables: {
-                    awardId,
-                    teamId,
-                  },
-                })
-              : mergeAwardTeam({
-                  variables: {
-                    awardId,
-                    teamId,
-                  },
-                })
-            setIsMember(!isMember)
-          }}
-          name="teamMember"
-          color="primary"
-        />
-      }
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? removeAwardTeam({
+              variables: {
+                awardId,
+                teamId,
+              },
+            })
+          : mergeAwardTeam({
+              variables: {
+                awardId,
+                teamId,
+              },
+            })
+        setIsMember(!isMember)
+      }}
+      name="teamMember"
+      color="primary"
       label={isMember ? 'Award' : 'Not award'}
     />
   )

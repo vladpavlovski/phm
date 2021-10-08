@@ -7,10 +7,10 @@ import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Img from 'react-cool-img'
 
-import Toolbar from '@material-ui/core/Toolbar'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 
@@ -23,7 +23,7 @@ import { schema } from './schema'
 
 import { Relations } from './relations'
 
-import { getAdminUserRoute } from '../../../routes'
+import { getAdminUserRoute } from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 import placeholderAvatar from '../../../img/placeholderPerson.jpg'

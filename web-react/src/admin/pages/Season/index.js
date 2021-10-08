@@ -9,9 +9,9 @@ import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { Container, Grid, Paper } from '@material-ui/core'
+import { Container, Grid, Paper } from '@mui/material'
 
-import Toolbar from '@material-ui/core/Toolbar'
+import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
@@ -26,7 +26,7 @@ import { schema } from './schema'
 import {
   getAdminOrgSeasonsRoute,
   getAdminOrgSeasonRoute,
-} from '../../../routes'
+} from '../../../router/routes'
 import { Loader } from '../../../components/Loader'
 import { Error } from '../../../components/Error'
 
@@ -217,21 +217,19 @@ const Season = () => {
           ...rest,
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
+          org: {
+            connect: {
+              where: {
+                node: { urlSlug: organizationSlug },
+              },
+            },
+          },
         }
 
         seasonId === 'new'
           ? createSeason({
               variables: {
-                input: {
-                  ...dataToSubmit,
-                  org: {
-                    connect: {
-                      where: {
-                        node: { urlSlug: organizationSlug },
-                      },
-                    },
-                  },
-                },
+                input: dataToSubmit,
               },
             })
           : updateSeason({
@@ -274,7 +272,7 @@ const Season = () => {
             autoComplete="off"
           >
             <Helmet>
-              <title>{seasonData.name || 'Season'}</title>
+              <title>{seasonData?.name || 'Season'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
@@ -305,7 +303,7 @@ const Season = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={seasonData.name}
+                        defaultValue={seasonData?.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -317,7 +315,7 @@ const Season = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={seasonData.nick}
+                        defaultValue={seasonData?.nick}
                         control={control}
                         name="nick"
                         label="Nick"
@@ -328,7 +326,7 @@ const Season = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={seasonData.short}
+                        defaultValue={seasonData?.short}
                         control={control}
                         name="short"
                         label="Short"

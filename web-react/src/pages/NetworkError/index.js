@@ -1,8 +1,8 @@
 import React from 'react'
-import { Paper, Typography } from '@material-ui/core'
-import { Refresh } from '@material-ui/icons'
+import { Paper, Typography } from '@mui/material'
+import { Refresh } from '@mui/icons-material'
 
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 import { LinkButton } from '../../components/LinkButton'
 
 const useStyles = makeStyles(theme => ({

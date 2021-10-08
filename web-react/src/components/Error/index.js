@@ -1,5 +1,5 @@
 import React from 'react'
-import { Alert, AlertTitle } from '@material-ui/core'
+import { Alert, AlertTitle } from '@mui/material'
 import PropTypes from 'prop-types'
 
 const Error = props => {

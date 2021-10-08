@@ -1,25 +1,25 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { gql, useMutation } from '@apollo/client'
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useSnackbar } from 'notistack'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Button from '@material-ui/core/Button'
-import AddIcon from '@material-ui/icons/Add'
-import CreateIcon from '@material-ui/icons/Create'
-import Toolbar from '@material-ui/core/Toolbar'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import LoadingButton from '@material-ui/lab/LoadingButton'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Button from '@mui/material/Button'
+import AddIcon from '@mui/icons-material/Add'
+import CreateIcon from '@mui/icons-material/Create'
+import Toolbar from '@mui/material/Toolbar'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import LoadingButton from '@mui/lab/LoadingButton'
+
+import Switch from '@mui/material/Switch'
 
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
@@ -249,7 +249,7 @@ const Jerseys = props => {
           </Toolbar>
         )}
         <div style={{ height: 600 }} className={classes.xGridDialog}>
-          <XGrid
+          <DataGridPro
             columns={teamJerseysColumns}
             rows={setIdFromEntityId(team.jerseys, 'jerseyId')}
             components={{
@@ -275,7 +275,7 @@ const Jerseys = props => {
         <DialogTitle id="alert-dialog-title">{`Add jersey to player`}</DialogTitle>
         <DialogContent>
           <div style={{ height: 600 }} className={classes.xGridDialog}>
-            <XGrid
+            <DataGridPro
               columns={teamPlayersColumns}
               rows={setIdFromEntityId(team.players, 'playerId')}
               disableSelectionOnClick
@@ -347,52 +347,48 @@ const TogglePlayerJersey = props => {
   })
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isOwner}
-          onChange={() => {
-            isOwner
-              ? updateJersey({
-                  variables: {
-                    where: {
-                      jerseyId,
-                    },
-                    update: {
-                      player: {
-                        disconnect: {
-                          where: {
-                            node: {
-                              playerId,
-                            },
-                          },
+    <Switch
+      checked={isOwner}
+      onChange={() => {
+        isOwner
+          ? updateJersey({
+              variables: {
+                where: {
+                  jerseyId,
+                },
+                update: {
+                  player: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          playerId,
                         },
                       },
                     },
                   },
-                })
-              : updateJersey({
-                  variables: {
-                    where: {
-                      jerseyId,
-                    },
-                    update: {
-                      player: {
-                        connect: {
-                          where: {
-                            node: { playerId },
-                          },
-                        },
+                },
+              },
+            })
+          : updateJersey({
+              variables: {
+                where: {
+                  jerseyId,
+                },
+                update: {
+                  player: {
+                    connect: {
+                      where: {
+                        node: { playerId },
                       },
                     },
                   },
-                })
-            setIsOwner(!isOwner)
-          }}
-          name="teamMember"
-          color="primary"
-        />
-      }
+                },
+              },
+            })
+        setIsOwner(!isOwner)
+      }}
+      name="teamMember"
+      color="primary"
       label={isOwner ? 'Owner' : 'Not owner'}
     />
   )

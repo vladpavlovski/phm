@@ -1,15 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { gql, useLazyQuery } from '@apollo/client'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import TextField from '@material-ui/core/TextField'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import Grid from '@material-ui/core/Grid'
+import TextField from '@mui/material/TextField'
+import Autocomplete from '@mui/material/Autocomplete'
+import Grid from '@mui/material/Grid'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
@@ -101,12 +101,12 @@ const Organization = props => {
                   name="organization"
                   value={selectedOrganization}
                   getOptionLabel={option => option.name}
-                  // isOptionEqualToValue={(option, value) =>
-                  //   option.organizationId === value.organizationId
-                  // }
-                  getOptionSelected={(option, value) =>
+                  isOptionEqualToValue={(option, value) =>
                     option.organizationId === value.organizationId
                   }
+                  // getOptionSelected={(option, value) =>
+                  //   option.organizationId === value.organizationId
+                  // }
                   options={queryData?.organizations}
                   onChange={(_, data) => {
                     handleOrganizationChange(data)

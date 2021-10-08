@@ -18,4 +18,10 @@ export const schema = object().shape({
       __typename: string(),
     })
     .nullable(),
+  headline: string(),
+  perex: string(),
+  body: string(),
+  flickrAlbum: string(),
+  paymentHost: string(),
+  paymentGuest: string(),
 })

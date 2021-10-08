@@ -5,24 +5,24 @@ import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import Typography from '@material-ui/core/Typography'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import Box from '@material-ui/core/Box'
-import Collapse from '@material-ui/core/Collapse'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import IconButton from '@material-ui/core/IconButton'
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
+
+import Switch from '@mui/material/Switch'
+import IconButton from '@mui/material/IconButton'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -291,46 +291,42 @@ const PhaseRow = props => {
       </TableCell>
       <TableCell align="left">{phase?.season?.nick}</TableCell>
       <TableCell align="left">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isMember}
-              disabled={isDisabled}
-              onChange={() => {
-                setSelectedPhaseId(isMember ? null : phase?.phaseId)
+        <Switch
+          checked={isMember}
+          disabled={isDisabled}
+          onChange={() => {
+            setSelectedPhaseId(isMember ? null : phase?.phaseId)
 
-                updateGame({
-                  variables: {
-                    where: {
-                      gameId: game?.gameId,
-                    },
-                    update: {
-                      phase: {
-                        ...(!isMember && {
-                          connect: {
-                            where: {
-                              node: { phaseId: phase?.phaseId },
-                            },
-                          },
-                        }),
-                        ...(isMember && {
-                          disconnect: {
-                            where: {
-                              node: {
-                                phaseId: phase?.phaseId,
-                              },
-                            },
-                          },
-                        }),
+            updateGame({
+              variables: {
+                where: {
+                  gameId: game?.gameId,
+                },
+                update: {
+                  phase: {
+                    ...(!isMember && {
+                      connect: {
+                        where: {
+                          node: { phaseId: phase?.phaseId },
+                        },
                       },
-                    },
+                    }),
+                    ...(isMember && {
+                      disconnect: {
+                        where: {
+                          node: {
+                            phaseId: phase?.phaseId,
+                          },
+                        },
+                      },
+                    }),
                   },
-                })
-              }}
-              name="isMember"
-              color="primary"
-            />
-          }
+                },
+              },
+            })
+          }}
+          name="isMember"
+          color="primary"
           label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
@@ -370,45 +366,41 @@ const GroupRow = props => {
       </TableCell>
       <TableCell align="left">{group?.season?.nick}</TableCell>
       <TableCell align="left">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isMember}
-              disabled={isDisabled}
-              onChange={() => {
-                setSelectedGroupId(isMember ? null : group?.groupId)
-                updateGame({
-                  variables: {
-                    where: {
-                      gameId: game?.gameId,
-                    },
-                    update: {
-                      group: {
-                        ...(!isMember && {
-                          connect: {
-                            where: {
-                              node: { groupId: group.groupId },
-                            },
-                          },
-                        }),
-                        ...(isMember && {
-                          disconnect: {
-                            where: {
-                              node: {
-                                groupId: group.groupId,
-                              },
-                            },
-                          },
-                        }),
+        <Switch
+          checked={isMember}
+          disabled={isDisabled}
+          onChange={() => {
+            setSelectedGroupId(isMember ? null : group?.groupId)
+            updateGame({
+              variables: {
+                where: {
+                  gameId: game?.gameId,
+                },
+                update: {
+                  group: {
+                    ...(!isMember && {
+                      connect: {
+                        where: {
+                          node: { groupId: group.groupId },
+                        },
                       },
-                    },
+                    }),
+                    ...(isMember && {
+                      disconnect: {
+                        where: {
+                          node: {
+                            groupId: group.groupId,
+                          },
+                        },
+                      },
+                    }),
                   },
-                })
-              }}
-              name="isMember"
-              color="primary"
-            />
-          }
+                },
+              },
+            })
+          }}
+          name="isMember"
+          color="primary"
           label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>

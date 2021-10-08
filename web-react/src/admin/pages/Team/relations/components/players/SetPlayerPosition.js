@@ -3,19 +3,19 @@ import { useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Button from '@material-ui/core/Button'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import EditIcon from '@material-ui/icons/Edit'
-import Tooltip from '@material-ui/core/Tooltip'
-import ButtonBase from '@material-ui/core/ButtonBase'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Button from '@mui/material/Button'
+
+import Switch from '@mui/material/Switch'
+import EditIcon from '@mui/icons-material/Edit'
+import Tooltip from '@mui/material/Tooltip'
+import ButtonBase from '@mui/material/ButtonBase'
 import { LinkButton } from '../../../../../../components/LinkButton'
 
-import { XGrid, GridToolbar } from '@material-ui/x-grid'
+import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../../utils'
 import TeamPlayersContext from './context'
@@ -114,7 +114,7 @@ export const PlayerPositionDialog = props => {
           <DialogTitle id="alert-dialog-title">{`Set ${player?.name} positions for ${team?.name}`}</DialogTitle>
           <DialogContent>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <XGrid
+              <DataGridPro
                 columns={teamPositionsColumns}
                 rows={setIdFromEntityId(team?.positions, 'positionId')}
                 disableSelectionOnClick
@@ -140,47 +140,43 @@ const TogglePosition = props => {
   )
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={isMember}
-          onChange={() => {
-            updatePlayer({
-              variables: {
-                where: {
-                  playerId: player.playerId,
-                },
-                update: {
-                  positions: {
-                    ...(!isMember
-                      ? {
-                          connect: {
-                            where: {
-                              node: {
-                                positionId,
-                              },
-                            },
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        updatePlayer({
+          variables: {
+            where: {
+              playerId: player.playerId,
+            },
+            update: {
+              positions: {
+                ...(!isMember
+                  ? {
+                      connect: {
+                        where: {
+                          node: {
+                            positionId,
                           },
-                        }
-                      : {
-                          disconnect: {
-                            where: {
-                              node: {
-                                positionId,
-                              },
-                            },
+                        },
+                      },
+                    }
+                  : {
+                      disconnect: {
+                        where: {
+                          node: {
+                            positionId,
                           },
-                        }),
-                  },
-                },
+                        },
+                      },
+                    }),
               },
-            })
-            setIsMember(!isMember)
-          }}
-          name="teamMember"
-          color="primary"
-        />
-      }
+            },
+          },
+        })
+        setIsMember(!isMember)
+      }}
+      name="teamMember"
+      color="primary"
       label={isMember ? 'In position' : 'No position'}
     />
   )

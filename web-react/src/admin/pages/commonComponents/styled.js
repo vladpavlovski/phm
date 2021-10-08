@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@mui/styles'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -47,12 +47,40 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
   gameTeamLogo: {
-    maxWidth: '30rem',
-    maxHeight: '25rem',
+    maxWidth: '20rem',
+    maxHeight: '20rem',
+  },
+  gamePlayScore: {
+    [theme.breakpoints.up('xs')]: {
+      fontSize: '2.5rem !important',
+    },
+    [theme.breakpoints.up('sm')]: {
+      fontSize: '4rem !important',
+    },
+    [theme.breakpoints.up('md')]: {
+      fontSize: '7rem !important',
+    },
+    [theme.breakpoints.up('lg')]: {
+      fontSize: '8rem !important',
+    },
   },
   gamePlayTeamLogo: {
-    width: '15rem',
-    height: '15rem',
+    [theme.breakpoints.up('xs')]: {
+      width: '3rem',
+      height: '3rem',
+    },
+    [theme.breakpoints.up('sm')]: {
+      width: '6rem',
+      height: '6rem',
+    },
+    [theme.breakpoints.up('md')]: {
+      width: '8rem',
+      height: '8rem',
+    },
+    [theme.breakpoints.up('lg')]: {
+      width: '10rem',
+      height: '10rem',
+    },
   },
 }))
 

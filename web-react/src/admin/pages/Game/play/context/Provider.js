@@ -13,9 +13,7 @@ const GameEventFormProvider = props => {
   // will need to be reset after every game play
   const [period, setPeriod] = useGamePlayPeriodState(initialContextState.period)
   const [time, setTime] = React.useState(initialContextState.time)
-
   const [eventsTableUpdate, setEventsTableUpdate] = React.useState(0)
-  const [goalsEventsCounter, setGoalsEventsCounter] = React.useState(0)
 
   const [openGameEventDialog, setOpenGameEventDialog] = React.useState(false)
   const [gameEventSettings, setGameEventSettings] = React.useState()
@@ -31,8 +29,6 @@ const GameEventFormProvider = props => {
         setTime,
         eventsTableUpdate,
         setEventsTableUpdate,
-        goalsEventsCounter,
-        setGoalsEventsCounter,
         openGameEventDialog,
         setOpenGameEventDialog,
         gameEventSettings,

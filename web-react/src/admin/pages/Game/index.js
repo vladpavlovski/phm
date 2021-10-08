@@ -7,38 +7,42 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 
-import { LinkButton } from '../../../components/LinkButton'
-import Toolbar from '@material-ui/core/Toolbar'
-import PlayCircleIcon from '@material-ui/icons/PlayCircle'
-import Autocomplete from '@material-ui/core/Autocomplete'
-import TextField from '@material-ui/core/TextField'
+import Toolbar from '@mui/material/Toolbar'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFTimepicker } from '../../../components/RHFTimepicker'
-
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
+
+import { LinkButton } from 'components/LinkButton'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFTimepicker } from 'components/RHFTimepicker'
+import { RHFInput } from 'components/RHFInput'
+import { ReactHookFormSelect } from 'components/RHFSelect'
+import { Title } from 'components/Title'
+
+import { GameStatus, GameReport, GameInvitation } from './components'
+
+import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
 import { schema } from './schema'
 
 import {
   getAdminOrgGamesRoute,
   getAdminOrgGameRoute,
   getAdminOrgGamePlayRoute,
-} from '../../../routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
+} from 'router/routes'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
 
 import { Relations } from './relations'
-import OrganizationContext from '../../../context/organization'
+import OrganizationContext from 'context/organization'
 
 export const GET_GAME = gql`
   query getGame($where: GameWhere) {
@@ -52,10 +56,13 @@ export const GET_GAME = gql`
       timekeeper
       referee
       status
-      photos
+      flickrAlbum
       report
       paymentHost
       paymentGuest
+      headline
+      perex
+      body
       teamsConnection {
         edges {
           host
@@ -73,6 +80,7 @@ export const GET_GAME = gql`
           jersey
           position
           captain
+          goalkeeper
           node {
             avatar
             playerId
@@ -94,6 +102,68 @@ export const GET_GAME = gql`
         venueId
         name
       }
+      gameEventsSimple {
+        gameEventSimpleId
+        timestamp
+        period
+        remainingTime
+        eventType
+        eventTypeCode
+        goalType
+        goalSubType
+        shotType
+        shotSubType
+        penaltyType
+        penaltySubType
+        duration
+        injuryType
+        team {
+          teamId
+          nick
+          logo
+        }
+      }
+      gameResult {
+        gameResultId
+        hostWin
+        guestWin
+        draw
+        periodActive
+        gameStartedAt
+        gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostPenaltyShots
+        guestPenaltyShots
+        hostInjuries
+        guestInjuries
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
+        periodStatistics {
+          periodStatisticId
+          period
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
+        }
+      }
+    }
+    venues {
+      venueId
+      name
     }
   }
 `
@@ -122,6 +192,21 @@ export const UPDATE_GAME = gql`
     updateGame: updateGames(where: $where, update: $update) {
       games {
         gameId
+        name
+        type
+        info
+        foreignId
+        description
+        timekeeper
+        referee
+        status
+        flickrAlbum
+        report
+        paymentHost
+        paymentGuest
+        headline
+        perex
+        body
         teamsConnection {
           edges {
             host
@@ -138,6 +223,8 @@ export const UPDATE_GAME = gql`
             host
             jersey
             position
+            captain
+            goalkeeper
             node {
               avatar
               playerId
@@ -145,6 +232,76 @@ export const UPDATE_GAME = gql`
               firstName
               lastName
             }
+          }
+        }
+        startDate
+        endDate
+        startTime
+        endTime
+        event {
+          eventId
+          name
+        }
+        venue {
+          venueId
+          name
+        }
+        gameEventsSimple {
+          gameEventSimpleId
+          timestamp
+          period
+          remainingTime
+          eventType
+          eventTypeCode
+          goalType
+          goalSubType
+          shotType
+          shotSubType
+          penaltyType
+          penaltySubType
+          duration
+          injuryType
+          team {
+            teamId
+            nick
+            logo
+          }
+        }
+        gameResult {
+          gameResultId
+          hostWin
+          guestWin
+          draw
+          periodActive
+          gameStartedAt
+          gameStatus
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
+          periodStatistics {
+            periodStatisticId
+            period
+            hostGoals
+            guestGoals
+            hostPenalties
+            guestPenalties
+            hostPenaltyShots
+            guestPenaltyShots
+            hostInjuries
+            guestInjuries
+            hostSaves
+            guestSaves
+            hostFaceOffs
+            guestFaceOffs
           }
         }
       }
@@ -174,9 +331,30 @@ const Game = () => {
   } = useQuery(GET_GAME, {
     variables: { where: { gameId } },
     skip: gameId === 'new',
+    onCompleted: data => {
+      // create GameResult entity for already exists Game
+      if (!data?.games?.[0]?.gameResult) {
+        updateGame({
+          variables: {
+            where: {
+              gameId,
+            },
+            update: {
+              gameResult: {
+                create: {
+                  node: {},
+                },
+              },
+            },
+          },
+        })
+      }
+    },
   })
 
-  const { data: venuesData } = useQuery(GET_ALL_VENUES)
+  const { data: venuesData } = useQuery(GET_ALL_VENUES, {
+    skip: gameId !== 'new',
+  })
 
   const [
     createGame,
@@ -200,6 +378,27 @@ const Game = () => {
     updateGame,
     { loading: mutationLoadingMerge, error: mutationErrorMerge },
   ] = useMutation(UPDATE_GAME, {
+    update(cache, { data }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GAME,
+          variables: {
+            where: { gameId },
+          },
+        })
+
+        cache.writeQuery({
+          query: GET_GAME,
+          data: {
+            games: data?.updateGame?.games,
+            venues: queryResult?.venues,
+          },
+          variables: { where: { gameId } },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
     onCompleted: () => {
       enqueueSnackbar('Game updated!', { variant: 'success' })
     },
@@ -257,6 +456,13 @@ const Game = () => {
               },
             },
           },
+          ...(gameId === 'new' && {
+            gameResult: {
+              create: {
+                node: {},
+              },
+            },
+          }),
           ...(gameVenue && {
             venue: {
               ...(gameId !== 'new' && {
@@ -498,7 +704,9 @@ const Game = () => {
                       <Grid item xs={12} sm={6} md={6} lg={6}>
                         <Autocomplete
                           id="combo-box-game-venue"
-                          options={venuesData?.venues || []}
+                          options={
+                            queryData?.venues || venuesData?.venues || []
+                          }
                           // value={gameData?.venue}
                           defaultValue={gameData?.venue}
                           renderInput={params => (
@@ -511,47 +719,144 @@ const Game = () => {
                             />
                           )}
                           getOptionLabel={option => option.name}
-                          // isOptionEqualToValue={(option, value) =>
-                          //   option.venueId === value.venueId
-                          // }
-                          getOptionSelected={(option, value) =>
+                          isOptionEqualToValue={(option, value) =>
                             option.venueId === value.venueId
                           }
+                          // getOptionSelected={(option, value) =>
+                          //   option.venueId === value.venueId
+                          // }
                           onChange={(_, options) =>
                             setValue('gameVenue', options)
                           }
                         />
                       </Grid>
-                    </Grid>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper className={classes.paper}>
-                    <Toolbar disableGutters className={classes.toolbarForm}>
-                      <div>
-                        <Title>{'Result'}</Title>
-                      </div>
-                    </Toolbar>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <LinkButton
-                          to={getAdminOrgGamePlayRoute(
-                            organizationSlug,
-                            gameId
-                          )}
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={gameData?.flickrAlbum}
+                          control={control}
+                          name="flickrAlbum"
+                          label="Flickr Album"
                           fullWidth
-                          size="medium"
-                          target="_blank"
-                          variant={'outlined'}
-                          className={classes.submit}
-                          startIcon={<PlayCircleIcon />}
+                          multiline
+                          variant="standard"
+                          error={errors?.flickrAlbum}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.headline}
+                          control={control}
+                          name="headline"
+                          label="Headline"
+                          multiline
+                          maxRows={4}
+                          fullWidth
+                          variant="standard"
+                          error={errors.headline}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.perex}
+                          control={control}
+                          name="perex"
+                          label="Perex"
+                          multiline
+                          maxRows={10}
+                          fullWidth
+                          variant="standard"
+                          error={errors.perex}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <RHFInput
+                          defaultValue={gameData?.body}
+                          control={control}
+                          name="body"
+                          label="Body"
+                          multiline
+                          maxRows={10}
+                          fullWidth
+                          variant="standard"
+                          error={errors.body}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="paymentHost"
+                          label="Payment Host"
+                          id="paymentHost"
+                          control={control}
+                          defaultValue={
+                            gameData?.paymentHost?.toLowerCase() || ''
+                          }
+                          error={errors.paymentHost}
                         >
-                          Play
-                        </LinkButton>
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </ReactHookFormSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <ReactHookFormSelect
+                          fullWidth
+                          name="paymentGuest"
+                          label="Payment Guest"
+                          id="paymentGuest"
+                          control={control}
+                          defaultValue={
+                            gameData?.paymentGuest?.toLowerCase() || ''
+                          }
+                          error={errors.paymentGuest}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </ReactHookFormSelect>
                       </Grid>
                     </Grid>
                   </Paper>
                 </Grid>
+                {gameData?.gameId && (
+                  <Grid item xs={12} sm={4}>
+                    <Paper className={classes.paper}>
+                      <Toolbar disableGutters className={classes.toolbarForm}>
+                        <div>
+                          <Title>{'Play'}</Title>
+                        </div>
+                      </Toolbar>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <LinkButton
+                            to={getAdminOrgGamePlayRoute(
+                              organizationSlug,
+                              gameId
+                            )}
+                            fullWidth
+                            size="medium"
+                            target="_blank"
+                            variant={'outlined'}
+                            className={classes.submit}
+                            startIcon={<PlayCircleIcon />}
+                          >
+                            Play
+                          </LinkButton>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameStatus
+                            gameData={gameData}
+                            updateGame={updateGame}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameReport gameId={gameData?.gameId} />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <GameInvitation gameData={gameData} />
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
               </Grid>
             </form>
             {isValidUuid(gameId) && (

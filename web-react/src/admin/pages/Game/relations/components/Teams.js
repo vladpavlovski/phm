@@ -5,18 +5,18 @@ import { useSnackbar } from 'notistack'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import Img from 'react-cool-img'
 
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
-import Button from '@material-ui/core/Button'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import Toolbar from '@material-ui/core/Toolbar'
-import AddIcon from '@material-ui/icons/Add'
-import RemoveIcon from '@material-ui/icons/Remove'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Toolbar from '@mui/material/Toolbar'
+import AddIcon from '@mui/icons-material/Add'
+import RemoveIcon from '@mui/icons-material/Remove'
 
-import { XGrid } from '@material-ui/x-grid'
+import { DataGridPro } from '@mui/x-data-grid-pro'
 import { Title } from '../../../../../components/Title'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
@@ -255,7 +255,7 @@ const Teams = props => {
             <DialogTitle id="alert-dialog-title">{`Add team to game`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <XGrid
+                <DataGridPro
                   columns={allTeamsColumns}
                   rows={allTeams}
                   disableSelectionOnClick

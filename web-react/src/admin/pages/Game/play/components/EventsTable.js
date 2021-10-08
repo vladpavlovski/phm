@@ -1,165 +1,78 @@
 import React from 'react'
 // import PropTypes from 'prop-types'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import dayjs from 'dayjs'
 import Img from 'react-cool-img'
 import { useSnackbar } from 'notistack'
 
-import EditIcon from '@material-ui/icons/Edit'
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
-import Tooltip from '@material-ui/core/Tooltip'
-import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
-import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import DialogTitle from '@material-ui/core/DialogTitle'
+// import EditIcon from '@mui/icons-material/Edit'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import Tooltip from '@mui/material/Tooltip'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import IconButton from '@mui/material/IconButton'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 
-import { XGrid } from '@material-ui/x-grid'
+import { DataGridPro } from '@mui/x-data-grid-pro'
 
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { getEventData } from './gameEvents'
-import { setIdFromEntityId } from '../../../../../utils'
+import { getEventSettings } from './gameEvents'
+import { setIdFromEntityId } from 'utils'
 
-import GameEventFormContext from '../context'
-
-export const GET_GAME_EVENTS_SIMPLE = gql`
-  query getGameEventsSimple($where: GameEventSimpleWhere) {
-    gameEventSimples(where: $where) {
-      gameEventSimpleId
-      timestamp
-      period
-      remainingTime
-      eventType
-      eventTypeCode
-      goalType
-      goalSubType
-      shotType
-      shotSubType
-      penaltyType
-      penaltySubType
-      duration
-      injuryType
-      team {
-        teamId
-        nick
-        logo
-      }
-      nextGameEvent {
-        gameEventSimpleId
-        timestamp
-      }
-      scoredBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      allowedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      firstAssist {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      secondAssist {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      lostBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      wonBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      penalized {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      executedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      facedAgainst {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      suffered {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-      savedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
-        }
-      }
-    }
-  }
-`
+// import GameEventFormContext from '../context'
+import { prepareGameResultUpdate } from '../handlers'
+import { GET_GAME_PLAY } from '../index'
 
 const DELETE_GAME_EVENT_SIMPLE = gql`
-  mutation deleteGameEventSimple($where: GameEventSimpleWhere) {
+  mutation deleteGameEventSimple(
+    $where: GameEventSimpleWhere
+    $gameResultWhere: GameResultWhere
+    $gameResultUpdateInput: GameResultUpdateInput
+  ) {
     deleteGameEventSimples(where: $where) {
       nodesDeleted
+    }
+    updateGameResults(where: $gameResultWhere, update: $gameResultUpdateInput) {
+      gameResults {
+        gameResultId
+        periodActive
+        gameStartedAt
+        gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostPenaltyShots
+        guestPenaltyShots
+        hostInjuries
+        guestInjuries
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
+        periodStatistics {
+          periodStatisticId
+          period
+          hostGoals
+          guestGoals
+          hostPenalties
+          guestPenalties
+          hostPenaltyShots
+          guestPenaltyShots
+          hostInjuries
+          guestInjuries
+          hostSaves
+          guestSaves
+          hostFaceOffs
+          guestFaceOffs
+        }
+      }
     }
   }
 `
@@ -175,50 +88,58 @@ const PlayerNameFormat = props => {
   )
 }
 
+const PlayerNameFormatMemo = React.memo(PlayerNameFormat)
+
 const EventsTable = props => {
-  const { gameData, gameSettings, players, teams } = props
+  //gameSettings
+  const { gameData, players, teams } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const [openDeleteEventDialog, setOpenDeleteEventDialog] =
     React.useState(false)
 
+  const [eventsView, setEventsView] = React.useState('filtered')
+
   const gameEventSimpleIdToDelete = React.useRef()
 
-  const {
-    eventsTableUpdate,
-    setGoalsEventsCounter,
-    setGameEventSettings,
-    setGameEventData,
-    setOpenGameEventDialog,
-  } = React.useContext(GameEventFormContext)
-  const { data, error, loading, refetch } = useQuery(GET_GAME_EVENTS_SIMPLE, {
-    variables: {
-      where: { game: { gameId: gameData?.gameId } },
-    },
-  })
+  // const { setGameEventSettings, setGameEventData, setOpenGameEventDialog } =
+  //   React.useContext(GameEventFormContext)
 
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
-    update(cache) {
+    update(cache, { data }) {
       try {
         const queryResult = cache.readQuery({
-          query: GET_GAME_EVENTS_SIMPLE,
+          query: GET_GAME_PLAY,
           variables: {
-            where: { game: { gameId: gameData?.gameId } },
+            whereGame: { gameId: gameData?.gameId },
+            whereSystemSettings: { systemSettingsId: 'system-settings' },
           },
         })
 
         const updatedEvents =
-          queryResult?.gameEventSimples?.filter(
-            ges => ges?.gameEventSimpleId !== gameEventSimpleIdToDelete.current
+          queryResult.games[0].gameEventsSimple?.filter(
+            ges =>
+              ges?.gameEventSimpleId !==
+              gameEventSimpleIdToDelete.current?.gameEventSimpleId
           ) || []
+
         const updatedResult = {
-          gameEventSimples: [...updatedEvents],
+          games: [
+            {
+              ...queryResult.games[0],
+              gameResult: data?.updateGameResults?.gameResults?.[0],
+              gameEventsSimple: updatedEvents,
+            },
+          ],
+          systemSettings: queryResult.systemSettings,
         }
+
         cache.writeQuery({
-          query: GET_GAME_EVENTS_SIMPLE,
+          query: GET_GAME_PLAY,
           data: updatedResult,
           variables: {
-            where: { game: { gameId: gameData?.gameId } },
+            whereGame: { gameId: gameData?.gameId },
+            whereSystemSettings: { systemSettingsId: 'system-settings' },
           },
         })
       } catch (error) {
@@ -239,13 +160,6 @@ const EventsTable = props => {
     },
   })
 
-  React.useEffect(async () => {
-    if (gameData?.gameId && eventsTableUpdate) {
-      await refetch()
-      setGoalsEventsCounter(g => g + 1)
-    }
-  }, [gameData?.gameId, eventsTableUpdate])
-
   const columns = React.useMemo(
     () => [
       {
@@ -264,14 +178,14 @@ const EventsTable = props => {
         renderCell: params => {
           return (
             <>
-              <IconButton
+              {/* <IconButton
                 type="button"
                 size="small"
                 variant="contained"
                 color="primary"
                 onClick={() => {
                   // find and set gameEventSettings based on eventTypeCode
-                  const data = getEventData(params.row?.eventTypeCode)
+                  const data = getEventSettings(params.row?.eventTypeCode)
                   setGameEventSettings(data)
 
                   // compose gameEventData object
@@ -386,15 +300,14 @@ const EventsTable = props => {
                 <Tooltip arrow title="Edit" placement="top">
                   <EditIcon />
                 </Tooltip>
-              </IconButton>
+              </IconButton> */}
               <IconButton
                 type="button"
                 size="small"
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  gameEventSimpleIdToDelete.current =
-                    params.row?.gameEventSimpleId
+                  gameEventSimpleIdToDelete.current = params.row
                   setOpenDeleteEventDialog(true)
                 }}
               >
@@ -459,7 +372,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.scoredBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.scoredBy?.player?.name}
             />
@@ -481,7 +394,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.firstAssist?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.firstAssist?.player?.name}
             />
@@ -503,7 +416,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.secondAssist?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.secondAssist?.player?.name}
             />
@@ -531,7 +444,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.penalized?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.penalized?.player?.name}
             />
@@ -600,7 +513,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.wonBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.wonBy?.player?.name}
             />
@@ -620,7 +533,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.lostBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.lostBy?.player?.name}
             />
@@ -641,7 +554,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.executedBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.executedBy?.player?.name}
             />
@@ -662,7 +575,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.facedAgainst?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.facedAgainst?.player?.name}
             />
@@ -682,7 +595,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.suffered?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.suffered?.player?.name}
             />
@@ -710,7 +623,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.savedBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormat
+            <PlayerNameFormatMemo
               jersey={jersey}
               name={params?.row?.savedBy?.player?.name}
             />
@@ -742,21 +655,44 @@ const EventsTable = props => {
         <Typography variant="h6" component="div">
           {`Events table: ${gameData?.name}`}
         </Typography>
+        <ButtonGroup variant="outlined" size="small">
+          <Button
+            variant={eventsView === 'all' ? 'contained' : 'outlined'}
+            onClick={() => {
+              setEventsView('all')
+            }}
+          >
+            All
+          </Button>
+          <Button
+            variant={eventsView === 'filtered' ? 'contained' : 'outlined'}
+            onClick={() => {
+              setEventsView('filtered')
+            }}
+          >
+            Filtered
+          </Button>
+        </ButtonGroup>
       </div>
-      {error && !loading && <Error message={error.message} />}
-      {data && (
+      {gameData?.gameEventsSimple && (
         <div style={{ height: '60rem' }} className={classes.xGridWrapper}>
-          <XGrid
+          <DataGridPro
             columns={columns}
             rows={setIdFromEntityId(
-              [...data?.gameEventSimples].sort((x, y) => {
+              [
+                ...gameData?.gameEventsSimple?.filter(ges =>
+                  eventsView === 'filtered'
+                    ? ges?.eventTypeCode !== 'save' &&
+                      ges?.eventTypeCode !== 'faceOff'
+                    : true
+                ),
+              ].sort((x, y) => {
                 const date1 = new Date(x.timestamp)
                 const date2 = new Date(y.timestamp)
                 return date2 - date1
               }),
               'gameEventSimpleId'
             )}
-            loading={loading}
             density="compact"
             disableColumnSelector
             disableSelectionOnClick
@@ -793,11 +729,31 @@ const EventsTable = props => {
           <Button
             onClick={() => {
               setOpenDeleteEventDialog(false)
+              const gameEventSettings = getEventSettings(
+                gameEventSimpleIdToDelete.current?.eventTypeCode
+              )
+
+              const isHost = teams?.find(
+                t =>
+                  t?.node?.teamId ===
+                  gameEventSimpleIdToDelete.current?.team?.teamId
+              )?.host
+
+              const { where, update } = prepareGameResultUpdate({
+                gameData,
+                gameEventSettings,
+                host: isHost,
+                period: gameEventSimpleIdToDelete.current?.period,
+                changeUp: false,
+              })
               deleteGameEventSimple({
                 variables: {
                   where: {
-                    gameEventSimpleId: gameEventSimpleIdToDelete.current,
+                    gameEventSimpleId:
+                      gameEventSimpleIdToDelete.current?.gameEventSimpleId,
                   },
+                  gameResultWhere: where,
+                  gameResultUpdateInput: update,
                 },
               })
             }}

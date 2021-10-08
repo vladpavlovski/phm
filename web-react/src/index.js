@@ -8,7 +8,7 @@ import WebFont from 'webfontloader'
 // import registerServiceWorker from './registerServiceWorker'
 import { AuthorizedApolloProvider } from './graphql'
 import { Auth0Provider } from '@auth0/auth0-react'
-import { LicenseInfo } from '@material-ui/x-grid'
+import { LicenseInfo } from '@mui/x-data-grid-pro'
 import config from './config'
 
 LicenseInfo.setLicenseKey(config.xGridKey)
