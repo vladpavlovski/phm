@@ -746,6 +746,7 @@ const EventsTable = props => {
                 period: gameEventSimpleIdToDelete.current?.period,
                 changeUp: false,
               })
+              console.log('where, update:', where, update)
               deleteGameEventSimple({
                 variables: {
                   where: {
