@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField'
 import DatePicker from '@mui/lab/DatePicker'
 import dayjs from 'dayjs'
 
-const RHFDatepicker = props => {
+const RHFDatepickerComponent = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
@@ -35,7 +35,7 @@ const RHFDatepicker = props => {
   )
 }
 
-RHFDatepicker.defaultProps = {
+RHFDatepickerComponent.defaultProps = {
   defaultValue: null,
   fullWidth: false,
   openTo: 'year',
@@ -43,5 +43,7 @@ RHFDatepicker.defaultProps = {
   views: ['year', 'month', 'day'],
   error: false,
 }
+
+const RHFDatepicker = React.memo(RHFDatepickerComponent)
 
 export { RHFDatepicker }

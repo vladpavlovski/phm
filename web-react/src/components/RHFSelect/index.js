@@ -1,18 +1,8 @@
-import React, { useMemo } from 'react'
-import { FormControl, InputLabel, Select, Input } from '@mui/material'
+import React from 'react'
+import { FormControl, InputLabel, Select } from '@mui/material'
 import { Controller } from 'react-hook-form'
 
-const ITEM_HEIGHT = 48
-const ITEM_PADDING_TOP = 8
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-}
-const ReactHookFormSelect = ({
+const RHFSelectComponent = ({
   name,
   label,
   control,
@@ -20,22 +10,20 @@ const ReactHookFormSelect = ({
   children,
   ...props
 }) => {
-  const labelId = useMemo(() => `${name}-label`, [])
+  const labelId = React.useMemo(() => `${name}-label`, [])
   return (
     <FormControl {...props}>
       <InputLabel id={labelId}>{label}</InputLabel>
       <Controller
         render={({ onChange, onBlur, value, name, ref }) => (
           <Select
+            label={label}
             ref={ref}
             onChange={onChange}
             onBlur={onBlur}
             value={value}
             name={name}
             labelId={labelId}
-            label={label}
-            input={<Input />}
-            MenuProps={MenuProps}
           >
             {children}
           </Select>
@@ -47,4 +35,11 @@ const ReactHookFormSelect = ({
     </FormControl>
   )
 }
-export { ReactHookFormSelect }
+
+RHFSelectComponent.defaultProps = {
+  variant: 'standard',
+}
+
+const RHFSelect = React.memo(RHFSelectComponent)
+
+export { RHFSelect }

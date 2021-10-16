@@ -25,7 +25,7 @@ import { LinkButton } from 'components/LinkButton'
 import { RHFDatepicker } from 'components/RHFDatepicker'
 import { RHFTimepicker } from 'components/RHFTimepicker'
 import { RHFInput } from 'components/RHFInput'
-import { ReactHookFormSelect } from 'components/RHFSelect'
+import { RHFSelect } from 'components/RHFSelect'
 import { Title } from 'components/Title'
 
 import { GameStatus, GameReport, GameInvitation } from './components'
@@ -60,6 +60,8 @@ export const GET_GAME = gql`
       report
       paymentHost
       paymentGuest
+      paymentTimekeeper
+      paymentReferee
       headline
       perex
       body
@@ -81,6 +83,7 @@ export const GET_GAME = gql`
           position
           captain
           goalkeeper
+          star
           node {
             avatar
             playerId
@@ -204,6 +207,8 @@ export const UPDATE_GAME = gql`
         report
         paymentHost
         paymentGuest
+        paymentTimekeeper
+        paymentReferee
         headline
         perex
         body
@@ -225,6 +230,7 @@ export const UPDATE_GAME = gql`
             position
             captain
             goalkeeper
+            star
             node {
               avatar
               playerId
@@ -782,36 +788,60 @@ const Game = () => {
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <ReactHookFormSelect
+                        <RHFSelect
                           fullWidth
                           name="paymentHost"
                           label="Payment Host"
                           id="paymentHost"
                           control={control}
-                          defaultValue={
-                            gameData?.paymentHost?.toLowerCase() || ''
-                          }
+                          defaultValue={gameData?.paymentHost || ''}
                           error={errors.paymentHost}
                         >
                           <MenuItem value="paid">Paid</MenuItem>
                           <MenuItem value="notPaid">Not paid</MenuItem>
-                        </ReactHookFormSelect>
+                        </RHFSelect>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <ReactHookFormSelect
+                        <RHFSelect
                           fullWidth
                           name="paymentGuest"
                           label="Payment Guest"
                           id="paymentGuest"
                           control={control}
-                          defaultValue={
-                            gameData?.paymentGuest?.toLowerCase() || ''
-                          }
+                          defaultValue={gameData?.paymentGuest || ''}
                           error={errors.paymentGuest}
                         >
                           <MenuItem value="paid">Paid</MenuItem>
                           <MenuItem value="notPaid">Not paid</MenuItem>
-                        </ReactHookFormSelect>
+                        </RHFSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFSelect
+                          fullWidth
+                          name="paymentTimekeeper"
+                          label="Payment Timekeeper"
+                          id="paymentTimekeeper"
+                          control={control}
+                          defaultValue={gameData?.paymentTimekeeper || ''}
+                          error={errors.paymentTimekeeper}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </RHFSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFSelect
+                          fullWidth
+                          name="paymentReferee"
+                          label="Payment Referee"
+                          id="paymentReferee"
+                          control={control}
+                          defaultValue={gameData?.paymentReferee || ''}
+                          error={errors.paymentReferee}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </RHFSelect>
                       </Grid>
                     </Grid>
                   </Paper>

@@ -24,4 +24,6 @@ export const schema = object().shape({
   flickrAlbum: string(),
   paymentHost: string(),
   paymentGuest: string(),
+  paymentTimekeeper: string(),
+  paymentReferee: string(),
 })

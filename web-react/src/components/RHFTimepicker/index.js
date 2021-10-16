@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import TimePicker from '@mui/lab/TimePicker'
 import { getDateFromTime } from '../../utils'
 
-const RHFTimepicker = props => {
+const RHFTimepickerComponent = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
@@ -36,7 +36,7 @@ const RHFTimepicker = props => {
   )
 }
 
-RHFTimepicker.defaultProps = {
+RHFTimepickerComponent.defaultProps = {
   defaultValue: null,
   fullWidth: false,
   openTo: 'hours',
@@ -46,5 +46,7 @@ RHFTimepicker.defaultProps = {
   ampm: false,
   ampmInClock: false,
 }
+
+const RHFTimepicker = React.memo(RHFTimepickerComponent)
 
 export { RHFTimepicker }

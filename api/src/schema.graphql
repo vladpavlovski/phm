@@ -686,6 +686,7 @@ interface TakingPartIn {
   position: String
   captain: Boolean @default(value: false)
   goalkeeper: Boolean @default(value: false)
+  star: Boolean @default(value: false)
 }
 
 interface TeamGame {
@@ -710,6 +711,8 @@ type Game {
   report: String
   paymentHost: String @default(value: "notPaid")
   paymentGuest: String @default(value: "notPaid")
+  paymentTimekeeper: String @default(value: "notPaid")
+  paymentReferee: String @default(value: "notPaid")
   headline: String
   perex: String
   body: String
