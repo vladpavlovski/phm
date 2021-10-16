@@ -2,7 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import TextField from '@mui/material/TextField'
 
-const RHFInput = props => {
+const RHFInputComponent = props => {
   const { control, name, defaultValue, error, ...restProps } = props
   return (
     <Controller
@@ -24,7 +24,9 @@ const RHFInput = props => {
   )
 }
 
-RHFInput.defaultProps = {
+const RHFInput = React.memo(RHFInputComponent)
+
+RHFInputComponent.defaultProps = {
   defaultValue: '',
   multiple: false,
   fullWidth: false,
