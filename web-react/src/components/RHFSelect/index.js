@@ -12,7 +12,7 @@ const MenuProps = {
     },
   },
 }
-const ReactHookFormSelect = ({
+const RHFSelect = ({
   name,
   label,
   control,
@@ -47,4 +47,4 @@ const ReactHookFormSelect = ({
     </FormControl>
   )
 }
-export { ReactHookFormSelect }
+export { RHFSelect }
