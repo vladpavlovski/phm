@@ -25,7 +25,7 @@ import { LinkButton } from 'components/LinkButton'
 import { RHFDatepicker } from 'components/RHFDatepicker'
 import { RHFTimepicker } from 'components/RHFTimepicker'
 import { RHFInput } from 'components/RHFInput'
-import { ReactHookFormSelect } from 'components/RHFSelect'
+import { RHFSelect } from 'components/RHFSelect'
 import { Title } from 'components/Title'
 
 import { GameStatus, GameReport, GameInvitation } from './components'
@@ -782,7 +782,7 @@ const Game = () => {
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <ReactHookFormSelect
+                        <RHFSelect
                           fullWidth
                           name="paymentHost"
                           label="Payment Host"
@@ -795,10 +795,10 @@ const Game = () => {
                         >
                           <MenuItem value="paid">Paid</MenuItem>
                           <MenuItem value="notPaid">Not paid</MenuItem>
-                        </ReactHookFormSelect>
+                        </RHFSelect>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <ReactHookFormSelect
+                        <RHFSelect
                           fullWidth
                           name="paymentGuest"
                           label="Payment Guest"
@@ -811,7 +811,7 @@ const Game = () => {
                         >
                           <MenuItem value="paid">Paid</MenuItem>
                           <MenuItem value="notPaid">Not paid</MenuItem>
-                        </ReactHookFormSelect>
+                        </RHFSelect>
                       </Grid>
                     </Grid>
                   </Paper>

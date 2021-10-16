@@ -18,7 +18,7 @@ import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
 import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
 import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { ReactHookFormSelect } from '../../../components/RHFSelect'
+import { RHFSelect } from '../../../components/RHFSelect'
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
 import { countriesNames } from '../../../utils/constants/countries'
@@ -440,7 +440,7 @@ const Person = () => {
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <ReactHookFormSelect
+                      <RHFSelect
                         fullWidth
                         name="gender"
                         label="Gender"
@@ -456,7 +456,7 @@ const Person = () => {
                         <MenuItem value="male">Male</MenuItem>
                         <MenuItem value="female">Female</MenuItem>
                         <MenuItem value="other">Other</MenuItem>
-                      </ReactHookFormSelect>
+                      </RHFSelect>
                     </Grid>
                   </Grid>
                 </Paper>
