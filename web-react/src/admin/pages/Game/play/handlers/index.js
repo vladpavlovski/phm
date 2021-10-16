@@ -36,6 +36,8 @@ export const getFieldName = ({ type, host }) => {
       break
     case 'star':
       break
+    default:
+      return null
   }
 
   return
@@ -54,35 +56,37 @@ export const prepareGameResultUpdate = props => {
       gameResultId: gameData?.gameResult?.gameResultId,
     },
     update: {
-      [fieldName]: changeUp
-        ? gameData?.gameResult?.[fieldName] + 1
-        : gameData?.gameResult?.[fieldName] - 1,
-      periodStatistics: {
-        ...(possiblePeriod?.periodStatisticId
-          ? {
-              where: {
-                node: {
-                  periodStatisticId: possiblePeriod?.periodStatisticId,
+      ...(fieldName && {
+        [fieldName]: changeUp
+          ? gameData?.gameResult?.[fieldName] + 1
+          : gameData?.gameResult?.[fieldName] - 1,
+        periodStatistics: {
+          ...(possiblePeriod?.periodStatisticId
+            ? {
+                where: {
+                  node: {
+                    periodStatisticId: possiblePeriod?.periodStatisticId,
+                  },
                 },
-              },
-              update: {
-                node: {
-                  period,
-                  [fieldName]: changeUp
-                    ? gameData?.gameResult?.periodStatistics?.[fieldName] + 1
-                    : gameData?.gameResult?.periodStatistics?.[fieldName] - 1,
+                update: {
+                  node: {
+                    period,
+                    [fieldName]: changeUp
+                      ? gameData?.gameResult?.periodStatistics?.[fieldName] + 1
+                      : gameData?.gameResult?.periodStatistics?.[fieldName] - 1,
+                  },
                 },
-              },
-            }
-          : {
-              create: {
-                node: {
-                  period,
-                  [fieldName]: 1,
+              }
+            : {
+                create: {
+                  node: {
+                    period,
+                    [fieldName]: 1,
+                  },
                 },
-              },
-            }),
-      },
+              }),
+        },
+      }),
     },
   }
 
