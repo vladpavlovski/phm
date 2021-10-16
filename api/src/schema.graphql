@@ -686,6 +686,7 @@ interface TakingPartIn {
   position: String
   captain: Boolean @default(value: false)
   goalkeeper: Boolean @default(value: false)
+  star: Boolean @default(value: false)
 }
 
 interface TeamGame {

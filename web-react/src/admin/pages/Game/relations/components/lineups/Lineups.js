@@ -13,7 +13,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Toolbar from '@mui/material/Toolbar'
-//
+
 import Switch from '@mui/material/Switch'
 import AddIcon from '@mui/icons-material/Add'
 import AccountBox from '@mui/icons-material/AccountBox'
@@ -27,20 +27,22 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
 import AddReactionIcon from '@mui/icons-material/AddReaction'
 import BalconyIcon from '@mui/icons-material/Balcony'
 import IconButton from '@mui/material/IconButton'
+import StarOutlineIcon from '@mui/icons-material/StarOutline'
+import StarIcon from '@mui/icons-material/Star'
 
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { LinkButton } from '../../../../../../components/LinkButton'
-import { Title } from '../../../../../../components/Title'
-import { Loader } from '../../../../../../components/Loader'
-import { Error } from '../../../../../../components/Error'
-import { QuickSearchToolbar } from '../../../../../../components/QuickSearchToolbar'
-import { getAdminOrgPlayerRoute } from '../../../../../../router/routes'
+import { LinkButton } from 'components/LinkButton'
+import { Title } from 'components/Title'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { getAdminOrgPlayerRoute } from 'router/routes'
 import {
   setIdFromEntityId,
   escapeRegExp,
   getXGridValueFromArray,
   setXGridForRelation,
-} from '../../../../../../utils'
+} from 'utils'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
@@ -220,6 +222,7 @@ const LineupList = props => {
               playersConnection: updatedData,
             },
           ],
+          venues: queryResult?.venues,
         }
         cache.writeQuery({
           query: GET_GAME,
@@ -368,18 +371,43 @@ const LineupList = props => {
     })
   }, [])
 
+  const setStar = React.useCallback(({ playerId, star }) => {
+    updateGame({
+      variables: {
+        where: {
+          gameId,
+        },
+        update: {
+          players: {
+            where: {
+              node: {
+                playerId,
+              },
+            },
+            update: {
+              edge: {
+                star,
+              },
+            },
+          },
+        },
+      },
+    })
+  }, [])
+
   const gameLineupColumns = useMemo(
     () => [
       {
         field: 'actions',
         headerName: 'Actions',
-        width: 150,
+        width: 200,
         disableColumnMenu: true,
         renderCell: params => {
           const isCaptain = !!params?.row?.captain
           const teamHasCaptain = !!lineupPlayers.find(p => p.captain)
           const isGoalkeeper = !!params?.row?.goalkeeper
           const teamHasGoalkeeper = !!lineupPlayers.find(p => p.goalkeeper)
+          const isStar = !!params?.row?.star
 
           return (
             <>
@@ -488,6 +516,27 @@ const LineupList = props => {
                   </Tooltip>
                 </IconButton>
               )}
+
+              <IconButton
+                onClick={() => {
+                  setStar({
+                    playerId: params.row.playerId,
+                    star: !isStar,
+                  })
+                }}
+              >
+                <Tooltip
+                  arrow
+                  title={isStar ? 'Remove Star' : 'Set Star'}
+                  placement="top"
+                >
+                  {isStar ? (
+                    <StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />
+                  ) : (
+                    <StarOutlineIcon />
+                  )}
+                </Tooltip>
+              </IconButton>
             </>
           )
         },
