@@ -788,9 +788,7 @@ const Game = () => {
                           label="Payment Host"
                           id="paymentHost"
                           control={control}
-                          defaultValue={
-                            gameData?.paymentHost?.toLowerCase() || ''
-                          }
+                          defaultValue={gameData?.paymentHost || ''}
                           error={errors.paymentHost}
                         >
                           <MenuItem value="paid">Paid</MenuItem>
@@ -804,9 +802,7 @@ const Game = () => {
                           label="Payment Guest"
                           id="paymentGuest"
                           control={control}
-                          defaultValue={
-                            gameData?.paymentGuest?.toLowerCase() || ''
-                          }
+                          defaultValue={gameData?.paymentGuest || ''}
                           error={errors.paymentGuest}
                         >
                           <MenuItem value="paid">Paid</MenuItem>
