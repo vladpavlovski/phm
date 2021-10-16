@@ -710,6 +710,8 @@ type Game {
   report: String
   paymentHost: String @default(value: "notPaid")
   paymentGuest: String @default(value: "notPaid")
+  paymentTimekeeper: String @default(value: "notPaid")
+  paymentReferee: String @default(value: "notPaid")
   headline: String
   perex: String
   body: String
