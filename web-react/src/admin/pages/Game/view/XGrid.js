@@ -170,7 +170,6 @@ export const getColumns = organizationSlug => [
       const teamGuest = params?.row?.teamsConnection?.edges?.find(
         t => !t?.host
       )?.node
-
       const goalsHost = params?.row?.gameEventsSimple?.filter(
         ges => ges?.team?.teamId === teamHost?.teamId
       )?.length
@@ -334,6 +333,9 @@ const XGridTable = () => {
           urlSlug: organizationSlug,
         },
         startDate: dayjs().format('YYYY-MM-DD'),
+      },
+      whereGameEvents: {
+        eventTypeCode: 'goal',
       },
     },
   })
