@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import Typography from '@mui/material/Typography'
 
-const Title = props => (
+const TitleComponent = props => (
   <Typography
     {...props}
     component="h2"
@@ -14,7 +14,9 @@ const Title = props => (
   </Typography>
 )
 
-Title.propTypes = {
+TitleComponent.propTypes = {
   children: PropTypes.node,
 }
+
+const Title = React.memo(TitleComponent)
 export { Title }
