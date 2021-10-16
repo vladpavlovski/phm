@@ -60,6 +60,8 @@ export const GET_GAME = gql`
       report
       paymentHost
       paymentGuest
+      paymentTimekeeper
+      paymentReferee
       headline
       perex
       body
@@ -204,6 +206,8 @@ export const UPDATE_GAME = gql`
         report
         paymentHost
         paymentGuest
+        paymentTimekeeper
+        paymentReferee
         headline
         perex
         body
@@ -804,6 +808,34 @@ const Game = () => {
                           control={control}
                           defaultValue={gameData?.paymentGuest || ''}
                           error={errors.paymentGuest}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </RHFSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFSelect
+                          fullWidth
+                          name="paymentTimekeeper"
+                          label="Payment Timekeeper"
+                          id="paymentTimekeeper"
+                          control={control}
+                          defaultValue={gameData?.paymentTimekeeper || ''}
+                          error={errors.paymentTimekeeper}
+                        >
+                          <MenuItem value="paid">Paid</MenuItem>
+                          <MenuItem value="notPaid">Not paid</MenuItem>
+                        </RHFSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFSelect
+                          fullWidth
+                          name="paymentReferee"
+                          label="Payment Referee"
+                          id="paymentReferee"
+                          control={control}
+                          defaultValue={gameData?.paymentReferee || ''}
+                          error={errors.paymentReferee}
                         >
                           <MenuItem value="paid">Paid</MenuItem>
                           <MenuItem value="notPaid">Not paid</MenuItem>
