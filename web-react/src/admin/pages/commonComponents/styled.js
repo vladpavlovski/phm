@@ -31,6 +31,20 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
     marginTop: theme.spacing(4),
     background: theme.palette.background.paper,
+    '& .hms-iframe--header': {
+      padding: '0 !important',
+      minWidth: '30px !important',
+      width: '30px !important',
+    },
+    '& .hms-iframe--cell': {
+      padding: '0 !important',
+      minWidth: '30px !important',
+      width: '30px !important',
+    },
+
+    '& .hms-iframe--header .MuiDataGrid-columnHeaderTitleContainer': {
+      padding: 0,
+    },
   },
   xGridDialog: {
     width: '100%',

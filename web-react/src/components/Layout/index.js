@@ -29,14 +29,14 @@ const Layout = props => {
   const { barTitle } = useContext(LayoutContext)
 
   const location = useLocation()
-  const withAppBar = React.useMemo(() => {
+  const isAdminPage = React.useMemo(() => {
     if (location.pathname.includes('web/league')) return false
     return true
   }, [location])
 
   return (
     <div className={classes.root}>
-      {withAppBar && (
+      {isAdminPage && (
         <>
           <AppBar
             position="absolute"
@@ -91,12 +91,14 @@ const Layout = props => {
         </>
       )}
       <main className={classes.content}>
-        {withAppBar && <div className={classes.appBarSpacer} />}
+        {isAdminPage && <div className={classes.appBarSpacer} />}
         <>
           {children}
-          <Box pt={0}>
-            <Copyright />
-          </Box>
+          {isAdminPage && (
+            <Box pt={0}>
+              <Copyright />
+            </Box>
+          )}
         </>
       </main>
     </div>
