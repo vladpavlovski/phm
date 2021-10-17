@@ -10,8 +10,9 @@ import { useWindowSize, useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { setIdFromEntityId, getXGridHeight } from 'utils'
-
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { GET_GAMES, getColumns } from 'admin/pages/Game/view/XGrid'
+import { useTheme } from '@mui/material/styles'
 
 const XGridTable = () => {
   const classes = useStyles()
@@ -19,6 +20,8 @@ const XGridTable = () => {
 
   const windowSize = useWindowSize()
   const toolbarRef = useRef()
+  const theme = useTheme()
+  const upSm = useMediaQuery(theme.breakpoints.up('sm'))
   const { error, loading, data } = useQuery(GET_GAMES, {
     variables: {
       where: {
@@ -80,7 +83,7 @@ const XGridTable = () => {
   })
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false} disableGutters={!upSm}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           {loading && !error && <Loader />}
