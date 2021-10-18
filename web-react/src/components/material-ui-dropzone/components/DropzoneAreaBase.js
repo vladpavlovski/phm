@@ -100,7 +100,7 @@ class DropzoneAreaBase extends React.PureComponent {
     }
   }
 
-  async handleDropAccepted(acceptedFiles, evt) {
+  handleDropAccepted = async (acceptedFiles, evt) => {
     const {
       fileObjects,
       filesLimit,
