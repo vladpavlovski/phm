@@ -8,44 +8,47 @@ import clsx from 'clsx'
 import * as React from 'react'
 import PropTypes from 'prop-types'
 
-const styles = ({ palette, shape, spacing }) => ({
-  root: {},
-  imageContainer: {
-    position: 'relative',
-    zIndex: 10,
-    textAlign: 'center',
-    '&:hover $image': {
-      opacity: 0.3,
+const styles = props => {
+  const { palette, shape } = props
+  return {
+    root: {},
+    imageContainer: {
+      position: 'relative',
+      zIndex: 10,
+      textAlign: 'center',
+      '&:hover $image': {
+        opacity: 0.3,
+      },
+      '&:hover $removeButton': {
+        opacity: 1,
+      },
     },
-    '&:hover $removeButton': {
+    image: {
+      height: 100,
+      width: 'initial',
+      maxWidth: '100%',
+      color: palette?.text?.primary || 'black',
+      transition: 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
+      boxSizing: 'border-box',
+      boxShadow: 'rgba(0, 0, 0, 0.12) 0 1px 6px, rgba(0, 0, 0, 0.12) 0 1px 4px',
+      borderRadius: shape?.borderRadius || '4px',
+      zIndex: 5,
       opacity: 1,
     },
-  },
-  image: {
-    height: 100,
-    width: 'initial',
-    maxWidth: '100%',
-    color: palette.text.primary,
-    transition: 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
-    boxSizing: 'border-box',
-    boxShadow: 'rgba(0, 0, 0, 0.12) 0 1px 6px, rgba(0, 0, 0, 0.12) 0 1px 4px',
-    borderRadius: shape.borderRadius,
-    zIndex: 5,
-    opacity: 1,
-  },
-  removeButton: {
-    transition: '.5s ease',
-    position: 'absolute',
-    opacity: 0,
-    top: spacing(-1),
-    right: spacing(-1),
-    width: 40,
-    height: 40,
-    '&:focus': {
-      opacity: 1,
+    removeButton: {
+      transition: '.5s ease',
+      position: 'absolute',
+      opacity: 0,
+      top: '-2px',
+      right: '-2px',
+      width: 40,
+      height: 40,
+      '&:focus': {
+        opacity: 1,
+      },
     },
-  },
-})
+  }
+}
 
 function PreviewList({
   fileObjects,
