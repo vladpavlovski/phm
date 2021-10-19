@@ -20,7 +20,7 @@
     "apollo-server-lambda": "2.21.2",
     "aws-sdk": "2.871.0",
     "csv-parse": "4.15.3",
-    "dotenv": "8.2.0",
+    "dotenv": "8.6.0",
     "express-jwt": "6.0.0",
     "graphql": "15.5.1",
     "neo4j-driver": "4.3.1",
