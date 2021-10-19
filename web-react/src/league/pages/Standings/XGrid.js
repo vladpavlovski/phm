@@ -55,13 +55,17 @@ const countStandingsByTeam = (data = [], systemSettings) => {
       lost: 0,
       draw: 0,
       score: 0,
+      allowed: 0,
       points: 0,
     }
 
+    // object to return
     let standings = []
 
     const getTeamStandings = ({ game, host, team }) => {
       const prefix = host ? 'host' : 'guest'
+      const prefixRival = !host ? 'host' : 'guest'
+
       const teamExistsInStandings = !!standings.find(
         t => t.teamId === team?.teamId
       )
@@ -86,7 +90,9 @@ const countStandingsByTeam = (data = [], systemSettings) => {
         ? newTeamStandings.win + 1
         : newTeamStandings.win
 
-      newTeamStandings.lost = teamWinGame
+      newTeamStandings.lost = game?.gameResult?.draw
+        ? newTeamStandings.lost
+        : teamWinGame
         ? newTeamStandings.lost
         : newTeamStandings.lost + 1
 
@@ -94,8 +100,13 @@ const countStandingsByTeam = (data = [], systemSettings) => {
         ? newTeamStandings.draw + 1
         : newTeamStandings.draw
 
-      newTeamStandings.score =
-        newTeamStandings.score + game?.gameResult?.[`${prefix}Goals`] || 0
+      newTeamStandings.score = game?.gameResult
+        ? newTeamStandings.score + game?.gameResult?.[`${prefix}Goals`]
+        : newTeamStandings.score
+
+      newTeamStandings.allowed = game?.gameResult
+        ? newTeamStandings.allowed + game?.gameResult?.[`${prefixRival}Goals`]
+        : newTeamStandings.allowed
 
       newTeamStandings.points = teamWinGame
         ? newTeamStandings.points + resultPoints.win
@@ -110,6 +121,7 @@ const countStandingsByTeam = (data = [], systemSettings) => {
       teamFromStandings.standings = newTeamStandings
     }
 
+    // iterate each game, count standings for host nad guest teams
     data.forEach(game => {
       const host = game.teamsConnection.edges.find(t => t.host)?.node
       const guest = game.teamsConnection.edges.find(t => !t.host)?.node
@@ -314,6 +326,9 @@ const XGridTable = () => {
         sortable: upSm,
         disableColumnMenu: true,
         valueGetter: params => params?.row?.standings?.score,
+        renderCell: params => (
+          <>{`${params?.row?.standings?.score}:${params?.row?.standings?.allowed}`}</>
+        ),
       },
       {
         field: 'points',
@@ -411,6 +426,12 @@ const XGridTable = () => {
                     clearSearch: () => requestSearch(''),
                   },
                 }}
+                sortModel={[
+                  {
+                    field: 'points',
+                    sort: 'desc',
+                  },
+                ]}
               />
             </div>
           ) : (
