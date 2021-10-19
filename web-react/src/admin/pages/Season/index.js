@@ -218,6 +218,11 @@ const Season = () => {
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
           org: {
+            disconnect: {
+              where: {
+                node: {},
+              },
+            },
             connect: {
               where: {
                 node: { urlSlug: organizationSlug },
