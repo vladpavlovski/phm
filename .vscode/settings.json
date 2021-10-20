@@ -6,5 +6,5 @@
     "source.fixAll": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.words": ["describedby", "flickr", "labelledby"]
+  "cSpell.words": ["describedby", "flickr", "labelledby", "Trello"]
 }
