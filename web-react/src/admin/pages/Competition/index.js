@@ -8,17 +8,18 @@ import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { Container, Grid, Paper } from '@mui/material'
-
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { Uploader } from 'components/Uploader'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFInput } from 'components/RHFInput'
+import { decomposeDate, isValidUuid } from 'utils'
+import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
@@ -199,7 +200,7 @@ const Competition = () => {
         data: {
           competition: [
             {
-              ...queryResult.competition[0],
+              ...queryResult?.competitions?.[0],
               logo: url,
             },
           ],
