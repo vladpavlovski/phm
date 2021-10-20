@@ -386,7 +386,7 @@ const XGridTable = () => {
   const toolbarRef = React.useRef()
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Paper className={classes.root}>
