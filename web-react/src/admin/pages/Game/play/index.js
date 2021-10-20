@@ -55,6 +55,7 @@ export const GET_GAME_PLAY = gql`
           host
           jersey
           position
+          goalkeeper
           node {
             avatar
             playerId
