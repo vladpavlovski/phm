@@ -10,63 +10,94 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { useAuth0 } from '@auth0/auth0-react'
 import { onError } from '@apollo/client/link/error'
+// import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist'
 import config from '../config'
-const cache = new InMemoryCache()
-
-const httpLink = new HttpLink({
-  uri: config.graphqlUri || '/graphql',
-})
-
-const errorLink = onError(
-  ({ graphQLErrors, networkError, operation, forward }) => {
-    console.error(`[GraphQL error]: Operation: ${operation.operationName}`)
-    if (graphQLErrors)
-      graphQLErrors.map(({ message, locations }) => {
-        console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
-            locations
-          )}`
-        )
-        !config.dev &&
-          Bugfender.sendIssue(
-            '[GraphQL error]',
-            `${message}, Location: ${JSON.stringify(locations)}`
-          )
-      })
-    // TODO: solution for network errors
-    if (networkError) {
-      console.error(`[Network error]: ${networkError}`)
-      !config.dev && Bugfender.sendIssue('[Network error]', `${networkError}`)
-    }
-    forward(operation)
-  }
-)
 
 const AuthorizedApolloProvider = ({ children }) => {
+  const [client, setClient] = React.useState()
+  // const [persistor, setPersistor] = React.useState()
+
   const { getAccessTokenSilently } = useAuth0()
 
-  const authLink = setContext(async (_, { headers, ...context }) => {
-    let token
-    try {
-      token = await getAccessTokenSilently()
-    } catch (error) {
-      console.error(error)
-    }
-    return {
-      headers: {
-        ...headers,
-        ...(token && { authorization: token ? `Bearer ${token}` : '' }),
-      },
-      ...context,
-    }
-  })
-  const client = new ApolloClient({
-    link: from([errorLink, authLink, httpLink]),
-    cache,
-    connectToDevTools: config.dev,
-  })
+  React.useEffect(() => {
+    async function init() {
+      const cache = new InMemoryCache()
+      const httpLink = new HttpLink({
+        uri: config.graphqlUri || '/graphql',
+      })
 
-  return <ApolloProvider client={client}>{children}</ApolloProvider>
+      const errorLink = onError(
+        ({ graphQLErrors, networkError, operation, forward }) => {
+          if (graphQLErrors)
+            graphQLErrors.map(({ message, locations }) => {
+              console.error(
+                `[GraphQL error]: Operation: ${
+                  operation.operationName
+                }, Message: ${message}, Location: ${JSON.stringify(locations)}`
+              )
+              !config.dev &&
+                Bugfender.sendIssue(
+                  '[GraphQL error]',
+                  `Operation: ${
+                    operation.operationName
+                  }, ${message}, Location: ${JSON.stringify(locations)}`
+                )
+            })
+          // TODO: solution for network errors
+          if (networkError) {
+            console.error(`[Network error]: ${networkError}`)
+            !config.dev &&
+              Bugfender.sendIssue('[Network error]', `${networkError}`)
+          }
+          forward(operation)
+        }
+      )
+      const authLink = setContext(async (_, { headers, ...context }) => {
+        let token
+        try {
+          token = await getAccessTokenSilently()
+        } catch (error) {
+          console.error(error)
+        }
+        return {
+          headers: {
+            ...headers,
+            ...(token && { authorization: token ? `Bearer ${token}` : '' }),
+          },
+          ...context,
+        }
+      })
+
+      // let newPersistor = new CachePersistor({
+      //   cache,
+      //   storage: new LocalStorageWrapper(window.localStorage),
+      //   debug: true,
+      //   trigger: 'write',
+      // })
+      // await newPersistor.restore()
+
+      // setPersistor(newPersistor)
+      setClient(
+        new ApolloClient({
+          link: from([errorLink, authLink, httpLink]),
+          cache,
+          connectToDevTools: config.dev,
+        })
+      )
+    }
+
+    init().catch(console.error)
+  }, [])
+
+  if (!client) {
+    return <h2>Initializing app...</h2>
+  }
+
+  return (
+    <ApolloProvider client={client}>
+      {children({ persistor: null })}
+    </ApolloProvider>
+  )
 }
 
 export { AuthorizedApolloProvider }

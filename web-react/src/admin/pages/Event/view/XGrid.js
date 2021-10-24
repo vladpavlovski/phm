@@ -40,7 +40,6 @@ const XGridTable = () => {
       where: { org: { urlSlug: organizationSlug } },
     },
     notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
   })
 
   const columns = useMemo(
