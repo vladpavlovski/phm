@@ -18,6 +18,8 @@ const {
   PRODUCTION_NEO4J_PASSWORD,
   NEO4J_DATABASE,
   NETLIFY_DEV,
+  JWT_SECRET,
+  AUTH_DIRECTIVES_ROLE_KEY,
 } = process.env
 
 const NEO4J_URI = NETLIFY_DEV ? DEV_NEO4J_URI : PRODUCTION_NEO4J_URI
@@ -31,7 +33,17 @@ const driver = neo4j.driver(
   neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
 )
 
-const neoSchema = new Neo4jGraphQL({ typeDefs, resolvers, driver })
+const neoSchema = new Neo4jGraphQL({
+  typeDefs,
+  resolvers,
+  driver,
+  config: {
+    jwt: {
+      secret: JWT_SECRET.replace(/\\n/gm, '\n'),
+      rolesPath: AUTH_DIRECTIVES_ROLE_KEY,
+    },
+  },
+})
 
 const server = new ApolloServer({
   schema: neoSchema.schema,

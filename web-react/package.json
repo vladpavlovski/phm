@@ -18,6 +18,7 @@
     "@mui/material": "5.0.2",
     "@mui/styles": "5.0.1",
     "@mui/x-data-grid-pro": "4.0.0",
+    "apollo-cache-persist": "^0.1.1",
     "classnames": "^2.3.1",
     "dayjs": "^1.10.7",
     "graphql": "^15.5.3",

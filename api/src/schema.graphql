@@ -693,7 +693,7 @@ interface TeamGame {
   host: Boolean
 }
 
-type Game {
+type Game @auth(rules: [{ allowUnauthenticated: true }]) {
   gameId: ID! @id
   name: String!
   type: String

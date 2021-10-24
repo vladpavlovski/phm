@@ -8,6 +8,7 @@ import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import objectSupport from 'dayjs/plugin/objectSupport'
+import WebFont from 'webfontloader'
 
 import 'react-imported-component/macro'
 import 'dayjs/locale/cs'
@@ -15,7 +16,6 @@ import AdapterDayJs from '@mui/lab/AdapterDayjs'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import Load from './utils/load'
 import { muiTheme, GlobalStyle } from './styles/global'
-
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { OrganizationProvider } from './context/organization/Provider'
@@ -32,6 +32,15 @@ dayjs.extend(timezone)
 dayjs.extend(objectSupport)
 
 const App = ({ history }) => {
+  React.useEffect(() => {
+    WebFont.load({
+      custom: {
+        families: ['Digital Numbers Regular'],
+        urls: ['./styles/style.css'],
+      },
+    })
+  }, [])
+
   return (
     <ThemeProvider theme={muiTheme}>
       <GlobalStyle />
