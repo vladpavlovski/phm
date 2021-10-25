@@ -39,8 +39,12 @@ const GoalFormComponent = props => {
     handleNextStep,
   } = props
 
-  const { setNextButtonDisabled, gameEventData, setGameEventData } =
-    React.useContext(GameEventFormContext)
+  const {
+    setNextButtonDisabled,
+    gameEventData,
+    setGameEventData,
+    tempRemainingTime,
+  } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
@@ -54,6 +58,7 @@ const GoalFormComponent = props => {
         ...formInitialState,
         allowedBy: goalkeeperTeamRival,
         timestamp: dayjs().format(),
+        remainingTime: tempRemainingTime.current,
       })
     }
   }, [])

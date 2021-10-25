@@ -1,4 +1,4 @@
-import React, { useMemo, forwardRef, useContext } from 'react'
+import React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import * as ROUTES from '../../router/routes'
 import createPersistedState from 'use-persisted-state'
@@ -39,16 +39,14 @@ const useGeneralMenuState = createPersistedState('HMS-GeneralMenu')
 const ListItemLink = props => {
   const { icon, primary, to, className } = props
 
-  const renderLink = useMemo(
-    () =>
-      forwardRef((itemProps, ref) => (
-        <RouterLink to={to} ref={ref} {...itemProps} />
-      )),
-    [to]
-  )
-
   return (
-    <ListItem button component={renderLink} className={className}>
+    <ListItem
+      button
+      component={React.forwardRef((itemProps, ref) => (
+        <RouterLink to={to} ref={ref} {...itemProps} />
+      ))}
+      className={className}
+    >
       {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
       <ListItemText primary={primary} />
     </ListItem>
@@ -58,7 +56,7 @@ const ListItemLink = props => {
 const MainListItems = props => {
   const { open } = props
   const classes = useStyles()
-  const { organizationData } = useContext(OrganizationContext)
+  const { organizationData } = React.useContext(OrganizationContext)
   const [generalOpen, setGeneralOpen] = useGeneralMenuState(false)
 
   return (

@@ -44,8 +44,8 @@ export const getFieldName = ({ type, host }) => {
 }
 
 export const prepareGameResultUpdate = props => {
-  const { gameData, gameEventSettings, host, period, changeUp = true } = props
-
+  const { gameData, gameEventSettings, host, changeUp = true } = props
+  const period = gameData?.gameResult?.periodActive
   const possiblePeriod = gameData?.gameResult?.periodStatistics?.find(
     ps => ps.period === period
   )

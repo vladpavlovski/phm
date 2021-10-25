@@ -5,15 +5,10 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import { Timer } from './Timer'
 import GameEventFormContext from '../context'
 
-const Periods = props => {
-  const { gameSettings } = props
+const PeriodsComponent = props => {
+  const { gameSettings, gameData, updateGameResult } = props
 
-  const { period, setPeriod } = React.useContext(GameEventFormContext)
-
-  const getButtonVariant = React.useCallback(
-    value => (period === value ? 'contained' : 'outlined'),
-    [period]
-  )
+  const { setPeriod } = React.useContext(GameEventFormContext)
 
   return (
     <>
@@ -25,31 +20,54 @@ const Periods = props => {
         {gameSettings?.periods
           ?.slice()
           ?.sort((a, b) => (a.priority > b.priority ? 1 : -1))
-          ?.map(period => {
+          ?.map(periodObject => {
             return (
               <Button
-                key={period?.periodId}
+                key={periodObject?.periodId}
                 onClick={() => {
-                  setPeriod(period?.name)
+                  if (
+                    periodObject?.name !== gameData?.gameResult?.periodActive
+                  ) {
+                    setPeriod(periodObject?.name)
+                    updateGameResult({
+                      variables: {
+                        where: {
+                          gameResultId: gameData?.gameResult?.gameResultId,
+                        },
+                        update: {
+                          periodActive: periodObject?.name,
+                        },
+                      },
+                    })
+                  }
                 }}
-                variant={getButtonVariant(period?.name)}
+                variant={
+                  gameData?.gameResult?.periodActive === periodObject?.name
+                    ? 'contained'
+                    : 'outlined'
+                }
               >
-                {period?.name}
+                {periodObject?.name}
               </Button>
             )
           })}
       </ButtonGroup>
       <Timer
+        {...props}
         timeInMinutes={
-          gameSettings?.periods?.find(p => p.name === period)?.duration ||
-          0 * 60
+          gameSettings?.periods?.find(
+            p => p.name === gameData?.gameResult?.periodActive
+          )?.duration || 20
         }
       />
     </>
   )
 }
 
-Periods.propTypes = {
+PeriodsComponent.propTypes = {
   gameSettings: PropTypes.object,
 }
+
+const Periods = React.memo(PeriodsComponent)
+
 export { Periods }

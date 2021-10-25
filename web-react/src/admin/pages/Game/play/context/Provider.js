@@ -1,8 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import createPersistedState from 'use-persisted-state'
 
-const useGamePlayPeriodState = createPersistedState('HMS-GamePlayPeriod')
 import GameEventFormContext, { initialContextState } from './index'
 
 const GameEventFormProvider = props => {
@@ -10,8 +8,14 @@ const GameEventFormProvider = props => {
     initialContextState.gameEventForm.nextButtonDisabled
   )
 
+  const tempRemainingTime = React.useRef('00:00')
+
+  const setTempRemainingTime = React.useCallback(remTime => {
+    tempRemainingTime.current = remTime
+  }, [])
+
   // will need to be reset after every game play
-  const [period, setPeriod] = useGamePlayPeriodState(initialContextState.period)
+  const [period, setPeriod] = React.useState(initialContextState.period)
   const [time, setTime] = React.useState(initialContextState.time)
   const [eventsTableUpdate, setEventsTableUpdate] = React.useState(0)
 
@@ -35,6 +39,8 @@ const GameEventFormProvider = props => {
         setGameEventSettings,
         gameEventData,
         setGameEventData,
+        tempRemainingTime,
+        setTempRemainingTime,
       }}
     >
       {props.children}
