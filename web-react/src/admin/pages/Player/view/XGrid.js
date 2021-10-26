@@ -92,10 +92,6 @@ const XGridTable = () => {
     }
   }, [playersView])
 
-  React.useEffect(() => {
-    console.log(queryData)
-  }, [queryData])
-
   const columns = useMemo(
     () => [
       {

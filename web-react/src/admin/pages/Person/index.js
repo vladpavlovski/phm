@@ -396,16 +396,21 @@ const Person = () => {
                         error={errors.birthday}
                       />
                     </Grid>
+
                     <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={personData.activityStatus}
+                      <RHFSelect
+                        fullWidth
                         control={control}
                         name="activityStatus"
                         label="Activity Status"
-                        fullWidth
-                        variant="standard"
+                        defaultValue={personData?.activityStatus || ''}
                         error={errors.activityStatus}
-                      />
+                      >
+                        <MenuItem value="active">Active</MenuItem>
+                        <MenuItem value="inactive">Inactive</MenuItem>
+                        <MenuItem value="retired">Retired</MenuItem>
+                        <MenuItem value="unknown">Unknown</MenuItem>
+                      </RHFSelect>
                     </Grid>
 
                     <Grid item xs={12} sm={6} md={3} lg={3}>
