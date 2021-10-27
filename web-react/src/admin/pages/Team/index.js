@@ -442,7 +442,7 @@ const Team = () => {
                           control={control}
                           name="status"
                           label="Status"
-                          defaultValue={teamData.status || ''}
+                          defaultValue={teamData?.status?.toLowerCase() || ''}
                           error={errors.status}
                         >
                           <MenuItem value="active">Active</MenuItem>

@@ -403,7 +403,9 @@ const Person = () => {
                         control={control}
                         name="activityStatus"
                         label="Activity Status"
-                        defaultValue={personData?.activityStatus || ''}
+                        defaultValue={
+                          personData?.activityStatus?.toLowerCase() || ''
+                        }
                         error={errors.activityStatus}
                       >
                         <MenuItem value="active">Active</MenuItem>

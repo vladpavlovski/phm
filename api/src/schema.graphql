@@ -1,14 +1,14 @@
 enum Role {
-  reader
-  user
-  admin
+  READER
+  USER
+  ADMIN
 }
 
 enum ActivityStatus {
-  active
-  inactive
-  retired
-  unknown
+  ACTIVE
+  INACTIVE
+  RETIRED
+  UNKNOWN
 }
 
 # interface Human {

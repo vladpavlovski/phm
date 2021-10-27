@@ -492,7 +492,9 @@ const Player = () => {
                           control={control}
                           name="activityStatus"
                           label="Activity Status"
-                          defaultValue={playerData?.activityStatus || ''}
+                          defaultValue={
+                            playerData?.activityStatus?.toLowerCase() || ''
+                          }
                           error={errors.activityStatus}
                         >
                           <MenuItem value="active">Active</MenuItem>
