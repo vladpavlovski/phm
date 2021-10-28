@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 
 const QuickSearchToolbar = props => {
+  const { hideButtons, value, onChange, clearSearch } = props
   return (
     <div
       style={{
@@ -22,16 +23,18 @@ const QuickSearchToolbar = props => {
         flexWrap: 'wrap',
       }}
     >
-      <div>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarDensitySelector />
-        <GridToolbarExport />
-      </div>
+      {!hideButtons && (
+        <div>
+          <GridToolbarColumnsButton />
+          <GridToolbarFilterButton />
+          <GridToolbarDensitySelector />
+          <GridToolbarExport />
+        </div>
+      )}
       <TextField
         variant="standard"
-        value={props.value}
-        onChange={props.onChange}
+        value={value}
+        onChange={onChange}
         placeholder="Search…"
         InputProps={{
           startAdornment: <SearchIcon fontSize="small" />,
@@ -40,8 +43,8 @@ const QuickSearchToolbar = props => {
               title="Clear"
               aria-label="Clear"
               size="small"
-              style={{ visibility: props.value ? 'visible' : 'hidden' }}
-              onClick={props.clearSearch}
+              style={{ visibility: value ? 'visible' : 'hidden' }}
+              onClick={clearSearch}
             >
               <ClearIcon fontSize="small" />
             </IconButton>
@@ -52,10 +55,15 @@ const QuickSearchToolbar = props => {
   )
 }
 
+QuickSearchToolbar.defaultProps = {
+  hideButtons: false,
+}
+
 QuickSearchToolbar.propTypes = {
   clearSearch: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string.isRequired,
+  hideButtons: PropTypes.bool,
 }
 
 export { QuickSearchToolbar }

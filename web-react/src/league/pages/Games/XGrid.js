@@ -38,7 +38,11 @@ const XGridTable = () => {
   const columns = useMemo(() => {
     const cols = getColumns(organizationSlug)
 
-    return cols.filter(c => c.field !== 'gameId')
+    return cols
+      .filter(c => c.field !== 'gameId')
+      .filter(c => c.field !== 'description')
+      .filter(c => c.field !== 'info')
+      .filter(c => c.filed !== 'gameStatus')
   }, [organizationSlug])
 
   const gameData = React.useMemo(() => {
@@ -108,6 +112,7 @@ const XGridTable = () => {
                     value: searchText,
                     onChange: event => requestSearch(event.target.value),
                     clearSearch: () => requestSearch(''),
+                    hideButtons: true,
                   },
                 }}
                 sortModel={[
