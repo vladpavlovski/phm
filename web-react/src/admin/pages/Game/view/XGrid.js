@@ -13,16 +13,19 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import ButtonGroup from '@mui/material/ButtonGroup'
+// import DatePicker from '@mui/lab/DatePicker'
+
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import StarIcon from '@mui/icons-material/Star'
+// import TodayIcon from '@mui/icons-material/Today'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from 'router/routes'
 import { LinkButton } from 'components/LinkButton'
-import { Title } from 'components/Title'
+
 import { Error } from 'components/Error'
-import { useWindowSize, useDebounce } from 'utils/hooks'
+import { useWindowSize, useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import {
@@ -31,8 +34,6 @@ import {
   formatDate,
   formatTime,
 } from 'utils'
-
-import * as JsSearch from 'js-search'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
 
@@ -250,13 +251,11 @@ export const getColumns = organizationSlug => [
     disableColumnMenu: true,
     sortable: false,
     renderCell: params => {
-      const hostStars = params?.row?.playersConnection?.edges?.filter(
-        e => e.host
-      )
+      const stars = params?.row?.playersConnection?.edges?.filter(e => e.host)
 
       return (
         <Stack spacing={1} direction="row">
-          {hostStars?.map(hs => {
+          {stars?.map(hs => {
             return (
               <Chip
                 size="small"
@@ -278,13 +277,11 @@ export const getColumns = organizationSlug => [
     disableColumnMenu: true,
     sortable: false,
     renderCell: params => {
-      const hostStars = params?.row?.playersConnection?.edges?.filter(
-        e => !e.host
-      )
+      const stars = params?.row?.playersConnection?.edges?.filter(e => !e.host)
 
       return (
         <Stack spacing={1} direction="row">
-          {hostStars?.map(hs => {
+          {stars?.map(hs => {
             return (
               <Chip
                 size="small"
@@ -354,74 +351,37 @@ export const getColumns = organizationSlug => [
     width: 250,
   },
 ]
-const searchGames = new JsSearch.Search('name')
-searchGames.addIndex('description')
-searchGames.addIndex('info')
-searchGames.addIndex('foreignId')
-searchGames.addIndex(['group', 'name'])
-searchGames.addIndex(['group', 'competition', 'name'])
-searchGames.addIndex(['phase', 'name'])
-searchGames.addIndex(['phase', 'competition', 'name'])
-searchGames.addIndex('referee')
-searchGames.addIndex('startDate')
-searchGames.addIndex('startTime')
-searchGames.addIndex('timekeeper')
-searchGames.addIndex('type')
-searchGames.addIndex(['venue', 'name'])
-searchGames.addIndex('hostTeamName')
-searchGames.addIndex('guestTeamName')
 
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
 
   const [gamesView, setGamesView] = useGamesViewState('all')
-  const [
-    getAllGames,
-    { error: errorGamesAll, loading: loadingGamesAll, data: dataGamesAll },
-  ] = useLazyQuery(GET_GAMES, {
-    variables: {
-      where: {
-        org: {
-          urlSlug: organizationSlug,
-        },
-      },
-      whereGameEvents: {
-        eventTypeCode: 'goal',
-      },
-    },
-  })
-
-  const [
-    getTodayGames,
-    {
-      error: errorGamesToday,
-      loading: loadingGamesToday,
-      data: dataGamesToday,
-    },
-  ] = useLazyQuery(GET_GAMES, {
-    variables: {
-      where: {
-        org: {
-          urlSlug: organizationSlug,
-        },
-        startDate: dayjs().format('YYYY-MM-DD'),
-      },
-      whereGameEvents: {
-        eventTypeCode: 'goal',
-      },
-    },
-  })
+  const [getGames, { error: errorGames, loading: loadingGames, data }] =
+    useLazyQuery(GET_GAMES)
 
   React.useEffect(() => {
-    if (gamesView === 'all') {
-      getAllGames()
-    } else {
-      getTodayGames()
+    const variables = {
+      where: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+        ...(gamesView === 'today' && {
+          startDate: dayjs().format('YYYY-MM-DD'),
+        }),
+        ...(gamesView === 'past' && {
+          startDate_LT: dayjs().format('YYYY-MM-DD'),
+        }),
+        ...(gamesView === 'future' && {
+          startDate_GT: dayjs().format('YYYY-MM-DD'),
+        }),
+      },
+      whereGameEvents: {
+        eventTypeCode: 'goal',
+      },
     }
+    getGames({ variables })
   }, [gamesView])
-
-  const data = gamesView === 'all' ? dataGamesAll : dataGamesToday
 
   const gameData = React.useMemo(() => {
     const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
@@ -434,30 +394,41 @@ const XGridTable = () => {
       }
     )
 
-    searchGames.addDocuments(preparedData)
     return preparedData
   }, [data])
 
-  const [searchText, setSearchText] = React.useState('')
-  const [searchData, setSearchData] = React.useState([])
-  const debouncedSearch = useDebounce(searchText, 500)
+  const searchIndexes = React.useMemo(
+    () => [
+      'name',
+      'description',
+      'info',
+      'foreignId',
+      'referee',
+      'startDate',
+      'startTime',
+      'timekeeper',
+      'type',
+      'hostTeamName',
+      'guestTeamName',
+      ['venue', 'name'],
+      ['group', 'name'],
+      ['group', 'competition', 'name'],
+      ['phase', 'name'],
+      ['phase', 'competition', 'name'],
+    ],
+    []
+  )
 
-  const requestSearch = React.useCallback(searchValue => {
-    setSearchText(searchValue)
-  }, [])
-
-  React.useEffect(() => {
-    const filteredRows = searchGames.search(debouncedSearch)
-    setSearchData(debouncedSearch === '' ? gameData : filteredRows)
-  }, [debouncedSearch, gameData])
-
-  React.useEffect(() => {
-    gameData && setSearchData(gameData)
-  }, [gameData])
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: gameData,
+  })
 
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
 
+  // const [datepickerIsOpen, setDatepickerIsOpen] = React.useState(false)
+  // const [selectedDate, setSelectedDate] = React.useState()
   return (
     <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
@@ -465,10 +436,10 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
+                {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
                   {'Games'}
-                </Title>
-                <ButtonGroup variant="outlined">
+                </Title> */}
+                <ButtonGroup variant="outlined" size="small">
                   <Button
                     variant={gamesView === 'all' ? 'contained' : 'outlined'}
                     onClick={() => {
@@ -485,6 +456,42 @@ const XGridTable = () => {
                   >
                     Today
                   </Button>
+                  <Button
+                    variant={gamesView === 'past' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      setGamesView('past')
+                    }}
+                  >
+                    Past
+                  </Button>
+                  <Button
+                    variant={gamesView === 'future' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      setGamesView('future')
+                    }}
+                  >
+                    Future
+                  </Button>
+                  {/* <DatePicker
+                  // should fix bug with anchorEl prop :( )
+                    open={datepickerIsOpen}
+                    onChange={setSelectedDate}
+                    onClose={() => setDatepickerIsOpen(false)}
+                    inputFormat={'DD/MM/YYYY'}
+                    inputRef={ref}
+                    renderInput={({ ref }) => (
+                      <Button
+                        ref={ref}
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => setDatepickerIsOpen(isOpen => !isOpen)}
+                        startIcon={<TodayIcon />}
+                      >
+                        {dayjs(selectedDate).format('DD/MM/YYYY')}
+                      </Button>
+                    )}
+                    value={selectedDate}
+                  /> */}
                 </ButtonGroup>
               </div>
               <div>
@@ -497,12 +504,8 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {(loadingGamesAll || loadingGamesToday) && <Loader />}
-          {(errorGamesAll || errorGamesToday) && (
-            <Error
-              message={errorGamesAll?.message || errorGamesToday?.message}
-            />
-          )}
+          {loadingGames && <Loader />}
+          {errorGames && <Error message={errorGames.message} />}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
@@ -512,7 +515,7 @@ const XGridTable = () => {
                 density="compact"
                 columns={getColumns(organizationSlug)}
                 rows={searchData}
-                loading={loadingGamesAll || loadingGamesToday}
+                loading={loadingGames}
                 components={{
                   Toolbar: QuickSearchToolbar,
                 }}
