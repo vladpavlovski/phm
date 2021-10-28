@@ -42,7 +42,7 @@ const XGridTable = () => {
       .filter(c => c.field !== 'gameId')
       .filter(c => c.field !== 'description')
       .filter(c => c.field !== 'info')
-      .filter(c => c.filed !== 'gameStatus')
+      .filter(c => c.field !== 'gameStatus')
   }, [organizationSlug])
 
   const gameData = React.useMemo(() => {
