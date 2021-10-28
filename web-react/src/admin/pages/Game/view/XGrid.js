@@ -10,9 +10,12 @@ import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Stack from '@mui/material/Stack'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
+import StarIcon from '@mui/icons-material/Star'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from 'router/routes'
@@ -59,6 +62,20 @@ export const GET_GAMES = gql`
             logo
           }
         }
+      }
+      playersConnection(where: { edge: { star: true } }) {
+        edges {
+          star
+          jersey
+          host
+          node {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        totalCount
       }
       phase {
         phaseId
@@ -227,6 +244,62 @@ export const getColumns = organizationSlug => [
     valueGetter: params => params?.row?.gameResult?.gameStatus || '',
   },
   {
+    field: 'hostStar',
+    headerName: 'Host Star',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const hostStars = params?.row?.playersConnection?.edges?.filter(
+        e => e.host
+      )
+
+      return (
+        <Stack spacing={1} direction="row">
+          {hostStars?.map(hs => {
+            return (
+              <Chip
+                size="small"
+                key={hs?.node?.playerId}
+                icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
+                label={hs?.node?.name}
+                color="info"
+              />
+            )
+          })}
+        </Stack>
+      )
+    },
+  },
+  {
+    field: 'guestStar',
+    headerName: 'Guest Star',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const hostStars = params?.row?.playersConnection?.edges?.filter(
+        e => !e.host
+      )
+
+      return (
+        <Stack spacing={1} direction="row">
+          {hostStars?.map(hs => {
+            return (
+              <Chip
+                size="small"
+                key={hs?.node?.playerId}
+                icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
+                label={hs?.node?.name}
+                color="info"
+              />
+            )
+          })}
+        </Stack>
+      )
+    },
+  },
+  {
     field: 'timekeeper',
     headerName: 'Timekeeper',
     width: 200,
@@ -235,6 +308,11 @@ export const getColumns = organizationSlug => [
     field: 'referee',
     headerName: 'Referee',
     width: 200,
+  },
+  {
+    field: 'foreignId',
+    headerName: 'Foreign Id',
+    width: 150,
   },
   {
     field: 'phase',
@@ -264,12 +342,7 @@ export const getColumns = organizationSlug => [
     width: 150,
     hide: true,
   },
-  {
-    field: 'foreignId',
-    headerName: 'Foreign Id',
-    width: 150,
-    hide: true,
-  },
+
   {
     field: 'description',
     headerName: 'Description',
