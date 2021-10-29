@@ -36,6 +36,7 @@ import {
 } from 'utils'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
+const useGamesColumnsTypeState = createPersistedState('HMS-GamesColumnsType')
 
 export const GET_GAMES = gql`
   query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
@@ -50,6 +51,14 @@ export const GET_GAMES = gql`
       info
       timekeeper
       referee
+      paymentHost
+      paymentGuest
+      paymentTimekeeper
+      paymentReferee
+      headline
+      perex
+      body
+      flickrAlbum
       venue {
         name
       }
@@ -101,6 +110,14 @@ export const GET_GAMES = gql`
       }
       gameResult {
         gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
       }
     }
   }
@@ -261,7 +278,9 @@ export const getColumns = organizationSlug => [
                 size="small"
                 key={hs?.node?.playerId}
                 icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
-                label={hs?.node?.name}
+                label={`${hs?.node?.name} ${
+                  hs?.jersey && '(' + hs?.jersey + ')'
+                }`}
                 color="info"
               />
             )
@@ -287,7 +306,9 @@ export const getColumns = organizationSlug => [
                 size="small"
                 key={hs?.node?.playerId}
                 icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
-                label={hs?.node?.name}
+                label={`${hs?.node?.name} ${
+                  hs?.jersey && '(' + hs?.jersey + ')'
+                }`}
                 color="info"
               />
             )
@@ -295,6 +316,30 @@ export const getColumns = organizationSlug => [
         </Stack>
       )
     },
+  },
+  {
+    field: 'paymentHost',
+    headerName: 'Host Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentGuest',
+    headerName: 'Guest Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentTimekeeper',
+    headerName: 'Timekeeper Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentReferee',
+    headerName: 'Referee Payment',
+    width: 100,
+    disableColumnMenu: true,
   },
   {
     field: 'timekeeper',
@@ -311,6 +356,17 @@ export const getColumns = organizationSlug => [
     headerName: 'Foreign Id',
     width: 150,
   },
+  {
+    field: 'info',
+    headerName: 'Info',
+    width: 250,
+  },
+  {
+    field: 'description',
+    headerName: 'Description',
+    width: 250,
+  },
+
   {
     field: 'phase',
     headerName: 'Phase',
@@ -334,21 +390,117 @@ export const getColumns = organizationSlug => [
     },
   },
   {
+    field: 'headline',
+    headerName: 'Headline',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'perex',
+    headerName: 'Perex',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'body',
+    headerName: 'Body',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'flickrAlbum',
+    headerName: 'Flickr Album',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
     field: 'name',
     headerName: 'Name',
     width: 150,
-    hide: true,
-  },
-
-  {
-    field: 'description',
-    headerName: 'Description',
-    width: 250,
   },
   {
-    field: 'info',
-    headerName: 'Info',
-    width: 250,
+    field: 'hostGoals',
+    headerName: 'Goals Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostGoals,
+  },
+  {
+    field: 'guestGoals',
+    headerName: 'Goals Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestGoals,
+  },
+  {
+    field: 'hostPenalties',
+    headerName: 'Penalties Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostPenalties,
+  },
+  {
+    field: 'guestPenalties',
+    headerName: 'Penalties Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestPenalties,
+  },
+  {
+    field: 'hostSaves',
+    headerName: 'Saves Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostSaves,
+  },
+  {
+    field: 'guestSaves',
+    headerName: 'Saves Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestSaves,
+  },
+  {
+    field: 'hostFaceOffs',
+    headerName: 'FaceOffs Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostFaceOffs,
+  },
+  {
+    field: 'guestFaceOffs',
+    headerName: 'FaceOffs Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestFaceOffs,
   },
 ]
 
@@ -357,6 +509,8 @@ const XGridTable = () => {
   const { organizationSlug } = useParams()
 
   const [gamesView, setGamesView] = useGamesViewState('all')
+  const [gamesColumnsType, setGamesColumnsType] =
+    useGamesColumnsTypeState('admin')
   const [getGames, { error: errorGames, loading: loadingGames, data }] =
     useLazyQuery(GET_GAMES)
 
@@ -382,6 +536,96 @@ const XGridTable = () => {
     }
     getGames({ variables })
   }, [gamesView])
+
+  const columns = React.useMemo(() => {
+    const columnsBase = getColumns(organizationSlug)
+    let cols
+    let stopList
+    switch (gamesColumnsType) {
+      case 'admin':
+        stopList = [
+          'hostStar',
+          'guestStar',
+          'paymentHost',
+          'paymentGuest',
+          'paymentTimekeeper',
+          'paymentReferee',
+          'headline',
+          'perex',
+          'body',
+          'flickrAlbum',
+          'foreignId',
+          'hostGoals',
+          'guestGoals',
+          'hostPenalties',
+          'guestPenalties',
+          'hostSaves',
+          'guestSaves',
+          'hostFaceOffs',
+          'guestFaceOffs',
+        ]
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      case 'reporter':
+        stopList = [
+          'paymentHost',
+          'paymentGuest',
+          'paymentTimekeeper',
+          'paymentReferee',
+          'timekeeper',
+          'referee',
+          'description',
+          'info',
+          'phase',
+          'group',
+          'competition',
+          'name',
+          'gameStatus',
+          'foreignId',
+          'hostGoals',
+          'guestGoals',
+          'hostPenalties',
+          'guestPenalties',
+          'hostSaves',
+          'guestSaves',
+          'hostFaceOffs',
+          'guestFaceOffs',
+        ]
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      case 'statistics':
+        stopList = [
+          'paymentHost',
+          'paymentGuest',
+          'paymentTimekeeper',
+          'paymentReferee',
+          'timekeeper',
+          'referee',
+          'headline',
+          'perex',
+          'body',
+          'flickrAlbum',
+          'description',
+          'info',
+          'phase',
+          'group',
+          'competition',
+          'name',
+          'gameStatus',
+          'foreignId',
+        ]
+
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      default:
+        cols = columnsBase
+        break
+    }
+    return cols
+  }, [organizationSlug, gamesColumnsType])
 
   const gameData = React.useMemo(() => {
     const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
@@ -495,6 +739,45 @@ const XGridTable = () => {
                 </ButtonGroup>
               </div>
               <div>
+                {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
+                  {'Games'}
+                </Title> */}
+                <ButtonGroup variant="outlined" size="small">
+                  <Button
+                    variant={
+                      gamesColumnsType === 'admin' ? 'contained' : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('admin')
+                    }}
+                  >
+                    Admin
+                  </Button>
+                  <Button
+                    variant={
+                      gamesColumnsType === 'reporter' ? 'contained' : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('reporter')
+                    }}
+                  >
+                    Reporter
+                  </Button>
+                  <Button
+                    variant={
+                      gamesColumnsType === 'statistics'
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('statistics')
+                    }}
+                  >
+                    Statistics
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div>
                 <LinkButton
                   startIcon={<AddIcon />}
                   to={getAdminOrgGameRoute(organizationSlug, 'new')}
@@ -513,7 +796,7 @@ const XGridTable = () => {
             >
               <DataGridPro
                 density="compact"
-                columns={getColumns(organizationSlug)}
+                columns={columns}
                 rows={searchData}
                 loading={loadingGames}
                 components={{

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react'
-import { useQuery } from '@apollo/client'
+import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 
 import { Container, Grid } from '@mui/material'
@@ -11,8 +11,75 @@ import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { setIdFromEntityId, getXGridHeight } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { GET_GAMES, getColumns } from 'admin/pages/Game/view/XGrid'
+import { getColumns } from 'admin/pages/Game/view/XGrid'
 import { useTheme } from '@mui/material/styles'
+
+const GET_GAMES = gql`
+  query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
+    games(where: $where) {
+      gameId
+      name
+      type
+      foreignId
+      startDate
+      startTime
+      timekeeper
+      referee
+      venue {
+        name
+      }
+      teamsConnection {
+        edges {
+          host
+          node {
+            teamId
+            name
+            nick
+            logo
+          }
+        }
+      }
+      playersConnection(where: { edge: { star: true } }) {
+        edges {
+          star
+          jersey
+          host
+          node {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        totalCount
+      }
+      phase {
+        phaseId
+        name
+        competition {
+          name
+        }
+      }
+      group {
+        groupId
+        name
+        competition {
+          name
+        }
+      }
+      gameEventsSimple(where: $whereGameEvents) {
+        gameEventSimpleId
+        eventTypeCode
+        team {
+          teamId
+        }
+      }
+      gameResult {
+        gameStatus
+      }
+    }
+  }
+`
 
 const XGridTable = () => {
   const classes = useStyles()
@@ -37,12 +104,30 @@ const XGridTable = () => {
 
   const columns = useMemo(() => {
     const cols = getColumns(organizationSlug)
-
-    return cols
-      .filter(c => c.field !== 'gameId')
-      .filter(c => c.field !== 'description')
-      .filter(c => c.field !== 'info')
-      .filter(c => c.field !== 'gameStatus')
+    let stopList = [
+      'paymentHost',
+      'paymentGuest',
+      'paymentTimekeeper',
+      'paymentReferee',
+      'headline',
+      'perex',
+      'body',
+      'flickrAlbum',
+      'foreignId',
+      'hostGoals',
+      'guestGoals',
+      'hostPenalties',
+      'guestPenalties',
+      'hostSaves',
+      'guestSaves',
+      'hostFaceOffs',
+      'guestFaceOffs',
+      'description',
+      'info',
+      'gameStatus',
+      'name',
+    ]
+    return cols.filter(c => !stopList.find(sl => sl === c.field))
   }, [organizationSlug])
 
   const gameData = React.useMemo(() => {
