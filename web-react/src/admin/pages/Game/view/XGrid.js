@@ -18,6 +18,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
 import StarIcon from '@mui/icons-material/Star'
+import BalconyIcon from '@mui/icons-material/Balcony'
 // import TodayIcon from '@mui/icons-material/Today'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
@@ -73,10 +74,13 @@ export const GET_GAMES = gql`
           }
         }
       }
-      playersConnection(where: { edge: { star: true } }) {
+      playersConnection(
+        where: { edge: { OR: [{ star: true }, { goalkeeper: true }] } }
+      ) {
         edges {
           star
           jersey
+          goalkeeper
           host
           node {
             playerId
@@ -268,7 +272,9 @@ export const getColumns = organizationSlug => [
     disableColumnMenu: true,
     sortable: false,
     renderCell: params => {
-      const stars = params?.row?.playersConnection?.edges?.filter(e => e.host)
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => e.host && e.star
+      )
 
       return (
         <Stack spacing={1} direction="row">
@@ -277,7 +283,7 @@ export const getColumns = organizationSlug => [
               <Chip
                 size="small"
                 key={hs?.node?.playerId}
-                icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
+                icon={<StarIcon />}
                 label={`${hs?.node?.name} ${
                   hs?.jersey && '(' + hs?.jersey + ')'
                 }`}
@@ -296,7 +302,9 @@ export const getColumns = organizationSlug => [
     disableColumnMenu: true,
     sortable: false,
     renderCell: params => {
-      const stars = params?.row?.playersConnection?.edges?.filter(e => !e.host)
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => !e.host && e.star
+      )
 
       return (
         <Stack spacing={1} direction="row">
@@ -305,7 +313,7 @@ export const getColumns = organizationSlug => [
               <Chip
                 size="small"
                 key={hs?.node?.playerId}
-                icon={<StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />}
+                icon={<StarIcon />}
                 label={`${hs?.node?.name} ${
                   hs?.jersey && '(' + hs?.jersey + ')'
                 }`}
@@ -314,6 +322,62 @@ export const getColumns = organizationSlug => [
             )
           })}
         </Stack>
+      )
+    },
+  },
+  {
+    field: 'goalieHost',
+    headerName: 'Goalie Host',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => e.host && e.goalkeeper
+      )
+
+      return (
+        goalkeeper && (
+          <Stack spacing={1} direction="row">
+            <Chip
+              size="small"
+              key={goalkeeper?.node?.playerId}
+              icon={<BalconyIcon />}
+              label={`${goalkeeper?.node?.name} ${
+                goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+              }`}
+              color="info"
+            />
+          </Stack>
+        )
+      )
+    },
+  },
+  {
+    field: 'goalieGuest',
+    headerName: 'Goalie Guest',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => !e.host && e.goalkeeper
+      )
+
+      return (
+        goalkeeper && (
+          <Stack spacing={1} direction="row">
+            <Chip
+              size="small"
+              key={goalkeeper?.node?.playerId}
+              icon={<BalconyIcon />}
+              label={`${goalkeeper?.node?.name} ${
+                goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+              }`}
+              color="info"
+            />
+          </Stack>
+        )
       )
     },
   },
@@ -546,10 +610,6 @@ const XGridTable = () => {
         stopList = [
           'hostStar',
           'guestStar',
-          'paymentHost',
-          'paymentGuest',
-          'paymentTimekeeper',
-          'paymentReferee',
           'headline',
           'perex',
           'body',
@@ -563,6 +623,8 @@ const XGridTable = () => {
           'guestSaves',
           'hostFaceOffs',
           'guestFaceOffs',
+          'goalieGuest',
+          'goalieHost',
         ]
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
 
@@ -577,9 +639,6 @@ const XGridTable = () => {
           'referee',
           'description',
           'info',
-          'phase',
-          'group',
-          'competition',
           'name',
           'gameStatus',
           'foreignId',
@@ -609,9 +668,6 @@ const XGridTable = () => {
           'flickrAlbum',
           'description',
           'info',
-          'phase',
-          'group',
-          'competition',
           'name',
           'gameStatus',
           'foreignId',

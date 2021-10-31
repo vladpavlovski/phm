@@ -39,11 +39,14 @@ const GET_GAMES = gql`
           }
         }
       }
-      playersConnection(where: { edge: { star: true } }) {
+      playersConnection(
+        where: { edge: { OR: [{ star: true }, { goalkeeper: true }] } }
+      ) {
         edges {
           star
           jersey
           host
+          goalkeeper
           node {
             playerId
             name
