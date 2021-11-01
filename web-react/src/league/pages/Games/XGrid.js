@@ -108,6 +108,7 @@ const XGridTable = () => {
   const columns = useMemo(() => {
     const cols = getColumns(organizationSlug)
     let stopList = [
+      'gameId',
       'paymentHost',
       'paymentGuest',
       'paymentTimekeeper',
