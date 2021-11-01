@@ -116,7 +116,6 @@ const XGridTable = () => {
       'perex',
       'body',
       'flickrAlbum',
-      'foreignId',
       'hostGoals',
       'guestGoals',
       'hostPenalties',

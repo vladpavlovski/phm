@@ -21,7 +21,7 @@ import { setIdFromEntityId } from '../../../../../../utils'
 import TeamPlayersContext from './context'
 import { UPDATE_PLAYER } from './SetPlayerJersey'
 
-export const SetPlayerPosition = props => {
+const SetPlayerPositionComponent = props => {
   const { player } = props
 
   const { setPlayerPositionDialogOpen, setPlayerData } =
@@ -44,7 +44,7 @@ export const SetPlayerPosition = props => {
   )
 }
 
-export const PlayerPositionDialog = props => {
+const PlayerPositionDialogComponent = props => {
   const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
@@ -181,6 +181,7 @@ const TogglePosition = props => {
     />
   )
 }
+
 TogglePosition.propTypes = {
   playerId: PropTypes.string,
   teamId: PropTypes.string,
@@ -189,6 +190,10 @@ TogglePosition.propTypes = {
   merge: PropTypes.func,
 }
 
-SetPlayerPosition.propTypes = {
+SetPlayerPositionComponent.propTypes = {
   teamId: PropTypes.string,
 }
+
+const PlayerPositionDialog = React.memo(PlayerPositionDialogComponent)
+const SetPlayerPosition = React.memo(SetPlayerPositionComponent)
+export { PlayerPositionDialog, SetPlayerPosition }
