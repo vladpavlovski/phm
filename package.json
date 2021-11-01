@@ -30,5 +30,8 @@
       "prettier --write",
       "eslint --fix"
     ]
+  },
+  "dependencies": {
+    "apollo3-cache-persist": "^0.13.0"
   }
 }

@@ -42,7 +42,7 @@ export const UPDATE_PLAYER = gql`
   }
 `
 
-export const SetPlayerJersey = props => {
+export const SetPlayerJerseyComponent = props => {
   const { player } = props
 
   const { setPlayerJerseyDialogOpen, setPlayerData } =
@@ -65,7 +65,7 @@ export const SetPlayerJersey = props => {
   )
 }
 
-export const PlayerJerseyDialog = props => {
+export const PlayerJerseyDialogComponent = props => {
   const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
@@ -220,6 +220,10 @@ ToggleJersey.propTypes = {
   updatePlayer: PropTypes.func,
 }
 
-SetPlayerJersey.propTypes = {
+SetPlayerJerseyComponent.propTypes = {
   teamId: PropTypes.string,
 }
+
+const PlayerJerseyDialog = React.memo(PlayerJerseyDialogComponent)
+const SetPlayerJersey = React.memo(SetPlayerJerseyComponent)
+export { PlayerJerseyDialog, SetPlayerJersey }

@@ -15,21 +15,18 @@ import Tooltip from '@mui/material/Tooltip'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPlayerRoute } from '../../../../../../router/routes'
-import { LinkButton } from '../../../../../../components/LinkButton'
+import { getAdminOrgPlayerRoute } from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
 import { AddPlayer } from './AddPlayer'
 import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
 import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
 import { TeamPlayersProvider } from './context/Provider'
-import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 
-const Players = props => {
+const PlayersComponent = props => {
   const { teamId, team, updateTeam } = props
 
   const classes = useStyles()
@@ -240,8 +237,10 @@ const Players = props => {
   )
 }
 
-Players.propTypes = {
+PlayersComponent.propTypes = {
   teamId: PropTypes.string,
 }
+
+const Players = React.memo(PlayersComponent)
 
 export { Players }

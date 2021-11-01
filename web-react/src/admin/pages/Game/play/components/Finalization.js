@@ -1,39 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import Button from '@mui/material/Button'
-import { useSnackbar } from 'notistack'
-import { gql, useMutation } from '@apollo/client'
 
-const UPDATE_GAME_RESULT = gql`
-  mutation updateGameResult(
-    $where: GameResultWhere
-    $update: GameResultUpdateInput
-  ) {
-    updateGameResults(where: $where, update: $update) {
-      gameResults {
-        gameResultId
-        hostWin
-        guestWin
-        draw
-        gameStatus
-      }
-    }
-  }
-`
-
-const Finalization = props => {
-  const { gameData } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const [updateGameResult] = useMutation(UPDATE_GAME_RESULT, {
-    onCompleted: () => {
-      enqueueSnackbar('Game Result updated!', { variant: 'success' })
-    },
-    onError: error => {
-      enqueueSnackbar(`Error: ${error}`, {
-        variant: 'error',
-      })
-    },
-  })
+const FinalizationComponent = props => {
+  const { gameData, updateGameResult } = props
 
   const prepareGameFinalization = React.useCallback(() => {
     // console.log('gameSettings:', gameSettings)
@@ -75,25 +45,30 @@ const Finalization = props => {
           guestWin,
           draw,
           gameStatus: 'Finished',
+          periodActive: null,
         },
       },
     })
   }, [gameData])
 
   return (
-    <Button
-      fullWidth
-      // loading={mutationLoadingUpdate}
-      onClick={prepareGameFinalization}
-      variant="contained"
-    >
-      End Game
-    </Button>
+    gameData?.gameResult?.periodActive && (
+      <Button
+        fullWidth
+        onClick={prepareGameFinalization}
+        variant="contained"
+        disabled={!gameData?.gameResult?.periodActive}
+      >
+        End Game
+      </Button>
+    )
   )
 }
 
-Finalization.propTypes = {
+FinalizationComponent.propTypes = {
   gameSettings: PropTypes.object,
 }
+
+const Finalization = React.memo(FinalizationComponent)
 
 export { Finalization }

@@ -1,25 +1,46 @@
 import React, { useMemo, useRef } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
-import { Container, Grid, Paper } from '@mui/material'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgPlayerRoute } from '../../../../router/routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
-import { Loader } from '../../../../components/Loader'
+import { getAdminOrgPlayerRoute } from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
+import { Error } from 'components/Error'
+import { useWindowSize } from 'utils/hooks'
+import { Loader } from 'components/Loader'
 import {
   setIdFromEntityId,
   getXGridValueFromArray,
   getXGridHeight,
-} from '../../../../utils'
+} from 'utils'
 
-export const GET_PLAYERS = gql`
+export const GET_ASSIGNED_PLAYERS = gql`
+  query getPlayers($where: PlayerWhere) {
+    players(where: $where) {
+      playerId
+      firstName
+      lastName
+      positions {
+        positionId
+        name
+      }
+      teams {
+        teamId
+        name
+      }
+    }
+  }
+`
+
+export const GET_UNASSIGNED_PLAYERS = gql`
   query getPlayers($where: PlayerWhere) {
     players(where: $where) {
       playerId
@@ -40,7 +61,7 @@ export const GET_PLAYERS = gql`
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
-  const { error, loading, data } = useQuery(GET_PLAYERS, {
+  const { error, loading, data } = useQuery(GET_ASSIGNED_PLAYERS, {
     variables: {
       where: {
         teams: {
@@ -51,6 +72,25 @@ const XGridTable = () => {
       },
     },
   })
+
+  const [
+    getUnassignedPlayer,
+    { loading: queryLoading, error: queryError, data: queryData },
+  ] = useLazyQuery(GET_UNASSIGNED_PLAYERS, {
+    variables: {
+      where: {
+        teams: null,
+      },
+    },
+  })
+
+  const [playersView, setPlayersView] = React.useState('assignedPlayers')
+
+  React.useEffect(() => {
+    if (playersView === 'unassignedPlayers' && !queryData) {
+      getUnassignedPlayer()
+    }
+  }, [playersView])
 
   const columns = useMemo(
     () => [
@@ -110,7 +150,32 @@ const XGridTable = () => {
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title>{'Players'}</Title>
+                <ButtonGroup variant="outlined" size="small">
+                  <Button
+                    variant={
+                      playersView === 'assignedPlayers'
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setPlayersView('assignedPlayers')
+                    }}
+                  >
+                    Assigned
+                  </Button>
+                  <Button
+                    variant={
+                      playersView === 'unassignedPlayers'
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setPlayersView('unassignedPlayers')
+                    }}
+                  >
+                    Unassigned
+                  </Button>
+                </ButtonGroup>
               </div>
               <div>
                 <LinkButton
@@ -122,8 +187,11 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          {error ||
+            (queryError && (
+              <Error message={error.message || queryError.message} />
+            ))}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
@@ -131,8 +199,13 @@ const XGridTable = () => {
             >
               <DataGridPro
                 columns={columns}
-                rows={setIdFromEntityId(data.players, 'playerId')}
-                loading={loading}
+                rows={setIdFromEntityId(
+                  playersView === 'assignedPlayers'
+                    ? data.players
+                    : queryData?.players || [],
+                  'playerId'
+                )}
+                loading={loading || queryLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
@@ -145,4 +218,6 @@ const XGridTable = () => {
   )
 }
 
-export { XGridTable as default }
+const XGridTableMemo = React.memo(XGridTable)
+
+export { XGridTableMemo as default }

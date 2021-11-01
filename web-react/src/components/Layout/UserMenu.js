@@ -6,14 +6,15 @@ import Avatar from '@mui/material/Avatar'
 import Fade from '@mui/material/Fade'
 import { useStyles } from './styled'
 import { useAuth0 } from '@auth0/auth0-react'
-import { getInitials } from '../../utils'
-import { useUserSetup } from '../../utils/hooks'
+import { getInitials } from 'utils'
+import { useUserSetup } from 'utils/hooks'
 
-const UserMenu = () => {
+const UserMenuComponent = () => {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const classes = useStyles()
   const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0()
   useUserSetup({ user, isAuthenticated })
+
   return (
     <>
       {isAuthenticated ? (
@@ -44,7 +45,6 @@ const UserMenu = () => {
           {'Log In'}
         </Button>
       )}
-      {/* {isAuthenticated && console.log('user:', user)} */}
       <Menu
         id="user-menu"
         anchorEl={anchorEl}
@@ -83,5 +83,7 @@ const UserMenu = () => {
     setAnchorEl(null)
   }
 }
+
+const UserMenu = React.memo(UserMenuComponent)
 
 export { UserMenu }

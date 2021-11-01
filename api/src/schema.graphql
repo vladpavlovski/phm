@@ -1,15 +1,15 @@
 enum Role {
-  reader
-  user
-  admin
+  READER
+  USER
+  ADMIN
 }
 
-# enum ActivityStatus {
-#   ACTIVE
-#   INACTIVE
-#   UNKNOWN
-#   RETIRED
-# }
+enum ActivityStatus {
+  ACTIVE
+  INACTIVE
+  RETIRED
+  UNKNOWN
+}
 
 # interface Human {
 #   name: String
@@ -44,7 +44,7 @@ type Player {
   height: String
   weight: String
   externalId: String
-  activityStatus: String
+  activityStatus: ActivityStatus
   countryBirth: String
   cityBirth: String
   country: String
@@ -562,7 +562,7 @@ type Person {
   height: String
   weight: String
   externalId: String
-  activityStatus: String
+  activityStatus: ActivityStatus
   countryBirth: String
   cityBirth: String
   country: String
@@ -641,7 +641,7 @@ type Team {
   fullName: String
   nick: String
   short: String
-  status: String
+  status: ActivityStatus
   externalId: String
   logo: String
   primaryColor: String
@@ -693,7 +693,7 @@ interface TeamGame {
   host: Boolean
 }
 
-type Game {
+type Game @auth(rules: [{ allowUnauthenticated: true }]) {
   gameId: ID! @id
   name: String!
   type: String

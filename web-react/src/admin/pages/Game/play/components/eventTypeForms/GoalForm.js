@@ -16,7 +16,7 @@ import TableRow from '@mui/material/TableRow'
 import { PlayerSelect, RemainingTime } from './components'
 import GameEventFormContext from '../../context'
 
-import { sortByPriority } from '../../../../../../utils'
+import { sortByPriority } from 'utils'
 
 const formInitialState = {
   remainingTime: '00:00',
@@ -29,26 +29,38 @@ const formInitialState = {
   shotSubType: null,
 }
 
-const GoalForm = props => {
+const GoalFormComponent = props => {
   const {
     gameEventSettings,
     activeStep,
     players,
+    playersRival,
     gameSettings,
     handleNextStep,
   } = props
 
-  const { setNextButtonDisabled, gameEventData, setGameEventData } =
-    React.useContext(GameEventFormContext)
+  const {
+    setNextButtonDisabled,
+    gameEventData,
+    setGameEventData,
+    tempRemainingTime,
+  } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
     [gameEventSettings, activeStep]
   )
-  // console.log('GF~ gameEventData:', gameEventData)
   React.useEffect(() => {
-    if (!gameEventData)
-      setGameEventData({ ...formInitialState, timestamp: dayjs().format() })
+    if (!gameEventData) {
+      // get goalkeeper from another team to set allowed goal
+      const goalkeeperTeamRival = playersRival.find(p => p.goalkeeper) || null
+      setGameEventData({
+        ...formInitialState,
+        allowedBy: goalkeeperTeamRival,
+        timestamp: dayjs().format(),
+        remainingTime: tempRemainingTime.current,
+      })
+    }
   }, [])
 
   React.useEffect(() => {
@@ -129,7 +141,6 @@ const GoalForm = props => {
               isOptionEqualToValue={(option, value) =>
                 option.type === value.type
               }
-              // getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, goalType) => {
                 setGameEventData(state => ({ ...state, goalType }))
               }}
@@ -152,9 +163,6 @@ const GoalForm = props => {
                 isOptionEqualToValue={(option, value) =>
                   option.type === value.type
                 }
-                // getOptionSelected={(option, value) =>
-                //   option.type === value.type
-                // }
                 onChange={(_, goalSubType) => {
                   setGameEventData(state => ({ ...state, goalSubType }))
                 }}
@@ -178,7 +186,6 @@ const GoalForm = props => {
               isOptionEqualToValue={(option, value) =>
                 option.type === value.type
               }
-              // getOptionSelected={(option, value) => option.type === value.type}
               onChange={(_, shotType) => {
                 setGameEventData(state => ({ ...state, shotType }))
               }}
@@ -188,7 +195,6 @@ const GoalForm = props => {
           {gameEventData?.shotType?.subTypes?.length > 0 && (
             <Grid item xs={6}>
               <Autocomplete
-                // disablePortal
                 disableClearable
                 id="combo-box-shot-sub-type"
                 options={[...gameEventData?.shotType?.subTypes].sort(
@@ -202,9 +208,6 @@ const GoalForm = props => {
                 isOptionEqualToValue={(option, value) =>
                   option.type === value.type
                 }
-                // getOptionSelected={(option, value) =>
-                //   option.type === value.type
-                // }
                 onChange={(_, shotSubType) => {
                   setGameEventData(state => ({ ...state, shotSubType }))
                 }}
@@ -277,9 +280,11 @@ const GoalForm = props => {
   ) : null
 }
 
-GoalForm.propTypes = {
+GoalFormComponent.propTypes = {
   gameEventSettings: PropTypes.object,
   activeStep: PropTypes.number,
 }
+
+const GoalForm = React.memo(GoalFormComponent)
 
 export { GoalForm }

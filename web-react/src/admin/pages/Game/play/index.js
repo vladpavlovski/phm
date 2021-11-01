@@ -1,8 +1,9 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import { Helmet } from 'react-helmet'
-import { LinkButton } from '../../../../components/LinkButton'
+import { useSnackbar } from 'notistack'
+import { LinkButton } from 'components/LinkButton'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import { Grid } from '@mui/material'
@@ -15,8 +16,8 @@ import { Title } from 'components/Title'
 import { Loader } from 'components/Loader'
 import { Error } from 'components/Error'
 import { getAdminOrgGameRoute } from 'router/routes'
-
-import placeholderPerson from '../../../../img/placeholderPerson.jpg'
+import { useExitPrompt } from 'utils/hooks'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 
 import { formatDate, formatTime } from 'utils'
 
@@ -55,6 +56,7 @@ export const GET_GAME_PLAY = gql`
           host
           jersey
           position
+          goalkeeper
           node {
             avatar
             playerId
@@ -309,9 +311,37 @@ export const GET_GAME_PLAY = gql`
   }
 `
 
+const UPDATE_GAME_RESULT = gql`
+  mutation updateGameResult(
+    $where: GameResultWhere
+    $update: GameResultUpdateInput
+  ) {
+    updateGameResults(where: $where, update: $update) {
+      gameResults {
+        gameResultId
+        hostWin
+        guestWin
+        draw
+        gameStatus
+        periodActive
+        gameStartedAt
+      }
+    }
+  }
+`
+
 const Play = () => {
   const classes = useStyles()
   const { gameId, organizationSlug } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
+
+  const [showExitPrompt, setShowExitPrompt] = useExitPrompt(true)
+
+  React.useEffect(() => {
+    return () => {
+      setShowExitPrompt(!showExitPrompt)
+    }
+  }, [])
 
   const {
     loading: queryLoading,
@@ -324,6 +354,92 @@ const Play = () => {
     },
     skip: gameId === 'new',
   })
+
+  const [updateGameResult] = useMutation(UPDATE_GAME_RESULT, {
+    update(cache, { data }) {
+      try {
+        const queryResult = cache.readQuery({
+          query: GET_GAME_PLAY,
+          variables: {
+            whereGame: { gameId },
+            whereSystemSettings: { systemSettingsId: 'system-settings' },
+          },
+        })
+
+        console.log(queryResult)
+        console.log(data?.updateGameResults?.gameResults?.[0])
+
+        cache.writeQuery({
+          query: GET_GAME_PLAY,
+          data: {
+            games: [
+              {
+                ...queryResult?.games?.[0],
+                gameResult: {
+                  ...queryResult?.games?.[0]?.gameResult,
+                  ...data?.updateGameResults?.gameResults?.[0],
+                },
+              },
+            ],
+            systemSettings: queryResult?.systemSettings,
+          },
+          variables: {
+            whereGame: { gameId },
+            whereSystemSettings: { systemSettingsId: 'system-settings' },
+          },
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    onCompleted: () => {
+      enqueueSnackbar('Game Result updated!', { variant: 'success' })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
+    },
+  })
+
+  // const [
+  //   updateGame,
+  //   // { loading: mutationLoadingMerge, error: mutationErrorMerge },
+  // ] = useMutation(UPDATE_GAME, {
+  // update(cache, { data }) {
+  //   try {
+  //     const queryResult = cache.readQuery({
+  //       query: GET_GAME_PLAY,
+  //       variables: {
+  //         where: { gameId },
+  //         whereSystemSettings: { systemSettingsId: 'system-settings' },
+  //       },
+  //     })
+
+  //     cache.writeQuery({
+  //       query: GET_GAME_PLAY,
+  //       data: {
+  //         games: data?.updateGame?.games,
+  //         systemSettings: queryResult?.systemSettings,
+  //       },
+  //       variables: {
+  //         where: { gameId },
+  //         whereSystemSettings: { systemSettingsId: 'system-settings' },
+  //       },
+  //     })
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // },
+  //   // onCompleted: () => {
+  //   //   enqueueSnackbar('Game updated!', { variant: 'success' })
+  //   // },
+  //   // onError: error => {
+  //   //   enqueueSnackbar(`Error: ${error}`, {
+  //   //     variant: 'error',
+  //   //   })
+  //   // },
+  // })
 
   const gameData = queryData?.games?.[0] || null
   const gameSettings = queryData?.systemSettings[0]?.rulePack || null
@@ -475,12 +591,17 @@ const Play = () => {
               </Toolbar>
               <Grid container>
                 <Grid item xs={12}>
-                  <Periods gameSettings={gameSettings} />
+                  <Periods
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                    updateGameResult={updateGameResult}
+                  />
                 </Grid>
                 <Grid item xs={12}>
                   <Finalization
                     gameSettings={gameSettings}
                     gameData={gameData}
+                    updateGameResult={updateGameResult}
                   />
                 </Grid>
               </Grid>

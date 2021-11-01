@@ -32,8 +32,12 @@ const InjuryForm = props => {
     handleNextStep,
   } = props
 
-  const { setNextButtonDisabled, gameEventData, setGameEventData } =
-    React.useContext(GameEventFormContext)
+  const {
+    setNextButtonDisabled,
+    gameEventData,
+    setGameEventData,
+    tempRemainingTime,
+  } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
     () => gameEventSettings.steps[activeStep],
@@ -42,7 +46,11 @@ const InjuryForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({ ...formInitialState, timestamp: dayjs().format() })
+      setGameEventData({
+        ...formInitialState,
+        timestamp: dayjs().format(),
+        remainingTime: tempRemainingTime.current,
+      })
   }, [])
 
   React.useEffect(() => {

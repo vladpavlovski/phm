@@ -10,16 +10,23 @@ import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Stack from '@mui/material/Stack'
 import ButtonGroup from '@mui/material/ButtonGroup'
+// import DatePicker from '@mui/lab/DatePicker'
+
 import EditIcon from '@material-ui/icons/Edit'
 import AddIcon from '@material-ui/icons/Add'
+import StarIcon from '@mui/icons-material/Star'
+import BalconyIcon from '@mui/icons-material/Balcony'
+// import TodayIcon from '@mui/icons-material/Today'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from 'router/routes'
 import { LinkButton } from 'components/LinkButton'
-import { Title } from 'components/Title'
+
 import { Error } from 'components/Error'
-import { useWindowSize, useDebounce } from 'utils/hooks'
+import { useWindowSize, useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import {
@@ -29,9 +36,8 @@ import {
   formatTime,
 } from 'utils'
 
-import * as JsSearch from 'js-search'
-
 const useGamesViewState = createPersistedState('HMS-GamesView')
+const useGamesColumnsTypeState = createPersistedState('HMS-GamesColumnsType')
 
 export const GET_GAMES = gql`
   query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
@@ -46,6 +52,14 @@ export const GET_GAMES = gql`
       info
       timekeeper
       referee
+      paymentHost
+      paymentGuest
+      paymentTimekeeper
+      paymentReferee
+      headline
+      perex
+      body
+      flickrAlbum
       venue {
         name
       }
@@ -59,6 +73,23 @@ export const GET_GAMES = gql`
             logo
           }
         }
+      }
+      playersConnection(
+        where: { edge: { OR: [{ star: true }, { goalkeeper: true }] } }
+      ) {
+        edges {
+          star
+          jersey
+          goalkeeper
+          host
+          node {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        totalCount
       }
       phase {
         phaseId
@@ -83,6 +114,14 @@ export const GET_GAMES = gql`
       }
       gameResult {
         gameStatus
+        hostGoals
+        guestGoals
+        hostPenalties
+        guestPenalties
+        hostSaves
+        guestSaves
+        hostFaceOffs
+        guestFaceOffs
       }
     }
   }
@@ -227,6 +266,146 @@ export const getColumns = organizationSlug => [
     valueGetter: params => params?.row?.gameResult?.gameStatus || '',
   },
   {
+    field: 'hostStar',
+    headerName: 'Host Star',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => e.host && e.star
+      )
+
+      return (
+        <Stack spacing={1} direction="row">
+          {stars?.map(hs => {
+            return (
+              <Chip
+                size="small"
+                key={hs?.node?.playerId}
+                icon={<StarIcon />}
+                label={`${hs?.node?.name} ${
+                  hs?.jersey && '(' + hs?.jersey + ')'
+                }`}
+                color="info"
+              />
+            )
+          })}
+        </Stack>
+      )
+    },
+  },
+  {
+    field: 'guestStar',
+    headerName: 'Guest Star',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => !e.host && e.star
+      )
+
+      return (
+        <Stack spacing={1} direction="row">
+          {stars?.map(hs => {
+            return (
+              <Chip
+                size="small"
+                key={hs?.node?.playerId}
+                icon={<StarIcon />}
+                label={`${hs?.node?.name} ${
+                  hs?.jersey && '(' + hs?.jersey + ')'
+                }`}
+                color="info"
+              />
+            )
+          })}
+        </Stack>
+      )
+    },
+  },
+  {
+    field: 'goalieHost',
+    headerName: 'Goalie Host',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => e.host && e.goalkeeper
+      )
+
+      return (
+        goalkeeper && (
+          <Stack spacing={1} direction="row">
+            <Chip
+              size="small"
+              key={goalkeeper?.node?.playerId}
+              icon={<BalconyIcon />}
+              label={`${goalkeeper?.node?.name} ${
+                goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+              }`}
+              color="info"
+            />
+          </Stack>
+        )
+      )
+    },
+  },
+  {
+    field: 'goalieGuest',
+    headerName: 'Goalie Guest',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => !e.host && e.goalkeeper
+      )
+
+      return (
+        goalkeeper && (
+          <Stack spacing={1} direction="row">
+            <Chip
+              size="small"
+              key={goalkeeper?.node?.playerId}
+              icon={<BalconyIcon />}
+              label={`${goalkeeper?.node?.name} ${
+                goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+              }`}
+              color="info"
+            />
+          </Stack>
+        )
+      )
+    },
+  },
+  {
+    field: 'paymentHost',
+    headerName: 'Host Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentGuest',
+    headerName: 'Guest Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentTimekeeper',
+    headerName: 'Timekeeper Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
+    field: 'paymentReferee',
+    headerName: 'Referee Payment',
+    width: 100,
+    disableColumnMenu: true,
+  },
+  {
     field: 'timekeeper',
     headerName: 'Timekeeper',
     width: 200,
@@ -236,6 +415,22 @@ export const getColumns = organizationSlug => [
     headerName: 'Referee',
     width: 200,
   },
+  {
+    field: 'foreignId',
+    headerName: 'Foreign Id',
+    width: 150,
+  },
+  {
+    field: 'info',
+    headerName: 'Info',
+    width: 250,
+  },
+  {
+    field: 'description',
+    headerName: 'Description',
+    width: 250,
+  },
+
   {
     field: 'phase',
     headerName: 'Phase',
@@ -259,96 +454,234 @@ export const getColumns = organizationSlug => [
     },
   },
   {
+    field: 'headline',
+    headerName: 'Headline',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'perex',
+    headerName: 'Perex',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'body',
+    headerName: 'Body',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
+    field: 'flickrAlbum',
+    headerName: 'Flickr Album',
+    width: 300,
+    disableColumnMenu: true,
+    sortable: false,
+  },
+  {
     field: 'name',
     headerName: 'Name',
     width: 150,
-    hide: true,
   },
   {
-    field: 'foreignId',
-    headerName: 'Foreign Id',
-    width: 150,
-    hide: true,
+    field: 'hostGoals',
+    headerName: 'Goals Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostGoals,
   },
   {
-    field: 'description',
-    headerName: 'Description',
-    width: 250,
+    field: 'guestGoals',
+    headerName: 'Goals Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestGoals,
   },
   {
-    field: 'info',
-    headerName: 'Info',
-    width: 250,
+    field: 'hostPenalties',
+    headerName: 'Penalties Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostPenalties,
+  },
+  {
+    field: 'guestPenalties',
+    headerName: 'Penalties Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestPenalties,
+  },
+  {
+    field: 'hostSaves',
+    headerName: 'Saves Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostSaves,
+  },
+  {
+    field: 'guestSaves',
+    headerName: 'Saves Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestSaves,
+  },
+  {
+    field: 'hostFaceOffs',
+    headerName: 'FaceOffs Host',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.hostFaceOffs,
+  },
+  {
+    field: 'guestFaceOffs',
+    headerName: 'FaceOffs Guest',
+    width: 50,
+    align: 'center',
+    headerAlign: 'center',
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => params?.row?.gameResult?.guestFaceOffs,
   },
 ]
-const searchGames = new JsSearch.Search('name')
-searchGames.addIndex('description')
-searchGames.addIndex('info')
-searchGames.addIndex('foreignId')
-searchGames.addIndex(['group', 'name'])
-searchGames.addIndex(['group', 'competition', 'name'])
-searchGames.addIndex(['phase', 'name'])
-searchGames.addIndex(['phase', 'competition', 'name'])
-searchGames.addIndex('referee')
-searchGames.addIndex('startDate')
-searchGames.addIndex('startTime')
-searchGames.addIndex('timekeeper')
-searchGames.addIndex('type')
-searchGames.addIndex(['venue', 'name'])
-searchGames.addIndex('hostTeamName')
-searchGames.addIndex('guestTeamName')
 
 const XGridTable = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams()
 
   const [gamesView, setGamesView] = useGamesViewState('all')
-  const [
-    getAllGames,
-    { error: errorGamesAll, loading: loadingGamesAll, data: dataGamesAll },
-  ] = useLazyQuery(GET_GAMES, {
-    variables: {
-      where: {
-        org: {
-          urlSlug: organizationSlug,
-        },
-      },
-      whereGameEvents: {
-        eventTypeCode: 'goal',
-      },
-    },
-  })
-
-  const [
-    getTodayGames,
-    {
-      error: errorGamesToday,
-      loading: loadingGamesToday,
-      data: dataGamesToday,
-    },
-  ] = useLazyQuery(GET_GAMES, {
-    variables: {
-      where: {
-        org: {
-          urlSlug: organizationSlug,
-        },
-        startDate: dayjs().format('YYYY-MM-DD'),
-      },
-      whereGameEvents: {
-        eventTypeCode: 'goal',
-      },
-    },
-  })
+  const [gamesColumnsType, setGamesColumnsType] =
+    useGamesColumnsTypeState('admin')
+  const [getGames, { error: errorGames, loading: loadingGames, data }] =
+    useLazyQuery(GET_GAMES)
 
   React.useEffect(() => {
-    if (gamesView === 'all') {
-      getAllGames()
-    } else {
-      getTodayGames()
+    const variables = {
+      where: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+        ...(gamesView === 'today' && {
+          startDate: dayjs().format('YYYY-MM-DD'),
+        }),
+        ...(gamesView === 'past' && {
+          startDate_LT: dayjs().format('YYYY-MM-DD'),
+        }),
+        ...(gamesView === 'future' && {
+          startDate_GT: dayjs().format('YYYY-MM-DD'),
+        }),
+      },
+      whereGameEvents: {
+        eventTypeCode: 'goal',
+      },
     }
+    getGames({ variables })
   }, [gamesView])
 
-  const data = gamesView === 'all' ? dataGamesAll : dataGamesToday
+  const columns = React.useMemo(() => {
+    const columnsBase = getColumns(organizationSlug)
+    let cols
+    let stopList
+    switch (gamesColumnsType) {
+      case 'admin':
+        stopList = [
+          'hostStar',
+          'guestStar',
+          'headline',
+          'perex',
+          'body',
+          'flickrAlbum',
+          'foreignId',
+          'hostGoals',
+          'guestGoals',
+          'hostPenalties',
+          'guestPenalties',
+          'hostSaves',
+          'guestSaves',
+          'hostFaceOffs',
+          'guestFaceOffs',
+          'goalieGuest',
+          'goalieHost',
+        ]
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      case 'reporter':
+        stopList = [
+          'paymentHost',
+          'paymentGuest',
+          'paymentTimekeeper',
+          'paymentReferee',
+          'timekeeper',
+          'referee',
+          'description',
+          'info',
+          'name',
+          'gameStatus',
+          'foreignId',
+          'hostGoals',
+          'guestGoals',
+          'hostPenalties',
+          'guestPenalties',
+          'hostSaves',
+          'guestSaves',
+          'hostFaceOffs',
+          'guestFaceOffs',
+        ]
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      case 'statistics':
+        stopList = [
+          'paymentHost',
+          'paymentGuest',
+          'paymentTimekeeper',
+          'paymentReferee',
+          'timekeeper',
+          'referee',
+          'headline',
+          'perex',
+          'body',
+          'flickrAlbum',
+          'description',
+          'info',
+          'name',
+          'gameStatus',
+          'foreignId',
+        ]
+
+        cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
+
+        break
+      default:
+        cols = columnsBase
+        break
+    }
+    return cols
+  }, [organizationSlug, gamesColumnsType])
 
   const gameData = React.useMemo(() => {
     const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
@@ -361,41 +694,52 @@ const XGridTable = () => {
       }
     )
 
-    searchGames.addDocuments(preparedData)
     return preparedData
   }, [data])
 
-  const [searchText, setSearchText] = React.useState('')
-  const [searchData, setSearchData] = React.useState([])
-  const debouncedSearch = useDebounce(searchText, 500)
+  const searchIndexes = React.useMemo(
+    () => [
+      'name',
+      'description',
+      'info',
+      'foreignId',
+      'referee',
+      'startDate',
+      'startTime',
+      'timekeeper',
+      'type',
+      'hostTeamName',
+      'guestTeamName',
+      ['venue', 'name'],
+      ['group', 'name'],
+      ['group', 'competition', 'name'],
+      ['phase', 'name'],
+      ['phase', 'competition', 'name'],
+    ],
+    []
+  )
 
-  const requestSearch = React.useCallback(searchValue => {
-    setSearchText(searchValue)
-  }, [])
-
-  React.useEffect(() => {
-    const filteredRows = searchGames.search(debouncedSearch)
-    setSearchData(debouncedSearch === '' ? gameData : filteredRows)
-  }, [debouncedSearch, gameData])
-
-  React.useEffect(() => {
-    gameData && setSearchData(gameData)
-  }, [gameData])
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: gameData,
+  })
 
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
 
+  // const [datepickerIsOpen, setDatepickerIsOpen] = React.useState(false)
+  // const [selectedDate, setSelectedDate] = React.useState()
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Paper className={classes.root}>
             <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
               <div>
-                <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
+                {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
                   {'Games'}
-                </Title>
-                <ButtonGroup variant="outlined">
+                </Title> */}
+                <ButtonGroup variant="outlined" size="small">
                   <Button
                     variant={gamesView === 'all' ? 'contained' : 'outlined'}
                     onClick={() => {
@@ -412,6 +756,81 @@ const XGridTable = () => {
                   >
                     Today
                   </Button>
+                  <Button
+                    variant={gamesView === 'past' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      setGamesView('past')
+                    }}
+                  >
+                    Past
+                  </Button>
+                  <Button
+                    variant={gamesView === 'future' ? 'contained' : 'outlined'}
+                    onClick={() => {
+                      setGamesView('future')
+                    }}
+                  >
+                    Future
+                  </Button>
+                  {/* <DatePicker
+                  // should fix bug with anchorEl prop :( )
+                    open={datepickerIsOpen}
+                    onChange={setSelectedDate}
+                    onClose={() => setDatepickerIsOpen(false)}
+                    inputFormat={'DD/MM/YYYY'}
+                    inputRef={ref}
+                    renderInput={({ ref }) => (
+                      <Button
+                        ref={ref}
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => setDatepickerIsOpen(isOpen => !isOpen)}
+                        startIcon={<TodayIcon />}
+                      >
+                        {dayjs(selectedDate).format('DD/MM/YYYY')}
+                      </Button>
+                    )}
+                    value={selectedDate}
+                  /> */}
+                </ButtonGroup>
+              </div>
+              <div>
+                {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
+                  {'Games'}
+                </Title> */}
+                <ButtonGroup variant="outlined" size="small">
+                  <Button
+                    variant={
+                      gamesColumnsType === 'admin' ? 'contained' : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('admin')
+                    }}
+                  >
+                    Admin
+                  </Button>
+                  <Button
+                    variant={
+                      gamesColumnsType === 'reporter' ? 'contained' : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('reporter')
+                    }}
+                  >
+                    Reporter
+                  </Button>
+                  <Button
+                    variant={
+                      gamesColumnsType === 'statistics'
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setGamesColumnsType('statistics')
+                    }}
+                  >
+                    Statistics
+                  </Button>
                 </ButtonGroup>
               </div>
               <div>
@@ -424,12 +843,8 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {(loadingGamesAll || loadingGamesToday) && <Loader />}
-          {(errorGamesAll || errorGamesToday) && (
-            <Error
-              message={errorGamesAll?.message || errorGamesToday?.message}
-            />
-          )}
+          {loadingGames && <Loader />}
+          {errorGames && <Error message={errorGames.message} />}
           {data && (
             <div
               style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
@@ -437,9 +852,9 @@ const XGridTable = () => {
             >
               <DataGridPro
                 density="compact"
-                columns={getColumns(organizationSlug)}
+                columns={columns}
                 rows={searchData}
-                loading={loadingGamesAll || loadingGamesToday}
+                loading={loadingGames}
                 components={{
                   Toolbar: QuickSearchToolbar,
                 }}

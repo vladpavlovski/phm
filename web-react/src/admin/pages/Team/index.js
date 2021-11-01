@@ -8,29 +8,26 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-// import { v4 as uuidv4 } from 'uuid'
+
 import { Container, Grid, Paper } from '@mui/material'
-
+import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
-
+import { RHFSelect } from 'components/RHFSelect'
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFColorpicker } from '../../../components/RHFColorpicker'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { Uploader } from 'components/Uploader'
+import { RHFColorpicker } from 'components/RHFColorpicker'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFInput } from 'components/RHFInput'
+import { decomposeDate, isValidUuid } from 'utils'
+import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import {
-  getAdminOrgTeamsRoute,
-  getAdminOrgTeamRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderOrganization from '../../../img/placeholderOrganization.png'
+import { getAdminOrgTeamsRoute, getAdminOrgTeamRoute } from 'router/routes'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 export const GET_TEAM = gql`
@@ -440,15 +437,19 @@ const Team = () => {
                         />
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
-                        <RHFInput
-                          defaultValue={teamData.status}
+                        <RHFSelect
+                          fullWidth
                           control={control}
                           name="status"
                           label="Status"
-                          fullWidth
-                          variant="standard"
+                          defaultValue={teamData?.status?.toLowerCase() || ''}
                           error={errors.status}
-                        />
+                        >
+                          <MenuItem value="active">Active</MenuItem>
+                          <MenuItem value="inactive">Inactive</MenuItem>
+                          <MenuItem value="retired">Retired</MenuItem>
+                          <MenuItem value="unknown">Unknown</MenuItem>
+                        </RHFSelect>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>
                         <RHFInput

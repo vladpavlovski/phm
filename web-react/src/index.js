@@ -4,7 +4,6 @@ import { Bugfender } from '@bugfender/sdk'
 import { createBrowserHistory } from 'history'
 import './styles/style.css'
 import App from './App'
-import WebFont from 'webfontloader'
 // import registerServiceWorker from './registerServiceWorker'
 import { AuthorizedApolloProvider } from './graphql'
 import { Auth0Provider } from '@auth0/auth0-react'
@@ -36,15 +35,6 @@ const onRedirectCallback = appState => {
 }
 
 const Main = () => {
-  React.useEffect(() => {
-    WebFont.load({
-      custom: {
-        families: ['Digital Numbers Regular'],
-        urls: ['./styles/style.css'],
-      },
-    })
-  }, [])
-
   return (
     <Auth0Provider
       domain={config.auth0Domain}
@@ -55,7 +45,7 @@ const Main = () => {
       useRefreshTokens={true}
     >
       <AuthorizedApolloProvider>
-        <App history={history} />
+        {({ persistor }) => <App history={history} persistor={persistor} />}
       </AuthorizedApolloProvider>
     </Auth0Provider>
   )
