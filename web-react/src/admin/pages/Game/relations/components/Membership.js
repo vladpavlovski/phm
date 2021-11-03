@@ -109,6 +109,7 @@ const Membership = props => {
             org: {
               urlSlug: organizationSlug,
             },
+            status: 'RUNNING',
           },
         },
       })
