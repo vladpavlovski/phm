@@ -21,6 +21,7 @@ const GET_SEASONS = gql`
     seasons(where: $where) {
       seasonId
       name
+      status
       startDate
       endDate
       nick
@@ -65,10 +66,18 @@ const XGridTable = () => {
         field: 'nick',
         headerName: 'Nick',
         width: 100,
+        disableColumnMenu: true,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+        disableColumnMenu: true,
       },
       {
         field: 'startDate',
         headerName: 'Start Date',
+        disableColumnMenu: true,
         width: 180,
         valueGetter: params => {
           return params.row.startDate
@@ -80,6 +89,7 @@ const XGridTable = () => {
       {
         field: 'endDate',
         headerName: 'End Date',
+        disableColumnMenu: true,
         width: 180,
         valueGetter: params => {
           return params.row.endDate
@@ -91,6 +101,7 @@ const XGridTable = () => {
       {
         field: 'org',
         headerName: 'Organization',
+        disableColumnMenu: true,
         width: 250,
         valueGetter: params => {
           return params.row?.org?.name
