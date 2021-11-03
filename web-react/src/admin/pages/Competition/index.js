@@ -12,25 +12,27 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
+import MenuItem from '@mui/material/MenuItem'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { Uploader } from 'components/Uploader'
 import { RHFDatepicker } from 'components/RHFDatepicker'
 import { RHFInput } from 'components/RHFInput'
+import { RHFSelect } from 'components/RHFSelect'
 import { decomposeDate, isValidUuid } from 'utils'
 import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
-
+import { timeUnitStatusList } from 'components/lists'
 import OrganizationContext from '../../../context/organization'
 import {
   getAdminOrgCompetitionsRoute,
   getAdminOrgCompetitionRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderOrganization from '../../../img/placeholderOrganization.png'
+} from 'router/routes'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
 
 const GET_COMPETITION = gql`
@@ -300,7 +302,7 @@ const Competition = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={competitionData.name}
+                        defaultValue={competitionData?.name}
                         control={control}
                         name="name"
                         label="Name"
@@ -312,7 +314,7 @@ const Competition = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={competitionData.nick}
+                        defaultValue={competitionData?.nick}
                         control={control}
                         name="nick"
                         label="Nick"
@@ -323,7 +325,7 @@ const Competition = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={competitionData.short}
+                        defaultValue={competitionData?.short}
                         control={control}
                         name="short"
                         label="Short"
@@ -333,17 +335,23 @@ const Competition = () => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData.status}
+                      <RHFSelect
+                        fullWidth
                         control={control}
                         name="status"
                         label="Status"
-                        fullWidth
-                        variant="standard"
+                        defaultValue={competitionData?.status || ''}
                         error={errors.status}
-                      />
+                      >
+                        {timeUnitStatusList.map(s => {
+                          return (
+                            <MenuItem key={s.value} value={s.value}>
+                              {s.name}
+                            </MenuItem>
+                          )
+                        })}
+                      </RHFSelect>
                     </Grid>
-
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth

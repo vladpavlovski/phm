@@ -24,8 +24,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 
 const GET_MEMBERSHIP = gql`
@@ -46,14 +46,14 @@ const GET_MEMBERSHIP = gql`
     competitions(where: $whereCompetition) {
       competitionId
       name
-      phases {
+      phases(where: { status: RUNNING }) {
         phaseId
         name
         season {
           nick
         }
       }
-      groups {
+      groups(where: { status: RUNNING }) {
         groupId
         name
         season {
@@ -109,6 +109,7 @@ const Membership = props => {
             org: {
               urlSlug: organizationSlug,
             },
+            status: 'RUNNING',
           },
         },
       })

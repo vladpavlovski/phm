@@ -11,6 +11,14 @@ enum ActivityStatus {
   UNKNOWN
 }
 
+enum TimeUnitStatus {
+  NOTSTARTED
+  RUNNING
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
 # interface Human {
 #   name: String
 #   firstName: String!
@@ -1199,7 +1207,7 @@ type Competition {
   nick: String
   short: String
   foundDate: Date
-  status: String
+  status: TimeUnitStatus
   logo: String
   organizationId: ID
   createdAt: DateTime! @timestamp(operations: [CREATE])
@@ -1253,6 +1261,7 @@ type Season {
   short: String
   startDate: Date
   endDate: Date
+  status: TimeUnitStatus
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   org: Organization @relationship(type: "BELONGS_TO", direction: OUT)
@@ -1273,6 +1282,7 @@ type Group {
   nick: String
   short: String
   teamsLimit: BigInt
+  status: TimeUnitStatus
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   competition: Competition @relationship(type: "DIVIDED", direction: IN)
@@ -1288,14 +1298,6 @@ type Group {
   teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
 }
 
-# TODO: make rule CompetitionPhaseStatuses
-# enum phaseStatus {
-#   NOTSTARTED
-#   RUNNING
-#   FINISHED
-#   POSTPONED
-# }
-
 type Phase {
   phaseId: ID! @id
   name: String!
@@ -1303,7 +1305,7 @@ type Phase {
   short: String
   startDate: Date
   endDate: Date
-  status: String
+  status: TimeUnitStatus
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   competition: Competition @relationship(type: "DIVIDED", direction: IN)

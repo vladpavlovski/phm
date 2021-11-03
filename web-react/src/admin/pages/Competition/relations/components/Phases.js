@@ -26,19 +26,18 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import LoadingButton from '@mui/lab/LoadingButton'
+import MenuItem from '@mui/material/MenuItem'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFDatepicker } from '../../../../../components/RHFDatepicker'
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFInput } from 'components/RHFInput'
+import { RHFSelect } from 'components/RHFSelect'
+
+import { Error } from 'components/Error'
+import { timeUnitStatusList } from 'components/lists'
 import { useStyles } from '../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  decomposeDate,
-  formatDate,
-} from '../../../../../utils'
+import { setIdFromEntityId, decomposeDate, formatDate } from 'utils'
 const sortByName = (a, b) => {
   if (a?.name < b?.name) {
     return 1
@@ -206,47 +205,6 @@ const Phases = props => {
   const competitionPhasesColumns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
-
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 120,
-      },
-      {
-        field: 'short',
-        headerName: 'Short',
-        width: 120,
-      },
-      {
-        field: 'status',
-        headerName: 'Status',
-        width: 120,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'season',
-        headerName: 'Season',
-        width: 150,
-        valueGetter: params => params.row?.season?.name,
-      },
-      {
         field: 'phaseId',
         headerName: 'Edit',
         width: 120,
@@ -294,6 +252,47 @@ const Phases = props => {
           )
         },
       },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 120,
+      },
+      {
+        field: 'short',
+        headerName: 'Short',
+        width: 120,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+      },
+      {
+        field: 'startDate',
+        headerName: 'Start Date',
+        width: 180,
+        valueGetter: params => params.row.startDate,
+        valueFormatter: params => formatDate(params.value),
+      },
+      {
+        field: 'endDate',
+        headerName: 'End Date',
+        width: 180,
+        valueGetter: params => params.row.endDate,
+        valueFormatter: params => formatDate(params.value),
+      },
+      {
+        field: 'season',
+        headerName: 'Season',
+        width: 150,
+        valueGetter: params => params.row?.season?.name,
+      },
     ],
     []
   )
@@ -308,8 +307,7 @@ const Phases = props => {
         <Typography className={classes.accordionFormTitle}>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryError && <Error message={queryError.message} />}
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -579,15 +577,22 @@ const FormDialog = props => {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={data?.status}
+                    <RHFSelect
+                      fullWidth
                       control={control}
                       name="status"
                       label="Status"
-                      fullWidth
-                      variant="standard"
-                      error={errors?.status}
-                    />
+                      defaultValue={data?.status || ''}
+                      error={errors.status}
+                    >
+                      {timeUnitStatusList.map(s => {
+                        return (
+                          <MenuItem key={s.value} value={s.value}>
+                            {s.name}
+                          </MenuItem>
+                        )
+                      })}
+                    </RHFSelect>
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFDatepicker
