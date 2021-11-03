@@ -39,10 +39,11 @@ import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { getAdminOrgPlayerRoute } from 'router/routes'
 import {
   setIdFromEntityId,
-  escapeRegExp,
   getXGridValueFromArray,
   setXGridForRelation,
+  sortByStatus,
 } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
@@ -64,6 +65,7 @@ const GET_TEAM_PLAYERS = gql`
         name
         firstName
         lastName
+        activityStatus
         jerseys {
           jerseyId
           name
@@ -84,7 +86,7 @@ const GET_TEAM_PLAYERS = gql`
   }
 `
 
-const Lineups = props => {
+const LineupsComponent = props => {
   const { gameId, teams, players } = props
 
   const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
@@ -125,6 +127,8 @@ const Lineups = props => {
     </>
   )
 }
+
+const Lineups = React.memo(LineupsComponent)
 
 const LineupList = props => {
   const { gameId, team, host = false, players } = props
@@ -300,7 +304,13 @@ const LineupList = props => {
           return getXGridValueFromArray(jerseys, 'name')
         },
       },
-
+      {
+        field: 'activityStatus',
+        headerName: 'Status',
+        width: 120,
+        disableColumnMenu: true,
+        sortable: true,
+      },
       {
         field: 'playerId',
         headerName: 'Member',
@@ -599,33 +609,23 @@ const LineupList = props => {
     [gameId, lineupPlayers]
   )
 
+  const searchIndexes = React.useMemo(() => ['name', 'status'], [])
+
   const teamPlayersData = useMemo(
     () =>
-      queryTeamPlayersData &&
-      setIdFromEntityId(queryTeamPlayersData?.team?.[0]?.players, 'playerId'),
+      queryTeamPlayersData
+        ? setIdFromEntityId(
+            queryTeamPlayersData?.team?.[0]?.players || [],
+            'playerId'
+          )
+        : [],
     [queryTeamPlayersData]
   )
 
-  const [searchText, setSearchText] = React.useState('')
-  const [teamPlayers, setTeamPlayers] = React.useState([])
-
-  const requestSearch = useCallback(
-    searchValue => {
-      setSearchText(searchValue)
-      const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
-      const filteredRows = teamPlayersData.filter(row => {
-        return Object.keys(row).some(field => {
-          return searchRegex.test(row[field]?.toString())
-        })
-      })
-      setTeamPlayers(filteredRows)
-    },
-    [teamPlayersData]
-  )
-
-  React.useEffect(() => {
-    teamPlayersData && setTeamPlayers(teamPlayersData)
-  }, [teamPlayersData])
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: teamPlayersData,
+  })
 
   const [anchorEl, setAnchorEl] = React.useState(null)
 
@@ -734,7 +734,7 @@ const LineupList = props => {
       </Paper>
       <Dialog
         fullWidth
-        maxWidth="md"
+        maxWidth="lg"
         open={playerDialog}
         onClose={handleClosePlayerDialog}
         aria-labelledby="alert-dialog-title"
@@ -755,11 +755,11 @@ const LineupList = props => {
                     {`Total players selected: ${lineupPlayers.length}`}
                   </Typography>
                 </div>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 1000 }} className={classes.xGridDialog}>
                   <DataGridPro
                     density="compact"
                     columns={teamPlayersColumns}
-                    rows={teamPlayers}
+                    rows={sortByStatus(searchData, 'activityStatus')}
                     disableSelectionOnClick
                     loading={queryTeamPlayersLoading}
                     components={{
@@ -787,7 +787,7 @@ const LineupList = props => {
   )
 }
 
-Lineups.propTypes = {
+LineupsComponent.propTypes = {
   players: PropTypes.array,
 }
 

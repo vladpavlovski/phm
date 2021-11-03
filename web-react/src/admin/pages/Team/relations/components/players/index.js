@@ -19,7 +19,7 @@ import { getAdminOrgPlayerRoute } from 'router/routes'
 import { LinkButton } from 'components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { setIdFromEntityId, getXGridValueFromArray, sortByStatus } from 'utils'
 import { AddPlayer } from './AddPlayer'
 import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
 import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
@@ -193,6 +193,11 @@ const PlayersComponent = props => {
     [team, teamId]
   )
 
+  const gridRows = React.useMemo(() => {
+    const data = setIdFromEntityId(team.players, 'playerId')
+    return sortByStatus(data, 'activityStatus')
+  }, [team.players])
+
   return (
     <TeamPlayersProvider>
       <Accordion>
@@ -223,7 +228,7 @@ const PlayersComponent = props => {
           <div style={{ height: 600 }} className={classes.xGridDialog}>
             <DataGridPro
               columns={teamPlayersColumns}
-              rows={setIdFromEntityId(team.players, 'playerId')}
+              rows={gridRows}
               components={{
                 Toolbar: GridToolbar,
               }}

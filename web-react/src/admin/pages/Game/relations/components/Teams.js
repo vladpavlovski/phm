@@ -17,11 +17,12 @@ import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 
 import { DataGridPro } from '@mui/x-data-grid-pro'
-import { Title } from '../../../../../components/Title'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
-import { QuickSearchToolbar } from '../../../../../components/QuickSearchToolbar'
-import { setIdFromEntityId, escapeRegExp } from '../../../../../utils'
+import { Title } from 'components/Title'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { setIdFromEntityId, sortByStatus } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
 
@@ -33,6 +34,7 @@ export const GET_ALL_TEAMS = gql`
       teamId
       name
       logo
+      status
     }
   }
 `
@@ -142,6 +144,13 @@ const Teams = props => {
         headerName: 'Name',
         width: 300,
       },
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+        sortable: true,
+        disableColumnMenu: true,
+      },
 
       {
         field: 'teamId',
@@ -192,30 +201,18 @@ const Teams = props => {
 
   const teamsData = useMemo(
     () =>
-      queryAllTeamsData && setIdFromEntityId(queryAllTeamsData.teams, 'teamId'),
+      queryAllTeamsData
+        ? setIdFromEntityId(queryAllTeamsData?.teams || [], 'teamId')
+        : [],
     [queryAllTeamsData]
   )
 
-  const [searchText, setSearchText] = React.useState('')
-  const [allTeams, setAllTeams] = React.useState([])
+  const searchIndexes = React.useMemo(() => ['name', 'status'], [])
 
-  const requestSearch = useCallback(
-    searchValue => {
-      setSearchText(searchValue)
-      const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
-      const filteredRows = teamsData.filter(row => {
-        return Object.keys(row).some(field => {
-          return searchRegex.test(row[field]?.toString())
-        })
-      })
-      setAllTeams(filteredRows)
-    },
-    [teamsData]
-  )
-
-  React.useEffect(() => {
-    teamsData && setAllTeams(teamsData)
-  }, [teamsData])
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: teamsData,
+  })
 
   return (
     <>
@@ -257,7 +254,7 @@ const Teams = props => {
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
                   columns={allTeamsColumns}
-                  rows={allTeams}
+                  rows={sortByStatus(searchData, 'status')}
                   disableSelectionOnClick
                   loading={queryAllTeamsLoading}
                   components={{

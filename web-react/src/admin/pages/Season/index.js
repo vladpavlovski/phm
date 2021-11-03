@@ -8,28 +8,27 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-
-import { Container, Grid, Paper } from '@mui/material'
-
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { isValidUuid, decomposeDate } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { RHFSelect } from 'components/RHFSelect'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFInput } from 'components/RHFInput'
+import { isValidUuid, decomposeDate } from 'utils'
+import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import {
-  getAdminOrgSeasonsRoute,
-  getAdminOrgSeasonRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-
+import { getAdminOrgSeasonsRoute, getAdminOrgSeasonRoute } from 'router/routes'
+import { Loader } from 'components/Loader'
+import { Error } from 'components/Error'
+import { timeUnitStatusList } from 'components/lists'
 import { Relations } from './relations'
 
 const GET_SEASON = gql`
@@ -41,6 +40,7 @@ const GET_SEASON = gql`
       short
       startDate
       endDate
+      status
       competitions {
         competitionId
         name
@@ -63,6 +63,7 @@ const GET_SEASON = gql`
       groups {
         groupId
         name
+        status
         competition {
           name
         }
@@ -97,6 +98,7 @@ const UPDATE_SEASON = gql`
         short
         startDate
         endDate
+        status
         competitions {
           competitionId
           name
@@ -119,6 +121,7 @@ const UPDATE_SEASON = gql`
         groups {
           groupId
           name
+          status
           competition {
             name
           }
@@ -340,7 +343,24 @@ const Season = () => {
                         error={errors.short}
                       />
                     </Grid>
-
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFSelect
+                        fullWidth
+                        control={control}
+                        name="status"
+                        label="Status"
+                        defaultValue={seasonData?.status || ''}
+                        error={errors.status}
+                      >
+                        {timeUnitStatusList.map(s => {
+                          return (
+                            <MenuItem key={s.value} value={s.value}>
+                              {s.name}
+                            </MenuItem>
+                          )
+                        })}
+                      </RHFSelect>
+                    </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth

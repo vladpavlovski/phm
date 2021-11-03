@@ -131,3 +131,20 @@ export const sortByPriority = (a, b) => {
 }
 
 export const copyToClipboard = text => navigator.clipboard.writeText(text)
+
+export const sortByStatus = (data, propName = 'activityStatus') => {
+  const scores = ['ACTIVE', 'INACTIVE', 'RETIRED', 'UNKNOWN']
+
+  const findScorePriority = R.pipe(
+    R.prop(propName),
+    R.equals,
+    R.findIndex(R.__, scores)
+  )
+
+  const byPriority = R.useWith(R.subtract, [
+    findScorePriority,
+    findScorePriority,
+  ])
+
+  return R.sort(byPriority, data)
+}

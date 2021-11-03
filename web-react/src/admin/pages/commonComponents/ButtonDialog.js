@@ -10,7 +10,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 
-const ButtonDialog = props => {
+const ButtonDialogComponent = props => {
   const {
     onDialogClosePositive,
     onDialogCloseNegative,
@@ -92,7 +92,7 @@ const ButtonDialog = props => {
   )
 }
 
-ButtonDialog.defaultProps = {
+ButtonDialogComponent.defaultProps = {
   loading: false,
   className: '',
   onClick: null,
@@ -112,7 +112,7 @@ ButtonDialog.defaultProps = {
   icon: false,
 }
 
-ButtonDialog.propTypes = {
+ButtonDialogComponent.propTypes = {
   loading: PropTypes.bool,
   className: PropTypes.string,
   onClick: PropTypes.func,
@@ -130,5 +130,7 @@ ButtonDialog.propTypes = {
   dialogPositiveText: PropTypes.string,
   icon: PropTypes.any,
 }
+
+const ButtonDialog = React.memo(ButtonDialogComponent)
 
 export { ButtonDialog }

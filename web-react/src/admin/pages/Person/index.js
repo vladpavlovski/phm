@@ -16,17 +16,17 @@ import MenuItem from '@mui/material/MenuItem'
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
-import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFSelect } from '../../../components/RHFSelect'
-import { RHFInput } from '../../../components/RHFInput'
-import { Uploader } from '../../../components/Uploader'
-import { countriesNames } from '../../../utils/constants/countries'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { RHFAutocomplete } from 'components/RHFAutocomplete'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFSelect } from 'components/RHFSelect'
+import { RHFInput } from 'components/RHFInput'
+import { Uploader } from 'components/Uploader'
+import { countriesNames } from 'utils/constants/countries'
+import { decomposeDate, isValidUuid } from 'utils'
+import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
-
+import { activityStatusList } from 'components/lists'
 import { Relations } from './relations'
 
 import {
@@ -403,15 +403,16 @@ const Person = () => {
                         control={control}
                         name="activityStatus"
                         label="Activity Status"
-                        defaultValue={
-                          personData?.activityStatus?.toLowerCase() || ''
-                        }
+                        defaultValue={personData?.activityStatus || ''}
                         error={errors.activityStatus}
                       >
-                        <MenuItem value="active">Active</MenuItem>
-                        <MenuItem value="inactive">Inactive</MenuItem>
-                        <MenuItem value="retired">Retired</MenuItem>
-                        <MenuItem value="unknown">Unknown</MenuItem>
+                        {activityStatusList.map(s => {
+                          return (
+                            <MenuItem key={s.value} value={s.value}>
+                              {s.name}
+                            </MenuItem>
+                          )
+                        })}
                       </RHFSelect>
                     </Grid>
 

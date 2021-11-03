@@ -21,27 +21,28 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
-
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgTeamRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgTeamRoute } from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
+import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId, sortByStatus } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams($where: TeamWhere) {
     teams(where: $where) {
       teamId
       name
+      status
     }
   }
 `
 
-const Teams = props => {
+const TeamsComponent = props => {
   const { playerId, player, updatePlayer } = props
 
   const classes = useStyles()
@@ -79,12 +80,6 @@ const Teams = props => {
 
   const playerTeamsColumns = useMemo(
     () => [
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 150,
-      },
-
       {
         field: 'teamId',
         headerName: 'Edit',
@@ -143,6 +138,11 @@ const Teams = props => {
           )
         },
       },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
+      },
     ],
     []
   )
@@ -154,7 +154,13 @@ const Teams = props => {
         headerName: 'Name',
         width: 150,
       },
-
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+        sortable: true,
+        disableColumnMenu: true,
+      },
       {
         field: 'teamId',
         headerName: 'Member',
@@ -174,6 +180,21 @@ const Teams = props => {
     ],
     [player]
   )
+
+  const teamsData = useMemo(
+    () =>
+      queryAllPlayersData
+        ? setIdFromEntityId(queryAllPlayersData?.teams || [], 'teamId')
+        : [],
+    [queryAllPlayersData]
+  )
+
+  const searchIndexes = React.useMemo(() => ['name', 'status'], [])
+
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: teamsData,
+  })
 
   return (
     <Accordion>
@@ -227,33 +248,34 @@ const Teams = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
-        {queryAllPlayersError && !queryAllPlayersLoading && (
+        {queryAllPlayersError && (
           <Error message={queryAllPlayersError.message} />
         )}
-        {queryAllPlayersData &&
-          !queryAllPlayersLoading &&
-          !queryAllPlayersError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new team`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allTeamsColumns}
-                    rows={setIdFromEntityId(
-                      queryAllPlayersData.teams,
-                      'teamId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllPlayersLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
+        {queryAllPlayersData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new team`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 1000 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allTeamsColumns}
+                  rows={sortByStatus(searchData, 'status')}
+                  disableSelectionOnClick
+                  loading={queryAllPlayersLoading}
+                  components={{
+                    Toolbar: QuickSearchToolbar,
+                  }}
+                  componentsProps={{
+                    toolbar: {
+                      value: searchText,
+                      onChange: event => requestSearch(event.target.value),
+                      clearSearch: () => requestSearch(''),
+                    },
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
+        )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -268,7 +290,7 @@ const Teams = props => {
   )
 }
 
-const ToggleNewTeam = props => {
+const ToggleNewTeamComponent = props => {
   const { playerId, teamId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.teams.find(p => p.teamId === teamId)
@@ -323,7 +345,9 @@ const ToggleNewTeam = props => {
   )
 }
 
-ToggleNewTeam.propTypes = {
+const ToggleNewTeam = React.memo(ToggleNewTeamComponent)
+
+ToggleNewTeamComponent.propTypes = {
   playerId: PropTypes.string,
   teamId: PropTypes.string,
   team: PropTypes.object,
@@ -331,8 +355,10 @@ ToggleNewTeam.propTypes = {
   mergeTeamPlayer: PropTypes.func,
 }
 
-Teams.propTypes = {
+TeamsComponent.propTypes = {
   playerId: PropTypes.string,
 }
+
+const Teams = React.memo(TeamsComponent)
 
 export { Teams }
