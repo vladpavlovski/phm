@@ -27,14 +27,15 @@ import TextField from '@mui/material/TextField'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
+import MenuItem from '@mui/material/MenuItem'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-
+import { RHFSelect } from 'components/RHFSelect'
+import { timeUnitStatusList } from 'components/lists'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput } from 'components/RHFInput'
+import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
 
 const GET_GROUPS = gql`
   query getCompetition($where: CompetitionWhere) {
@@ -46,6 +47,7 @@ const GET_GROUPS = gql`
         name
         nick
         short
+        status
         teamsLimit
         season {
           seasonId
@@ -68,6 +70,7 @@ const CREATE_COMPETITION_GROUP = gql`
         name
         nick
         short
+        status
         teamsLimit
         season {
           seasonId
@@ -89,6 +92,7 @@ const UPDATE_COMPETITION_GROUP = gql`
         name
         nick
         short
+        status
         teamsLimit
         season {
           seasonId
@@ -111,6 +115,7 @@ const schema = object().shape({
   name: string().required('Name is required'),
   nick: string(),
   short: string(),
+  status: string(),
   teamsLimit: number().integer().positive().required('Teams limit is required'),
 })
 
@@ -199,33 +204,6 @@ const Groups = props => {
   const competitionGroupsColumns = useMemo(
     () => [
       {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
-
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 120,
-      },
-      {
-        field: 'short',
-        headerName: 'Short',
-        width: 120,
-      },
-      {
-        field: 'teamsLimit',
-        headerName: 'Limit',
-        width: 120,
-      },
-      {
-        field: 'season',
-        headerName: 'Season',
-        width: 150,
-        valueGetter: params => params.row?.season?.name,
-      },
-      {
         field: 'groupId',
         headerName: 'Edit',
         width: 120,
@@ -273,6 +251,38 @@ const Groups = props => {
           )
         },
       },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 120,
+      },
+      {
+        field: 'short',
+        headerName: 'Short',
+        width: 120,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+      },
+      {
+        field: 'teamsLimit',
+        headerName: 'Limit',
+        width: 120,
+      },
+      {
+        field: 'season',
+        headerName: 'Season',
+        width: 150,
+        valueGetter: params => params.row?.season?.name,
+      },
     ],
     []
   )
@@ -287,8 +297,7 @@ const Groups = props => {
         <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryError && <Error message={queryError.message} />}
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -560,6 +569,24 @@ const FormDialog = props => {
                       variant="standard"
                       error={errors?.teamsLimit}
                     />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFSelect
+                      fullWidth
+                      control={control}
+                      name="status"
+                      label="Status"
+                      defaultValue={data?.status || ''}
+                      error={errors.status}
+                    >
+                      {timeUnitStatusList.map(s => {
+                        return (
+                          <MenuItem key={s.value} value={s.value}>
+                            {s.name}
+                          </MenuItem>
+                        )
+                      })}
+                    </RHFSelect>
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     {data?.groupId && (
