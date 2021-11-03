@@ -27,7 +27,7 @@ import { decomposeDate, isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
-
+import { activityStatusList } from 'components/lists'
 import { Relations } from './relations'
 
 import {
@@ -492,15 +492,16 @@ const Player = () => {
                           control={control}
                           name="activityStatus"
                           label="Activity Status"
-                          defaultValue={
-                            playerData?.activityStatus?.toLowerCase() || ''
-                          }
+                          defaultValue={playerData?.activityStatus || ''}
                           error={errors.activityStatus}
                         >
-                          <MenuItem value="active">Active</MenuItem>
-                          <MenuItem value="inactive">Inactive</MenuItem>
-                          <MenuItem value="retired">Retired</MenuItem>
-                          <MenuItem value="unknown">Unknown</MenuItem>
+                          {activityStatusList.map(s => {
+                            return (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.name}
+                              </MenuItem>
+                            )
+                          })}
                         </RHFSelect>
                       </Grid>
 

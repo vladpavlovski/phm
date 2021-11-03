@@ -23,6 +23,7 @@ import { decomposeDate, isValidUuid } from 'utils'
 import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
+import { activityStatusList } from 'components/lists'
 
 import { getAdminOrgTeamsRoute, getAdminOrgTeamRoute } from 'router/routes'
 import { Loader } from 'components/Loader'
@@ -442,13 +443,16 @@ const Team = () => {
                           control={control}
                           name="status"
                           label="Status"
-                          defaultValue={teamData?.status?.toLowerCase() || ''}
+                          defaultValue={teamData?.status || ''}
                           error={errors.status}
                         >
-                          <MenuItem value="active">Active</MenuItem>
-                          <MenuItem value="inactive">Inactive</MenuItem>
-                          <MenuItem value="retired">Retired</MenuItem>
-                          <MenuItem value="unknown">Unknown</MenuItem>
+                          {activityStatusList.map(s => {
+                            return (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.name}
+                              </MenuItem>
+                            )
+                          })}
                         </RHFSelect>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3} lg={3}>

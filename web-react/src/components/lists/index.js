@@ -28,7 +28,7 @@ export const activityStatusList = [
   },
   {
     name: 'Inactive',
-    value: 'inINACTIVEactive',
+    value: 'INACTIVE',
   },
   {
     name: 'Retired',
