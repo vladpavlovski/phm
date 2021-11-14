@@ -6,6 +6,7 @@ import {
   HttpLink,
   InMemoryCache,
   from,
+  NormalizedCacheObject,
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { useAuth0 } from '@auth0/auth0-react'
@@ -13,8 +14,12 @@ import { onError } from '@apollo/client/link/error'
 // import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist'
 import config from '../config'
 
-const AuthorizedApolloProvider = ({ children }) => {
-  const [client, setClient] = React.useState()
+type Props = {
+  children: any
+}
+
+const AuthorizedApolloProvider = ({ children }: Props) => {
+  const [client, setClient] = React.useState(null)
   // const [persistor, setPersistor] = React.useState()
 
   const { getAccessTokenSilently } = useAuth0()
@@ -77,13 +82,13 @@ const AuthorizedApolloProvider = ({ children }) => {
       // await newPersistor.restore()
 
       // setPersistor(newPersistor)
-      setClient(
-        new ApolloClient({
-          link: from([errorLink, authLink, httpLink]),
-          cache,
-          connectToDevTools: config.dev,
-        })
-      )
+
+      const apolloClient = new ApolloClient<NormalizedCacheObject>({
+        link: from([errorLink, authLink, httpLink]),
+        cache,
+        connectToDevTools: config.dev,
+      })
+      setClient(apolloClient)
     }
 
     init().catch(console.error)

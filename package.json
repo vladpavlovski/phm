@@ -32,6 +32,7 @@
     ]
   },
   "dependencies": {
+    "@typescript-eslint/parser": "^5.3.1",
     "apollo3-cache-persist": "^0.13.0"
   }
 }

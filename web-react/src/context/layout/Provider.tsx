@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import LayoutContext, { initialContextState } from './index'
 
-const LayoutProvider = props => {
+type Props = {
+  children: React.ReactChild
+}
+
+const LayoutProvider = (props: Props) => {
   const [barTitle, setBarTitle] = useState(initialContextState.barTitle)
 
   return (
@@ -15,10 +18,6 @@ const LayoutProvider = props => {
       {props.children}
     </LayoutContext.Provider>
   )
-}
-
-LayoutProvider.propTypes = {
-  children: PropTypes.node,
 }
 
 export { LayoutProvider }

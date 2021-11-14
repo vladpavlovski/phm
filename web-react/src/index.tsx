@@ -29,9 +29,9 @@ if (!config.dev) {
 
 const history = createBrowserHistory()
 
-const onRedirectCallback = appState => {
+const onRedirectCallback = (appState: { returnTo: string }) => {
   // Use the router's history module to replace the url
-  history.replace(appState?.returnTo || window.location.pathname)
+  history.replace(appState.returnTo || window.location.pathname)
 }
 
 const Main = () => {
@@ -45,11 +45,13 @@ const Main = () => {
       useRefreshTokens={true}
     >
       <AuthorizedApolloProvider>
-        {({ persistor }) => <App history={history} persistor={persistor} />}
+        {(props: { persistor: null }) => (
+          <App history={history} persistor={props.persistor} />
+        )}
       </AuthorizedApolloProvider>
     </Auth0Provider>
   )
 }
 
-ReactDOM.render(<Main />, document.getElementById('root'))
+ReactDOM.render(<Main />, document.getElementById('root') as HTMLElement)
 // registerServiceWorker()

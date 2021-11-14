@@ -15,7 +15,7 @@ import 'dayjs/locale/cs'
 import AdapterDayJs from '@mui/lab/AdapterDayjs'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import Load from './utils/load'
-import { muiTheme, GlobalStyle } from './styles/global'
+import { muiTheme } from './styles/global'
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { OrganizationProvider } from './context/organization/Provider'
@@ -43,7 +43,6 @@ const App = ({ history }) => {
 
   return (
     <ThemeProvider theme={muiTheme}>
-      <GlobalStyle />
       <LocalizationProvider dateAdapter={AdapterDayJs}>
         <CssBaseline />
         <ErrorBoundary>
