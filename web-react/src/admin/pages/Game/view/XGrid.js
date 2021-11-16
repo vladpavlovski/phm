@@ -582,17 +582,12 @@ export const getColumns = organizationSlug => [
     width: 180,
     disableColumnMenu: true,
     sortable: false,
-    renderCell: params => {
+    valueGetter: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
         e => e.host && e.star
       )
-
-      return (
-        <>
-          {stars?.map(hs => {
-            return `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
-          })}
-        </>
+      return stars?.map(
+        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
       )
     },
   },
@@ -600,17 +595,13 @@ export const getColumns = organizationSlug => [
     field: 'guestStarName',
     headerName: 'Guest Star',
     width: 180,
-    renderCell: params => {
+    valueGetter: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
         e => !e.host && e.star
       )
 
-      return (
-        <>
-          {stars?.map(hs => {
-            return `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
-          })}
-        </>
+      return stars?.map(
+        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
       )
     },
   },
@@ -618,34 +609,32 @@ export const getColumns = organizationSlug => [
     field: 'goalieHostName',
     headerName: 'Goalie Host',
     width: 180,
-    renderCell: params => {
+    valueGetter: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
         e => e.host && e.goalkeeper
       )
 
-      return (
-        goalkeeper &&
-        `${goalkeeper?.node?.name} ${
-          goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
-        }`
-      )
+      return goalkeeper
+        ? `${goalkeeper?.node?.name} ${
+            goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+          }`
+        : ''
     },
   },
   {
     field: 'goalieGuestName',
     headerName: 'Goalie Guest',
     width: 180,
-    renderCell: params => {
+    valueGetter: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
         e => !e.host && e.goalkeeper
       )
 
-      return (
-        goalkeeper &&
-        `${goalkeeper?.node?.name} ${
-          goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
-        }`
-      )
+      return goalkeeper
+        ? `${goalkeeper?.node?.name} ${
+            goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+          }`
+        : ''
     },
   },
 ]
