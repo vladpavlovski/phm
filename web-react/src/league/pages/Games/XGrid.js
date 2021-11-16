@@ -129,6 +129,12 @@ const XGridTable = () => {
       'info',
       'gameStatus',
       'name',
+      'hostTeamName',
+      'guestTeamName',
+      'hostStarName',
+      'guestStarName',
+      'goalieHostName',
+      'goalieGuestName',
     ]
     return cols.filter(c => !stopList.find(sl => sl === c.field))
   }, [organizationSlug])
