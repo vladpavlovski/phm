@@ -745,7 +745,6 @@ const EventsTable = props => {
                 host: isHost,
                 changeUp: false,
               })
-
               deleteGameEventSimple({
                 variables: {
                   where: {

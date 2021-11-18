@@ -566,6 +566,77 @@ export const getColumns = organizationSlug => [
     sortable: false,
     valueGetter: params => params?.row?.gameResult?.guestFaceOffs,
   },
+  {
+    field: 'hostTeamName',
+    headerName: 'Host Name',
+    width: 150,
+  },
+  {
+    field: 'guestTeamName',
+    headerName: 'Guest Name',
+    width: 150,
+  },
+  {
+    field: 'hostStarName',
+    headerName: 'Host Star',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    valueGetter: params => {
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => e.host && e.star
+      )
+      return stars?.map(
+        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
+      )
+    },
+  },
+  {
+    field: 'guestStarName',
+    headerName: 'Guest Star',
+    width: 180,
+    valueGetter: params => {
+      const stars = params?.row?.playersConnection?.edges?.filter(
+        e => !e.host && e.star
+      )
+
+      return stars?.map(
+        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
+      )
+    },
+  },
+  {
+    field: 'goalieHostName',
+    headerName: 'Goalie Host',
+    width: 180,
+    valueGetter: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => e.host && e.goalkeeper
+      )
+
+      return goalkeeper
+        ? `${goalkeeper?.node?.name} ${
+            goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+          }`
+        : ''
+    },
+  },
+  {
+    field: 'goalieGuestName',
+    headerName: 'Goalie Guest',
+    width: 180,
+    valueGetter: params => {
+      const goalkeeper = params?.row?.playersConnection?.edges?.find(
+        e => !e.host && e.goalkeeper
+      )
+
+      return goalkeeper
+        ? `${goalkeeper?.node?.name} ${
+            goalkeeper?.jersey && '(' + goalkeeper?.jersey + ')'
+          }`
+        : ''
+    },
+  },
 ]
 
 const XGridTable = () => {
