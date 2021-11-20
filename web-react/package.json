@@ -25,6 +25,7 @@
     "lodash.debounce": "^4.0.8",
     "material-ui-dropzone": "^3.5.0",
     "notistack": "1.0.6-next.3",
+    "porter-stemmer": "^0.9.1",
     "ramda": "^0.27.1",
     "react": "^17.0.2",
     "react-color": "^2.19.3",
