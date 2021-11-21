@@ -12,6 +12,14 @@ import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
+import Tooltip from '@mui/material/Tooltip'
+
+// import HowToRegIcon from '@mui/icons-material/HowToReg'
+// import AddReactionIcon from '@mui/icons-material/AddReaction'
+// import StarOutlineIcon from '@mui/icons-material/StarOutline'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import BalconyIcon from '@mui/icons-material/Balcony'
+import StarIcon from '@mui/icons-material/Star'
 
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import useMediaQuery from '@mui/material/useMediaQuery'
@@ -19,9 +27,10 @@ import { useTheme } from '@mui/material/styles'
 import Img from 'react-cool-img'
 import dayjs from 'dayjs'
 import { useStyles } from 'admin/pages/commonComponents/styled'
+import { XGridLogo } from 'admin/pages/commonComponents/XGridLogo'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
-
+import placeholderPerson from 'img/placeholderPerson.jpg'
 import { setIdFromEntityId } from 'utils'
 
 const GET_GAME_PLAY = gql`
@@ -50,11 +59,17 @@ const GET_GAME_PLAY = gql`
         edges {
           host
           jersey
+          position
+          captain
+          goalkeeper
+          star
           node {
             playerId
+            avatar
             name
             firstName
             lastName
+            name
             meta {
               metaPlayerId
             }
@@ -324,6 +339,28 @@ const GameReport = () => {
     [upSm, getPlayerByMetaId]
   )
 
+  const playersHost = React.useMemo(
+    () =>
+      gameData?.playersConnection?.edges
+        ?.filter(p => p.host)
+        .map(p => {
+          const { node, ...rest } = p
+          return { ...rest, ...node }
+        }) || [],
+    [gameData]
+  )
+
+  const playersGuest = React.useMemo(
+    () =>
+      gameData?.playersConnection?.edges
+        ?.filter(p => !p.host)
+        .map(p => {
+          const { node, ...rest } = p
+          return { ...rest, ...node }
+        }) || [],
+    [gameData]
+  )
+
   return (
     <Container maxWidth={false} disableGutters={!upMd}>
       {queryLoading && <Loader />}
@@ -581,7 +618,7 @@ const GameReport = () => {
               </Paper>
             </Grid>
             <Grid item xs={12}>
-              <div style={{ height: '60rem' }} className={classes.xGridWrapper}>
+              <div style={{ height: '50rem' }} className={classes.xGridWrapper}>
                 <DataGridPro
                   columns={columns}
                   rows={setIdFromEntityId(
@@ -608,10 +645,115 @@ const GameReport = () => {
                 />
               </div>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <GameLineup players={playersHost} />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <GameLineup players={playersGuest} />
+            </Grid>
           </Grid>
         </>
       )}
     </Container>
+  )
+}
+
+const GameLineup = props => {
+  const { players } = props
+  const classes = useStyles()
+
+  const gameLineupColumns = React.useMemo(
+    () => [
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 50,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+        renderCell: params => {
+          const isCaptain = !!params?.row?.captain
+          const isGoalkeeper = !!params?.row?.goalkeeper
+          const isStar = !!params?.row?.star
+
+          return (
+            <>
+              {isCaptain && (
+                <Tooltip arrow title="Captain" placement="top">
+                  <VerifiedUserIcon />
+                </Tooltip>
+              )}
+              {isGoalkeeper && (
+                <Tooltip arrow title="Goalkeeper" placement="top">
+                  <BalconyIcon />
+                </Tooltip>
+              )}
+              {isStar && (
+                <Tooltip arrow title={'Game Star'} placement="top">
+                  <StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />
+                </Tooltip>
+              )}
+            </>
+          )
+        },
+      },
+      {
+        field: 'avatar',
+        headerName: 'Photo',
+        width: 80,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+        renderCell: params => {
+          return (
+            <XGridLogo
+              src={params.value}
+              placeholder={placeholderPerson}
+              alt={params.row.name}
+            />
+          )
+        },
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 120,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+      },
+      {
+        field: 'jersey',
+        headerName: 'Jersey',
+        width: 50,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+      },
+      {
+        field: 'position',
+        headerName: 'Position',
+        width: 100,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+      },
+    ],
+    []
+  )
+
+  return (
+    <div style={{ height: '30rem' }} className={classes.xGridWrapper}>
+      <DataGridPro
+        columns={gameLineupColumns}
+        rows={setIdFromEntityId(players, 'playerId')}
+        density="compact"
+        disableColumnSelector
+        disableSelectionOnClick
+        disableMultipleSelection
+        hideFooterRowCount
+      />
+    </div>
   )
 }
 
