@@ -19,8 +19,9 @@ type Props = {
 }
 
 const AuthorizedApolloProvider = ({ children }: Props) => {
-  const [client, setClient] = React.useState(null)
-  // const [persistor, setPersistor] = React.useState()
+  const [client, setClient] =
+    React.useState<ApolloClient<NormalizedCacheObject>>()
+  // const [persistor, setPersistor] = React.useState<CachePersistor<NormalizedCacheObject>()
 
   const { getAccessTokenSilently } = useAuth0()
 

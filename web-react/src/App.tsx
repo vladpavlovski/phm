@@ -9,20 +9,18 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import objectSupport from 'dayjs/plugin/objectSupport'
 import WebFont from 'webfontloader'
-
-import 'react-imported-component/macro'
+import theme from './styles/global'
 import 'dayjs/locale/cs'
 import AdapterDayJs from '@mui/lab/AdapterDayjs'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
-import Load from './utils/load'
-import { muiTheme } from './styles/global'
+
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { OrganizationProvider } from './context/organization/Provider'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { RouteSwitcher } from './router/RouteSwitcher'
-
-const Layout = Load(() => import('./components/Layout'))
+import { Loader } from './components/Loader'
+const Layout = React.lazy(() => import('./components/Layout'))
 
 const userLanguage = 'cs' // window?.navigator?.language
 dayjs.locale(userLanguage)
@@ -31,7 +29,11 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(objectSupport)
 
-const App = ({ history }) => {
+type AppProps = {
+  history: any
+}
+
+const App = ({ history }: AppProps) => {
   React.useEffect(() => {
     WebFont.load({
       custom: {
@@ -42,20 +44,22 @@ const App = ({ history }) => {
   }, [])
 
   return (
-    <ThemeProvider theme={muiTheme}>
+    <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDayJs}>
         <CssBaseline />
         <ErrorBoundary>
           <Router history={history}>
-            <SnackbarProvider maxSnack={5}>
-              <OrganizationProvider>
-                <LayoutProvider>
-                  <Layout>
-                    <RouteSwitcher />
-                  </Layout>
-                </LayoutProvider>
-              </OrganizationProvider>
-            </SnackbarProvider>
+            <React.Suspense fallback={<Loader />}>
+              <SnackbarProvider maxSnack={5}>
+                <OrganizationProvider>
+                  <LayoutProvider>
+                    <Layout>
+                      <RouteSwitcher />
+                    </Layout>
+                  </LayoutProvider>
+                </OrganizationProvider>
+              </SnackbarProvider>
+            </React.Suspense>
           </Router>
         </ErrorBoundary>
       </LocalizationProvider>

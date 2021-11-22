@@ -6,7 +6,7 @@ import './styles/style.css'
 import App from './App'
 // import registerServiceWorker from './registerServiceWorker'
 import { AuthorizedApolloProvider } from './graphql'
-import { Auth0Provider } from '@auth0/auth0-react'
+import { Auth0Provider, AppState } from '@auth0/auth0-react'
 import { LicenseInfo } from '@mui/x-data-grid-pro'
 import config from './config'
 
@@ -29,7 +29,7 @@ if (!config.dev) {
 
 const history = createBrowserHistory()
 
-const onRedirectCallback = (appState: { returnTo: string }) => {
+const onRedirectCallback = (appState: AppState): void => {
   // Use the router's history module to replace the url
   history.replace(appState.returnTo || window.location.pathname)
 }
@@ -45,9 +45,7 @@ const Main = () => {
       useRefreshTokens={true}
     >
       <AuthorizedApolloProvider>
-        {(props: { persistor: null }) => (
-          <App history={history} persistor={props.persistor} />
-        )}
+        {() => <App history={history} />}
       </AuthorizedApolloProvider>
     </Auth0Provider>
   )

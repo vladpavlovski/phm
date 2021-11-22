@@ -5,52 +5,61 @@ import * as ROUTES from '../router/routes'
 import { PrivateRoute } from '../components/PrivateRoute'
 
 import Dashboard from '../admin/pages/Dashboard/Dashboard'
-import Load from '../utils/load'
 
 import { GameEventFormProvider } from '../admin/pages/Game/play/context/Provider'
-const NotFound = Load(() => import('../pages/NotFound'))
-const NetworkError = Load(() => import('../pages/NetworkError'))
+const NotFound = React.lazy(() => import('../pages/NotFound'))
+const NetworkError = React.lazy(() => import('../pages/NetworkError'))
 
-const AdminPlayersView = Load(() => import('../admin/pages/Player/view'))
-const AdminPlayer = Load(() => import('../admin/pages/Player'))
-const AdminTeamsView = Load(() => import('../admin/pages/Team/view'))
-const AdminTeam = Load(() => import('../admin/pages/Team'))
-const AdminOrganizationsView = Load(() =>
+const AdminPlayersView = React.lazy(() => import('../admin/pages/Player/view'))
+const AdminPlayer = React.lazy(() => import('../admin/pages/Player'))
+const AdminTeamsView = React.lazy(() => import('../admin/pages/Team/view'))
+const AdminTeam = React.lazy(() => import('../admin/pages/Team'))
+const AdminOrganizationsView = React.lazy(() =>
   import('../admin/pages/Organization/view')
 )
-const AdminOrganization = Load(() => import('../admin/pages/Organization'))
-const AdminOrganizationDashboard = Load(() =>
+const AdminOrganization = React.lazy(() =>
+  import('../admin/pages/Organization')
+)
+const AdminOrganizationDashboard = React.lazy(() =>
   import('../admin/pages/Organization/dashboard')
 )
-const AdminCompetitionsView = Load(() =>
+const AdminCompetitionsView = React.lazy(() =>
   import('../admin/pages/Competition/view')
 )
-const AdminCompetition = Load(() => import('../admin/pages/Competition'))
+const AdminCompetition = React.lazy(() => import('../admin/pages/Competition'))
 
-const AdminSponsor = Load(() => import('../admin/pages/Sponsor'))
-const AdminSponsorsView = Load(() => import('../admin/pages/Sponsor/view'))
-const AdminSeason = Load(() => import('../admin/pages/Season'))
-const AdminSeasonsView = Load(() => import('../admin/pages/Season/view'))
-const AdminVenue = Load(() => import('../admin/pages/Venue'))
-const AdminVenuesView = Load(() => import('../admin/pages/Venue/view'))
-const AdminRulePack = Load(() => import('../admin/pages/RulePack'))
-const AdminRulePacksView = Load(() => import('../admin/pages/RulePack/view'))
-const AdminPerson = Load(() => import('../admin/pages/Person'))
-const AdminPersonView = Load(() => import('../admin/pages/Person/view'))
-const AdminUser = Load(() => import('../admin/pages/User'))
-const AdminUserView = Load(() => import('../admin/pages/User/view'))
-const AdminAward = Load(() => import('../admin/pages/Award'))
-const AdminAwardView = Load(() => import('../admin/pages/Award/view'))
-const AdminSystemSettings = Load(() => import('../admin/pages/SystemSettings'))
-const AdminEvent = Load(() => import('../admin/pages/Event'))
-const AdminEventView = Load(() => import('../admin/pages/Event/view'))
-const AdminGame = Load(() => import('../admin/pages/Game'))
-const AdminGameView = Load(() => import('../admin/pages/Game/view'))
-const AdminGamePlay = Load(() => import('../admin/pages/Game/play'))
-const WebLeagueGames = Load(() => import('../league/pages/Games'))
-const WebLeagueGameReport = Load(() => import('../league/pages/GameReport'))
-const WebLeaguePlayers = Load(() => import('../league/pages/Players'))
-const WebLeagueStandings = Load(() => import('../league/pages/Standings'))
+const AdminSponsor = React.lazy(() => import('../admin/pages/Sponsor'))
+const AdminSponsorsView = React.lazy(() =>
+  import('../admin/pages/Sponsor/view')
+)
+const AdminSeason = React.lazy(() => import('../admin/pages/Season'))
+const AdminSeasonsView = React.lazy(() => import('../admin/pages/Season/view'))
+const AdminVenue = React.lazy(() => import('../admin/pages/Venue'))
+const AdminVenuesView = React.lazy(() => import('../admin/pages/Venue/view'))
+const AdminRulePack = React.lazy(() => import('../admin/pages/RulePack'))
+const AdminRulePacksView = React.lazy(() =>
+  import('../admin/pages/RulePack/view')
+)
+const AdminPerson = React.lazy(() => import('../admin/pages/Person'))
+const AdminPersonView = React.lazy(() => import('../admin/pages/Person/view'))
+const AdminUser = React.lazy(() => import('../admin/pages/User'))
+const AdminUserView = React.lazy(() => import('../admin/pages/User/view'))
+const AdminAward = React.lazy(() => import('../admin/pages/Award'))
+const AdminAwardView = React.lazy(() => import('../admin/pages/Award/view'))
+const AdminSystemSettings = React.lazy(() =>
+  import('../admin/pages/SystemSettings')
+)
+const AdminEvent = React.lazy(() => import('../admin/pages/Event'))
+const AdminEventView = React.lazy(() => import('../admin/pages/Event/view'))
+const AdminGame = React.lazy(() => import('../admin/pages/Game'))
+const AdminGameView = React.lazy(() => import('../admin/pages/Game/view'))
+const AdminGamePlay = React.lazy(() => import('../admin/pages/Game/play'))
+const WebLeagueGames = React.lazy(() => import('../league/pages/Games'))
+const WebLeagueGameReport = React.lazy(() =>
+  import('../league/pages/GameReport')
+)
+const WebLeaguePlayers = React.lazy(() => import('../league/pages/Players'))
+const WebLeagueStandings = React.lazy(() => import('../league/pages/Standings'))
 
 const RouteSwitcher = () => {
   return (
