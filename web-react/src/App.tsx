@@ -16,7 +16,7 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider'
 
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
-import { OrganizationProvider } from './context/organization/Provider'
+import { OrganizationProvider } from './context/organization'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { RouteSwitcher } from './router/RouteSwitcher'
 import { Loader } from './components/Loader'

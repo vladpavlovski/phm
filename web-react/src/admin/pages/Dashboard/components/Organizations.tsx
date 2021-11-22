@@ -4,7 +4,11 @@ import Grid from '@mui/material/Grid'
 import Toolbar from '@mui/material/Toolbar'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import {
+  DataGridPro,
+  GridColumns,
+  GridRenderCellParams,
+} from '@mui/x-data-grid-pro'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import Tooltip from '@mui/material/Tooltip'
 
@@ -13,13 +17,13 @@ import { useStyles } from '../../commonComponents/styled'
 import {
   getAdminOrganizationRoute,
   getAdminOrganizationDashboardRoute,
-} from '../../../../router/routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
+} from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
+import { Title } from 'components/Title'
+import { Error } from 'components/Error'
 
-import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId } from '../../../../utils'
+import { Loader } from 'components/Loader'
+import { setIdFromEntityId } from 'utils'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
@@ -37,7 +41,7 @@ const Organizations = () => {
   const { setOrganizationData } = useContext(OrganizationContext)
   const { error, loading, data } = useQuery(GET_ORGANIZATIONS)
   const columns = useMemo(
-    () => [
+    (): GridColumns => [
       {
         field: 'name',
         headerName: 'Name',
@@ -48,7 +52,7 @@ const Organizations = () => {
         headerName: 'Actions',
         width: 100,
         disableColumnMenu: true,
-        renderCell: params => {
+        renderCell: (params: GridRenderCellParams): React.ReactNode => {
           const { urlSlug, organizationId, nick, name } = params.row
           return (
             <>
