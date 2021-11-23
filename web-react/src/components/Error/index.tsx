@@ -1,8 +1,11 @@
 import React from 'react'
 import { Alert, AlertTitle } from '@mui/material'
-import PropTypes from 'prop-types'
 
-const ErrorComponent = props => {
+interface IErrorComponent {
+  message: string
+}
+
+const ErrorComponent: React.FC<IErrorComponent> = props => {
   const { message } = props
   return (
     <Alert severity="error">
@@ -10,10 +13,6 @@ const ErrorComponent = props => {
       <pre>{message}</pre>
     </Alert>
   )
-}
-
-ErrorComponent.propTypes = {
-  message: PropTypes.string,
 }
 
 const Error = React.memo(ErrorComponent)

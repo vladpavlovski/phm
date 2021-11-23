@@ -1,8 +1,12 @@
 import React from 'react'
-import { default as LoaderLib } from 'react-loader-spinner'
+import { default as LoaderLib, LoaderProps } from 'react-loader-spinner'
 import { LoaderContainer, LoaderWrapper } from './styled'
 
-const Loader = props => (
+interface ILoader extends LoaderProps {
+  noText?: boolean
+}
+
+const Loader = (props: ILoader) => (
   <LoaderContainer>
     <LoaderWrapper>
       <LoaderLib {...props} />
@@ -15,8 +19,6 @@ const Loader = props => (
     </LoaderWrapper>
   </LoaderContainer>
 )
-
-Loader.propTypes = {}
 
 Loader.defaultProps = {
   type: 'Rings',
