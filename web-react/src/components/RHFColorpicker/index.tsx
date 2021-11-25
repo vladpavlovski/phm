@@ -1,10 +1,20 @@
 import React, { useState } from 'react'
-import { Controller } from 'react-hook-form'
-import TextField from '@mui/material/TextField'
+import { Controller, Control } from 'react-hook-form'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
 import { DEFAULT_CONVERTER, converters } from './transformers'
 import PickerDialog from './PickerDialog'
 
-const RHFColorpicker = props => {
+type IRHFColorpicker = TextFieldProps & {
+  control: Control
+  name: string
+  error: {
+    message: string
+  }
+  convert: string
+  defaultValue: string
+}
+
+const RHFColorpicker: React.FC<IRHFColorpicker> = props => {
   const { control, name, error, convert, defaultValue, ...restProps } = props
 
   const [showPicker, setShowPicker] = useState(false)
@@ -39,7 +49,14 @@ const RHFColorpicker = props => {
                 setShowPicker(false)
                 onChange(internalValue)
               }}
-              onChange={c => {
+              onChange={(c: {
+                rgb: {
+                  r: number
+                  g: number
+                  b: number
+                  a?: number
+                }
+              }): void => {
                 const newValue = converters[convert](c)
                 setInternalValue(newValue)
                 onChange(newValue)
@@ -54,10 +71,8 @@ const RHFColorpicker = props => {
 
 RHFColorpicker.defaultProps = {
   defaultValue: '',
-  multiple: false,
   fullWidth: false,
-  variant: 'standard',
-  error: false,
+  variant: 'outlined',
   convert: DEFAULT_CONVERTER,
 }
 

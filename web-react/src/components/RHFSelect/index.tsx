@@ -1,18 +1,20 @@
 import React from 'react'
-import { FormControl, InputLabel, Select } from '@mui/material'
-import { Controller } from 'react-hook-form'
+import { FormControl, InputLabel, Select, SelectProps } from '@mui/material'
+import { Controller, Control } from 'react-hook-form'
 
-const RHFSelectComponent = ({
-  name,
-  label,
-  control,
-  defaultValue,
-  children,
-  ...props
-}) => {
+type TRHFSelectComponent = SelectProps & {
+  control: Control
+  name: string
+  error: {
+    message: string
+  }
+}
+
+const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
+  const { name, label, control, defaultValue, children } = props
   const labelId = React.useMemo(() => `${name}-label`, [])
   return (
-    <FormControl {...props}>
+    <FormControl fullWidth>
       <InputLabel id={labelId}>{label}</InputLabel>
       <Controller
         render={({ onChange, onBlur, value, name, ref }) => (

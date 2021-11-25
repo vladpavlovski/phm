@@ -1,17 +1,27 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+
 import {
   GridToolbarColumnsButton,
   GridToolbarExport,
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
+  GridExportCsvOptions,
+  GridToolbarExportProps,
 } from '@mui/x-data-grid-pro'
 import ClearIcon from '@mui/icons-material/Clear'
 import SearchIcon from '@mui/icons-material/Search'
 import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 
-const QuickSearchToolbar = props => {
+interface TQuickSearchToolbar extends GridToolbarExportProps {
+  hideButtons: boolean
+  value: string
+  onChange: () => void
+  clearSearch: () => void
+  csvOptions?: GridExportCsvOptions
+}
+
+const QuickSearchToolbar: React.FC<TQuickSearchToolbar> = props => {
   const { hideButtons, value, onChange, clearSearch } = props
   return (
     <div
@@ -26,9 +36,12 @@ const QuickSearchToolbar = props => {
       {!hideButtons && (
         <div>
           <GridToolbarColumnsButton />
-          <GridToolbarFilterButton />
+          <GridToolbarFilterButton
+            innerRef={undefined}
+            interactive={undefined}
+          />
           <GridToolbarDensitySelector />
-          <GridToolbarExport />
+          <GridToolbarExport innerRef={undefined} buttonRef={undefined} />
         </div>
       )}
       <TextField
@@ -57,13 +70,6 @@ const QuickSearchToolbar = props => {
 
 QuickSearchToolbar.defaultProps = {
   hideButtons: false,
-}
-
-QuickSearchToolbar.propTypes = {
-  clearSearch: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
-  hideButtons: PropTypes.bool,
 }
 
 export { QuickSearchToolbar }

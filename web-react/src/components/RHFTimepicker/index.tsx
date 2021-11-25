@@ -1,18 +1,32 @@
 import React from 'react'
-import { Controller } from 'react-hook-form'
-import TextField from '@mui/material/TextField'
+import { Controller, Control, ControllerRenderProps } from 'react-hook-form'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
 import dayjs from 'dayjs'
-import TimePicker from '@mui/lab/TimePicker'
+import TimePicker, { TimePickerProps } from '@mui/lab/TimePicker'
 import { getDateFromTime } from '../../utils'
 
-const RHFTimepickerComponent = props => {
+type TRHFTimepickerComponent = TextFieldProps &
+  TimePickerProps & {
+    control: Control
+    name: string
+    error: {
+      message: string
+    }
+    openTo: string
+    views: string[]
+    disableFuture: boolean
+    ampm: boolean
+    ampmInClock: boolean
+  }
+
+const RHFTimepickerComponent: React.FC<TRHFTimepickerComponent> = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
     <Controller
       name={name}
       control={control}
-      render={({ onChange, onBlur, value, name, ref }) => (
+      render={({ onChange, value, ref }: ControllerRenderProps) => (
         <TimePicker
           {...rest}
           renderInput={params => (
@@ -26,9 +40,7 @@ const RHFTimepickerComponent = props => {
           )}
           inputRef={ref}
           onChange={onChange}
-          onBlur={onBlur}
           value={value}
-          name={name}
         />
       )}
       defaultValue={defaultValue ? dayjs(getDateFromTime(defaultValue)) : null}
@@ -42,7 +54,6 @@ RHFTimepickerComponent.defaultProps = {
   openTo: 'hours',
   disableFuture: false,
   views: ['hours', 'minutes', 'seconds'],
-  error: false,
   ampm: false,
   ampmInClock: false,
 }

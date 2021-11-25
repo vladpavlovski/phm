@@ -1,10 +1,18 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import { ChromePicker } from 'react-color'
+import { ChromePicker, ChromePickerProps, Color } from 'react-color'
 
-const PickerDialog = ({ value, onClick, onChange }) => (
+type TPickerDialog = ChromePickerProps & {
+  value: Color
+  onClick: () => void
+}
+
+const PickerDialog: React.FC<TPickerDialog> = ({
+  value,
+  onClick,
+  onChange,
+}) => (
   <div style={{ position: 'relative' }}>
-    <div style={{ position: 'absolute', zIndex: '2' }}>
+    <div style={{ position: 'absolute', zIndex: 2 }}>
       <div
         style={{
           position: 'fixed',
@@ -19,11 +27,5 @@ const PickerDialog = ({ value, onClick, onChange }) => (
     </div>
   </div>
 )
-
-PickerDialog.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func,
-  onClick: PropTypes.func,
-}
 
 export default PickerDialog

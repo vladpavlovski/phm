@@ -1,22 +1,33 @@
 import React from 'react'
-import { Controller } from 'react-hook-form'
-import TextField from '@mui/material/TextField'
-import DatePicker from '@mui/lab/DatePicker'
+import { Controller, Control, ControllerRenderProps } from 'react-hook-form'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
+import DatePicker, { DatePickerProps } from '@mui/lab/DatePicker'
 import dayjs from 'dayjs'
 
-const RHFDatepickerComponent = props => {
+type TRHFDatepickerComponent = TextFieldProps &
+  DatePickerProps & {
+    control: Control
+    name: string
+    error: {
+      message: string
+    }
+    defaultValue: string | number | Date | dayjs.Dayjs | null | undefined
+  }
+
+const RHFDatepickerComponent: React.FC<TRHFDatepickerComponent> = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
     <Controller
       name={name}
       control={control}
-      render={({ onChange, onBlur, value, name, ref }) => (
+      render={({ onChange, onBlur, value, ref }: ControllerRenderProps) => (
         <DatePicker
           {...rest}
           renderInput={params => (
             <TextField
               {...params}
+              onBlur={onBlur}
               fullWidth={fullWidth}
               variant={variant}
               error={!!error}
@@ -25,9 +36,7 @@ const RHFDatepickerComponent = props => {
           )}
           inputRef={ref}
           onChange={onChange}
-          onBlur={onBlur}
           value={value}
-          name={name}
         />
       )}
       defaultValue={dayjs(defaultValue).isValid() ? defaultValue : null}
@@ -41,7 +50,6 @@ RHFDatepickerComponent.defaultProps = {
   openTo: 'year',
   disableFuture: false,
   views: ['year', 'month', 'day'],
-  error: false,
 }
 
 const RHFDatepicker = React.memo(RHFDatepickerComponent)

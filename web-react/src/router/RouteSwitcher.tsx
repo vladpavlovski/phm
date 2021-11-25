@@ -1,7 +1,7 @@
 import React from 'react'
 import { Switch, Route } from 'react-router-dom'
 
-import * as ROUTES from '../router/routes'
+import * as ROUTES from './routes'
 import { PrivateRoute } from '../components/PrivateRoute'
 
 import Dashboard from '../admin/pages/Dashboard/Dashboard'
@@ -14,31 +14,31 @@ const AdminPlayersView = React.lazy(() => import('../admin/pages/Player/view'))
 const AdminPlayer = React.lazy(() => import('../admin/pages/Player'))
 const AdminTeamsView = React.lazy(() => import('../admin/pages/Team/view'))
 const AdminTeam = React.lazy(() => import('../admin/pages/Team'))
-const AdminOrganizationsView = React.lazy(() =>
-  import('../admin/pages/Organization/view')
+const AdminOrganizationsView = React.lazy(
+  () => import('../admin/pages/Organization/view')
 )
-const AdminOrganization = React.lazy(() =>
-  import('../admin/pages/Organization')
+const AdminOrganization = React.lazy(
+  () => import('../admin/pages/Organization')
 )
-const AdminOrganizationDashboard = React.lazy(() =>
-  import('../admin/pages/Organization/dashboard')
+const AdminOrganizationDashboard = React.lazy(
+  () => import('../admin/pages/Organization/dashboard')
 )
-const AdminCompetitionsView = React.lazy(() =>
-  import('../admin/pages/Competition/view')
+const AdminCompetitionsView = React.lazy(
+  () => import('../admin/pages/Competition/view')
 )
 const AdminCompetition = React.lazy(() => import('../admin/pages/Competition'))
 
 const AdminSponsor = React.lazy(() => import('../admin/pages/Sponsor'))
-const AdminSponsorsView = React.lazy(() =>
-  import('../admin/pages/Sponsor/view')
+const AdminSponsorsView = React.lazy(
+  () => import('../admin/pages/Sponsor/view')
 )
 const AdminSeason = React.lazy(() => import('../admin/pages/Season'))
 const AdminSeasonsView = React.lazy(() => import('../admin/pages/Season/view'))
 const AdminVenue = React.lazy(() => import('../admin/pages/Venue'))
 const AdminVenuesView = React.lazy(() => import('../admin/pages/Venue/view'))
 const AdminRulePack = React.lazy(() => import('../admin/pages/RulePack'))
-const AdminRulePacksView = React.lazy(() =>
-  import('../admin/pages/RulePack/view')
+const AdminRulePacksView = React.lazy(
+  () => import('../admin/pages/RulePack/view')
 )
 const AdminPerson = React.lazy(() => import('../admin/pages/Person'))
 const AdminPersonView = React.lazy(() => import('../admin/pages/Person/view'))
@@ -46,8 +46,8 @@ const AdminUser = React.lazy(() => import('../admin/pages/User'))
 const AdminUserView = React.lazy(() => import('../admin/pages/User/view'))
 const AdminAward = React.lazy(() => import('../admin/pages/Award'))
 const AdminAwardView = React.lazy(() => import('../admin/pages/Award/view'))
-const AdminSystemSettings = React.lazy(() =>
-  import('../admin/pages/SystemSettings')
+const AdminSystemSettings = React.lazy(
+  () => import('../admin/pages/SystemSettings')
 )
 const AdminEvent = React.lazy(() => import('../admin/pages/Event'))
 const AdminEventView = React.lazy(() => import('../admin/pages/Event/view'))
@@ -55,13 +55,13 @@ const AdminGame = React.lazy(() => import('../admin/pages/Game'))
 const AdminGameView = React.lazy(() => import('../admin/pages/Game/view'))
 const AdminGamePlay = React.lazy(() => import('../admin/pages/Game/play'))
 const WebLeagueGames = React.lazy(() => import('../league/pages/Games'))
-const WebLeagueGameReport = React.lazy(() =>
-  import('../league/pages/GameReport')
+const WebLeagueGameReport = React.lazy(
+  () => import('../league/pages/GameReport')
 )
 const WebLeaguePlayers = React.lazy(() => import('../league/pages/Players'))
 const WebLeagueStandings = React.lazy(() => import('../league/pages/Standings'))
 
-const RouteSwitcher = () => {
+const RouteSwitcher: React.FC = () => {
   return (
     <Switch>
       <Route path={ROUTES.WEB_LEAGUE_GAMES} exact component={WebLeagueGames} />

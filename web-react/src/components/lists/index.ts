@@ -1,4 +1,11 @@
-export const timeUnitStatusList = [
+interface EnumListItem {
+  name: string
+  value: string
+}
+
+interface EnumListItems extends Array<EnumListItem> {}
+
+export const timeUnitStatusList: EnumListItems = [
   {
     name: 'Not Started',
     value: 'NOTSTARTED',
@@ -21,7 +28,7 @@ export const timeUnitStatusList = [
   },
 ]
 
-export const activityStatusList = [
+export const activityStatusList: EnumListItems = [
   {
     name: 'Active',
     value: 'ACTIVE',
