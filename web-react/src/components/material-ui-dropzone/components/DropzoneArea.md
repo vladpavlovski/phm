@@ -1,15 +1,13 @@
 ### Import
 
 ```jsx static
-import { DropzoneArea } from 'material-ui-dropzone';
+import { DropzoneArea } from 'material-ui-dropzone'
 ```
 
 ### Basic usage
 
 ```jsx
-<DropzoneArea
-  onChange={(files) => console.log('Files:', files)}
-/>
+<DropzoneArea onChange={files => console.log('Files:', files)} />
 ```
 
 ### Accept only images
@@ -17,8 +15,8 @@ import { DropzoneArea } from 'material-ui-dropzone';
 ```jsx
 <DropzoneArea
   acceptedFiles={['image/*']}
-  dropzoneText={"Drag and drop an image here or click"}
-  onChange={(files) => console.log('Files:', files)}
+  dropzoneText={'Drag and drop an image here or click'}
+  onChange={files => console.log('Files:', files)}
 />
 ```
 
@@ -26,50 +24,53 @@ import { DropzoneArea } from 'material-ui-dropzone';
 
 Demonstration of how to customize the preview icon for:
 
-* PDF files
-* Video
-* Audio
-* Word Documents
+- PDF files
+- Video
+- Audio
+- Word Documents
 
 ```jsx
-import { AttachFile, AudioTrack, Description, PictureAsPdf, Theaters } from '@material-ui/icons';
+import {
+  AttachFile,
+  AudioTrack,
+  Description,
+  PictureAsPdf,
+  Theaters,
+} from '@mui/icons-material'
 
 const handlePreviewIcon = (fileObject, classes) => {
-  const {type} = fileObject.file
+  const { type } = fileObject.file
   const iconProps = {
-    className : classes.image,
+    className: classes.image,
   }
 
-  if (type.startsWith("video/")) return <Theaters {...iconProps} />
-  if (type.startsWith("audio/")) return <AudioTrack {...iconProps} />
+  if (type.startsWith('video/')) return <Theaters {...iconProps} />
+  if (type.startsWith('audio/')) return <AudioTrack {...iconProps} />
 
   switch (type) {
-    case "application/msword":
-    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    case 'application/msword':
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
       return <Description {...iconProps} />
-    case "application/pdf":
+    case 'application/pdf':
       return <PictureAsPdf {...iconProps} />
     default:
       return <AttachFile {...iconProps} />
   }
 }
 
-<DropzoneArea
-  getPreviewIcon={handlePreviewIcon}
-/>
+;<DropzoneArea getPreviewIcon={handlePreviewIcon} />
 ```
 
 ### Loading initial files
 
 ```jsx
+const file = new File(['foo'], 'foo.txt', {
+  type: 'text/plain',
+})
 
-const file = new File(["foo"], "foo.txt", {
-  type: "text/plain",
-});
-
-<DropzoneArea
-  initialFiles = {[file]}
-  onChange={(files) => console.log('Files:', files)}
+;<DropzoneArea
+  initialFiles={[file]}
+  onChange={files => console.log('Files:', files)}
 />
 ```
 
@@ -78,23 +79,25 @@ const file = new File(["foo"], "foo.txt", {
 Chips use the Grid system as well, so you can customize the way they appears and benefit from the Material-UI grid customizations
 
 ```jsx
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@mui/material/styles'
 
-const useStyles = makeStyles(theme => createStyles({
-  previewChip: {
-    minWidth: 160,
-    maxWidth: 210
-  },
-}));
+const useStyles = makeStyles(theme =>
+  createStyles({
+    previewChip: {
+      minWidth: 160,
+      maxWidth: 210,
+    },
+  })
+)
 
-const classes = useStyles();
+const classes = useStyles()
 
-<DropzoneArea
+;<DropzoneArea
   showPreviews={true}
   showPreviewsInDropzone={false}
   useChipsForPreview
-  previewGridProps={{container: { spacing: 1, direction: 'row' }}}
-  previewChipProps={{classes: { root: classes.previewChip } }}
+  previewGridProps={{ container: { spacing: 1, direction: 'row' } }}
+  previewChipProps={{ classes: { root: classes.previewChip } }}
   previewText="Selected files"
 />
 ```
