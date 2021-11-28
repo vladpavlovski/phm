@@ -44,26 +44,28 @@ const App = ({ history }: AppProps) => {
   }, [])
 
   return (
-    <ThemeProvider theme={theme}>
-      <LocalizationProvider dateAdapter={AdapterDayJs}>
-        <CssBaseline />
-        <ErrorBoundary>
-          <Router history={history}>
-            <React.Suspense fallback={<Loader />}>
-              <SnackbarProvider maxSnack={5}>
-                <OrganizationProvider>
-                  <LayoutProvider>
-                    <Layout>
-                      <RouteSwitcher />
-                    </Layout>
-                  </LayoutProvider>
-                </OrganizationProvider>
-              </SnackbarProvider>
-            </React.Suspense>
-          </Router>
-        </ErrorBoundary>
-      </LocalizationProvider>
-    </ThemeProvider>
+    <React.StrictMode>
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterDayJs}>
+          <CssBaseline />
+          <ErrorBoundary>
+            <Router history={history}>
+              <React.Suspense fallback={<Loader />}>
+                <SnackbarProvider maxSnack={5}>
+                  <OrganizationProvider>
+                    <LayoutProvider>
+                      <Layout>
+                        <RouteSwitcher />
+                      </Layout>
+                    </LayoutProvider>
+                  </OrganizationProvider>
+                </SnackbarProvider>
+              </React.Suspense>
+            </Router>
+          </ErrorBoundary>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </React.StrictMode>
   )
 }
 
