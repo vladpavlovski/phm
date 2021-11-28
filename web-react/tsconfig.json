@@ -10,7 +10,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "baseUrl": "src",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "lib": ["es6", "dom", "dom.iterable", "esnext"],
