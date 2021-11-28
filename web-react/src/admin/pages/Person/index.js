@@ -183,7 +183,6 @@ const Person = () => {
 
         const dataToSubmit = {
           ...rest,
-          // personId: checkId(personId),
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
         }

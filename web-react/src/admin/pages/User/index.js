@@ -16,7 +16,7 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 
 import { RHFInput } from '../../../components/RHFInput'
 import { Uploader } from '../../../components/Uploader'
-import { isValidUuid, checkId } from '../../../utils'
+import { isValidUuid } from '../../../utils'
 import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
@@ -108,7 +108,7 @@ const User = () => {
 
         const dataToSubmit = {
           ...rest,
-          userId: checkId(userId),
+          userId: userId,
         }
 
         mergeUser({

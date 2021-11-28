@@ -5,7 +5,7 @@ import {
   GridToolbarExport,
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
-  GridExportCsvOptions,
+  GridCsvExportOptions,
   GridToolbarExportProps,
 } from '@mui/x-data-grid-pro'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -18,7 +18,7 @@ interface TQuickSearchToolbar extends GridToolbarExportProps {
   value: string
   onChange: () => void
   clearSearch: () => void
-  csvOptions?: GridExportCsvOptions
+  csvOptions?: GridCsvExportOptions
 }
 
 const QuickSearchToolbar: React.FC<TQuickSearchToolbar> = props => {
@@ -36,12 +36,9 @@ const QuickSearchToolbar: React.FC<TQuickSearchToolbar> = props => {
       {!hideButtons && (
         <div>
           <GridToolbarColumnsButton />
-          <GridToolbarFilterButton
-            innerRef={undefined}
-            interactive={undefined}
-          />
+          <GridToolbarFilterButton />
           <GridToolbarDensitySelector />
-          <GridToolbarExport innerRef={undefined} buttonRef={undefined} />
+          <GridToolbarExport />
         </div>
       )}
       <TextField
