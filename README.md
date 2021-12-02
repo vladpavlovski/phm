@@ -10,7 +10,7 @@ Database model shows all entities and their connections between each other.
 
 JSON for import this model to [playground](https://arrows.app/) you can find [here](./api/HMS_db_model.json)
 
-![](img/apoc-hms_db_data_model.png)
+![](img/apoc-hms_db_data_model_preview.png)
 
 #### Local Development. Desktop App
 
