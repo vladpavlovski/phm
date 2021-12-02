@@ -8,7 +8,7 @@ Hockey Management System is an app that facilitates and centralizes all aspects 
 
 Database model shows all entities and their connections between each other.
 
-JSON for import this model to [playground](https://arrows.app/) you can find [here](./api/HMS_db_model.json)
+You can play with this model simply importing [JSON](./api/HMS_db_model.json) to [playground](https://arrows.app/). [Full size image](img/hms_db_data_model.png).
 
 ![](img/hms_db_data_model_preview.png)
 
