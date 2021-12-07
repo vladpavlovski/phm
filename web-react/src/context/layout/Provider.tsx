@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import LayoutContext, { initialContextState } from './index'
 
 type Props = {
-  children: React.ReactChild
+  children: React.ReactNode
 }
 
 const LayoutProvider = (props: Props) => {
