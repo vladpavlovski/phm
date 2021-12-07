@@ -6,5 +6,12 @@
     "source.fixAll": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "cSpell.words": ["describedby", "flickr", "labelledby", "Trello"]
+  "cSpell.words": [
+    "describedby",
+    "flickr",
+    "labelledby",
+    "Trello",
+    "webfontloader"
+  ],
+  "jest.jestCommandLine": "yarn test"
 }
