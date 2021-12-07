@@ -33,16 +33,14 @@ type AppProps = {
   history: any
 }
 
-const App = ({ history }: AppProps) => {
-  React.useEffect(() => {
-    WebFont.load({
-      custom: {
-        families: ['Digital Numbers Regular'],
-        urls: ['./styles/style.css'],
-      },
-    })
-  }, [])
+WebFont.load({
+  custom: {
+    families: ['Digital Numbers Regular'],
+    urls: ['./styles/style.css'],
+  },
+})
 
+const App = ({ history }: AppProps) => {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
