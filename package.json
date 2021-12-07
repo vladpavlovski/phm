@@ -13,7 +13,6 @@
     "execa": "^5.1.1",
     "grandstack": "^0.1.7",
     "husky": ">=7",
-    "jest": "^27.4.3",
     "lint-staged": ">=11",
     "prettier": "2.3.2",
     "prettier-eslint-cli": "5.0.1",
