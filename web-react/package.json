@@ -51,6 +51,7 @@
     "now-build": "react-scripts build"
   },
   "devDependencies": {
+    "@testing-library/react": "^12.1.2",
     "@types/history": "^4.7.9",
     "@types/react-router-dom": "^5.3.2",
     "@types/webfontloader": "^1.6.33",
