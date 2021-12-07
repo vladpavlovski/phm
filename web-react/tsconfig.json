@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "target": "es5",
     "allowJs": true,
     "noImplicitAny": true,
@@ -21,7 +21,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "preserveSymlinks": true
   },
   "include": ["src/**/*", "src"],
   "exclude": ["node_modules", "**/*.spec.ts"]
