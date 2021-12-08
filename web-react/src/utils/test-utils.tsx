@@ -1,5 +1,6 @@
 import React, { FC, ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
+import '@testing-library/jest-dom'
 
 import AdapterDayJs from '@mui/lab/AdapterDayjs'
 import { ThemeProvider } from '@mui/material/styles'
@@ -30,4 +31,6 @@ const customRender = (
 ) => render(ui, { wrapper: AllTheProviders, ...options })
 
 export * from '@testing-library/react'
+export * from '@testing-library/user-event'
+
 export { customRender as render }
