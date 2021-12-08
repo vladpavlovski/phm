@@ -9,7 +9,8 @@ import { ButtonTypeMap, ButtonProps } from '@mui/material'
 interface ILinkButton extends ButtonProps {
   icon?: boolean
   component?: React.ReactNode
-  to: string
+  to?: string
+  href?: string
   target?: string
 }
 

@@ -1,5 +1,7 @@
 import React, { FC, ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
+import { Router } from 'react-router-dom'
+import { createBrowserHistory } from 'history'
 import '@testing-library/jest-dom'
 
 import AdapterDayJs from '@mui/lab/AdapterDayjs'
@@ -11,15 +13,19 @@ import { OrganizationProvider } from 'context/organization'
 
 import theme from 'styles/global'
 
+const history = createBrowserHistory()
+
 const AllTheProviders: FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDayJs}>
-        <SnackbarProvider maxSnack={5}>
-          <OrganizationProvider>
-            <LayoutProvider>{children}</LayoutProvider>
-          </OrganizationProvider>
-        </SnackbarProvider>
+        <Router history={history}>
+          <SnackbarProvider maxSnack={5}>
+            <OrganizationProvider>
+              <LayoutProvider>{children}</LayoutProvider>
+            </OrganizationProvider>
+          </SnackbarProvider>
+        </Router>
       </LocalizationProvider>
     </ThemeProvider>
   )
