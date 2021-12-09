@@ -10,12 +10,11 @@ type IRHFColorpicker = TextFieldProps & {
   error: {
     message: string
   }
-  convert: string
   defaultValue: string
 }
 
 const RHFColorpicker: React.FC<IRHFColorpicker> = props => {
-  const { control, name, error, convert, defaultValue, ...restProps } = props
+  const { control, name, error, defaultValue, ...restProps } = props
 
   const [showPicker, setShowPicker] = useState(false)
   const [internalValue, setInternalValue] = useState(defaultValue || '')
@@ -49,15 +48,8 @@ const RHFColorpicker: React.FC<IRHFColorpicker> = props => {
                 setShowPicker(false)
                 onChange(internalValue)
               }}
-              onChange={(c: {
-                rgb: {
-                  r: number
-                  g: number
-                  b: number
-                  a?: number
-                }
-              }): void => {
-                const newValue = converters[convert](c)
+              onChange={c => {
+                const newValue = converters[DEFAULT_CONVERTER](c)
                 setInternalValue(newValue)
                 onChange(newValue)
               }}
@@ -73,7 +65,6 @@ RHFColorpicker.defaultProps = {
   defaultValue: '',
   fullWidth: false,
   variant: 'outlined',
-  convert: DEFAULT_CONVERTER,
 }
 
 export { RHFColorpicker }
