@@ -1,15 +1,19 @@
 import React, { useState, useCallback } from 'react'
-import PropTypes from 'prop-types'
-// import { gql, useLazyQuery } from '@apollo/client'
+
 import { useSnackbar } from 'notistack'
 
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 
-import { DropzoneDialogBase } from '../material-ui-dropzone'
+import {
+  DropzoneDialogBase,
+  DropzoneDialogBaseProps,
+} from '../material-ui-dropzone'
 import dayjs from 'dayjs'
 import Compress from 'react-image-file-resizer'
+
+import { ButtonProps } from '@mui/material'
 
 // const S3_SIGN = gql`
 //   query CustomSignS3($filename: String!, $filetype: String!) {
@@ -20,23 +24,37 @@ import Compress from 'react-image-file-resizer'
 //   }
 // `
 
-const formatFileName = (filename, folderName = 'common') => {
+const formatFileName = (filename = '', folderName = 'common') => {
   const date = dayjs().format('YYYY-MM-DD')
   const randomString = Math.random().toString(36).substring(2, 7)
-  const fileExtension = filename.split('.').pop().toLowerCase()
+  const fileExtension = filename.toLowerCase().split('.').pop()
   const cleanFileName = filename
-    .substr(0, filename.lastIndexOf('.'))
-    .toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
+    .toLowerCase()
+    .substr(0, filename.lastIndexOf('.'))
   const newFilename = `${folderName}/${date}-${randomString}-${cleanFileName}.${fileExtension}`
   return newFilename.substring(0, 60)
 }
 
-const Uploader = props => {
+type TUploader = Omit<DropzoneDialogBaseProps, 'fileObjects'> & {
+  onSubmit: (url: string) => any
+  filesLimit?: number
+  buttonProps?: ButtonProps
+  buttonText: string
+  folderName: string
+}
+
+type TFileObjects = {
+  file: File
+  data: string | ArrayBuffer | null
+  name?: string
+}[]
+
+const Uploader: React.FC<TUploader> = props => {
   const { buttonProps, buttonText, filesLimit, onSubmit, folderName, ...rest } =
     props
   const [open, setOpen] = useState(false)
-  const [fileObjects, setFileObjects] = useState([])
+  const [fileObjects, setFileObjects] = useState<TFileObjects>([])
 
   const { enqueueSnackbar } = useSnackbar()
 
@@ -47,17 +65,17 @@ const Uploader = props => {
   // })
 
   const onSave = useCallback(async () => {
-    const fileToUpload = fileObjects?.[0]
+    const fileToUpload: { file: { name: string; type: string } } =
+      fileObjects?.[0]
 
     const presignDataResponse = await fetch('/signs3', {
       method: 'POST',
       body: JSON.stringify({
-        filename: formatFileName(fileToUpload?.file?.name, folderName),
+        filename: formatFileName(fileToUpload?.file?.name || '', folderName),
         filetype: fileToUpload?.file?.type,
       }),
     })
     const presignData = await presignDataResponse.json()
-    // console.log('presignData: ', presignData)
     const { signedRequest, url } = presignData
 
     fetch(signedRequest, {
@@ -105,12 +123,12 @@ const Uploader = props => {
       'WEBP', // compress format WEBP, JPEG, PNG
       70, // quality
       0, // rotation
-      blob => {
+      (blob: string | Blob | File | ProgressEvent<FileReader>): void => {
         // You upload logic goes here
         const fileName = fileObject.file.name
           .substr(0, fileObject.file.name.lastIndexOf('.'))
           .toLowerCase()
-        const newFile = new File([blob], `${fileName}.webp`, {
+        const newFile = new File([blob as BlobPart], `${fileName}.webp`, {
           type: 'image/webp',
         })
         setFileObjects(state => [
@@ -155,7 +173,7 @@ const Uploader = props => {
           onSave()
         }}
         dropzoneProps={{
-          disabled: fileObjects.length >= filesLimit,
+          disabled: filesLimit ? fileObjects.length >= filesLimit : true,
         }}
       />
     </>
@@ -179,10 +197,6 @@ Uploader.defaultProps = {
   filesLimit: 1,
   disableRejectionFeedback: true,
   folderName: 'common',
-}
-
-Uploader.propTypes = {
-  buttonText: PropTypes.string,
 }
 
 export { Uploader }
