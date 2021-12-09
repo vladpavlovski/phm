@@ -10,7 +10,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Tooltip from '@mui/material/Tooltip'
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
@@ -58,7 +57,6 @@ const PlayersComponent = props => {
                   </Tooltip>
                 }
                 size="small"
-                startIcon={<LinkOffIcon />}
                 dialogTitle={
                   'Do you really want to remove player from the team?'
                 }
