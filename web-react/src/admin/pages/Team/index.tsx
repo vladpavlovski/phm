@@ -186,10 +186,15 @@ const DELETE_TEAM = gql`
   }
 `
 
+type TTeamParams = {
+  teamId: string
+  organizationSlug: string
+}
+
 const Team = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { teamId, organizationSlug } = useParams()
+  const { teamId, organizationSlug } = useParams<TTeamParams>()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -284,7 +289,7 @@ const Team = () => {
 
   const updateLogo = useCallback(
     url => {
-      setValue('logo', url, true)
+      setValue('logo', url)
 
       const queryResult = client.readQuery({
         query: GET_TEAM,
@@ -314,12 +319,14 @@ const Team = () => {
 
   return (
     <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && <Error message={queryError.message} />}
-      {errorDelete && <Error message={errorDelete.message} />}
+      {queryLoading && <Loader />}
+      {queryError && <Error message={queryError?.message} />}
+      {errorDelete && <Error message={errorDelete?.message} />}
       {(mutationErrorMerge || mutationErrorCreate) && (
         <Error
-          message={mutationErrorMerge.message || mutationErrorCreate.message}
+          message={
+            mutationErrorMerge?.message || mutationErrorCreate?.message || ''
+          }
         />
       )}
       {(teamData || teamId === 'new') &&
@@ -329,7 +336,6 @@ const Team = () => {
           <>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className={classes.form}
               noValidate
               autoComplete="off"
             >
