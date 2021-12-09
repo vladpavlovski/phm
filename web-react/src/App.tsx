@@ -2,7 +2,7 @@ import React from 'react'
 import { Router } from 'react-router-dom'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
-
+import { HelmetProvider } from 'react-helmet-async'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
@@ -49,15 +49,17 @@ const App = ({ history }: AppProps) => {
           <ErrorBoundary>
             <Router history={history}>
               <React.Suspense fallback={<Loader />}>
-                <SnackbarProvider maxSnack={5}>
-                  <OrganizationProvider>
-                    <LayoutProvider>
-                      <Layout>
-                        <RouteSwitcher />
-                      </Layout>
-                    </LayoutProvider>
-                  </OrganizationProvider>
-                </SnackbarProvider>
+                <HelmetProvider>
+                  <SnackbarProvider maxSnack={5}>
+                    <OrganizationProvider>
+                      <LayoutProvider>
+                        <Layout>
+                          <RouteSwitcher />
+                        </Layout>
+                      </LayoutProvider>
+                    </OrganizationProvider>
+                  </SnackbarProvider>
+                </HelmetProvider>
               </React.Suspense>
             </Router>
           </ErrorBoundary>

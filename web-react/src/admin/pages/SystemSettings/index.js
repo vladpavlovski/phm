@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { gql, useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { useSnackbar } from 'notistack'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Container, Grid, Paper } from '@mui/material'

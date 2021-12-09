@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react'
 
 import { Grid } from '@mui/material'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 import XGridTable from './XGrid'
 
 import LayoutContext from '../../../../context/layout'

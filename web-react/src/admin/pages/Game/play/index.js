@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { gql, useQuery, useMutation } from '@apollo/client'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 import { useSnackbar } from 'notistack'
 import { LinkButton } from 'components/LinkButton'
 import Container from '@mui/material/Container'

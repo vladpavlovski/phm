@@ -4,7 +4,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
 import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 import { useSnackbar } from 'notistack'
 
 import { yupResolver } from '@hookform/resolvers/yup'

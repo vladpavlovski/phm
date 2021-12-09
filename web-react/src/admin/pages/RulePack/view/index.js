@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from 'react'
 import { Grid } from '@mui/material'
 
 import LayoutContext from '../../../../context/layout'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 
 import XGridTable from './XGrid'
 

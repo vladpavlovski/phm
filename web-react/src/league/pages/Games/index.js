@@ -1,6 +1,6 @@
 import React from 'react'
 import Grid from '@mui/material/Grid'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 import XGridTable from './XGrid'
 
 const View = () => {
