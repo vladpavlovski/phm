@@ -7,12 +7,12 @@ interface IErrorComponent {
 
 const ErrorComponent: React.FC<IErrorComponent> = props => {
   const { message } = props
-  return (
+  return message ? (
     <Alert severity="error">
       <AlertTitle>Error</AlertTitle>
       <pre>{message}</pre>
     </Alert>
-  )
+  ) : null
 }
 
 const Error = React.memo(ErrorComponent)
