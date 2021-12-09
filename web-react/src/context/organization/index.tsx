@@ -30,7 +30,7 @@ const initialContextState = {
     name: '',
     nick: '',
   },
-  setOrganizationData: () => {},
+  setOrganizationData: () => undefined,
 }
 const OrganizationContext =
   React.createContext<ContextTypes>(initialContextState)

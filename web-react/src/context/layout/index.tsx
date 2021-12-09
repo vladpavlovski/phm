@@ -2,8 +2,9 @@ import React from 'react'
 
 const initialContextState = {
   barTitle: '',
-  setBarTitle: () => {},
+  setBarTitle: () => undefined,
 }
+
 type Context = {
   barTitle: string
   setBarTitle: React.Dispatch<React.SetStateAction<string>>
