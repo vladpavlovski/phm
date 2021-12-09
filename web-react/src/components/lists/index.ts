@@ -1,9 +1,9 @@
-interface EnumListItem {
+type EnumListItem = {
   name: string
   value: string
 }
 
-interface EnumListItems extends Array<EnumListItem> {}
+type EnumListItems = Array<EnumListItem>
 
 export const timeUnitStatusList: EnumListItems = [
   {
