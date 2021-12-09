@@ -5,13 +5,13 @@ import DatePicker, { DatePickerProps } from '@mui/lab/DatePicker'
 import dayjs from 'dayjs'
 
 type TRHFDatepickerComponent = TextFieldProps &
-  DatePickerProps & {
+  Omit<DatePickerProps, 'renderInput' | 'onChange' | 'value'> & {
     control: Control
     name: string
-    error: {
+    error?: {
       message: string
     }
-    defaultValue: string | number | Date | dayjs.Dayjs | null | undefined
+    defaultValue?: string | number | Date | dayjs.Dayjs | null | undefined
   }
 
 const RHFDatepickerComponent: React.FC<TRHFDatepickerComponent> = props => {
