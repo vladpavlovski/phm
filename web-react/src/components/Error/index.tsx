@@ -2,7 +2,7 @@ import React from 'react'
 import { Alert, AlertTitle } from '@mui/material'
 
 interface IErrorComponent {
-  message: string
+  message: string | undefined
 }
 
 const ErrorComponent: React.FC<IErrorComponent> = props => {
