@@ -51,6 +51,8 @@ export const ADMIN_ORG_GAME_PLAY = '/admin/game/:organizationSlug/:gameId/play'
 export const WEB_LEAGUE_GAMES = '/web/league/:organizationSlug/games'
 export const WEB_LEAGUE_GAME_REPORT = '/web/league/gameReport/:gameId'
 export const WEB_LEAGUE_PLAYERS = '/web/league/:organizationSlug/players'
+export const WEB_LEAGUE_PLAYERS_STATISTICS =
+  '/web/league/:organizationSlug/players-statistics'
 export const WEB_LEAGUE_STANDINGS = '/web/league/:organizationSlug/standings'
 
 export const getAdminOrgPlayersRoute = (organizationSlug: string) =>
@@ -167,6 +169,9 @@ export const getLeagueOrgGameReportRoute = (gameId: string) =>
 
 export const getLeagueOrgPlayersRoute = (organizationSlug: string) =>
   generatePath(WEB_LEAGUE_PLAYERS, { organizationSlug })
+
+export const getLeagueOrgPlayersStatisticsRoute = (organizationSlug: string) =>
+  generatePath(WEB_LEAGUE_PLAYERS_STATISTICS, { organizationSlug })
 
 export const getLeagueOrgStandingsRoute = (organizationSlug: string) =>
   generatePath(WEB_LEAGUE_STANDINGS, { organizationSlug })
