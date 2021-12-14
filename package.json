@@ -28,11 +28,6 @@
   },
   "dependencies": {
     "@types/jest": "^27.0.3",
-    "@types/react-color": "^3.0.6",
-    "@types/react-dom": "^17.0.11",
-    "@types/react-router-dom": "^5.3.2",
-    "@types/use-persisted-state": "^0.3.0",
-    "@types/webfontloader": "^1.6.33",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.3.1",
     "apollo3-cache-persist": "^0.13.0",

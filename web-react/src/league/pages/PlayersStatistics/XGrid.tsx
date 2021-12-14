@@ -26,6 +26,8 @@ import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { getXGridHeight } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
+import { Player, Group, Phase, Competition, Season, Team } from 'utils/types'
+
 const GET_PLAYERS_STATISTICS = gql`
   query getPlayersStatistics(
     $whereGames: GameWhere
@@ -101,58 +103,10 @@ const GET_PLAYERS_STATISTICS = gql`
   }
 `
 
-type Player = GridRowModel & {
-  playerId: string
-  name: string
-  firstName: string
-  lastName: string
-  avatar: string
-  teams: Team[]
-  gamesConnection: { totalCount: number; edges: { star: boolean | null }[] }
-  meta: MetaConnection[]
-}
-
-type Group = {
-  groupId: string
-  name: string
-}
-
-type Phase = {
-  phaseId: string
-  name: string
-}
-
-type Competition = {
-  competitionId: string
-  name: string
-}
-
-type Season = {
-  groups: Group[]
-  phases: Phase[]
-  competitions: Competition[]
-}
-
-type MetaConnection = {
-  [key: string]: {
-    totalCount: number
-    edges: {
-      node: {
-        team: {
-          teamId: string
-        }
-      }
-    }
-  }
-}
-
-type Team = {
-  teamId: string
-  name: string
-}
+type TPlayer = GridRowModel & Player
 
 type PlayersData = {
-  players: Player[]
+  players: TPlayer[]
   seasons: Season[]
 }
 
