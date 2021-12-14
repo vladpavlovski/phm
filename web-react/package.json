@@ -22,7 +22,6 @@
     "graphql": "^15.5.3",
     "js-search": "^2.0.0",
     "notistack": "2.0.3",
-    "porter-stemmer": "^0.9.1",
     "ramda": "^0.27.1",
     "react": "^17.0.2",
     "react-color": "^2.19.3",
