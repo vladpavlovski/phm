@@ -39,7 +39,6 @@ const GET_PLAYERS_STATISTICS = gql`
       firstName
       lastName
       avatar
-      name
       gamesConnection(where: { node: $whereGames }) {
         totalCount
         edges {
@@ -152,6 +151,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
             id: p?.playerId + t.teamId,
             avatar: p?.avatar,
             team: t,
+            teamName: t.name,
             gamesPlayed: p?.gamesConnection?.totalCount,
             goals: goalsForTeam,
             assists: firstAssistsForTeam + secondAssistsForTeam,
@@ -167,6 +167,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
             id: p?.playerId,
             avatar: p?.avatar,
             team: p?.teams?.[0],
+            teamName: p?.teams?.[0]?.name,
             gamesPlayed: p?.gamesConnection?.totalCount,
             goals: p?.meta?.eventsGoalConnection?.totalCount,
             assists:
@@ -176,7 +177,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
               p?.meta?.eventsFirstAssistConnection?.totalCount +
               p?.meta?.eventsSecondAssistConnection?.totalCount +
               p?.meta?.eventsGoalConnection?.totalCount,
-            stars: p?.gamesConnection?.edges?.map(
+            stars: p?.gamesConnection?.edges?.filter(
               (e: { star: boolean | null }) => e?.star
             )?.length,
           },
@@ -299,6 +300,7 @@ const XGridTable: React.FC = () => {
         headerName: 'Team',
         width: 160,
         disableColumnMenu: true,
+        valueGetter: params => params?.row?.team?.name,
         renderCell: params => {
           const team = params.row?.team
           return (
@@ -372,7 +374,7 @@ const XGridTable: React.FC = () => {
     return preparedData as GridRowsProp[]
   }, [data])
 
-  const searchIndexes = React.useMemo(() => ['name', 'team'], [])
+  const searchIndexes = React.useMemo(() => ['name', 'teamName'], [])
 
   const [searchText, searchData, requestSearch] = useXGridSearch({
     searchIndexes,
