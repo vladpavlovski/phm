@@ -11,7 +11,9 @@ type TUseXGridSearch = {
   data: GridRowsProp[]
 }
 
-const useXGridSearch = (props: TUseXGridSearch) => {
+const useXGridSearch = (
+  props: TUseXGridSearch
+): [string, GridRowsProp[], React.Dispatch<React.SetStateAction<string>>] => {
   const { searchIndexes, data } = props
 
   React.useEffect(() => {
@@ -41,7 +43,7 @@ const useXGridSearch = (props: TUseXGridSearch) => {
     searchDataEngine.addDocuments(data)
   }, [data])
 
-  return [searchText, searchData, setSearchText] as const
+  return [searchText, searchData, setSearchText]
 }
 
 export { useXGridSearch }

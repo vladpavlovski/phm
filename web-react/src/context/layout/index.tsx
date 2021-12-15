@@ -2,7 +2,7 @@ import React from 'react'
 
 const initialContextState = {
   barTitle: '',
-  setBarTitle: () => undefined,
+  setBarTitle: (): void => undefined,
 }
 
 type Context = {

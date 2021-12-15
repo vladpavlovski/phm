@@ -13,7 +13,7 @@ import theme from './styles/global'
 import 'dayjs/locale/cs'
 import AdapterDayJs from '@mui/lab/AdapterDayjs'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
-
+import { History } from 'history'
 import { SnackbarProvider } from 'notistack'
 import { LayoutProvider } from './context/layout/Provider'
 import { OrganizationProvider } from './context/organization'
@@ -29,8 +29,8 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(objectSupport)
 
-type AppProps = {
-  history: any
+type TApp = {
+  history: History
 }
 
 WebFont.load({
@@ -40,7 +40,7 @@ WebFont.load({
   },
 })
 
-const App = ({ history }: AppProps) => {
+const App: React.FC<TApp> = ({ history }) => {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>

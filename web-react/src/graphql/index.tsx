@@ -14,11 +14,15 @@ import { onError } from '@apollo/client/link/error'
 // import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist'
 import config from '../config'
 
-type Props = {
-  children: any
+type TAuthorizedApolloProvider = {
+  children: (props: {
+    persistor: null
+  }) => React.ReactChild | React.ReactFragment | React.ReactPortal
 }
 
-const AuthorizedApolloProvider = ({ children }: Props) => {
+const AuthorizedApolloProvider: React.FC<TAuthorizedApolloProvider> = ({
+  children,
+}) => {
   const [client, setClient] =
     React.useState<ApolloClient<NormalizedCacheObject>>()
   // const [persistor, setPersistor] = React.useState<CachePersistor<NormalizedCacheObject>()

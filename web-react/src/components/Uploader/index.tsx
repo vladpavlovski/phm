@@ -37,7 +37,7 @@ const formatFileName = (filename = '', folderName = 'common') => {
 }
 
 type TUploader = Omit<DropzoneDialogBaseProps, 'fileObjects'> & {
-  onSubmit: (url: string) => any
+  onSubmit: (url: string) => void
   filesLimit?: number
   buttonProps?: ButtonProps
   buttonText: string

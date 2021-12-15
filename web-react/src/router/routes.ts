@@ -55,123 +55,127 @@ export const WEB_LEAGUE_PLAYERS_STATISTICS =
   '/web/league/:organizationSlug/players-statistics'
 export const WEB_LEAGUE_STANDINGS = '/web/league/:organizationSlug/standings'
 
-export const getAdminOrgPlayersRoute = (organizationSlug: string) =>
+export const getAdminOrgPlayersRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
 export const getAdminOrgPlayerRoute = (
   organizationSlug: string,
   playerId: string
-) => generatePath(ADMIN_ORG_PLAYER, { organizationSlug, playerId })
+): string => generatePath(ADMIN_ORG_PLAYER, { organizationSlug, playerId })
 
-export const getAdminOrgTeamsRoute = (organizationSlug: string) =>
+export const getAdminOrgTeamsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_TEAMS, { organizationSlug })
 export const getAdminOrgTeamRoute = (
   organizationSlug: string,
   teamId: string
-) => generatePath(ADMIN_ORG_TEAM, { organizationSlug, teamId })
+): string => generatePath(ADMIN_ORG_TEAM, { organizationSlug, teamId })
 
-export const getAdminOrganizationRoute = (organizationSlug: string) =>
+export const getAdminOrganizationRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORGANIZATION, { organizationSlug })
 
-export const getAdminOrganizationDashboardRoute = (organizationSlug: string) =>
-  generatePath(ADMIN_ORGANIZATION_DASHBOARD, { organizationSlug })
+export const getAdminOrganizationDashboardRoute = (
+  organizationSlug: string
+): string => generatePath(ADMIN_ORGANIZATION_DASHBOARD, { organizationSlug })
 
-export const getAdminOrgCompetitionsRoute = (organizationSlug: string) =>
-  generatePath(ADMIN_ORG_COMPETITIONS, { organizationSlug })
+export const getAdminOrgCompetitionsRoute = (
+  organizationSlug: string
+): string => generatePath(ADMIN_ORG_COMPETITIONS, { organizationSlug })
 
 export const getAdminOrgCompetitionRoute = (
   organizationSlug: string,
   competitionId: string
-) => generatePath(ADMIN_ORG_COMPETITION, { organizationSlug, competitionId })
+): string =>
+  generatePath(ADMIN_ORG_COMPETITION, { organizationSlug, competitionId })
 
-export const getAdminOrgSponsorsRoute = (organizationSlug: string) =>
+export const getAdminOrgSponsorsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_SPONSORS, { organizationSlug })
 export const getAdminOrgSponsorRoute = (
   organizationSlug: string,
   sponsorId: string
-) => generatePath(ADMIN_ORG_SPONSOR, { organizationSlug, sponsorId })
+): string => generatePath(ADMIN_ORG_SPONSOR, { organizationSlug, sponsorId })
 
-export const getAdminOrgSeasonsRoute = (organizationSlug: string) =>
+export const getAdminOrgSeasonsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_SEASONS, { organizationSlug })
 
 export const getAdminOrgSeasonRoute = (
   organizationSlug: string,
   seasonId: string
-) => generatePath(ADMIN_ORG_SEASON, { organizationSlug, seasonId })
+): string => generatePath(ADMIN_ORG_SEASON, { organizationSlug, seasonId })
 
-export const getAdminOrgVenuesRoute = (organizationSlug: string) =>
+export const getAdminOrgVenuesRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_VENUES, { organizationSlug })
 
 export const getAdminOrgVenueRoute = (
   organizationSlug: string,
   venueId: string
-) => generatePath(ADMIN_ORG_VENUE, { organizationSlug, venueId })
+): string => generatePath(ADMIN_ORG_VENUE, { organizationSlug, venueId })
 
-export const getAdminOrgRulePacksRoute = (organizationSlug: string) =>
+export const getAdminOrgRulePacksRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_RULEPACKS, { organizationSlug })
 
 export const getAdminOrgRulePackRoute = (
   organizationSlug: string,
   rulePackId: string
-) => generatePath(ADMIN_ORG_RULEPACK, { organizationSlug, rulePackId })
+): string => generatePath(ADMIN_ORG_RULEPACK, { organizationSlug, rulePackId })
 
-export const getAdminOrgAwardsRoute = (organizationSlug: string) =>
+export const getAdminOrgAwardsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_AWARDS, { organizationSlug })
 
 export const getAdminOrgAwardRoute = (
   organizationSlug: string,
   awardId: string
-) => generatePath(ADMIN_ORG_AWARD, { organizationSlug, awardId })
+): string => generatePath(ADMIN_ORG_AWARD, { organizationSlug, awardId })
 
-export const getAdminPhaseRoute = (phaseId: string) =>
+export const getAdminPhaseRoute = (phaseId: string): string =>
   generatePath(ADMIN_PHASE, { phaseId })
 
-export const getAdminGroupRoute = (groupId: string) =>
+export const getAdminGroupRoute = (groupId: string): string =>
   generatePath(ADMIN_GROUP, { groupId })
 
-export const getAdminOrgPersonsRoute = (organizationSlug: string) =>
+export const getAdminOrgPersonsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_PERSONS, { organizationSlug })
 
 export const getAdminOrgPersonRoute = (
   organizationSlug: string,
   personId: string
-) => generatePath(ADMIN_ORG_PERSON, { organizationSlug, personId })
+): string => generatePath(ADMIN_ORG_PERSON, { organizationSlug, personId })
 
-export const getAdminUserRoute = (userId: string) =>
+export const getAdminUserRoute = (userId: string): string =>
   generatePath(ADMIN_USER, { userId })
-export const getAdminStarRoute = (starId: string) =>
+export const getAdminStarRoute = (starId: string): string =>
   generatePath(ADMIN_STAR, { starId })
-export const getAdminOrgEventsRoute = (organizationSlug: string) =>
+export const getAdminOrgEventsRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_EVENTS, { organizationSlug })
 
 export const getAdminOrgEventRoute = (
   organizationSlug: string,
   eventId: string
-) => generatePath(ADMIN_ORG_EVENT, { organizationSlug, eventId })
+): string => generatePath(ADMIN_ORG_EVENT, { organizationSlug, eventId })
 
-export const getAdminOrgGamesRoute = (organizationSlug: string) =>
+export const getAdminOrgGamesRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_GAMES, { organizationSlug })
 
 export const getAdminOrgGameRoute = (
   organizationSlug: string,
   gameId: string
-) => generatePath(ADMIN_ORG_GAME, { organizationSlug, gameId })
+): string => generatePath(ADMIN_ORG_GAME, { organizationSlug, gameId })
 
 export const getAdminOrgGamePlayRoute = (
   organizationSlug: string,
   gameId: string
-) => generatePath(ADMIN_ORG_GAME_PLAY, { organizationSlug, gameId })
+): string => generatePath(ADMIN_ORG_GAME_PLAY, { organizationSlug, gameId })
 
-export const getLeagueOrgGamesRoute = (organizationSlug: string) =>
+export const getLeagueOrgGamesRoute = (organizationSlug: string): string =>
   generatePath(WEB_LEAGUE_GAMES, { organizationSlug })
 
-export const getLeagueOrgGameReportRoute = (gameId: string) =>
+export const getLeagueOrgGameReportRoute = (gameId: string): string =>
   generatePath(WEB_LEAGUE_GAME_REPORT, { gameId })
 
-export const getLeagueOrgPlayersRoute = (organizationSlug: string) =>
+export const getLeagueOrgPlayersRoute = (organizationSlug: string): string =>
   generatePath(WEB_LEAGUE_PLAYERS, { organizationSlug })
 
-export const getLeagueOrgPlayersStatisticsRoute = (organizationSlug: string) =>
-  generatePath(WEB_LEAGUE_PLAYERS_STATISTICS, { organizationSlug })
+export const getLeagueOrgPlayersStatisticsRoute = (
+  organizationSlug: string
+): string => generatePath(WEB_LEAGUE_PLAYERS_STATISTICS, { organizationSlug })
 
-export const getLeagueOrgStandingsRoute = (organizationSlug: string) =>
+export const getLeagueOrgStandingsRoute = (organizationSlug: string): string =>
   generatePath(WEB_LEAGUE_STANDINGS, { organizationSlug })

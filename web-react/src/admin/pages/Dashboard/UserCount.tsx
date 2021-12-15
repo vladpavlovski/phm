@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { makeStyles } from '@mui/styles'
 import Typography from '@mui/material/Typography'
-import Title from './Title'
+import { Title } from './Title'
 
 const useStyles = makeStyles({
   depositContext: {
@@ -13,11 +13,11 @@ const useStyles = makeStyles({
   },
 })
 
-export default function Deposits() {
+const UserCount: React.FC = () => {
   const classes = useStyles()
 
   return (
-    <React.Fragment>
+    <>
       <Title>Total Users</Title>
       <Typography component="p" variant="h4">
         {0}
@@ -30,6 +30,8 @@ export default function Deposits() {
           View users
         </Link>
       </div>
-    </React.Fragment>
+    </>
   )
 }
+
+export { UserCount }

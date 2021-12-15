@@ -204,7 +204,7 @@ const useLeaguePlayerStatCompetition = createPersistedState(
   'HMS-LeaguePlayerStatCompetition'
 )
 
-const XGridTable = () => {
+const XGridTable: React.FC = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams<TPlayersStatisticsParams>()
 

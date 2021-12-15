@@ -2,14 +2,14 @@ import React from 'react'
 import { default as LoaderLib, LoaderProps } from 'react-loader-spinner'
 import { LoaderContainer, LoaderWrapper } from './styled'
 
-interface ILoader extends LoaderProps {
+type TLoader = Omit<LoaderProps, 'type'> & {
   noText?: boolean
 }
 
-const Loader = (props: ILoader) => (
+const Loader: React.FC<TLoader> = props => (
   <LoaderContainer>
     <LoaderWrapper>
-      <LoaderLib {...props} />
+      <LoaderLib {...props} type="Rings" />
       {!props.noText && (
         <>
           <p>Tahám výsledky z centrály...</p>
@@ -21,7 +21,6 @@ const Loader = (props: ILoader) => (
 )
 
 Loader.defaultProps = {
-  type: 'Rings',
   color: '#323C46',
   height: 100,
   width: 100,

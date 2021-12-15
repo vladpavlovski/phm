@@ -6,11 +6,11 @@ import Paper from '@mui/material/Paper'
 
 import LayoutContext from '../../../context/layout'
 
-import UserCount from './UserCount'
+import { UserCount } from './UserCount'
 import { useStyles } from '../commonComponents/styled'
 import { Organizations } from './components/Organizations'
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   const theme = useTheme()
 
   const { setBarTitle } = useContext(LayoutContext)
@@ -48,3 +48,5 @@ export default function Dashboard() {
     </Container>
   )
 }
+
+export { Dashboard }

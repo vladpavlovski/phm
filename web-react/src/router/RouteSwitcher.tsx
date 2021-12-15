@@ -4,7 +4,7 @@ import { Switch, Route } from 'react-router-dom'
 import * as ROUTES from './routes'
 import { PrivateRoute } from '../components/PrivateRoute'
 
-import Dashboard from '../admin/pages/Dashboard/Dashboard'
+import { Dashboard } from '../admin/pages/Dashboard/Dashboard'
 
 import { GameEventFormProvider } from '../admin/pages/Game/play/context/Provider'
 const NotFound = React.lazy(() => import('../pages/NotFound'))

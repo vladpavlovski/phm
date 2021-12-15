@@ -36,7 +36,7 @@ const GET_ORGANIZATIONS = gql`
   }
 `
 
-const Organizations = () => {
+const Organizations: React.FC = () => {
   const classes = useStyles()
   const { setOrganizationData } = useContext(OrganizationContext)
   const { error, loading, data } = useQuery(GET_ORGANIZATIONS)

@@ -36,7 +36,7 @@ const OrganizationContext =
   React.createContext<ContextTypes>(initialContextState)
 const useHMSOrganizationDataState = createPersistedState('HMS-OrganizationData')
 
-const OrganizationProvider = (props: ProviderPropsTypes) => {
+const OrganizationProvider: React.FC<ProviderPropsTypes> = props => {
   const [organizationData, setOrganizationData] = useHMSOrganizationDataState(
     initialContextState.organizationData
   )

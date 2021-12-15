@@ -20,13 +20,13 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true }
   }
 
-  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('Uncaught error:', error, errorInfo)
     !config.dev &&
       Bugfender.sendIssue(`[UI error] ${error}`, `${errorInfo.componentStack}`)
   }
 
-  public render() {
+  public render(): React.ReactNode {
     if (this.state.hasError) {
       return (
         <h2>

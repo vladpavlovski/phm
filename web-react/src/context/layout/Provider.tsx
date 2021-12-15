@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import LayoutContext, { initialContextState } from './index'
 
-type Props = {
+type TLayoutProvider = {
   children: React.ReactNode
 }
 
-const LayoutProvider = (props: Props) => {
+const LayoutProvider: React.FC<TLayoutProvider> = props => {
   const [barTitle, setBarTitle] = useState(initialContextState.barTitle)
 
   return (

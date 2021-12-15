@@ -191,7 +191,7 @@ type TTeamParams = {
   organizationSlug: string
 }
 
-const Team = () => {
+const Team: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
   const { teamId, organizationSlug } = useParams<TTeamParams>()
