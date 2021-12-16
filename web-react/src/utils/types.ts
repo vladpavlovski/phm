@@ -47,3 +47,99 @@ export type Team = {
   teamId: string
   name: string
 }
+
+export type Game = {
+  gameId: string
+  name: string
+  type: string
+  startDate: Date
+  endDate: Date
+  startTime: string
+  endTime: string
+  foreignId: string
+  info: string
+  description: string
+  timekeeper: string
+  referee: string
+  status: string
+  flickrAlbum: string
+  report: string
+  headline: string
+  perex: string
+  body: string
+  group: Group
+  phase: Phase
+  teams: Team[]
+  teamsConnection: GameTeamsConnection
+  gameResult: GameResult
+}
+
+type GameTeamsConnection = {
+  edges: GameTeamsRelationship[]
+}
+
+type GameTeamsRelationship = {
+  host: boolean
+  node: Team
+}
+
+type GameResult = {
+  gameResultId: string
+  periodActive: string
+  gameStatus: string
+  hostGoals: number
+  guestGoals: number
+  hostPenalties: number
+  guestPenalties: number
+  hostPenaltyShots: number
+  guestPenaltyShots: number
+  hostInjuries: number
+  guestInjuries: number
+  hostSaves: number
+  guestSaves: number
+  hostFaceOffs: number
+  guestFaceOffs: number
+  hostWin: boolean
+  guestWin: boolean
+  draw: boolean
+  periodStatistics: PeriodStatistic[]
+  game: Game
+}
+
+type PeriodStatistic = {
+  periodStatisticId: string
+  period: string
+  hostGoals: number
+  guestGoals: number
+  hostPenalties: number
+  guestPenalties: number
+  hostPenaltyShots: number
+  guestPenaltyShots: number
+  hostInjuries: number
+  guestInjuries: number
+  hostSaves: number
+  guestSaves: number
+  hostFaceOffs: number
+  guestFaceOffs: number
+  gameResult: GameResult
+}
+
+export type SystemSettings = {
+  systemSettingsId: string
+  name: string
+  language: string
+  rulePack: RulePack
+}
+
+export type RulePack = {
+  rulePackId: string
+  name: string
+  resultPoints: ResultPoint[]
+}
+
+export type ResultPoint = {
+  resultPointId: string
+  name: string
+  code: string
+  points: number
+}
