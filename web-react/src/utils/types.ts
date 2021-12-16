@@ -7,6 +7,8 @@ export type Player = {
   teams: Team[]
   gamesConnection: { totalCount: number; edges: { star: boolean | null }[] }
   meta: MetaConnection[]
+  jerseys: Jersey[]
+  positions: Position[]
 }
 
 export type Group = {
@@ -46,6 +48,8 @@ export type MetaConnection = {
 export type Team = {
   teamId: string
   name: string
+  logo: string
+  groups: Group[]
 }
 
 export type Game = {
@@ -142,4 +146,20 @@ export type ResultPoint = {
   name: string
   code: string
   points: number
+}
+
+export type Jersey = {
+  jerseyId: string
+  name: string
+  number: number
+  player: Player
+  team: Team
+}
+export type Position = {
+  positionId: string
+  name: string
+  short: string
+  description: string
+  players: Player[]
+  team: Team
 }
