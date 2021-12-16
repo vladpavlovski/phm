@@ -11,18 +11,21 @@ import Avatar from '@mui/material/Avatar'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import {
+  DataGridPro,
+  GridRowModel,
+  GridRowsProp,
+  GridColumns,
+} from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
-import { useWindowSize, useXGridSearch } from 'utils/hooks'
+import { useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import {
-  setIdFromEntityId,
-  getXGridHeight,
-  getXGridValueFromArray,
-} from 'utils'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
+
+import { Player, Group, Team, Season } from 'utils/types'
 
 const GET_PLAYERS = gql`
   query getPlayers(
@@ -72,20 +75,31 @@ const GET_PLAYERS = gql`
     }
   }
 `
+type TPlayer = GridRowModel & Player
+
+type TXGridTableParams = {
+  organizationSlug: string
+}
+
+type TPlayersData = {
+  players: TPlayer[]
+  seasons: Season[]
+  teams: Team[]
+  groups: Group[]
+}
 
 const useLeagueGroupState = createPersistedState('HMS-LeagueAllPlayersGroup')
 
-const XGridTable = () => {
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
-
-  const windowSize = useWindowSize()
-  const toolbarRef = React.useRef()
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState()
+  const { organizationSlug } = useParams<TXGridTableParams>()
+  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>(
+    null
+  )
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
-  const { error, loading, data } = useQuery(GET_PLAYERS, {
+  const { error, loading, data } = useQuery<TPlayersData>(GET_PLAYERS, {
     variables: {
       wherePlayers: {
         teams: {
@@ -115,7 +129,7 @@ const XGridTable = () => {
     },
   })
 
-  const columns = React.useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -153,7 +167,7 @@ const XGridTable = () => {
         renderCell: params => {
           return (
             <Stack spacing={1} direction="row">
-              {params.row?.teams?.map(team => {
+              {params.row?.teams?.map((team: Team) => {
                 return (
                   <Chip
                     size="small"
@@ -188,10 +202,10 @@ const XGridTable = () => {
     [upSm]
   )
 
-  const playersData = React.useMemo(() => {
+  const playersData = React.useMemo((): GridRowsProp[] => {
     const preparedData = setIdFromEntityId(data?.players || [], 'playerId')
-      .filter(p => {
-        let teamsGroups = []
+      .filter((p: Player) => {
+        let teamsGroups: Group[] = []
         p?.teams?.forEach(t => {
           teamsGroups = [...teamsGroups, ...t?.groups]
         })
@@ -199,7 +213,7 @@ const XGridTable = () => {
           ? !!teamsGroups?.find(tg => tg.groupId === selectedGroup?.groupId)
           : true
       })
-      .map(p => {
+      .map((p: Player) => {
         const teamsInfo = getXGridValueFromArray(p?.teams || [], 'name')
         const jerseysInfo = getXGridValueFromArray(p?.jerseys || [], 'name')
         const positionsInfo = getXGridValueFromArray(p?.positions || [], 'name')
@@ -267,7 +281,7 @@ const XGridTable = () => {
 
               <div
                 style={{
-                  height: getXGridHeight(toolbarRef.current, windowSize),
+                  height: 800,
                 }}
                 className={classes.xGridWrapper}
               >
@@ -284,7 +298,9 @@ const XGridTable = () => {
                   componentsProps={{
                     toolbar: {
                       value: searchText,
-                      onChange: event => requestSearch(event.target.value),
+                      onChange: (
+                        event: React.ChangeEvent<HTMLInputElement>
+                      ): void => requestSearch(event.target.value),
                       clearSearch: () => requestSearch(''),
                     },
                   }}
