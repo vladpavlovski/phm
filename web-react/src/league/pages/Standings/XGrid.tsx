@@ -1,5 +1,5 @@
 import React from 'react'
-import { useQuery, useLazyQuery, gql } from '@apollo/client'
+import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
 
@@ -11,43 +11,58 @@ import Avatar from '@mui/material/Avatar'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns, GridRowModel } from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 
-import { useWindowSize, useXGridSearch } from 'utils/hooks'
-
-// import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { setIdFromEntityId, getXGridHeight } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { setIdFromEntityId } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import dayjs from 'dayjs'
 
-const GET_GROUPS = gql`
-  query getGroups($whereGroups: GroupWhere) {
-    groups(where: $whereGroups) {
-      groupId
-      name
-    }
-  }
-`
+import { Group, SystemSettings, ResultPoint, Game, Team } from 'utils/types'
 
-const countStandingsByTeam = (data = [], systemSettings) => {
+type TStandings = {
+  gamesTotal: number
+  win: number
+  lost: number
+  draw: number
+  score: number
+  allowed: number
+  points: number
+}
+
+type TStandingsTeam = {
+  teamId?: string
+  name?: string
+  logo?: string
+  standings: TStandings
+}
+
+type TResultPointsTemp = {
+  win: number
+  lost: number
+  draw: number
+}
+
+const countStandingsByTeam = (
+  data: TGamesData,
+  systemSettings: SystemSettings[]
+) => {
   try {
-    const resultPoints = systemSettings?.[0]?.rulePack?.resultPoints?.reduce(
-      (acc, resultPoint) => {
-        const { code, points } = resultPoint
-        switch (code.toLowerCase()) {
-          case 'win':
-            return { ...acc, win: points }
-          case 'lost':
-            return { ...acc, lost: points }
-          case 'draw':
-            return { ...acc, draw: points }
-        }
-      },
-      {}
-    )
+    const resultPoints: TResultPointsTemp =
+      systemSettings?.[0]?.rulePack?.resultPoints?.reduce(
+        (acc, resultPoint: ResultPoint): TResultPointsTemp => {
+          const { code, points } = resultPoint
+          const rulePoint = {
+            [code.toLowerCase()]: points,
+          }
+
+          return { ...acc, ...rulePoint }
+        },
+        { win: 0, lost: 0, draw: 0 }
+      )
 
     const standingsTemplate = {
       gamesTotal: 0,
@@ -60,9 +75,17 @@ const countStandingsByTeam = (data = [], systemSettings) => {
     }
 
     // object to return
-    let standings = []
+    let standings: TStandingsTeam[] = []
 
-    const getTeamStandings = ({ game, host, team }) => {
+    const getTeamStandings = ({
+      game,
+      host,
+      team,
+    }: {
+      game: Game
+      host: boolean
+      team: Team
+    }) => {
       const prefix = host ? 'host' : 'guest'
       const prefixRival = !host ? 'host' : 'guest'
 
@@ -74,13 +97,13 @@ const countStandingsByTeam = (data = [], systemSettings) => {
         standings = [...standings, { ...team, standings: standingsTemplate }]
       }
 
-      const teamStandings = standings.find(
-        t => t.teamId === team.teamId
-      )?.standings
+      const teamStandings =
+        standings.find(t => t.teamId === team.teamId)?.standings ||
+        standingsTemplate
 
       // count standings
 
-      let newTeamStandings = { ...teamStandings }
+      const newTeamStandings: TStandings = { ...teamStandings }
 
       newTeamStandings.gamesTotal += 1
 
@@ -110,7 +133,7 @@ const countStandingsByTeam = (data = [], systemSettings) => {
 
       newTeamStandings.points = teamWinGame
         ? newTeamStandings.points + resultPoints.win
-        : teamStandings.points - resultPoints.lost
+        : teamStandings.points - resultPoints?.lost
 
       newTeamStandings.points = game?.gameResult?.draw
         ? newTeamStandings.points + resultPoints.draw
@@ -118,11 +141,11 @@ const countStandingsByTeam = (data = [], systemSettings) => {
 
       const teamFromStandings = standings.find(t => t.teamId === team.teamId)
 
-      teamFromStandings.standings = newTeamStandings
+      if (teamFromStandings) teamFromStandings.standings = newTeamStandings
     }
 
     // iterate each game, count standings for host nad guest teams
-    data.forEach(game => {
+    data.games.forEach(game => {
       const host = game.teamsConnection.edges.find(t => t.host)?.node
       const guest = game.teamsConnection.edges.find(t => !t.host)?.node
 
@@ -150,6 +173,7 @@ const GET_GAMES = gql`
   query getGames(
     $whereGames: GameWhere
     $whereSystemSettings: SystemSettingsWhere
+    $whereGroups: GroupWhere
   ) {
     games(where: $whereGames) {
       gameId
@@ -197,23 +221,48 @@ const GET_GAMES = gql`
         }
       }
     }
+    groups(where: $whereGroups) {
+      groupId
+      name
+    }
   }
 `
 
+type TGroup = GridRowModel & Group
+
+type TStandingsParams = {
+  organizationSlug: string
+}
+
+type TGamesData = {
+  games: Game[]
+  systemSettings: SystemSettings[]
+  groups: TGroup[]
+}
+
 const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
 
-const XGridTable = () => {
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
-
-  const windowSize = useWindowSize()
-  const toolbarRef = React.useRef()
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState()
+  const { organizationSlug } = useParams<TStandingsParams>()
+  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
-  const { data: groupsData } = useQuery(GET_GROUPS, {
+  const { error, loading, data } = useQuery<TGamesData>(GET_GAMES, {
     variables: {
+      whereGames: {
+        startDate_LT: dayjs().format('YYYY-MM-DD'),
+        org: {
+          urlSlug: organizationSlug,
+        },
+        ...(selectedGroup && {
+          group: {
+            groupId: selectedGroup?.groupId,
+          },
+        }),
+      },
+      whereSystemSettings: { systemSettingsId: 'system-settings' },
       whereGroups: {
         season: {
           name: '2021-2022',
@@ -225,28 +274,7 @@ const XGridTable = () => {
     },
   })
 
-  const [getGames, { error, loading, data }] = useLazyQuery(GET_GAMES, {
-    variables: {
-      whereGames: {
-        startDate_LT: dayjs().format('YYYY-MM-DD'),
-        org: {
-          urlSlug: organizationSlug,
-        },
-        group: {
-          groupId: selectedGroup?.groupId,
-        },
-      },
-      whereSystemSettings: { systemSettingsId: 'system-settings' },
-    },
-  })
-
-  React.useEffect(() => {
-    if (selectedGroup) {
-      getGames()
-    }
-  }, [selectedGroup])
-
-  const columns = React.useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -347,10 +375,12 @@ const XGridTable = () => {
   )
 
   const teamsData = React.useMemo(() => {
-    const preparedData = setIdFromEntityId(
-      countStandingsByTeam(data?.games, data?.systemSettings) || [],
-      'teamId'
-    )
+    const preparedData = data
+      ? setIdFromEntityId(
+          countStandingsByTeam(data, data.systemSettings),
+          'teamId'
+        )
+      : []
 
     return preparedData
   }, [data])
@@ -366,15 +396,15 @@ const XGridTable = () => {
     <Container maxWidth={false} disableGutters={!upSm}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          {groupsData && (
+          {data?.groups && (
             <>
-              <Stack ref={toolbarRef}>
+              <Stack>
                 <ButtonGroup
                   size={upSm ? 'medium' : 'small'}
                   aria-label="outlined button group"
                   variant="outlined"
                 >
-                  {groupsData?.groups?.map(g => {
+                  {data?.groups?.map(g => {
                     return (
                       <Button
                         key={g.groupId}
@@ -404,7 +434,7 @@ const XGridTable = () => {
           ) : searchData ? (
             <div
               style={{
-                height: getXGridHeight(toolbarRef.current, windowSize),
+                height: 800,
               }}
               className={classes.xGridWrapper}
             >
@@ -416,13 +446,12 @@ const XGridTable = () => {
                 columns={columns}
                 rows={searchData}
                 loading={loading}
-                // components={{
-                //   Toolbar: QuickSearchToolbar,
-                // }}
                 componentsProps={{
                   toolbar: {
                     value: searchText,
-                    onChange: event => requestSearch(event.target.value),
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => requestSearch(event.target.value),
                     clearSearch: () => requestSearch(''),
                   },
                 }}

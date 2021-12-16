@@ -2,7 +2,7 @@ import React from 'react'
 import Grid from '@mui/material/Grid'
 import XGridTable from './XGrid'
 
-const View = () => {
+const View: React.FC = () => {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
