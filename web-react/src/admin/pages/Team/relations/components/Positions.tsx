@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useMutation, MutationFunction } from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
 import { useForm } from 'react-hook-form'
@@ -16,7 +15,6 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,14 +22,16 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import LoadingButton from '@mui/lab/LoadingButton'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import { RHFInput } from '../../../../../components/RHFInput'
+import { RHFInput } from 'components'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+
+import { Team, Position } from 'utils/types'
 
 const CREATE_DEFAULT_POSITIONS = gql`
   mutation createPositions($teamId: ID!, $systemSettingsId: ID!) {
@@ -46,8 +46,13 @@ const CREATE_DEFAULT_POSITIONS = gql`
     }
   }
 `
+type TPositions = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
 
-const Positions = props => {
+const Positions: React.FC<TPositions> = props => {
   const { teamId, team, updateTeam } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -114,7 +119,7 @@ const Positions = props => {
     setOpenDialog(true)
   }, [])
 
-  const teamPositionsColumns = useMemo(
+  const teamPositionsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -166,8 +171,6 @@ const Positions = props => {
             <ButtonDialog
               text={'Delete'}
               textLoading={'Deleting...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to delete team position?'}
               dialogDescription={
                 'Position will completely delete from database.'
@@ -228,13 +231,15 @@ const Positions = props => {
               Create Position
             </Button>
 
-            {team?.positions?.length === 0 && (
+            {team?.positions?.length === 0 ? (
               <LoadingButton
                 type="button"
                 variant="outlined"
                 color="primary"
                 size="small"
-                onClick={createDefaultPositions}
+                onClick={() => {
+                  createDefaultPositions()
+                }}
                 className={classes.submit}
                 startIcon={<CreateIcon />}
                 loading={queryCreateDefaultLoading}
@@ -242,7 +247,7 @@ const Positions = props => {
               >
                 {queryCreateDefaultLoading ? 'Creating...' : 'Create default'}
               </LoadingButton>
-            )}
+            ) : null}
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
@@ -273,11 +278,18 @@ const schema = object().shape({
   short: string(),
 })
 
-const FormDialog = props => {
+type TFormDialog = {
+  team: Team
+  teamId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: Position | null
+  updateTeam: MutationFunction
+}
+
+const FormDialog: React.FC<TFormDialog> = props => {
   const { team, teamId, openDialog, handleCloseDialog, data, updateTeam } =
     props
-
-  const classes = useStyles()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
@@ -331,12 +343,7 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
         <DialogTitle id="alert-dialog-title">{`Add new position to ${team?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
@@ -397,10 +404,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
-
-Positions.propTypes = {
-  teamId: PropTypes.string,
 }
 
 export { Positions }
