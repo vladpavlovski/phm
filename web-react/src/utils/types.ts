@@ -66,6 +66,7 @@ export type Team = {
   competitions: Competition[]
   seasons: Season[]
   occupations: Occupation[]
+  positions: Position[]
 }
 
 export type Game = {
