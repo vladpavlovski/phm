@@ -6,7 +6,7 @@ export type Player = {
   avatar: string
   teams: Team[]
   gamesConnection: { totalCount: number; edges: { star: boolean | null }[] }
-  meta: MetaConnection[]
+  meta: Meta
   jerseys: Jersey[]
   positions: Position[]
 }
@@ -14,11 +14,13 @@ export type Player = {
 export type Group = {
   groupId: string
   name: string
+  competition: Competition
 }
 
 export type Phase = {
   phaseId: string
   name: string
+  competition: Competition
 }
 
 export type Competition = {
@@ -30,6 +32,10 @@ export type Season = {
   groups: Group[]
   phases: Phase[]
   competitions: Competition[]
+}
+
+type Meta = {
+  metaPlayerId: string
 }
 
 export type MetaConnection = {
@@ -74,20 +80,38 @@ export type Game = {
   group: Group
   phase: Phase
   teams: Team[]
+  venue: Venue
   teamsConnection: GameTeamsConnection
+  playersConnection: GamePlayersConnection
   gameResult: GameResult
+  gameEventsSimple: GameEventSimple[]
 }
 
 type GameTeamsConnection = {
   edges: GameTeamsRelationship[]
 }
 
-type GameTeamsRelationship = {
+export type GameTeamsRelationship = {
   host: boolean
   node: Team
 }
 
-type GameResult = {
+export type GamePlayersConnection = {
+  edges: GamePlayersRelationship[]
+}
+
+export type GamePlayersRelationship = {
+  node: Player
+  host: boolean
+  jersey: number
+  position: string
+  captain: boolean
+  goalkeeper: boolean
+  star: boolean
+  teamId: string
+}
+
+export type GameResult = {
   gameResultId: string
   periodActive: string
   gameStatus: string
@@ -162,4 +186,27 @@ export type Position = {
   description: string
   players: Player[]
   team: Team
+}
+
+export type Venue = {
+  venueId: string
+  name: string
+  nick: string
+  short: string
+  web: string
+  description: string
+  location: string
+  foundDate: Date
+  capacity: number
+  logo: string
+}
+
+export type GameEventSimple = {
+  gameEventSimpleId: string
+  timestamp: string
+  location: string
+  period: string
+  remainingTime: string
+  eventType: string
+  eventTypeCode: string
 }
