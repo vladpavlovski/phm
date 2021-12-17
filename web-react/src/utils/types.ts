@@ -68,6 +68,8 @@ export type Team = {
   occupations: Occupation[]
   positions: Position[]
   sponsors: Sponsor[]
+  jerseys: Jersey[]
+  players: Player[]
 }
 
 export type Game = {
