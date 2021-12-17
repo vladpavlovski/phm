@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react'
-import PropTypes from 'prop-types'
 import { gql, useMutation } from '@apollo/client'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { useSnackbar } from 'notistack'
 
 import Accordion from '@mui/material/Accordion'
@@ -22,9 +21,10 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import Switch from '@mui/material/Switch'
 
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
 
-import { GET_TEAM } from '../../index'
+import { GET_TEAM, TGetTeam } from '../../index'
+import { Team, Player } from 'utils/types'
 
 const CREATE_JERSEYS = gql`
   mutation createJerseys($teamId: ID!, $nameBase: String!) {
@@ -57,13 +57,18 @@ const UPDATE_JERSEY = gql`
   }
 `
 
-const Jerseys = props => {
+type TJerseys = {
+  teamId: string
+  team: Team
+}
+
+const Jerseys: React.FC<TJerseys> = React.memo(props => {
   const { teamId, team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
-  const modalJerseyId = useRef()
+  const modalJerseyId = useRef(null)
 
   const handleCloseAddJersey = useCallback(() => {
     setOpenAddPlayer(false)
@@ -79,7 +84,7 @@ const Jerseys = props => {
 
       update(cache, { data: { jerseys } }) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult: TGetTeam | null = cache.readQuery({
             query: GET_TEAM,
             variables: { where: { teamId } },
           })
@@ -87,7 +92,7 @@ const Jerseys = props => {
           const updatedResult = {
             team: [
               {
-                ...queryResult.teams[0],
+                ...queryResult?.teams[0],
                 jerseys,
               },
             ],
@@ -116,20 +121,11 @@ const Jerseys = props => {
   )
 
   const handleOpenAddPlayer = useCallback(jerseyId => {
-    // if (!queryTeamPlayersData) {
-    //   getTeamPlayers()
-    // }
     modalJerseyId.current = jerseyId
     setOpenAddPlayer(true)
   }, [])
 
-  // const openAccordion = useCallback(() => {
-  //   if (!queryData) {
-  //     getData({ variables: { teamId } })
-  //   }
-  // }, [])
-
-  const teamJerseysColumns = useMemo(
+  const teamJerseysColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -174,7 +170,7 @@ const Jerseys = props => {
     []
   )
 
-  const teamPlayersColumns = useMemo(
+  const teamPlayersColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -225,23 +221,17 @@ const Jerseys = props => {
                     Add Jersey
                   </Button> */}
               {/* TODO: MAKE Modal */}
-
-              {/* <LinkButton
-                  startIcon={<CreateIcon />}
-                  // to={getAdminJerseyRoute('new')}
-                >
-                  
-                </LinkButton> */}
               <LoadingButton
                 type="button"
                 variant="outlined"
                 color="primary"
                 size="small"
-                onClick={createJerseys}
+                onClick={() => {
+                  createJerseys()
+                }}
                 className={classes.submit}
                 startIcon={<CreateIcon />}
                 loading={queryCreateLoading}
-                loadingPosition="start"
               >
                 {'Create'}
               </LoadingButton>
@@ -298,12 +288,19 @@ const Jerseys = props => {
       </Dialog>
     </Accordion>
   )
+})
+
+type TTogglePlayerJersey = {
+  jerseyId: string | null
+  teamId: string
+  player: Player
+  playerId: string
 }
 
-const TogglePlayerJersey = props => {
+const TogglePlayerJersey: React.FC<TTogglePlayerJersey> = React.memo(props => {
   const { jerseyId, teamId, player, playerId } = props
   const { enqueueSnackbar } = useSnackbar()
-  console.log('player:', player)
+
   const [isOwner, setIsOwner] = useState(
     !!player?.jerseys?.find(j => j?.jerseyId === jerseyId)
   )
@@ -311,7 +308,7 @@ const TogglePlayerJersey = props => {
   const [updateJersey] = useMutation(UPDATE_JERSEY, {
     update(cache, { data }) {
       try {
-        const queryResult = cache.readQuery({
+        const queryResult: TGetTeam | null = cache.readQuery({
           query: GET_TEAM,
           variables: { where: { teamId } },
         })
@@ -389,13 +386,8 @@ const TogglePlayerJersey = props => {
       }}
       name="teamMember"
       color="primary"
-      label={isOwner ? 'Owner' : 'Not owner'}
     />
   )
-}
-
-Jerseys.propTypes = {
-  teamId: PropTypes.string,
-}
+})
 
 export { Jerseys }

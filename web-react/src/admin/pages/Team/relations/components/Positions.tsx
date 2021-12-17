@@ -243,7 +243,6 @@ const Positions: React.FC<TPositions> = props => {
                 className={classes.submit}
                 startIcon={<CreateIcon />}
                 loading={queryCreateDefaultLoading}
-                loadingPosition="start"
               >
                 {queryCreateDefaultLoading ? 'Creating...' : 'Create default'}
               </LoadingButton>

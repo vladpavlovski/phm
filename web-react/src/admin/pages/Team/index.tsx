@@ -31,6 +31,11 @@ import { Error } from 'components/Error'
 import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
 
+import { Team as TeamType } from 'utils/types'
+
+export type TGetTeam = {
+  teams: TeamType[]
+}
 export const GET_TEAM = gql`
   query getTeam($where: TeamWhere) {
     teams(where: $where) {
