@@ -1,18 +1,20 @@
-import React, { useMemo, useRef } from 'react'
+import React from 'react'
 import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 
 import { Container, Grid } from '@mui/material'
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridRowsProp, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
-import { useWindowSize, useXGridSearch } from 'utils/hooks'
+import { useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { setIdFromEntityId, getXGridHeight } from 'utils'
+import { setIdFromEntityId } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { getColumns } from 'admin/pages/Game/view/XGrid'
 import { useTheme } from '@mui/material/styles'
+
+import { Game } from 'utils/types'
 
 const GET_GAMES = gql`
   query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
@@ -84,12 +86,13 @@ const GET_GAMES = gql`
   }
 `
 
-const XGridTable = () => {
-  const classes = useStyles()
-  const { organizationSlug } = useParams()
+type TXGridTableParams = {
+  organizationSlug: string
+}
 
-  const windowSize = useWindowSize()
-  const toolbarRef = useRef()
+const XGridTable: React.FC = () => {
+  const classes = useStyles()
+  const { organizationSlug } = useParams<TXGridTableParams>()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
   const { error, loading, data } = useQuery(GET_GAMES, {
@@ -105,9 +108,9 @@ const XGridTable = () => {
     },
   })
 
-  const columns = useMemo(() => {
+  const columns = React.useMemo(() => {
     const cols = getColumns(organizationSlug)
-    let stopList = [
+    const stopList = [
       'gameId',
       'paymentHost',
       'paymentGuest',
@@ -136,12 +139,13 @@ const XGridTable = () => {
       'goalieHostName',
       'goalieGuestName',
     ]
-    return cols.filter(c => !stopList.find(sl => sl === c.field))
+    // TODO: remade after web-react/src/admin/pages/Game/view/XGrid.js will changed to Typescript
+    return cols.filter(c => !stopList.find(sl => sl === c.field)) as GridColumns
   }, [organizationSlug])
 
-  const gameData = React.useMemo(() => {
+  const gameData = React.useMemo((): GridRowsProp[] => {
     const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
-      g => {
+      (g: Game) => {
         const hostTeamName = g.teamsConnection?.edges?.find(e => e.host)?.node
           ?.name
         const guestTeamName = g.teamsConnection?.edges?.find(e => !e.host)?.node
@@ -153,7 +157,7 @@ const XGridTable = () => {
     return preparedData
   }, [data])
 
-  const searchIndexes = useMemo(
+  const searchIndexes = React.useMemo(
     () => [
       'name',
       'description',
@@ -189,7 +193,7 @@ const XGridTable = () => {
           {data && (
             <div
               style={{
-                height: getXGridHeight(toolbarRef.current, windowSize),
+                height: 800,
               }}
               className={classes.xGridWrapper}
             >
@@ -204,7 +208,11 @@ const XGridTable = () => {
                 componentsProps={{
                   toolbar: {
                     value: searchText,
-                    onChange: event => requestSearch(event.target.value),
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => {
+                      requestSearch(event.target.value)
+                    },
                     clearSearch: () => requestSearch(''),
                     hideButtons: true,
                   },

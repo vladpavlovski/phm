@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid'
 import { Helmet } from 'react-helmet-async'
 import XGridTable from './XGrid'
 
-const View = () => {
+const View: React.FC = () => {
   return (
     <Grid container spacing={3}>
       <Helmet>
