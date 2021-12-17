@@ -7,7 +7,7 @@ const searchDataEngine = new JsSearch.Search('id')
 searchDataEngine.indexStrategy = new JsSearch.AllSubstringsIndexStrategy()
 
 type TUseXGridSearch = {
-  searchIndexes: string[]
+  searchIndexes: (string | string[])[]
   data: GridRowsProp[]
 }
 
