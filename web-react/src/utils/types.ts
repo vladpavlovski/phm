@@ -67,6 +67,7 @@ export type Team = {
   seasons: Season[]
   occupations: Occupation[]
   positions: Position[]
+  sponsors: Sponsor[]
 }
 
 export type Game = {
@@ -240,4 +241,16 @@ export type Occupation = {
   occupationId: string
   name: string
   description: string
+}
+
+export type Sponsor = {
+  sponsorId: string
+  name: string
+  nick: string
+  short: string
+  claim: string
+  web: string
+  description: string
+  legalName: string
+  logo: string
 }
