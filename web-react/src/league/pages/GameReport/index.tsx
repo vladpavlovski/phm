@@ -13,15 +13,11 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableRow from '@mui/material/TableRow'
 import Tooltip from '@mui/material/Tooltip'
-
-// import HowToRegIcon from '@mui/icons-material/HowToReg'
-// import AddReactionIcon from '@mui/icons-material/AddReaction'
-// import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
 import BalconyIcon from '@mui/icons-material/Balcony'
 import StarIcon from '@mui/icons-material/Star'
 
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import Img from 'react-cool-img'
@@ -32,6 +28,8 @@ import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import placeholderPerson from 'img/placeholderPerson.jpg'
 import { setIdFromEntityId } from 'utils'
+
+import { Game, Player } from 'utils/types'
 
 const GET_GAME_PLAY = gql`
   query getGame($whereGame: GameWhere) {
@@ -141,8 +139,12 @@ const GET_GAME_PLAY = gql`
   }
 `
 
-const GameReport = () => {
-  const { gameId } = useParams()
+type TGameReportParams = {
+  gameId: string
+}
+
+const GameReport: React.FC = () => {
+  const { gameId } = useParams<TGameReportParams>()
   const classes = useStyles()
 
   const {
@@ -155,7 +157,7 @@ const GameReport = () => {
     },
   })
 
-  const gameData = queryData?.games?.[0] || null
+  const gameData: Game = queryData?.games?.[0] || null
 
   const teamHost = React.useMemo(
     () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
@@ -182,7 +184,7 @@ const GameReport = () => {
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
   const upMd = useMediaQuery(theme.breakpoints.up('md'))
 
-  const columns = React.useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'period',
@@ -612,7 +614,7 @@ const GameReport = () => {
             </Grid>
             <Grid item xs={12}>
               <Paper className={classes.paper}>
-                <Typography variant="body" component="div">
+                <Typography variant="body1" component="div">
                   {`${gameData?.perex}`}
                 </Typography>
               </Paper>
@@ -630,8 +632,8 @@ const GameReport = () => {
                           ges?.eventTypeCode === 'penaltyShot'
                       ),
                     ].sort((x, y) => {
-                      const date1 = new Date(x.timestamp)
-                      const date2 = new Date(y.timestamp)
+                      const date1 = new Date(x.timestamp).valueOf()
+                      const date2 = new Date(y.timestamp).valueOf()
                       return date2 - date1
                     }),
                     'gameEventSimpleId'
@@ -658,11 +660,11 @@ const GameReport = () => {
   )
 }
 
-const GameLineup = props => {
+const GameLineup = (props: { players: Player[] }) => {
   const { players } = props
   const classes = useStyles()
 
-  const gameLineupColumns = React.useMemo(
+  const gameLineupColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'status',
