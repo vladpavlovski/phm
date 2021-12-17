@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-
-import PropTypes from 'prop-types'
+import { MutationFunction } from '@apollo/client'
 
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -15,7 +14,6 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -23,15 +21,22 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import LoadingButton from '@mui/lab/LoadingButton'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import { RHFInput } from '../../../../../components/RHFInput'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
+import { Team, Occupation } from 'utils/types'
 
-const Occupations = props => {
+type TOccupations = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
+
+const Occupations: React.FC<TOccupations> = React.memo(props => {
   const { teamId, team, updateTeam } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -49,7 +54,7 @@ const Occupations = props => {
     setOpenDialog(true)
   }, [])
 
-  const teamOccupationsColumns = useMemo(
+  const teamOccupationsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -93,8 +98,6 @@ const Occupations = props => {
             <ButtonDialog
               text={'Delete'}
               textLoading={'Deleting...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to delete team occupation?'}
               dialogDescription={
                 'Occupation will completely delete from database.'
@@ -147,7 +150,7 @@ const Occupations = props => {
             <Button
               type="button"
               onClick={() => {
-                handleOpenDialog()
+                handleOpenDialog(null)
               }}
               variant={'outlined'}
               size="small"
@@ -156,24 +159,6 @@ const Occupations = props => {
             >
               Create Occupation
             </Button>
-
-            {/* {team?.occupations?.length === 0 && (
-                  <LoadingButton
-                    type="button"
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    onClick={createDefaultOccupations}
-                    className={classes.submit}
-                    startIcon={<CreateIcon />}
-                    loading={queryCreateDefaultLoading}
-                    loadingOccupation="start"
-                  >
-                    {queryCreateDefaultLoading
-                      ? 'Creating...'
-                      : 'Create default'}
-                  </LoadingButton>
-                )} */}
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
@@ -196,18 +181,25 @@ const Occupations = props => {
       />
     </Accordion>
   )
-}
+})
 
 const schema = object().shape({
   name: string().required('Name is required'),
   description: string(),
 })
 
-const FormDialog = props => {
+type TFormDialog = {
+  team: Team
+  teamId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: Occupation | null
+  updateTeam: MutationFunction
+}
+
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const { team, teamId, openDialog, handleCloseDialog, data, updateTeam } =
     props
-
-  const classes = useStyles()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
@@ -261,12 +253,7 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
         <DialogTitle id="alert-dialog-title">{`Add new occupation to ${team?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
@@ -316,10 +303,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
-
-Occupations.propTypes = {
-  teamId: PropTypes.string,
-}
+})
 
 export { Occupations }
