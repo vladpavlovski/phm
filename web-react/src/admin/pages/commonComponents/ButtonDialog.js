@@ -24,6 +24,7 @@ const ButtonDialogComponent = props => {
     dialogDescription,
     dialogNegativeText,
     dialogPositiveText,
+    startIcon,
     ...rest
   } = props
 
@@ -51,7 +52,7 @@ const ButtonDialogComponent = props => {
             setOpenDialog(true)
             onClick && onClick()
           }}
-          loadingPosition={loadingPosition}
+          loadingPosition={startIcon ? loadingPosition : undefined}
           loading={loading}
         >
           {loading ? textLoading : text}
