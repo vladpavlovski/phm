@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import { useParams } from 'react-router-dom'
 
@@ -12,7 +11,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,16 +20,14 @@ import AccountBox from '@mui/icons-material/AccountBox'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSponsorRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgSponsorRoute } from 'router/routes'
+import { LinkButton, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
+import { setIdFromEntityId } from 'utils'
+import { Team } from 'utils/types'
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
     sponsors {
@@ -41,11 +37,21 @@ export const GET_ALL_SPONSORS = gql`
   }
 `
 
-const Sponsors = props => {
+type TSponsors = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
+
+type TSponsorsParams = {
+  organizationSlug: string
+}
+
+const Sponsors: React.FC<TSponsors> = React.memo(props => {
   const { teamId, team, updateTeam } = props
 
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TSponsorsParams>()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
 
   const handleCloseAddSponsor = useCallback(() => {
@@ -68,7 +74,7 @@ const Sponsors = props => {
     setOpenAddSponsor(true)
   }, [])
 
-  const teamSponsorsColumns = useMemo(
+  const teamSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -108,8 +114,6 @@ const Sponsors = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to remove sponsor from the team?'
               }
@@ -146,7 +150,7 @@ const Sponsors = props => {
     [organizationSlug]
   )
 
-  const allSponsorsColumns = useMemo(
+  const allSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -227,35 +231,32 @@ const Sponsors = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllSponsorsLoading && !queryAllSponsorsError && <Loader />}
-        {queryAllSponsorsError && !queryAllSponsorsLoading && (
-          <Error message={queryAllSponsorsError.message} />
+        {queryAllSponsorsLoading && <Loader />}
+
+        <Error message={queryAllSponsorsError?.message} />
+        {queryAllSponsorsData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${
+              team && team.name
+            }`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allSponsorsColumns}
+                  rows={setIdFromEntityId(
+                    queryAllSponsorsData.sponsors,
+                    'sponsorId'
+                  )}
+                  disableSelectionOnClick
+                  loading={queryAllSponsorsLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllSponsorsData &&
-          !queryAllSponsorsLoading &&
-          !queryAllSponsorsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${
-                team && team.name
-              }`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allSponsorsColumns}
-                    rows={setIdFromEntityId(
-                      queryAllSponsorsData.sponsors,
-                      'sponsorId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllSponsorsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -268,9 +269,16 @@ const Sponsors = props => {
       </Dialog>
     </Accordion>
   )
+})
+
+type TToggleNewSponsor = {
+  team: Team
+  teamId: string
+  sponsorId: string
+  updateTeam: MutationFunction
 }
 
-const ToggleNewSponsor = props => {
+const ToggleNewSponsor: React.FC<TToggleNewSponsor> = React.memo(props => {
   const { sponsorId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = useState(
     !!team.sponsors.find(p => p.sponsorId === sponsorId)
@@ -321,15 +329,6 @@ const ToggleNewSponsor = props => {
       color="primary"
     />
   )
-}
-
-ToggleNewSponsor.propTypes = {
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-}
-
-Sponsors.propTypes = {
-  teamId: PropTypes.string,
-}
+})
 
 export { Sponsors }
