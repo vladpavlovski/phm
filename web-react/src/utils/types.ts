@@ -26,9 +26,14 @@ export type Phase = {
 export type Competition = {
   competitionId: string
   name: string
+  phases: Phase[]
+  groups: Group[]
+  seasons: Season[]
 }
 
 export type Season = {
+  seasonId: string
+  name: string
   groups: Group[]
   phases: Phase[]
   competitions: Competition[]
@@ -56,6 +61,10 @@ export type Team = {
   name: string
   logo: string
   groups: Group[]
+  phases: Phase[]
+  orgs: Organization[]
+  competitions: Competition[]
+  seasons: Season[]
 }
 
 export type Game = {
@@ -209,4 +218,18 @@ export type GameEventSimple = {
   remainingTime: string
   eventType: string
   eventTypeCode: string
+}
+
+export type Organization = {
+  organizationId: string
+  name: string
+  nick: string
+  short: string
+  status: string
+  foundDate: Date
+  legalName: string
+  logo: string
+  urlSlug: string
+  ownerId: string
+  competitions: Competition[]
 }
