@@ -65,6 +65,7 @@ export type Team = {
   orgs: Organization[]
   competitions: Competition[]
   seasons: Season[]
+  occupations: Occupation[]
 }
 
 export type Game = {
@@ -232,4 +233,10 @@ export type Organization = {
   urlSlug: string
   ownerId: string
   competitions: Competition[]
+}
+
+export type Occupation = {
+  occupationId: string
+  name: string
+  description: string
 }
