@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useMutation, MutationFunction } from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
 import Dialog from '@mui/material/Dialog'
@@ -13,12 +12,14 @@ import Switch from '@mui/material/Switch'
 import EditIcon from '@mui/icons-material/Edit'
 import Tooltip from '@mui/material/Tooltip'
 import ButtonBase from '@mui/material/ButtonBase'
-import { LinkButton } from '../../../../../../components/LinkButton'
+import { LinkButton } from 'components/LinkButton'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../../utils'
-import TeamPlayersContext from './context'
+import { setIdFromEntityId } from 'utils'
+// import TeamPlayersContext from './context'
+import { Player, Team } from 'utils/types'
+import { TeamPlayersContext } from './index'
 
 export const UPDATE_PLAYER = gql`
   mutation updatePlayer($where: PlayerWhere, $update: PlayerUpdateInput) {
@@ -42,11 +43,14 @@ export const UPDATE_PLAYER = gql`
   }
 `
 
-export const SetPlayerJerseyComponent = props => {
-  const { player } = props
+type TSetPlayerJersey = {
+  player: Player
+}
 
-  const { setPlayerJerseyDialogOpen, setPlayerData } =
-    React.useContext(TeamPlayersContext)
+const SetPlayerJersey: React.FC<TSetPlayerJersey> = React.memo(props => {
+  const { player } = props
+  // setPlayerJerseyDialogOpen, setPlayerData
+  const { update } = React.useContext(TeamPlayersContext)
 
   return (
     <LinkButton
@@ -54,8 +58,13 @@ export const SetPlayerJerseyComponent = props => {
       variant="text"
       icon
       onClick={() => {
-        setPlayerData(player)
-        setPlayerJerseyDialogOpen(true)
+        update(state => ({
+          ...state,
+          playerJerseyDialogOpen: true,
+          playerData: player,
+        }))
+        // setPlayerData(player)
+        // setPlayerJerseyDialogOpen(true)
       }}
     >
       <Tooltip arrow title="Set Jersey" placement="top">
@@ -63,22 +72,33 @@ export const SetPlayerJerseyComponent = props => {
       </Tooltip>
     </LinkButton>
   )
+})
+
+type TPlayerJerseyDialog = {
+  team: Team
 }
 
-export const PlayerJerseyDialogComponent = props => {
+const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
   const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
   const {
-    playerJerseyDialogOpen,
-    setPlayerJerseyDialogOpen,
-    playerData: player,
-    setPlayerData,
+    // playerJerseyDialogOpen,
+    // setPlayerJerseyDialogOpen,
+    // playerData: player,
+    // setPlayerData,
+    state,
+    update,
   } = React.useContext(TeamPlayersContext)
 
   const handleCloseDialog = React.useCallback(() => {
-    setPlayerJerseyDialogOpen(false)
-    setPlayerData(null)
+    update(state => ({
+      ...state,
+      playerJerseyDialogOpen: false,
+      playerData: null,
+    }))
+    // setPlayerJerseyDialogOpen(false)
+    // setPlayerData(null)
   }, [])
 
   const [updatePlayer] = useMutation(UPDATE_PLAYER, {
@@ -95,7 +115,7 @@ export const PlayerJerseyDialogComponent = props => {
     },
   })
 
-  const teamJerseysColumns = React.useMemo(
+  const teamJerseysColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -114,30 +134,32 @@ export const PlayerJerseyDialogComponent = props => {
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleJersey
-              jerseyId={params.value}
-              player={player}
-              updatePlayer={updatePlayer}
-            />
+            state.playerData && (
+              <ToggleJersey
+                jerseyId={params.value}
+                player={state.playerData}
+                updatePlayer={updatePlayer}
+              />
+            )
           )
         },
       },
     ],
-    [player]
+    [state]
   )
 
   return (
     <Dialog
       fullWidth
       maxWidth="md"
-      open={playerJerseyDialogOpen}
+      open={state?.playerJerseyDialogOpen}
       onClose={handleCloseDialog}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
       {team?.jerseys && (
         <>
-          <DialogTitle id="alert-dialog-title">{`Set ${player?.name} jerseys for ${team?.name}`}</DialogTitle>
+          <DialogTitle id="alert-dialog-title">{`Set ${state?.playerData?.name} jerseys for ${team?.name}`}</DialogTitle>
           <DialogContent>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
@@ -163,9 +185,15 @@ export const PlayerJerseyDialogComponent = props => {
       </DialogActions>
     </Dialog>
   )
+})
+
+type TToggleJersey = {
+  jerseyId: string
+  player: Player
+  updatePlayer: MutationFunction
 }
 
-const ToggleJersey = props => {
+const ToggleJersey: React.FC<TToggleJersey> = React.memo(props => {
   const { jerseyId, player, updatePlayer } = props
   const [isMember, setIsMember] = React.useState(
     !!player?.jerseys?.find(p => p.jerseyId === jerseyId)
@@ -178,7 +206,7 @@ const ToggleJersey = props => {
         updatePlayer({
           variables: {
             where: {
-              playerId: player.playerId,
+              playerId: player?.playerId,
             },
             update: {
               jerseys: {
@@ -209,21 +237,8 @@ const ToggleJersey = props => {
       }}
       name="teamMember"
       color="primary"
-      label={isMember ? 'Has jersey' : 'No jersey'}
     />
   )
-}
-ToggleJersey.propTypes = {
-  playerId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  updatePlayer: PropTypes.func,
-}
+})
 
-SetPlayerJerseyComponent.propTypes = {
-  teamId: PropTypes.string,
-}
-
-const PlayerJerseyDialog = React.memo(PlayerJerseyDialogComponent)
-const SetPlayerJersey = React.memo(SetPlayerJerseyComponent)
 export { PlayerJerseyDialog, SetPlayerJersey }

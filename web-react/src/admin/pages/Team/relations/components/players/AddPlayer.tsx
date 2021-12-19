@@ -1,7 +1,6 @@
 import React from 'react'
 import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
-
+import { MutationFunction } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -11,16 +10,11 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { Loader } from '../../../../../../components/Loader'
-import { Error } from '../../../../../../components/Error'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
-
-// import { GET_PLAYERS } from './index'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { Team } from 'utils/types'
 
 export const GET_ALL_PLAYERS = gql`
   query getPlayers {
@@ -41,35 +35,14 @@ export const GET_ALL_PLAYERS = gql`
   }
 `
 
-// const MERGE_TEAM_PLAYER = gql`
-//   mutation mergeTeamPlayer($teamId: ID!, $playerId: ID!) {
-//     teamPlayer: MergeTeamPlayers(
-//       from: { playerId: $playerId }
-//       to: { teamId: $teamId }
-//     ) {
-//       from {
-//         playerId
-//         name
-//         firstName
-//         lastName
-//         positions {
-//           positionId
-//           name
-//         }
-//         jerseys {
-//           jerseyId
-//           name
-//           number
-//         }
-//       }
-//     }
-//   }
-// `
+type TPlayers = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
 
-const AddPlayer = props => {
+const AddPlayer: React.FC<TPlayers> = React.memo(props => {
   const { teamId, team, updateTeam } = props
-
-  // const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
 
   const [openAddPlayer, setOpenAddPlayer] = React.useState(false)
@@ -89,49 +62,6 @@ const AddPlayer = props => {
     fetchPolicy: 'cache-and-network',
   })
 
-  // const [mergeTeamPlayer] = useMutation(MERGE_TEAM_PLAYER, {
-  //   update(cache, { data: { teamPlayer } }) {
-  //     try {
-  //       const queryResult = cache.readQuery({
-  //         query: GET_PLAYERS,
-  //         variables: {
-  //           teamId,
-  //         },
-  //       })
-  //       const existingPlayers = queryResult?.team[0].players
-  //       const newPlayer = teamPlayer.from
-  //       const updatedResult = {
-  //         team: [
-  //           {
-  //             ...queryResult?.team[0],
-  //             players: [newPlayer, ...existingPlayers],
-  //           },
-  //         ],
-  //       }
-  //       cache.writeQuery({
-  //         query: GET_PLAYERS,
-  //         data: updatedResult,
-  //         variables: {
-  //           teamId,
-  //         },
-  //       })
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   },
-  //   onCompleted: data => {
-  //     enqueueSnackbar(`${data.teamPlayer.from.name} added to ${team.name}!`, {
-  //       variant: 'success',
-  //     })
-  //   },
-  //   onError: error => {
-  //     enqueueSnackbar(`Error happened :( ${error}`, {
-  //       variant: 'error',
-  //     })
-  //     console.error(error)
-  //   },
-  // })
-
   const handleOpenAddPlayer = React.useCallback(() => {
     if (!queryAllPlayersData) {
       getAllPlayers()
@@ -139,7 +69,7 @@ const AddPlayer = props => {
     setOpenAddPlayer(true)
   }, [])
 
-  const allPlayersColumns = React.useMemo(
+  const allPlayersColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -175,8 +105,6 @@ const AddPlayer = props => {
               teamId={teamId}
               team={team}
               updateTeam={updateTeam}
-              // merge={mergeTeamPlayer}
-              // remove={removeTeamPlayer}
             />
           )
         },
@@ -205,35 +133,31 @@ const AddPlayer = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
-        {queryAllPlayersError && !queryAllPlayersLoading && (
-          <Error message={queryAllPlayersError.message} />
+        {queryAllPlayersLoading && <Loader />}
+        <Error message={queryAllPlayersError?.message} />
+        {queryAllPlayersData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add new player to ${
+              team && team.name
+            }`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allPlayersColumns}
+                  rows={setIdFromEntityId(
+                    queryAllPlayersData.players,
+                    'playerId'
+                  )}
+                  disableSelectionOnClick
+                  loading={queryAllPlayersLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllPlayersData &&
-          !queryAllPlayersLoading &&
-          !queryAllPlayersError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add new player to ${
-                team && team.name
-              }`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allPlayersColumns}
-                    rows={setIdFromEntityId(
-                      queryAllPlayersData.players,
-                      'playerId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllPlayersLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -246,9 +170,13 @@ const AddPlayer = props => {
       </Dialog>
     </>
   )
+})
+
+type TToggleNewPlayer = TPlayers & {
+  playerId: string
 }
 
-const ToggleNewPlayer = props => {
+const ToggleNewPlayer: React.FC<TToggleNewPlayer> = React.memo(props => {
   const { playerId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = React.useState(
     !!team.players.find(p => p.playerId === playerId)
@@ -293,21 +221,8 @@ const ToggleNewPlayer = props => {
       }}
       name="teamMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
-
-ToggleNewPlayer.propTypes = {
-  playerId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamPlayer: PropTypes.func,
-  mergeTeamPlayer: PropTypes.func,
-}
-
-AddPlayer.propTypes = {
-  teamId: PropTypes.string,
-}
+})
 
 export { AddPlayer }

@@ -5,7 +5,7 @@ export type Player = {
   lastName: string
   avatar: string
   teams: Team[]
-  gamesConnection: { totalCount: number; edges: { star: boolean | null }[] }
+  gamesConnection?: { totalCount: number; edges: { star: boolean }[] }
   meta: Meta
   jerseys: Jersey[]
   positions: Position[]

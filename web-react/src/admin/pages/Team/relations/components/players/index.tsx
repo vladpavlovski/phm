@@ -1,6 +1,6 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { useParams } from 'react-router-dom'
+import { MutationFunction } from '@apollo/client'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,27 +11,55 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { getAdminOrgPlayerRoute } from 'router/routes'
 import { LinkButton } from 'components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import { setIdFromEntityId, getXGridValueFromArray, sortByStatus } from 'utils'
+import {
+  setIdFromEntityId,
+  getXGridValueFromArray,
+  sortByStatus,
+  createCtx,
+} from 'utils'
 import { AddPlayer } from './AddPlayer'
 import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
 import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
-import { TeamPlayersProvider } from './context/Provider'
+// import { TeamPlayersProvider } from './context'
 import placeholderPerson from 'img/placeholderPerson.jpg'
+import { Team, Player } from 'utils/types'
 
-const PlayersComponent = props => {
+type TTeamPlayer = {
+  playerPositionDialogOpen: boolean
+  playerJerseyDialogOpen: boolean
+  playerData: Player | null
+}
+const [ctx, TeamPlayersProvider] = createCtx<TTeamPlayer>({
+  playerPositionDialogOpen: false,
+  playerJerseyDialogOpen: false,
+  playerData: null as unknown as Player,
+})
+export const TeamPlayersContext = ctx
+
+type TPlayers = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
+
+type TPlayersParams = {
+  organizationSlug: string
+}
+
+const Players: React.FC<TPlayers> = React.memo(props => {
   const { teamId, team, updateTeam } = props
 
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TPlayersParams>()
 
-  const teamPlayersColumns = React.useMemo(
+  const teamPlayersColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'playerId',
@@ -56,7 +84,6 @@ const PlayersComponent = props => {
                     <RemoveCircleOutlineIcon />
                   </Tooltip>
                 }
-                size="small"
                 dialogTitle={
                   'Do you really want to remove player from the team?'
                 }
@@ -145,48 +172,6 @@ const PlayersComponent = props => {
           )
         },
       },
-      // {
-      //   field: 'removeButton',
-      //   headerName: 'Remove',
-      //   width: 120,
-      //   disableColumnMenu: true,
-      //   renderCell: params => {
-      //     return (
-      //       <ButtonDialog
-      //         text={'Remove'}
-      //         textLoading={'Removing...'}
-      //         size="small"
-      //         startIcon={<LinkOffIcon />}
-      //         dialogTitle={'Do you really want to remove player from the team?'}
-      //         dialogDescription={
-      //           'The player will remain in the database. You can add him to any team later.'
-      //         }
-      //         dialogNegativeText={'No, keep the player'}
-      //         dialogPositiveText={'Yes, remove player'}
-      //         onDialogClosePositive={() => {
-      //           updateTeam({
-      //             variables: {
-      //               where: {
-      //                 teamId,
-      //               },
-      //               update: {
-      //                 players: {
-      //                   disconnect: {
-      //                     where: {
-      //                       node: {
-      //                         playerId: params.row.playerId,
-      //                       },
-      //                     },
-      //                   },
-      //                 },
-      //               },
-      //             },
-      //           })
-      //         }}
-      //       />
-      //     )
-      //   },
-      // },
     ],
     [team, teamId]
   )
@@ -234,16 +219,10 @@ const PlayersComponent = props => {
           </div>
         </AccordionDetails>
       </Accordion>
-      <PlayerPositionDialog teamId={teamId} team={team} />
-      <PlayerJerseyDialog teamId={teamId} team={team} />
+      <PlayerPositionDialog team={team} />
+      <PlayerJerseyDialog team={team} />
     </TeamPlayersProvider>
   )
-}
-
-PlayersComponent.propTypes = {
-  teamId: PropTypes.string,
-}
-
-const Players = React.memo(PlayersComponent)
+})
 
 export { Players }
