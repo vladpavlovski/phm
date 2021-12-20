@@ -149,6 +149,11 @@ const UPDATE_TEAM = gql`
           lastName
           jerseys {
             jerseyId
+            name
+          }
+          positions {
+            positionId
+            name
           }
         }
         positions {
