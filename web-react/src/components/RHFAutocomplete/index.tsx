@@ -3,19 +3,19 @@ import { Controller, Control, ControllerRenderProps } from 'react-hook-form'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
 
-interface TRHFAutocompleteComponent {
+type TRHFAutocomplete = {
   control: Control
   name: string
-  multiple: boolean
-  autoHighlight: boolean
-  options: []
+  multiple?: boolean
+  autoHighlight?: boolean
+  options: string[]
   label: string
   defaultValue: string | null
   fullWidth: boolean
-  filterSelectedOptions: boolean
+  filterSelectedOptions?: boolean
 }
 
-const RHFAutocompleteComponent: React.FC<TRHFAutocompleteComponent> = props => {
+const RHFAutocomplete: React.FC<TRHFAutocomplete> = React.memo(props => {
   const { control, name, label, defaultValue, ...restProps } = props
   return (
     <Controller
@@ -45,9 +45,9 @@ const RHFAutocompleteComponent: React.FC<TRHFAutocompleteComponent> = props => {
       defaultValue={defaultValue}
     />
   )
-}
+})
 
-RHFAutocompleteComponent.defaultProps = {
+RHFAutocomplete.defaultProps = {
   defaultValue: null,
   multiple: false,
   fullWidth: false,
@@ -55,7 +55,5 @@ RHFAutocompleteComponent.defaultProps = {
   filterSelectedOptions: true,
   options: [],
 }
-
-const RHFAutocomplete = React.memo(RHFAutocompleteComponent)
 
 export { RHFAutocomplete, Autocomplete }
