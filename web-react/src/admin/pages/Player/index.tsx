@@ -16,27 +16,25 @@ import MenuItem from '@mui/material/MenuItem'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
-import { RHFAutocomplete } from '../../../components/RHFAutocomplete'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFSelect } from '../../../components/RHFSelect'
-import { RHFInput } from '../../../components/RHFInput'
-import { Uploader } from '../../../components/Uploader'
-import { countriesNames } from '../../../utils/constants/countries'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { countriesNames } from 'utils/constants/countries'
+import { decomposeDate, isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 import { activityStatusList } from 'components/lists'
 import { Relations } from './relations'
 
+import { getAdminOrgPlayersRoute, getAdminOrgPlayerRoute } from 'router/routes'
 import {
-  getAdminOrgPlayersRoute,
-  getAdminOrgPlayerRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderAvatar from '../../../img/placeholderPerson.jpg'
+  Loader,
+  Error,
+  RHFAutocomplete,
+  RHFDatepicker,
+  RHFSelect,
+  RHFInput,
+  Uploader,
+  Title,
+} from 'components'
+import placeholderAvatar from 'img/placeholderPerson.jpg'
 
 const GET_PLAYER = gql`
   query getPlayer($where: PlayerWhere) {
@@ -179,11 +177,15 @@ const DELETE_PLAYER = gql`
     }
   }
 `
+type TPlayerParams = {
+  playerId: string
+  organizationSlug: string
+}
 
-const Player = () => {
+const Player: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { playerId, organizationSlug } = useParams()
+  const { playerId, organizationSlug } = useParams<TPlayerParams>()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
 
@@ -257,9 +259,10 @@ const Player = () => {
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: {
-      country: '',
-    },
+    // defaultValues: {
+    //   country: '',
+    //   avatar: '',
+    // },
   })
 
   useEffect(() => {
@@ -308,7 +311,7 @@ const Player = () => {
 
   const updateAvatar = useCallback(
     url => {
-      setValue('avatar', url, true)
+      setValue('avatar', url, { shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_PLAYER,
@@ -337,22 +340,23 @@ const Player = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {(mutationErrorCreate || mutationErrorUpdate) && (
-        <Error
-          message={mutationErrorCreate.message || mutationErrorUpdate.message}
-        />
-      )}
+    <Container maxWidth={false} className={classes.container}>
+      {queryLoading && <Loader />}
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          errorDelete?.message ||
+          queryError?.message
+        }
+      />
+
       {(playerData || playerId === 'new') &&
         !queryError &&
         !mutationErrorCreate && (
           <>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className={classes.form}
               noValidate
               autoComplete="off"
             >
@@ -378,7 +382,7 @@ const Player = () => {
                       disabled
                       fullWidth
                       variant="standard"
-                      error={errors.avatar}
+                      error={errors?.avatar}
                     />
 
                     {isValidUuid(playerId) && (
@@ -519,7 +523,6 @@ const Player = () => {
                           //   return equals(option, value)
                           // }}
                           control={control}
-                          id="country"
                           name="country"
                           label="Country"
                         />
