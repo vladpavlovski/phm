@@ -1,63 +1,103 @@
 import React, { useCallback, useState, useMemo } from 'react'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
-import PropTypes from 'prop-types'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
+import { getAdminOrgSponsorRoute } from 'router/routes'
+import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Player } from 'utils/types'
 
-const Jerseys = props => {
+export const GET_ALL_SPONSORS = gql`
+  query getSponsors {
+    sponsors {
+      sponsorId
+      name
+    }
+  }
+`
+
+type TSponsors = {
+  playerId: string
+  player: Player
+  updatePlayer: MutationFunction
+}
+
+type TSponsorsParams = {
+  organizationSlug: string
+}
+
+const Sponsors: React.FC<TSponsors> = props => {
   const { playerId, player, updatePlayer } = props
 
   const classes = useStyles()
+  const { organizationSlug } = useParams<TSponsorsParams>()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
   const handleCloseAddPlayer = useCallback(() => {
     setOpenAddPlayer(false)
   }, [])
 
+  const [
+    getAllSponsors,
+    {
+      loading: queryAllPlayersLoading,
+      error: queryAllPlayersError,
+      data: queryAllPlayersData,
+    },
+  ] = useLazyQuery(GET_ALL_SPONSORS, {
+    fetchPolicy: 'cache-and-network',
+  })
+
   const handleOpenAddPlayer = useCallback(() => {
+    if (!queryAllPlayersData) {
+      getAllSponsors()
+    }
     setOpenAddPlayer(true)
   }, [])
 
-  const playerJerseysColumns = useMemo(
+  const playerSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 250,
-      },
-      {
-        field: 'teamName',
-        headerName: 'Team',
-        width: 250,
-        valueGetter: params => params.row?.team?.name,
-      },
-      {
-        field: 'number',
-        headerName: 'Number',
         width: 150,
+      },
+
+      {
+        field: 'sponsorId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminOrgSponsorRoute(organizationSlug, params.value)}
+            >
+              Profile
+            </LinkButton>
+          )
+        },
       },
       {
         field: 'removeButton',
@@ -69,16 +109,12 @@ const Jerseys = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={
-                'Do you really want to remove jersey from the player?'
-              }
+              dialogTitle={'Do you really want to detach sponsor from player?'}
               dialogDescription={
-                'Jersey will remain in the database. You can use it anytime later.'
+                'Sponsor will remain in the database. You can add him to any player later.'
               }
-              dialogNegativeText={'No, keep jersey'}
-              dialogPositiveText={'Yes, remove jersey'}
+              dialogNegativeText={'No, keep sponsor'}
+              dialogPositiveText={'Yes, detach sponsor'}
               onDialogClosePositive={() => {
                 updatePlayer({
                   variables: {
@@ -86,11 +122,11 @@ const Jerseys = props => {
                       playerId,
                     },
                     update: {
-                      jerseys: {
+                      sponsors: {
                         disconnect: {
                           where: {
                             node: {
-                              jerseyId: params.row.jerseyId,
+                              sponsorId: params.row.sponsorId,
                             },
                           },
                         },
@@ -104,41 +140,26 @@ const Jerseys = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
-  const allJerseysColumns = useMemo(
+  const allSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 250,
-      },
-      {
-        field: 'teamName',
-        headerName: 'Team',
         width: 150,
       },
+
       {
-        field: 'number',
-        headerName: 'Number',
-        width: 150,
-      },
-      {
-        field: 'numberInt',
-        headerName: 'NumberInt',
-        width: 150,
-        hide: true,
-      },
-      {
-        field: 'jerseyId',
-        headerName: 'Assignment',
+        field: 'sponsorId',
+        headerName: 'Sponsorship',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewJersey
-              jerseyId={params.value}
+            <ToggleNewSponsor
+              sponsorId={params.value}
               playerId={playerId}
               player={player}
               updatePlayer={updatePlayer}
@@ -154,10 +175,10 @@ const Jerseys = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="jerseys-content"
-        id="jerseys-header"
+        aria-controls="sponsors-content"
+        id="sponsors-header"
       >
-        <Typography className={classes.accordionFormTitle}>Jerseys</Typography>
+        <Typography className={classes.accordionFormTitle}>Sponsors</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
@@ -170,14 +191,15 @@ const Jerseys = props => {
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Assign Jersey
+              Add Sponsor
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={playerJerseysColumns}
-            rows={setIdFromEntityId(player.jerseys, 'jerseyId')}
+            columns={playerSponsorsColumns}
+            rows={setIdFromEntityId(player.sponsors, 'sponsorId')}
+            loading={queryAllPlayersLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -192,29 +214,33 @@ const Jerseys = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{`Assign new jersey to${player?.name}`}</DialogTitle>
-        <DialogContent>
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
-            <DataGridPro
-              columns={allJerseysColumns}
-              rows={setIdFromEntityId(
-                composeJerseys(player.teams),
-                'jerseyId'
-              ).map(t => ({ ...t, numberInt: Number(t.number) }))}
-              disableSelectionOnClick
-              components={{
-                Toolbar: GridToolbar,
-              }}
-              sortModel={[
-                {
-                  field: 'numberInt',
-                  sort: 'asc',
-                },
-              ]}
-            />
-          </div>
-        </DialogContent>
-
+        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
+        {queryAllPlayersError && !queryAllPlayersLoading && (
+          <Error message={queryAllPlayersError.message} />
+        )}
+        {queryAllPlayersData &&
+          !queryAllPlayersLoading &&
+          !queryAllPlayersError && (
+            <>
+              <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new sponsor`}</DialogTitle>
+              <DialogContent>
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <DataGridPro
+                    columns={allSponsorsColumns}
+                    rows={setIdFromEntityId(
+                      queryAllPlayersData.sponsors,
+                      'sponsorId'
+                    )}
+                    disableSelectionOnClick
+                    loading={queryAllPlayersLoading}
+                    components={{
+                      Toolbar: GridToolbar,
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </>
+          )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -229,19 +255,17 @@ const Jerseys = props => {
   )
 }
 
-const composeJerseys = teams =>
-  teams.reduce((acc, team) => {
-    const teamJerseys = team.jerseys.map(p => ({
-      ...p,
-      teamName: team?.name,
-    }))
-    return [...acc, ...teamJerseys]
-  }, [])
+type ToggleNewSponsor = {
+  playerId: string
+  sponsorId: string
+  player: Player
+  updatePlayer: MutationFunction
+}
 
-const ToggleNewJersey = props => {
-  const { playerId, jerseyId, player, updatePlayer } = props
+const ToggleNewSponsor: React.FC<ToggleNewSponsor> = React.memo(props => {
+  const { playerId, sponsorId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
-    !!player.jerseys.find(p => p.jerseyId === jerseyId)
+    !!player.sponsors.find(p => p.sponsorId === sponsorId)
   )
 
   return (
@@ -255,11 +279,11 @@ const ToggleNewJersey = props => {
                   playerId,
                 },
                 update: {
-                  jerseys: {
+                  sponsors: {
                     disconnect: {
                       where: {
                         node: {
-                          jerseyId,
+                          sponsorId,
                         },
                       },
                     },
@@ -273,10 +297,10 @@ const ToggleNewJersey = props => {
                   playerId,
                 },
                 update: {
-                  jerseys: {
+                  sponsors: {
                     connect: {
                       where: {
-                        node: { jerseyId },
+                        node: { sponsorId },
                       },
                     },
                   },
@@ -285,22 +309,10 @@ const ToggleNewJersey = props => {
             })
         setIsMember(!isMember)
       }}
-      name="jerseyMember"
+      name="sponsorMember"
       color="primary"
     />
   )
-}
+})
 
-ToggleNewJersey.propTypes = {
-  playerId: PropTypes.string,
-  jerseyId: PropTypes.string,
-  jersey: PropTypes.object,
-}
-
-Jerseys.propTypes = {
-  playerId: PropTypes.string,
-  player: PropTypes.object,
-  updatePlayer: PropTypes.func,
-}
-
-export { Jerseys }
+export { Sponsors }

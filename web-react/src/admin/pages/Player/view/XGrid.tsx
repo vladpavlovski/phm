@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo } from 'react'
 import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import Container from '@mui/material/Container'
@@ -9,18 +9,12 @@ import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgPlayerRoute } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
-import { Error } from 'components/Error'
-import { useWindowSize } from 'utils/hooks'
-import { Loader } from 'components/Loader'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-  getXGridHeight,
-} from 'utils'
+import { LinkButton, Loader, Error } from 'components'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
 
 export const GET_ASSIGNED_PLAYERS = gql`
   query getPlayers($where: PlayerWhere) {
@@ -58,9 +52,13 @@ export const GET_UNASSIGNED_PLAYERS = gql`
   }
 `
 
-const XGridTable = () => {
+type TXGridTableParams = {
+  organizationSlug: string
+}
+
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TXGridTableParams>()
   const { error, loading, data } = useQuery(GET_ASSIGNED_PLAYERS, {
     variables: {
       where: {
@@ -92,7 +90,7 @@ const XGridTable = () => {
     }
   }, [playersView])
 
-  const columns = useMemo(
+  const columns = useMemo<GridColumns>(
     () => [
       {
         field: 'playerId',
@@ -140,15 +138,12 @@ const XGridTable = () => {
     []
   )
 
-  const windowSize = useWindowSize()
-  const toolbarRef = useRef()
-
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
+          <Paper>
+            <Toolbar className={classes.toolbarForm}>
               <div>
                 <ButtonGroup variant="outlined" size="small">
                   <Button
@@ -188,13 +183,11 @@ const XGridTable = () => {
             </Toolbar>
           </Paper>
           {loading && <Loader />}
-          {error ||
-            (queryError && (
-              <Error message={error.message || queryError.message} />
-            ))}
+          <Error message={error?.message || queryError?.message} />
+
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{ height: 'calc(100vh - 230px)' }}
               className={classes.xGridWrapper}
             >
               <DataGridPro

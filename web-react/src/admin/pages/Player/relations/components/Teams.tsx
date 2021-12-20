@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import { useParams } from 'react-router-dom'
 
@@ -13,7 +12,7 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,7 +21,7 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgTeamRoute } from 'router/routes'
@@ -31,6 +30,7 @@ import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, sortByStatus } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
+import { Player } from 'utils/types'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams($where: TeamWhere) {
@@ -42,11 +42,21 @@ export const GET_ALL_TEAMS = gql`
   }
 `
 
-const TeamsComponent = props => {
+type TTeams = {
+  playerId: string
+  player: Player
+  updatePlayer: MutationFunction
+}
+
+type TTeamsParams = {
+  organizationSlug: string
+}
+
+const Teams: React.FC<TTeams> = React.memo(props => {
   const { playerId, player, updatePlayer } = props
 
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TTeamsParams>()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
   const handleCloseAddPlayer = useCallback(() => {
@@ -78,7 +88,7 @@ const TeamsComponent = props => {
     setOpenAddPlayer(true)
   }, [])
 
-  const playerTeamsColumns = useMemo(
+  const playerTeamsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'teamId',
@@ -106,8 +116,6 @@ const TeamsComponent = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to remove player from the team?'}
               dialogDescription={
                 'The player will remain in the database. You can add him to any team later.'
@@ -147,7 +155,7 @@ const TeamsComponent = props => {
     []
   )
 
-  const allTeamsColumns = useMemo(
+  const allTeamsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -267,7 +275,9 @@ const TeamsComponent = props => {
                   componentsProps={{
                     toolbar: {
                       value: searchText,
-                      onChange: event => requestSearch(event.target.value),
+                      onChange: (
+                        event: React.ChangeEvent<HTMLInputElement>
+                      ): void => requestSearch(event.target.value),
                       clearSearch: () => requestSearch(''),
                     },
                   }}
@@ -288,9 +298,16 @@ const TeamsComponent = props => {
       </Dialog>
     </Accordion>
   )
+})
+
+type TToggleNewTeam = {
+  playerId: string
+  teamId: string
+  player: Player
+  updatePlayer: MutationFunction
 }
 
-const ToggleNewTeamComponent = props => {
+const ToggleNewTeam: React.FC<TToggleNewTeam> = React.memo(props => {
   const { playerId, teamId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.teams.find(p => p.teamId === teamId)
@@ -340,25 +357,8 @@ const ToggleNewTeamComponent = props => {
       }}
       name="teamMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
-
-const ToggleNewTeam = React.memo(ToggleNewTeamComponent)
-
-ToggleNewTeamComponent.propTypes = {
-  playerId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamPlayer: PropTypes.func,
-  mergeTeamPlayer: PropTypes.func,
-}
-
-TeamsComponent.propTypes = {
-  playerId: PropTypes.string,
-}
-
-const Teams = React.memo(TeamsComponent)
+})
 
 export { Teams }

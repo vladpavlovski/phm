@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import PropTypes from 'prop-types'
-
+import { MutationFunction } from '@apollo/client'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -10,7 +9,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -19,14 +17,20 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Player, Team, Position } from 'utils/types'
 
-const Positions = props => {
+type TPositions = {
+  playerId: string
+  player: Player
+  updatePlayer: MutationFunction
+}
+
+const Positions: React.FC<TPositions> = props => {
   const { playerId, player, updatePlayer } = props
 
   const classes = useStyles()
@@ -40,7 +44,7 @@ const Positions = props => {
     setOpenAddPlayer(true)
   }, [])
 
-  const playerPositionsColumns = useMemo(
+  const playerPositionsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -63,8 +67,6 @@ const Positions = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to remove position from the player?'
               }
@@ -101,7 +103,7 @@ const Positions = props => {
     []
   )
 
-  const allPositionsColumns = useMemo(
+  const allPositionsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -210,8 +212,8 @@ const Positions = props => {
   )
 }
 
-const composePositions = teams =>
-  teams.reduce((acc, team) => {
+const composePositions = (teams: Team[]) =>
+  teams.reduce<Position[]>((acc, team) => {
     const teamPositions = team.positions.map(p => ({
       ...p,
       teamName: team?.name,
@@ -219,7 +221,14 @@ const composePositions = teams =>
     return [...acc, ...teamPositions]
   }, [])
 
-const ToggleNewPosition = props => {
+type TToggleNewPosition = {
+  playerId: string
+  positionId: string
+  player: Player
+  updatePlayer: MutationFunction
+}
+
+const ToggleNewPosition: React.FC<TToggleNewPosition> = React.memo(props => {
   const { playerId, positionId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.positions.find(p => p.positionId === positionId)
@@ -270,18 +279,6 @@ const ToggleNewPosition = props => {
       color="primary"
     />
   )
-}
-
-ToggleNewPosition.propTypes = {
-  playerId: PropTypes.string,
-  positionId: PropTypes.string,
-  position: PropTypes.object,
-  removePositionPlayer: PropTypes.func,
-  mergePositionPlayer: PropTypes.func,
-}
-
-Positions.propTypes = {
-  playerId: PropTypes.string,
-}
+})
 
 export { Positions }

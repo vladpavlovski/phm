@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async'
 import LayoutContext from '../../../../context/layout'
 import XGridTable from './XGrid'
 
-const Players = () => {
+const Players: React.FC = () => {
   const { setBarTitle } = useContext(LayoutContext)
 
   useEffect(() => {
