@@ -11,6 +11,47 @@ export type Player = {
   positions: Position[]
 }
 
+export type Team = {
+  teamId: string
+  name: string
+  logo: string
+  groups: Group[]
+  phases: Phase[]
+  orgs: Organization[]
+  competitions: Competition[]
+  seasons: Season[]
+  occupations: Occupation[]
+  positions: Position[]
+  sponsors: Sponsor[]
+  jerseys: Jersey[]
+  players: Player[]
+  persons: Person[]
+}
+
+type ActivityStatus = 'ACTIVE' | 'INACTIVE' | 'RETIRED' | 'UNKNOWN'
+
+export type Person = {
+  personId: string
+  name: string
+  firstName: string
+  lastName: string
+  birthday: Date
+  userName: string
+  phone: string
+  email: string
+  gender: string
+  height: string
+  weight: string
+  externalId: string
+  activityStatus: ActivityStatus
+  countryBirth: string
+  cityBirth: string
+  country: string
+  city: string
+  avatar: string
+  occupations: Occupation[]
+}
+
 export type Group = {
   groupId: string
   name: string
@@ -54,22 +95,6 @@ export type MetaConnection = {
       }
     }
   }
-}
-
-export type Team = {
-  teamId: string
-  name: string
-  logo: string
-  groups: Group[]
-  phases: Phase[]
-  orgs: Organization[]
-  competitions: Competition[]
-  seasons: Season[]
-  occupations: Occupation[]
-  positions: Position[]
-  sponsors: Sponsor[]
-  jerseys: Jersey[]
-  players: Player[]
 }
 
 export type Game = {

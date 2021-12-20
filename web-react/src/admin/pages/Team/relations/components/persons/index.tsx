@@ -1,8 +1,7 @@
 import React from 'react'
-
-import PropTypes from 'prop-types'
-
+import { MutationFunction } from '@apollo/client'
 import { useParams } from 'react-router-dom'
+
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -11,34 +10,52 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPersonRoute } from '../../../../../../router/routes'
-import { LinkButton } from '../../../../../../components/LinkButton'
+import { getAdminOrgPersonRoute } from 'router/routes'
+import { LinkButton } from 'components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray, createCtx } from 'utils'
 import { AddPerson } from './AddPerson'
 import {
   SetPersonOccupation,
   PersonOccupationDialog,
 } from './SetPersonOccupation'
-import { TeamPersonsProvider } from './context/Provider'
-import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
+import placeholderPerson from 'img/placeholderPerson.jpg'
+import { Team, Person } from 'utils/types'
 
-const Persons = props => {
+type TTeamPerson = {
+  personOccupationDialogOpen: boolean
+  personData: Person | null
+}
+
+const [ctx, TeamPersonsProvider] = createCtx<TTeamPerson>({
+  personOccupationDialogOpen: false,
+  personData: null as unknown as Person,
+})
+
+export const TeamPersonsContext = ctx
+
+type TPersons = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
+
+type TPersonsParams = {
+  organizationSlug: string
+}
+
+const Persons: React.FC<TPersons> = props => {
   const { teamId, team, updateTeam } = props
 
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TPersonsParams>()
 
-  const teamPersonsColumns = React.useMemo(
+  const teamPersonsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'avatar',
@@ -106,8 +123,6 @@ const Persons = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to remove person from the team?'}
               dialogDescription={'The person will remain in the database.'}
               dialogNegativeText={'No, keep the person'}
@@ -185,14 +200,10 @@ const Persons = props => {
             </>
           </AccordionDetails>
         </Accordion>
-        <PersonOccupationDialog teamId={teamId} team={team} />
+        <PersonOccupationDialog team={team} />
       </TeamPersonsProvider>
     </>
   )
-}
-
-Persons.propTypes = {
-  teamId: PropTypes.string,
 }
 
 export { Persons }

@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import AddIcon from '@mui/icons-material/Add'
 import Dialog from '@mui/material/Dialog'
@@ -8,18 +7,13 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { Loader } from '../../../../../../components/Loader'
-import { Error } from '../../../../../../components/Error'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
-
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { Team } from 'utils/types'
 export const GET_ALL_PERSONS = gql`
   query getPersons {
     people {
@@ -39,7 +33,13 @@ export const GET_ALL_PERSONS = gql`
   }
 `
 
-const AddPerson = props => {
+type TAddPerson = {
+  teamId: string
+  updateTeam: MutationFunction
+  team: Team
+}
+
+const AddPerson: React.FC<TAddPerson> = props => {
   const { teamId, team, updateTeam } = props
 
   const classes = useStyles()
@@ -68,7 +68,7 @@ const AddPerson = props => {
     setOpenAddPerson(true)
   }, [])
 
-  const allPersonsColumns = React.useMemo(
+  const allPersonsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -175,7 +175,14 @@ const AddPerson = props => {
   )
 }
 
-const ToggleNewPerson = props => {
+type TToggleNewPerson = {
+  personId: string
+  teamId: string
+  team: Team
+  updateTeam: MutationFunction
+}
+
+const ToggleNewPerson: React.FC<TToggleNewPerson> = props => {
   const { personId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = React.useState(
     !!team.persons.find(p => p.personId === personId)
@@ -219,21 +226,8 @@ const ToggleNewPerson = props => {
       }}
       name="teamMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
-
-ToggleNewPerson.propTypes = {
-  personId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  removeTeamPerson: PropTypes.func,
-  mergeTeamPerson: PropTypes.func,
-}
-
-AddPerson.propTypes = {
-  teamId: PropTypes.string,
 }
 
 export { AddPerson }
