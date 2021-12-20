@@ -11,7 +11,7 @@ type TRHFSelectComponent = SelectProps & {
 }
 
 const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
-  const { name, label, control, defaultValue, children } = props
+  const { name, label, control, defaultValue, children, variant } = props
   const labelId = React.useMemo(() => `${name}-label`, [])
   return (
     <FormControl fullWidth>
@@ -19,6 +19,7 @@ const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
       <Controller
         render={({ onChange, onBlur, value, name, ref }) => (
           <Select
+            variant={variant}
             label={label}
             ref={ref}
             onChange={onChange}
