@@ -9,6 +9,7 @@ export type Player = {
   meta: Meta
   jerseys: Jersey[]
   positions: Position[]
+  sponsors: Sponsor[]
 }
 
 export type Team = {
