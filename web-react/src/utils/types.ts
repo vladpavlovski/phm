@@ -239,6 +239,10 @@ export type Venue = {
   foundDate: Date
   capacity: number
   logo: string
+  competitions: Competition[]
+  groups: Group[]
+  phases: Phase[]
+  seasons: Season[]
 }
 
 export type GameEventSimple = {
