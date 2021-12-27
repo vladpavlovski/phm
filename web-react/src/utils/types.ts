@@ -79,6 +79,8 @@ export type Season = {
   groups: Group[]
   phases: Phase[]
   competitions: Competition[]
+  teams: Team[]
+  venues: Venue[]
 }
 
 type Meta = {
