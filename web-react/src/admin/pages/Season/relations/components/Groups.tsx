@@ -1,17 +1,15 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-// import AccountBox from '@mui/icons-material/AccountBox'
+
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,35 +18,33 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-// import { getAdminPhaseRoute } from '../../../../../routes'
-// import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from '../../../../../utils'
-
-export const GET_ALL_PHASES = gql`
-  query getPhases {
-    phases {
-      phaseId
+import { setIdFromEntityId } from 'utils'
+import { Season } from 'utils/types'
+export const GET_ALL_GROUPS = gql`
+  query getGroups {
+    groups {
+      groupId
       name
-      status
-      startDate
-      endDate
       competition {
-        competitionId
         name
       }
     }
   }
 `
 
-const Phases = props => {
-  const { seasonId, season, updateSeason } = props
+type TRelations = {
+  seasonId: string
+  updateSeason: MutationFunction
+  season: Season
+}
 
+const Groups: React.FC<TRelations> = props => {
+  const { seasonId, season, updateSeason } = props
   const classes = useStyles()
   const [openAddSeason, setOpenAddSeason] = React.useState(false)
 
@@ -63,7 +59,9 @@ const Phases = props => {
       error: queryAllSeasonsError,
       data: queryAllSeasonsData,
     },
-  ] = useLazyQuery(GET_ALL_PHASES)
+  ] = useLazyQuery(GET_ALL_GROUPS, {
+    fetchPolicy: 'cache-and-network',
+  })
 
   const handleOpenAddSeason = React.useCallback(() => {
     if (!queryAllSeasonsData) {
@@ -72,7 +70,7 @@ const Phases = props => {
     setOpenAddSeason(true)
   }, [])
 
-  const seasonPhasesColumns = React.useMemo(
+  const seasonGroupsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -86,41 +84,6 @@ const Phases = props => {
         valueGetter: params => params?.row?.competition?.name,
       },
       {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params?.row?.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params?.row?.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      // {
-      //   field: 'phaseId',
-      //   headerName: 'Edit',
-      //   width: 120,
-      //   disableColumnMenu: true,
-      //   renderCell: params => {
-      //     return (
-      //       <LinkButton
-      //         startIcon={<AccountBox />}
-      //         to={getAdminPhaseRoute(params.value)}
-      //       >
-      //         Profile
-      //       </LinkButton>
-      //     )
-      //   },
-      // },
-      {
         field: 'removeButton',
         headerName: 'Remove',
         width: 120,
@@ -130,14 +93,12 @@ const Phases = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to detach phase from season?'}
+              dialogTitle={'Do you really want to detach group from season?'}
               dialogDescription={
-                'Phase will remain in the database. You can add him to any season later.'
+                'Group will remain in the database. You can add him to any season later.'
               }
-              dialogNegativeText={'No, keep phase'}
-              dialogPositiveText={'Yes, detach phase'}
+              dialogNegativeText={'No, keep group'}
+              dialogPositiveText={'Yes, detach group'}
               onDialogClosePositive={() => {
                 updateSeason({
                   variables: {
@@ -145,11 +106,11 @@ const Phases = props => {
                       seasonId,
                     },
                     update: {
-                      phases: {
+                      groups: {
                         disconnect: {
                           where: {
                             node: {
-                              phaseId: params.row?.phaseId,
+                              groupId: params.row?.groupId,
                             },
                           },
                         },
@@ -166,7 +127,7 @@ const Phases = props => {
     []
   )
 
-  const allPhasesColumns = React.useMemo(
+  const allGroupsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -182,34 +143,14 @@ const Phases = props => {
       },
 
       {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params?.row?.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params?.row?.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-
-      {
-        field: 'phaseId',
+        field: 'groupId',
         headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPhase
-              phaseId={params.value}
+            <ToggleNewGroup
+              groupId={params.value}
               seasonId={seasonId}
               season={season}
               updateSeason={updateSeason}
@@ -225,10 +166,10 @@ const Phases = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="phases-content"
-        id="phases-header"
+        aria-controls="groups-content"
+        id="groups-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
@@ -241,14 +182,14 @@ const Phases = props => {
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Phase
+              Add Group
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={seasonPhasesColumns}
-            rows={setIdFromEntityId(season.phases, 'phaseId')}
+            columns={seasonGroupsColumns}
+            rows={setIdFromEntityId(season.groups, 'groupId')}
             loading={queryAllSeasonsLoading}
             components={{
               Toolbar: GridToolbar,
@@ -264,33 +205,29 @@ const Phases = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllSeasonsLoading && !queryAllSeasonsError && <Loader />}
-        {queryAllSeasonsError && !queryAllSeasonsLoading && (
-          <Error message={queryAllSeasonsError.message} />
+        {queryAllSeasonsLoading && <Loader />}
+        <Error message={queryAllSeasonsError?.message} />
+        {queryAllSeasonsData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add ${season?.name} to new group`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allGroupsColumns}
+                  rows={setIdFromEntityId(
+                    queryAllSeasonsData.groups,
+                    'groupId'
+                  )}
+                  disableSelectionOnClick
+                  loading={queryAllSeasonsLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllSeasonsData &&
-          !queryAllSeasonsLoading &&
-          !queryAllSeasonsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add ${season?.name} to new phase`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allPhasesColumns}
-                    rows={setIdFromEntityId(
-                      queryAllSeasonsData.phases,
-                      'phaseId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllSeasonsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -305,10 +242,17 @@ const Phases = props => {
   )
 }
 
-const ToggleNewPhase = props => {
-  const { seasonId, phaseId, season, updateSeason } = props
+type TToggleNew = {
+  seasonId: string
+  groupId: string
+  season: Season
+  updateSeason: MutationFunction
+}
+
+const ToggleNewGroup: React.FC<TToggleNew> = React.memo(props => {
+  const { seasonId, groupId, season, updateSeason } = props
   const [isMember, setIsMember] = React.useState(
-    !!season.phases.find(p => p.phaseId === phaseId)
+    !!season.groups.find(p => p.groupId === groupId)
   )
 
   return (
@@ -321,13 +265,13 @@ const ToggleNewPhase = props => {
               seasonId,
             },
             update: {
-              phases: {
+              groups: {
                 ...(isMember
                   ? {
                       disconnect: {
                         where: {
                           node: {
-                            phaseId,
+                            groupId,
                           },
                         },
                       },
@@ -335,7 +279,7 @@ const ToggleNewPhase = props => {
                   : {
                       connect: {
                         where: {
-                          node: { phaseId },
+                          node: { groupId },
                         },
                       },
                     }),
@@ -346,25 +290,10 @@ const ToggleNewPhase = props => {
 
         setIsMember(!isMember)
       }}
-      name="phaseMember"
+      name="groupMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
     />
   )
-}
+})
 
-ToggleNewPhase.propTypes = {
-  seasonId: PropTypes.string,
-  phaseId: PropTypes.string,
-  phase: PropTypes.object,
-  updateSeason: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-Phases.propTypes = {
-  seasonId: PropTypes.string,
-  updateSeason: PropTypes.func,
-  season: PropTypes.object,
-}
-
-export { Phases }
+export { Groups }

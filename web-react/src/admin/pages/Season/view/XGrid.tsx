@@ -1,20 +1,18 @@
-import React, { useMemo, useRef } from 'react'
+import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import dayjs from 'dayjs'
 import { useParams } from 'react-router-dom'
-import { Container, Grid, Paper } from '@mui/material'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgSeasonRoute } from '../../../../router/routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
-import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
+import { getAdminOrgSeasonRoute } from 'router/routes'
+import { LinkButton, Title, Error, Loader } from 'components'
+import { setIdFromEntityId } from 'utils'
 
 const GET_SEASONS = gql`
   query getSeasons($where: SeasonWhere) {
@@ -32,14 +30,18 @@ const GET_SEASONS = gql`
   }
 `
 
-const XGridTable = () => {
+type TXGridTableParams = {
+  organizationSlug: string
+}
+
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TXGridTableParams>()
   const { error, loading, data } = useQuery(GET_SEASONS, {
     variables: { where: {} },
   })
   // org: { urlSlug: organizationSlug }
-  const columns = useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'seasonId',
@@ -83,7 +85,8 @@ const XGridTable = () => {
           return params.row.startDate
         },
         valueFormatter: params => {
-          return dayjs(params.value).format('LL')
+          const stringifyDate = String(params.value)
+          return dayjs(stringifyDate).format('LL')
         },
       },
       {
@@ -95,7 +98,8 @@ const XGridTable = () => {
           return params.row.endDate
         },
         valueFormatter: params => {
-          return dayjs(params.value).format('LL')
+          const stringifyDate = String(params.value)
+          return dayjs(stringifyDate).format('LL')
         },
       },
       {
@@ -111,15 +115,12 @@ const XGridTable = () => {
     [organizationSlug]
   )
 
-  const windowSize = useWindowSize()
-  const toolbarRef = useRef()
-
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
+          <Paper>
+            <Toolbar className={classes.toolbarForm}>
               <div>
                 <Title>{'Seasons'}</Title>
               </div>
@@ -137,7 +138,7 @@ const XGridTable = () => {
           {error && !loading && <Error message={error.message} />}
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{ height: 'calc(100vh - 230px)' }}
               className={classes.xGridWrapper}
             >
               <DataGridPro

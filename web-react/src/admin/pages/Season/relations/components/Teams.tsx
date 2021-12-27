@@ -1,17 +1,16 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-// import AccountBox from '@mui/icons-material/AccountBox'
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,31 +19,37 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-// import { getAdminGroupRoute } from '../../../../../routes'
-// import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgTeamRoute } from 'router/routes'
+import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-export const GET_ALL_GROUPS = gql`
-  query getGroups {
-    groups {
-      groupId
+import { setIdFromEntityId } from 'utils'
+import { Season } from 'utils/types'
+export const GET_ALL_TEAMS = gql`
+  query getTeams {
+    teams {
+      teamId
       name
-      competition {
-        name
-      }
     }
   }
 `
+type TRelations = {
+  seasonId: string
+  updateSeason: MutationFunction
+  season: Season
+}
 
-const Groups = props => {
+type TParams = {
+  organizationSlug: string
+}
+
+const Teams: React.FC<TRelations> = props => {
   const { seasonId, season, updateSeason } = props
+
   const classes = useStyles()
+  const { organizationSlug } = useParams<TParams>()
   const [openAddSeason, setOpenAddSeason] = React.useState(false)
 
   const handleCloseAddSeason = React.useCallback(() => {
@@ -58,7 +63,7 @@ const Groups = props => {
       error: queryAllSeasonsError,
       data: queryAllSeasonsData,
     },
-  ] = useLazyQuery(GET_ALL_GROUPS, {
+  ] = useLazyQuery(GET_ALL_TEAMS, {
     fetchPolicy: 'cache-and-network',
   })
 
@@ -69,35 +74,30 @@ const Groups = props => {
     setOpenAddSeason(true)
   }, [])
 
-  const seasonGroupsColumns = React.useMemo(
+  const seasonTeamsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 200,
+        width: 150,
       },
+
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
+        field: 'teamId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminOrgTeamRoute(organizationSlug, params.value)}
+            >
+              Profile
+            </LinkButton>
+          )
+        },
       },
-      // {
-      //   field: 'groupId',
-      //   headerName: 'Edit',
-      //   width: 120,
-      //   disableColumnMenu: true,
-      //   renderCell: params => {
-      //     return (
-      //       <LinkButton
-      //         startIcon={<AccountBox />}
-      //         to={getAdminGroupRoute(params.value)}
-      //       >
-      //         Profile
-      //       </LinkButton>
-      //     )
-      //   },
-      // },
       {
         field: 'removeButton',
         headerName: 'Remove',
@@ -108,14 +108,12 @@ const Groups = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to detach group from season?'}
+              dialogTitle={'Do you really want to detach team from season?'}
               dialogDescription={
-                'Group will remain in the database. You can add him to any season later.'
+                'Team will remain in the database. You can add him to any season later.'
               }
-              dialogNegativeText={'No, keep group'}
-              dialogPositiveText={'Yes, detach group'}
+              dialogNegativeText={'No, keep team'}
+              dialogPositiveText={'Yes, detach team'}
               onDialogClosePositive={() => {
                 updateSeason({
                   variables: {
@@ -123,11 +121,11 @@ const Groups = props => {
                       seasonId,
                     },
                     update: {
-                      groups: {
+                      teams: {
                         disconnect: {
                           where: {
                             node: {
-                              groupId: params.row?.groupId,
+                              teamId: params.row.teamId,
                             },
                           },
                         },
@@ -144,30 +142,23 @@ const Groups = props => {
     []
   )
 
-  const allGroupsColumns = React.useMemo(
+  const allTeamsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 200,
+        width: 300,
       },
 
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-
-      {
-        field: 'groupId',
+        field: 'teamId',
         headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewGroup
-              groupId={params.value}
+            <ToggleNewTeam
+              teamId={params.value}
               seasonId={seasonId}
               season={season}
               updateSeason={updateSeason}
@@ -183,10 +174,10 @@ const Groups = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="groups-content"
-        id="groups-header"
+        aria-controls="teams-content"
+        id="teams-header"
       >
-        <Typography className={classes.accordionFormTitle}>Groups</Typography>
+        <Typography className={classes.accordionFormTitle}>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
@@ -199,14 +190,14 @@ const Groups = props => {
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Group
+              Add Team
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={seasonGroupsColumns}
-            rows={setIdFromEntityId(season.groups, 'groupId')}
+            columns={seasonTeamsColumns}
+            rows={setIdFromEntityId(season.teams, 'teamId')}
             loading={queryAllSeasonsLoading}
             components={{
               Toolbar: GridToolbar,
@@ -230,14 +221,14 @@ const Groups = props => {
           !queryAllSeasonsLoading &&
           !queryAllSeasonsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add ${season?.name} to new group`}</DialogTitle>
+              <DialogTitle id="alert-dialog-title">{`Add ${season?.name} to new team`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <DataGridPro
-                    columns={allGroupsColumns}
+                    columns={allTeamsColumns}
                     rows={setIdFromEntityId(
-                      queryAllSeasonsData.groups,
-                      'groupId'
+                      queryAllSeasonsData.teams,
+                      'teamId'
                     )}
                     disableSelectionOnClick
                     loading={queryAllSeasonsLoading}
@@ -263,10 +254,17 @@ const Groups = props => {
   )
 }
 
-const ToggleNewGroup = props => {
-  const { seasonId, groupId, season, updateSeason } = props
+type TToggleNew = {
+  seasonId: string
+  teamId: string
+  season: Season
+  updateSeason: MutationFunction
+}
+
+const ToggleNewTeam: React.FC<TToggleNew> = React.memo(props => {
+  const { seasonId, teamId, season, updateSeason } = props
   const [isMember, setIsMember] = React.useState(
-    !!season.groups.find(p => p.groupId === groupId)
+    !!season.teams.find(p => p.teamId === teamId)
   )
 
   return (
@@ -279,13 +277,13 @@ const ToggleNewGroup = props => {
               seasonId,
             },
             update: {
-              groups: {
+              teams: {
                 ...(isMember
                   ? {
                       disconnect: {
                         where: {
                           node: {
-                            groupId,
+                            teamId,
                           },
                         },
                       },
@@ -293,7 +291,7 @@ const ToggleNewGroup = props => {
                   : {
                       connect: {
                         where: {
-                          node: { groupId },
+                          node: { teamId },
                         },
                       },
                     }),
@@ -304,25 +302,10 @@ const ToggleNewGroup = props => {
 
         setIsMember(!isMember)
       }}
-      name="groupMember"
+      name="teamMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
     />
   )
-}
+})
 
-ToggleNewGroup.propTypes = {
-  seasonId: PropTypes.string,
-  groupId: PropTypes.string,
-  group: PropTypes.object,
-  updateSeason: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-Groups.propTypes = {
-  seasonId: PropTypes.string,
-  updateSeason: PropTypes.func,
-  season: PropTypes.object,
-}
-
-export { Groups }
+export { Teams }

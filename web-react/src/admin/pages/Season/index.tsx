@@ -145,10 +145,15 @@ const DELETE_SEASON = gql`
   }
 `
 
-const Season = () => {
+type TSeasonParams = {
+  seasonId: string
+  organizationSlug: string
+}
+
+const Season: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { seasonId, organizationSlug } = useParams()
+  const { seasonId, organizationSlug } = useParams<TSeasonParams>()
   const { enqueueSnackbar } = useSnackbar()
 
   const {
@@ -256,29 +261,19 @@ const Season = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       {queryLoading && <Loader />}
-      {(mutationErrorCreate ||
-        mutationErrorUpdate ||
-        queryError ||
-        errorDelete) && (
-        <Error
-          message={
-            mutationErrorCreate?.message ||
-            mutationErrorUpdate?.message ||
-            queryError?.message ||
-            errorDelete?.message
-          }
-        />
-      )}
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          queryError?.message ||
+          errorDelete?.message
+        }
+      />
       {(seasonData || seasonId === 'new') && (
         <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
               <title>{seasonData?.name || 'Season'}</title>
             </Helmet>
@@ -301,7 +296,7 @@ const Season = () => {
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deleteSeason({ variables: { seasonId } })
+                            deleteSeason()
                           }}
                         />
                       )}
