@@ -9,26 +9,28 @@ import { Helmet } from 'react-helmet-async'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { Container, Grid, Paper } from '@mui/material'
-
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import {
+  Uploader,
+  RHFDatepicker,
+  RHFInput,
+  Title,
+  Loader,
+  Error,
+} from 'components'
+
+import { decomposeDate, isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
-import {
-  getAdminOrgVenuesRoute,
-  getAdminOrgVenueRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
+import { getAdminOrgVenuesRoute, getAdminOrgVenueRoute } from 'router/routes'
+
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
 import { Relations } from './relations'
 
@@ -133,10 +135,15 @@ const DELETE_VENUE = gql`
   }
 `
 
-const Venue = () => {
+type TVenueParams = {
+  venueId: string
+  organizationSlug: string
+}
+
+const Venue: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { venueId, organizationSlug } = useParams()
+  const { venueId, organizationSlug } = useParams<TVenueParams>()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
@@ -234,7 +241,7 @@ const Venue = () => {
 
   const updateLogo = React.useCallback(
     url => {
-      setValue('logo', url, true)
+      setValue('logo', url, { shouldValidate: true, shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_VENUE,
@@ -263,29 +270,21 @@ const Venue = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       {queryLoading && <Loader />}
-      {(mutationErrorCreate ||
-        mutationErrorUpdate ||
-        queryError ||
-        errorDelete) && (
-        <Error
-          message={
-            mutationErrorCreate?.message ||
-            mutationErrorUpdate?.message ||
-            queryError?.message ||
-            errorDelete?.message
-          }
-        />
-      )}
+
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          queryError?.message ||
+          errorDelete?.message
+        }
+      />
+
       {(venueData || venueId === 'new') && (
         <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
               <title>{venueData?.name || 'Venue'}</title>
             </Helmet>

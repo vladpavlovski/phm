@@ -1,6 +1,7 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,7 +12,7 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,32 +21,38 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminGroupRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgSeasonRoute } from 'router/routes'
+import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Venue } from 'utils/types'
 
-export const GET_ALL_GROUPS = gql`
-  query getGroups {
-    groups {
-      groupId
+export const GET_ALL_SEASONS = gql`
+  query getSeasons {
+    seasons {
+      seasonId
       name
-      competition {
-        name
-      }
     }
   }
 `
 
-const Groups = props => {
-  const { venueId, venue, updateVenue } = props
+type TRelations = {
+  venueId: string
+  updateVenue: MutationFunction
+  venue: Venue
+}
 
+type TSeasonsParams = {
+  organizationSlug: string
+}
+
+const Seasons: React.FC<TRelations> = props => {
+  const { venueId, venue, updateVenue } = props
   const classes = useStyles()
+  const { organizationSlug } = useParams<TSeasonsParams>()
   const [openAddVenue, setOpenAddVenue] = React.useState(false)
 
   const handleCloseAddVenue = React.useCallback(() => {
@@ -59,7 +66,7 @@ const Groups = props => {
       error: queryAllVenuesError,
       data: queryAllVenuesData,
     },
-  ] = useLazyQuery(GET_ALL_GROUPS, {
+  ] = useLazyQuery(GET_ALL_SEASONS, {
     fetchPolicy: 'cache-and-network',
   })
 
@@ -70,21 +77,16 @@ const Groups = props => {
     setOpenAddVenue(true)
   }, [])
 
-  const venueGroupsColumns = React.useMemo(
+  const venueSeasonsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 200,
+        width: 150,
       },
+
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-      {
-        field: 'groupId',
+        field: 'seasonId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -92,7 +94,7 @@ const Groups = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminGroupRoute(params.value)}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -109,14 +111,12 @@ const Groups = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to detach group from venue?'}
+              dialogTitle={'Do you really want to detach season from venue?'}
               dialogDescription={
-                'Group will remain in the database. You can add him to any venue later.'
+                'Season will remain in the database. You can add him to any venue later.'
               }
-              dialogNegativeText={'No, keep group'}
-              dialogPositiveText={'Yes, detach group'}
+              dialogNegativeText={'No, keep season'}
+              dialogPositiveText={'Yes, detach season'}
               onDialogClosePositive={() => {
                 updateVenue({
                   variables: {
@@ -124,11 +124,11 @@ const Groups = props => {
                       venueId,
                     },
                     update: {
-                      groups: {
+                      seasons: {
                         disconnect: {
                           where: {
                             node: {
-                              groupId: params.row?.groupId,
+                              seasonId: params.row.seasonId,
                             },
                           },
                         },
@@ -142,33 +142,26 @@ const Groups = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
-  const allGroupsColumns = React.useMemo(
+  const allSeasonsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 200,
+        width: 300,
       },
 
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-
-      {
-        field: 'groupId',
+        field: 'seasonId',
         headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewGroup
-              groupId={params.value}
+            <ToggleNewSeason
+              seasonId={params.value}
               venueId={venueId}
               venue={venue}
               updateVenue={updateVenue}
@@ -184,10 +177,10 @@ const Groups = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="groups-content"
-        id="groups-header"
+        aria-controls="seasons-content"
+        id="seasons-header"
       >
-        <Typography className={classes.accordionFormTitle}>Groups</Typography>
+        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
@@ -200,14 +193,14 @@ const Groups = props => {
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Group
+              Add Season
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={venueGroupsColumns}
-            rows={setIdFromEntityId(venue.groups, 'groupId')}
+            columns={venueSeasonsColumns}
+            rows={setIdFromEntityId(venue.seasons, 'seasonId')}
             loading={queryAllVenuesLoading}
             components={{
               Toolbar: GridToolbar,
@@ -229,12 +222,15 @@ const Groups = props => {
         )}
         {queryAllVenuesData && !queryAllVenuesLoading && !queryAllVenuesError && (
           <>
-            <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new group`}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new season`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
-                  columns={allGroupsColumns}
-                  rows={setIdFromEntityId(queryAllVenuesData.groups, 'groupId')}
+                  columns={allSeasonsColumns}
+                  rows={setIdFromEntityId(
+                    queryAllVenuesData.seasons,
+                    'seasonId'
+                  )}
                   disableSelectionOnClick
                   loading={queryAllVenuesLoading}
                   components={{
@@ -259,10 +255,17 @@ const Groups = props => {
   )
 }
 
-const ToggleNewGroup = props => {
-  const { venueId, groupId, venue, updateVenue } = props
+type TToggleNewSeason = {
+  venueId: string
+  seasonId: string
+  venue: Venue
+  updateVenue: MutationFunction
+}
+
+const ToggleNewSeason: React.FC<TToggleNewSeason> = props => {
+  const { venueId, seasonId, venue, updateVenue } = props
   const [isMember, setIsMember] = React.useState(
-    !!venue.groups.find(p => p.groupId === groupId)
+    !!venue.seasons.find(p => p.seasonId === seasonId)
   )
 
   return (
@@ -275,13 +278,13 @@ const ToggleNewGroup = props => {
               venueId,
             },
             update: {
-              groups: {
+              seasons: {
                 ...(isMember
                   ? {
                       disconnect: {
                         where: {
                           node: {
-                            groupId,
+                            seasonId,
                           },
                         },
                       },
@@ -289,7 +292,7 @@ const ToggleNewGroup = props => {
                   : {
                       connect: {
                         where: {
-                          node: { groupId },
+                          node: { seasonId },
                         },
                       },
                     }),
@@ -297,28 +300,12 @@ const ToggleNewGroup = props => {
             },
           },
         })
-
         setIsMember(!isMember)
       }}
-      name="groupMember"
+      name="seasonMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
     />
   )
 }
 
-ToggleNewGroup.propTypes = {
-  venueId: PropTypes.string,
-  groupId: PropTypes.string,
-  group: PropTypes.object,
-  updateVenue: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-Groups.propTypes = {
-  venueId: PropTypes.string,
-  updateVenue: PropTypes.func,
-  venue: PropTypes.object,
-}
-
-export { Groups }
+export { Seasons }

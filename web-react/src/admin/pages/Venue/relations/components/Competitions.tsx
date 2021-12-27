@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import { useParams } from 'react-router-dom'
 
@@ -13,7 +12,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,29 +20,38 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgCompetitionRoute } from 'router/routes'
+import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Venue } from 'utils/types'
 
-export const GET_ALL_SEASONS = gql`
-  query getSeasons {
-    seasons {
-      seasonId
+export const GET_ALL_COMPETITIONS = gql`
+  query getCompetitions {
+    competitions {
+      competitionId
       name
     }
   }
 `
 
-const Seasons = props => {
+type TRelations = {
+  venueId: string
+  updateVenue: MutationFunction
+  venue: Venue
+}
+
+type TCompetitionsParams = {
+  organizationSlug: string
+}
+
+const Competitions: React.FC<TRelations> = props => {
   const { venueId, venue, updateVenue } = props
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TCompetitionsParams>()
   const [openAddVenue, setOpenAddVenue] = React.useState(false)
 
   const handleCloseAddVenue = React.useCallback(() => {
@@ -58,7 +65,7 @@ const Seasons = props => {
       error: queryAllVenuesError,
       data: queryAllVenuesData,
     },
-  ] = useLazyQuery(GET_ALL_SEASONS, {
+  ] = useLazyQuery(GET_ALL_COMPETITIONS, {
     fetchPolicy: 'cache-and-network',
   })
 
@@ -69,7 +76,7 @@ const Seasons = props => {
     setOpenAddVenue(true)
   }, [])
 
-  const venueSeasonsColumns = React.useMemo(
+  const venueCompetitionsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -78,7 +85,7 @@ const Seasons = props => {
       },
 
       {
-        field: 'seasonId',
+        field: 'competitionId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -86,7 +93,7 @@ const Seasons = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+              to={getAdminOrgCompetitionRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -103,14 +110,14 @@ const Seasons = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={'Do you really want to detach season from venue?'}
-              dialogDescription={
-                'Season will remain in the database. You can add him to any venue later.'
+              dialogTitle={
+                'Do you really want to detach competition from venue?'
               }
-              dialogNegativeText={'No, keep season'}
-              dialogPositiveText={'Yes, detach season'}
+              dialogDescription={
+                'Competition will remain in the database. You can add him to any venue later.'
+              }
+              dialogNegativeText={'No, keep competition'}
+              dialogPositiveText={'Yes, detach competition'}
               onDialogClosePositive={() => {
                 updateVenue({
                   variables: {
@@ -118,11 +125,11 @@ const Seasons = props => {
                       venueId,
                     },
                     update: {
-                      seasons: {
+                      competitions: {
                         disconnect: {
                           where: {
                             node: {
-                              seasonId: params.row.seasonId,
+                              competitionId: params.row.competitionId,
                             },
                           },
                         },
@@ -136,10 +143,10 @@ const Seasons = props => {
         },
       },
     ],
-    [organizationSlug]
+    []
   )
 
-  const allSeasonsColumns = React.useMemo(
+  const allCompetitionsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -148,14 +155,14 @@ const Seasons = props => {
       },
 
       {
-        field: 'seasonId',
+        field: 'competitionId',
         headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewSeason
-              seasonId={params.value}
+            <ToggleNewCompetition
+              competitionId={params.value}
               venueId={venueId}
               venue={venue}
               updateVenue={updateVenue}
@@ -171,10 +178,12 @@ const Seasons = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="seasons-content"
-        id="seasons-header"
+        aria-controls="competitions-content"
+        id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
+        <Typography className={classes.accordionFormTitle}>
+          Competitions
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
@@ -187,14 +196,14 @@ const Seasons = props => {
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Season
+              Add Competition
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={venueSeasonsColumns}
-            rows={setIdFromEntityId(venue.seasons, 'seasonId')}
+            columns={venueCompetitionsColumns}
+            rows={setIdFromEntityId(venue.competitions, 'competitionId')}
             loading={queryAllVenuesLoading}
             components={{
               Toolbar: GridToolbar,
@@ -216,14 +225,14 @@ const Seasons = props => {
         )}
         {queryAllVenuesData && !queryAllVenuesLoading && !queryAllVenuesError && (
           <>
-            <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new season`}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new competition`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
-                  columns={allSeasonsColumns}
+                  columns={allCompetitionsColumns}
                   rows={setIdFromEntityId(
-                    queryAllVenuesData.seasons,
-                    'seasonId'
+                    queryAllVenuesData.competitions,
+                    'competitionId'
                   )}
                   disableSelectionOnClick
                   loading={queryAllVenuesLoading}
@@ -249,65 +258,59 @@ const Seasons = props => {
   )
 }
 
-const ToggleNewSeason = props => {
-  const { venueId, seasonId, venue, updateVenue } = props
-  const [isMember, setIsMember] = React.useState(
-    !!venue.seasons.find(p => p.seasonId === seasonId)
-  )
+type TToggleNewCompetition = {
+  venueId: string
+  competitionId: string
+  venue: Venue
+  updateVenue: MutationFunction
+}
 
-  return (
-    <Switch
-      checked={isMember}
-      onChange={() => {
-        updateVenue({
-          variables: {
-            where: {
-              venueId,
-            },
-            update: {
-              seasons: {
-                ...(isMember
-                  ? {
-                      disconnect: {
-                        where: {
-                          node: {
-                            seasonId,
+const ToggleNewCompetition: React.FC<TToggleNewCompetition> = React.memo(
+  props => {
+    const { venueId, competitionId, venue, updateVenue } = props
+    const [isMember, setIsMember] = React.useState(
+      !!venue.competitions.find(p => p.competitionId === competitionId)
+    )
+
+    return (
+      <Switch
+        checked={isMember}
+        onChange={() => {
+          updateVenue({
+            variables: {
+              where: {
+                venueId,
+              },
+              update: {
+                competitions: {
+                  ...(isMember
+                    ? {
+                        disconnect: {
+                          where: {
+                            node: {
+                              competitionId,
+                            },
                           },
                         },
-                      },
-                    }
-                  : {
-                      connect: {
-                        where: {
-                          node: { seasonId },
+                      }
+                    : {
+                        connect: {
+                          where: {
+                            node: { competitionId },
+                          },
                         },
-                      },
-                    }),
+                      }),
+                },
               },
             },
-          },
-        })
-        setIsMember(!isMember)
-      }}
-      name="seasonMember"
-      color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
-    />
-  )
-}
+          })
+          setIsMember(!isMember)
+        }}
+        name="competitionMember"
+        color="primary"
+      />
+    )
+  }
+)
 
-ToggleNewSeason.propTypes = {
-  venueId: PropTypes.string,
-  seasonId: PropTypes.string,
-  season: PropTypes.object,
-  updateVenue: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-Seasons.propTypes = {
-  venueId: PropTypes.string,
-  updateVenue: PropTypes.func,
-  venue: PropTypes.object,
-}
-
-export { Seasons }
+export { Competitions }

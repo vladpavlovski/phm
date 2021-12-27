@@ -2,12 +2,12 @@ import React, { useContext, useEffect } from 'react'
 
 import { Grid } from '@mui/material'
 
-import LayoutContext from '../../../../context/layout'
+import LayoutContext from 'context/layout'
 import { Helmet } from 'react-helmet-async'
 
 import XGridTable from './XGrid'
 
-const View = () => {
+const View: React.FC = () => {
   const { setBarTitle } = useContext(LayoutContext)
 
   useEffect(() => {

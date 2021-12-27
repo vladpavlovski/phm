@@ -1,6 +1,5 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,7 +10,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,15 +18,14 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPhaseRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminPhaseRoute } from 'router/routes'
+import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from '../../../../../utils'
+import { setIdFromEntityId, formatDate } from 'utils'
+import { Venue } from 'utils/types'
 
 export const GET_ALL_PHASES = gql`
   query getPhases {
@@ -46,7 +43,13 @@ export const GET_ALL_PHASES = gql`
   }
 `
 
-const Phases = props => {
+type TRelations = {
+  venueId: string
+  updateVenue: MutationFunction
+  venue: Venue
+}
+
+const Phases: React.FC<TRelations> = props => {
   const { venueId, venue, updateVenue } = props
 
   const classes = useStyles()
@@ -74,7 +77,7 @@ const Phases = props => {
     setOpenAddVenue(true)
   }, [])
 
-  const venuePhasesColumns = React.useMemo(
+  const venuePhasesColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -132,8 +135,6 @@ const Phases = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={'Do you really want to detach phase from venue?'}
               dialogDescription={
                 'Phase will remain in the database. You can add him to any venue later.'
@@ -168,7 +169,7 @@ const Phases = props => {
     []
   )
 
-  const allPhasesColumns = React.useMemo(
+  const allPhasesColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -302,7 +303,14 @@ const Phases = props => {
   )
 }
 
-const ToggleNewPhase = props => {
+type TToggleNewPhase = {
+  venueId: string
+  phaseId: string
+  venue: Venue
+  updateVenue: MutationFunction
+}
+
+const ToggleNewPhase: React.FC<TToggleNewPhase> = React.memo(props => {
   const { venueId, phaseId, venue, updateVenue } = props
   const [isMember, setIsMember] = React.useState(
     !!venue.phases.find(p => p.phaseId === phaseId)
@@ -345,23 +353,8 @@ const ToggleNewPhase = props => {
       }}
       name="phaseMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
     />
   )
-}
-
-ToggleNewPhase.propTypes = {
-  venueId: PropTypes.string,
-  phaseId: PropTypes.string,
-  phase: PropTypes.object,
-  updateVenue: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-Phases.propTypes = {
-  venueId: PropTypes.string,
-  updateVenue: PropTypes.func,
-  venue: PropTypes.object,
-}
+})
 
 export { Phases }
