@@ -1,6 +1,10 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  MutationFunction,
+} from '@apollo/client'
 import { useSnackbar } from 'notistack'
 
 import AddIcon from '@mui/icons-material/Add'
@@ -9,19 +13,14 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { Loader } from '../../../../../../components/Loader'
-import { Error } from '../../../../../../components/Error'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
-
-import { GET_ORGANIZATION } from '../../../index'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { Organization } from 'utils/types'
+// import { GET_ORGANIZATION } from '../../../index'
 
 export const GET_ALL_PERSONS = gql`
   query getPersons {
@@ -63,7 +62,13 @@ const MERGE_ORGANIZATION_PERSON = gql`
   }
 `
 
-const AddPerson = props => {
+type TAddPerson = {
+  organizationId: string
+  organization: Organization
+  removeOrganizationPerson: MutationFunction
+}
+
+const AddPerson: React.FC<TAddPerson> = props => {
   const { organizationId, organization, removeOrganizationPerson } = props
 
   const { enqueueSnackbar } = useSnackbar()
@@ -87,35 +92,35 @@ const AddPerson = props => {
   })
 
   const [mergeOrganizationPerson] = useMutation(MERGE_ORGANIZATION_PERSON, {
-    update(cache, { data: { organizationPerson } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_ORGANIZATION,
-          variables: {
-            organizationId,
-          },
-        })
-        const existingPersons = queryResult?.organization[0].persons
-        const newPerson = organizationPerson.to
-        const updatedResult = {
-          organization: [
-            {
-              ...queryResult?.organization[0],
-              persons: [newPerson, ...existingPersons],
-            },
-          ],
-        }
-        cache.writeQuery({
-          query: GET_ORGANIZATION,
-          data: updatedResult,
-          variables: {
-            organizationId,
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
+    // update(cache, { data: { organizationPerson } }) {
+    //   try {
+    //     const queryResult = cache.readQuery({
+    //       query: GET_ORGANIZATION,
+    //       variables: {
+    //         organizationId,
+    //       },
+    //     })
+    //     const existingPersons = queryResult?.organization[0].persons
+    //     const newPerson = organizationPerson.to
+    //     const updatedResult = {
+    //       organization: [
+    //         {
+    //           ...queryResult?.organization[0],
+    //           persons: [newPerson, ...existingPersons],
+    //         },
+    //       ],
+    //     }
+    //     cache.writeQuery({
+    //       query: GET_ORGANIZATION,
+    //       data: updatedResult,
+    //       variables: {
+    //         organizationId,
+    //       },
+    //     })
+    //   } catch (error) {
+    //     console.error(error)
+    //   }
+    // },
     onCompleted: data => {
       enqueueSnackbar(
         `${data.organizationPerson.to.name} added to ${organization.name}!`,
@@ -139,7 +144,7 @@ const AddPerson = props => {
     setOpenAddPerson(true)
   }, [])
 
-  const allPersonsColumns = useMemo(
+  const allPersonsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -247,7 +252,15 @@ const AddPerson = props => {
   )
 }
 
-const ToggleNewPerson = props => {
+type TToggleNew = {
+  personId: string
+  organizationId: string
+  organization: Organization
+  remove: MutationFunction
+  merge: MutationFunction
+}
+
+const ToggleNewPerson: React.FC<TToggleNew> = props => {
   const { personId, organizationId, organization, remove, merge } = props
   const [isMember, setIsMember] = useState(
     !!organization.persons.find(p => p.personId === personId)
@@ -274,21 +287,8 @@ const ToggleNewPerson = props => {
       }}
       name="organizationMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
-
-ToggleNewPerson.propTypes = {
-  personId: PropTypes.string,
-  organizationId: PropTypes.string,
-  organization: PropTypes.object,
-  removeOrganizationPerson: PropTypes.func,
-  mergeOrganizationPerson: PropTypes.func,
-}
-
-AddPerson.propTypes = {
-  organizationId: PropTypes.string,
 }
 
 export { AddPerson }

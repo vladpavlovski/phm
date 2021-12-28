@@ -5,11 +5,10 @@ import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import { gql, useLazyQuery } from '@apollo/client'
 import { useParams, useHistory } from 'react-router-dom'
-import * as ROUTES from '../../../../router/routes'
-import LayoutContext from '../../../../context/layout'
-import OrganizationContext from '../../../../context/organization'
-import { Loader } from '../../../../components/Loader'
-import { Error } from '../../../../components/Error'
+import * as ROUTES from 'router/routes'
+import LayoutContext from 'context/layout'
+import OrganizationContext from 'context/organization'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../commonComponents/styled'
 
 const GET_ORGANIZATIONS = gql`
@@ -23,10 +22,14 @@ const GET_ORGANIZATIONS = gql`
   }
 `
 
-const OrganizationDashboard = () => {
+type TParams = {
+  organizationSlug: string
+}
+
+const OrganizationDashboard: React.FC = () => {
   const theme = useTheme()
   const history = useHistory()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const { setBarTitle } = useContext(LayoutContext)
   const { organizationData, setOrganizationData } =
     useContext(OrganizationContext)
@@ -52,7 +55,7 @@ const OrganizationDashboard = () => {
   useEffect(() => {
     if (
       organizationData?.organizationId &&
-      organizationData?.organizationSlug === organizationSlug
+      organizationData?.urlSlug === organizationSlug
     ) {
       setBarTitle(organizationData?.name)
     } else {
@@ -67,9 +70,9 @@ const OrganizationDashboard = () => {
 
   return (
     <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {organizationData?.organizationId && !queryLoading && !queryError && (
+      {queryLoading && <Loader />}
+      <Error message={queryError?.message} />
+      {organizationData?.organizationId && (
         <>
           <Grid container spacing={4}>
             <Grid item xs={12} md={8} lg={7}>

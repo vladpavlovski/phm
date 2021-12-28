@@ -269,6 +269,8 @@ export type Organization = {
   urlSlug: string
   ownerId: string
   competitions: Competition[]
+  persons: Person[]
+  occupations: Occupation
 }
 
 export type Occupation = {

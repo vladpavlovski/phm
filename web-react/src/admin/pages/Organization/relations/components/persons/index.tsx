@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
@@ -12,30 +11,26 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
+import { getAdminOrgPersonRoute } from 'router/routes'
+import { LinkButton } from 'components'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPersonRoute } from '../../../../../../router/routes'
-import { LinkButton } from '../../../../../../components/LinkButton'
-// import { Loader } from '../../../../../../components/Loader'
-// import { Error } from '../../../../../../components/Error'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-} from '../../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray, createCtx } from 'utils'
 import { AddPerson } from './AddPerson'
 import {
   SetPersonOccupation,
   PersonOccupationDialog,
 } from './SetPersonOccupation'
-import { OrganizationPersonsProvider } from './context/Provider'
-import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
+// import { OrganizationPersonsProvider } from './context/Provider'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 
-import { GET_ORGANIZATION } from '../../../index'
+// import { GET_ORGANIZATION } from '../../../index'
+
+import { Organization, Person } from 'utils/types'
 
 const REMOVE_ORGANIZATION_PERSON = gql`
   mutation removeOrganizationPerson($organizationId: ID!, $personId: ID!) {
@@ -53,44 +48,64 @@ const REMOVE_ORGANIZATION_PERSON = gql`
   }
 `
 
-const Persons = props => {
+type TOrganizationPersons = {
+  personOccupationDialogOpen: boolean
+  personData: Person | null
+}
+
+const [ctx, OrganizationPersonsProvider] = createCtx<TOrganizationPersons>({
+  personOccupationDialogOpen: false,
+  personData: null as unknown as Person,
+})
+export const OrganizationPersonsContext = ctx
+
+type TParams = {
+  organizationSlug: string
+}
+
+type TRelations = {
+  organizationId: string
+  organization: Organization
+}
+
+const Persons: React.FC<TRelations> = props => {
   const { organizationId, organization } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const [removeOrganizationPerson, { loading: mutationLoadingRemove }] =
     useMutation(REMOVE_ORGANIZATION_PERSON, {
-      update(cache, { data: { organizationPerson } }) {
-        try {
-          const queryResult = cache.readQuery({
-            query: GET_ORGANIZATION,
-            variables: {
-              organizationId,
-            },
-          })
-          const updatedPersons = queryResult.organization[0].persons.filter(
-            p => p.personId !== organizationPerson.to.personId
-          )
+      // update(cache, { data: { organizationPerson } }) {
+      //   try {
+      //     const queryResult = cache.readQuery({
+      //       query: GET_ORGANIZATION,
+      //       variables: {
+      //         organizationId,
+      //       },
+      //     })
+      //     const updatedPersons = queryResult.organization[0].persons.filter(
+      //       p => p.personId !== organizationPerson.to.personId
+      //     )
 
-          const updatedResult = {
-            organization: [
-              {
-                ...queryResult.organization[0],
-                persons: updatedPersons,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_ORGANIZATION,
-            data: updatedResult,
-            variables: {
-              organizationId,
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
+      //     const updatedResult = {
+      //       organization: [
+      //         {
+      //           ...queryResult.organization[0],
+      //           persons: updatedPersons,
+      //         },
+      //       ],
+      //     }
+      //     cache.writeQuery({
+      //       query: GET_ORGANIZATION,
+      //       data: updatedResult,
+      //       variables: {
+      //         organizationId,
+      //       },
+      //     })
+      //   } catch (error) {
+      //     console.error(error)
+      //   }
+      // },
       onCompleted: data => {
         enqueueSnackbar(
           `${data.organizationPerson.to.name} removed from ${organization.name}!`,
@@ -107,7 +122,7 @@ const Persons = props => {
       },
     })
 
-  const organizationPersonsColumns = useMemo(
+  const organizationPersonsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'avatar',
@@ -176,8 +191,6 @@ const Persons = props => {
               text={'Remove'}
               textLoading={'Removing...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to remove person from the organization?'
               }
@@ -245,17 +258,10 @@ const Persons = props => {
             </>
           </AccordionDetails>
         </Accordion>
-        <PersonOccupationDialog
-          organizationId={organizationId}
-          organization={organization}
-        />
+        <PersonOccupationDialog organization={organization} />
       </OrganizationPersonsProvider>
     </>
   )
-}
-
-Persons.propTypes = {
-  organizationId: PropTypes.string,
 }
 
 export { Persons }
