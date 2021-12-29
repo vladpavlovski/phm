@@ -1,9 +1,5 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
-
-// import { useParams } from 'react-router-dom'
-
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -13,25 +9,20 @@ import GavelIcon from '@mui/icons-material/Gavel'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { getAdminOrgRulePackRoute } from 'router/routes'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-// import { getAdminOrgRulePackRoute } from '../../../../../routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { LinkButton, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
+import { setIdFromEntityId } from 'utils'
+import { SystemSettings } from 'utils/types'
 export const GET_ALL_RULEPACKS = gql`
   query getRulePacks {
     rulePacks {
@@ -41,11 +32,14 @@ export const GET_ALL_RULEPACKS = gql`
   }
 `
 
-const RulePack = props => {
+type TRelations = {
+  systemSettingsId: string
+  systemSettings: SystemSettings
+  updateSystemSettings: MutationFunction
+}
+const RulePack: React.FC<TRelations> = props => {
   const { systemSettingsId, systemSettings, updateSystemSettings } = props
-
   const classes = useStyles()
-  // const { organizationSlug } = useParams()
   const [openAddSystemSettings, setOpenAddSystemSettings] =
     React.useState(false)
 
@@ -69,7 +63,7 @@ const RulePack = props => {
     setOpenAddSystemSettings(true)
   }, [])
 
-  const systemSettingsRulePackColumns = React.useMemo(
+  const systemSettingsRulePackColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -82,11 +76,11 @@ const RulePack = props => {
         headerName: 'Edit',
         width: 150,
         disableColumnMenu: true,
-        renderCell: () => {
+        renderCell: params => {
           return (
             <LinkButton
               startIcon={<GavelIcon />}
-              // to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
+              to={getAdminOrgRulePackRoute('phm', params.value)}
             >
               Rule Pack
             </LinkButton>
@@ -103,8 +97,6 @@ const RulePack = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to detach rulePack from System Settings?'
               }
@@ -141,7 +133,7 @@ const RulePack = props => {
     []
   )
 
-  const allRulePackColumns = React.useMemo(
+  const allRulePackColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -214,35 +206,31 @@ const RulePack = props => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllSystemSettingsLoading && !queryAllSystemSettingsError && (
-          <Loader />
+        {queryAllSystemSettingsLoading && <Loader />}
+
+        <Error message={queryAllSystemSettingsError?.message} />
+
+        {queryAllSystemSettingsData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add default rulePack to ${systemSettings?.name}`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allRulePackColumns}
+                  rows={setIdFromEntityId(
+                    queryAllSystemSettingsData.rulePacks,
+                    'rulePackId'
+                  )}
+                  disableSelectionOnClick
+                  loading={queryAllSystemSettingsLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllSystemSettingsError && !queryAllSystemSettingsLoading && (
-          <Error message={queryAllSystemSettingsError.message} />
-        )}
-        {queryAllSystemSettingsData &&
-          !queryAllSystemSettingsLoading &&
-          !queryAllSystemSettingsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add default rulePack to ${systemSettings?.name}`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allRulePackColumns}
-                    rows={setIdFromEntityId(
-                      queryAllSystemSettingsData.rulePacks,
-                      'rulePackId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllSystemSettingsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
@@ -257,75 +245,68 @@ const RulePack = props => {
   )
 }
 
-const ToggleNewRulePack = props => {
+type TToggleNew = {
+  systemSettingsId: string
+  rulePackId: string
+  systemSettings: SystemSettings
+  updateSystemSettings: MutationFunction
+}
+
+const ToggleNewRulePack: React.FC<TToggleNew> = React.memo(props => {
   const { systemSettingsId, rulePackId, systemSettings, updateSystemSettings } =
     props
   const [isMember, setIsMember] = React.useState(
     systemSettings?.rulePack?.rulePackId === rulePackId
   )
 
-  return (
-    (!systemSettings?.rulePack || isMember) && (
-      <Switch
-        checked={isMember}
-        onChange={() => {
-          isMember
-            ? updateSystemSettings({
-                variables: {
-                  where: {
-                    systemSettingsId,
-                  },
-                  update: {
-                    rulePack: {
-                      disconnect: {
-                        where: {
-                          node: {
-                            rulePackId,
-                          },
+  return !systemSettings?.rulePack || isMember ? (
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        isMember
+          ? updateSystemSettings({
+              variables: {
+                where: {
+                  systemSettingsId,
+                },
+                update: {
+                  rulePack: {
+                    disconnect: {
+                      where: {
+                        node: {
+                          rulePackId,
                         },
                       },
                     },
                   },
                 },
-              })
-            : updateSystemSettings({
-                variables: {
-                  where: {
-                    systemSettingsId,
-                  },
-                  update: {
-                    rulePack: {
-                      connect: {
-                        where: {
-                          node: { rulePackId },
-                        },
+              },
+            })
+          : updateSystemSettings({
+              variables: {
+                where: {
+                  systemSettingsId,
+                },
+                update: {
+                  rulePack: {
+                    connect: {
+                      where: {
+                        node: { rulePackId },
                       },
                     },
                   },
                 },
-              })
+              },
+            })
 
-          setIsMember(!isMember)
-        }}
-        name="rulePackMember"
-        color="primary"
-        label={isMember ? 'Guided' : 'Not Guided'}
-      />
-    )
+        setIsMember(!isMember)
+      }}
+      name="rulePackMember"
+      color="primary"
+    />
+  ) : (
+    <></>
   )
-}
-
-ToggleNewRulePack.propTypes = {
-  systemSettingsId: PropTypes.string,
-  rulePackId: PropTypes.string,
-  rulePack: PropTypes.object,
-  removeRulePackSystemSettings: PropTypes.func,
-  mergeRulePackSystemSettings: PropTypes.func,
-  loading: PropTypes.bool,
-}
-
-RulePack.propTypes = {
-  systemSettingsId: PropTypes.string,
-}
+})
 
 export { RulePack }

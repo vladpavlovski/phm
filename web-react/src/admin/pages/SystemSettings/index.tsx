@@ -5,17 +5,15 @@ import { useSnackbar } from 'notistack'
 import { Helmet } from 'react-helmet-async'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Container, Grid, Paper } from '@mui/material'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { RHFInput } from '../../../components/RHFInput'
-import { Title } from '../../../components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
-
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
+import { RHFInput, Error, Loader, Title } from 'components'
 
 import { Relations } from './relations'
 
@@ -48,14 +46,16 @@ const UPDATE_SYSTEM_SETTINGS = gql`
   }
 `
 
-const SystemSettings = () => {
+const SystemSettings: React.FC = () => {
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const systemSettingsId = useMemo(() => 'system-settings', [])
 
   const {
     loading: queryLoading,
-    data: queryData,
+    data: { systemSettings: [systemSettingsData] } = {
+      systemSettings: [],
+    },
     error: queryError,
   } = useQuery(GET_SYSTEM_SETTINGS, {
     variables: { where: { systemSettingsId } },
@@ -87,7 +87,7 @@ const SystemSettings = () => {
     },
   })
 
-  const systemSettingsData = queryData?.systemSettings?.[0]
+  // const systemSettingsData = queryData?.systemSettings?.[0]
 
   const { handleSubmit, control, errors, formState } = useForm({
     resolver: yupResolver(schema),
@@ -113,19 +113,12 @@ const SystemSettings = () => {
 
   return (
     <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {mutationErrorMerge && !mutationLoadingMerge && (
-        <Error message={mutationErrorMerge.message} />
-      )}
-      {!queryLoading && !queryError && !mutationErrorMerge && (
+      {queryLoading && <Loader />}
+      <Error message={queryError?.message || mutationErrorMerge?.message} />
+
+      {systemSettingsData && (
         <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
               <title>{systemSettingsData?.name || 'SystemSettings'}</title>
             </Helmet>
