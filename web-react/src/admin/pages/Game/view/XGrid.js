@@ -14,7 +14,7 @@ import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import ButtonGroup from '@mui/material/ButtonGroup'
 // import DatePicker from '@mui/lab/DatePicker'
-
+import Link from '@mui/material/Link'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import StarIcon from '@mui/icons-material/Star'
@@ -123,11 +123,14 @@ export const GET_GAMES = gql`
         hostFaceOffs
         guestFaceOffs
       }
+      org {
+        urlGameLinks
+      }
     }
   }
 `
 
-export const getColumns = organizationSlug => [
+export const getColumns = (organizationSlug, organizationUrlGameLinks) => [
   {
     field: 'gameId',
     headerName: 'Edit',
@@ -215,19 +218,30 @@ export const getColumns = organizationSlug => [
       const goalsGuest = params?.row?.gameEventsSimple?.filter(
         ges => ges?.team?.teamId === teamGuest?.teamId
       )?.length
-
       return (
-        <div
-          style={{
-            width: '100%',
-            textAlign: 'center',
-            fontFamily: 'Digital Numbers Regular',
-          }}
+        <Link
+          underline="none"
+          color="inherit"
+          target="_blank"
+          rel="noopener"
+          href={
+            params?.row?.org?.urlGameLinks
+              ? `${params?.row?.org?.urlGameLinks}${params?.row?.gameId}`
+              : ''
+          }
         >
-          <div style={{ fontSize: '1.8rem' }}>
-            <span>{goalsHost}</span>:<span>{goalsGuest}</span>
+          <div
+            style={{
+              width: '100%',
+              textAlign: 'center',
+              fontFamily: 'Digital Numbers Regular',
+            }}
+          >
+            <div style={{ fontSize: '1.8rem' }}>
+              <span>{goalsHost}</span>:<span>{goalsGuest}</span>
+            </div>
           </div>
-        </div>
+        </Link>
       )
     },
   },

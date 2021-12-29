@@ -49,6 +49,7 @@ export const GET_ORGANIZATION = gql`
       urlSlug
       ownerId
       foundDate
+      urlGameLinks
       persons {
         personId
         firstName
@@ -80,6 +81,7 @@ const CREATE_ORGANIZATION = gql`
         legalName
         logo
         urlSlug
+        urlGameLinks
         ownerId
         foundDate
       }
@@ -102,6 +104,7 @@ const UPDATE_ORGANIZATION = gql`
         legalName
         logo
         urlSlug
+        urlGameLinks
         ownerId
         foundDate
       }
@@ -131,7 +134,7 @@ const Organization: React.FC = () => {
   const { setOrganizationData } = useContext(OrganizationContext)
 
   const {
-    data: queryData,
+    data: { organizations: [orgData] } = { organizations: [] },
     loading: queryLoading,
     error: queryError,
   } = useQuery(GET_ORGANIZATION, {
@@ -176,12 +179,15 @@ const Organization: React.FC = () => {
 
   const [deleteOrganization, { loading: loadingDelete, error: errorDelete }] =
     useMutation(DELETE_ORGANIZATION, {
+      variables: {
+        where: {
+          organizationId: orgData?.organizationId,
+        },
+      },
       onCompleted: () => {
         history.push(ADMIN_ORGANIZATIONS)
       },
     })
-
-  const orgData = queryData?.organizations?.[0]
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
@@ -314,13 +320,7 @@ const Organization: React.FC = () => {
                       <ButtonDelete
                         loading={loadingDelete}
                         onClick={() => {
-                          deleteOrganization({
-                            variables: {
-                              where: {
-                                organizationId: orgData.organizationId,
-                              },
-                            },
-                          })
+                          deleteOrganization()
                         }}
                       />
                     )}
@@ -364,37 +364,37 @@ const Organization: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.short}
+                      defaultValue={orgData?.short}
                       control={control}
                       name="short"
                       label="Short"
                       fullWidth
                       variant="standard"
-                      error={errors.short}
+                      error={errors?.short}
                     />
                   </Grid>
 
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.urlSlug}
+                      defaultValue={orgData?.urlSlug}
                       control={control}
                       name="urlSlug"
                       label="Url Slug"
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.urlSlug}
+                      error={errors?.urlSlug}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.status}
+                      defaultValue={orgData?.status}
                       control={control}
                       name="status"
                       label="Status"
                       fullWidth
                       variant="standard"
-                      error={errors.status}
+                      error={errors?.status}
                     />
                   </Grid>
 
@@ -412,6 +412,17 @@ const Organization: React.FC = () => {
                       views={['year', 'month', 'day']}
                       defaultValue={orgData?.foundDate}
                       error={errors?.foundDate}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={orgData?.urlGameLinks}
+                      control={control}
+                      name="urlGameLinks"
+                      label="Url Game Links"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.urlSlug}
                     />
                   </Grid>
                 </Grid>

@@ -8,4 +8,5 @@ export const schema = object().shape({
   legalName: string(),
   foundDate: date().nullable(),
   urlSlug: string().required('Url slug is required'),
+  urlGameLinks: string(),
 })

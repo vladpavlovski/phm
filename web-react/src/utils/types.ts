@@ -260,6 +260,7 @@ export type Organization = {
   legalName: string
   logo: string
   urlSlug: string
+  urlGameLinks: string
   ownerId: string
   competitions: Competition[]
   persons: Person[]

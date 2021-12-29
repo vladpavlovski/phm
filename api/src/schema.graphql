@@ -1111,6 +1111,7 @@ type Organization {
   legalName: String
   logo: String
   urlSlug: String
+  urlGameLinks: String
   ownerId: ID
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
