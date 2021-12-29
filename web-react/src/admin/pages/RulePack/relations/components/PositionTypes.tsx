@@ -1,10 +1,9 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, number } from 'yup'
+import { object, string } from 'yup'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -14,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,62 +23,57 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
+import { RHFInput, Error, Loader } from 'components'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, showTimeAsMinutes } from '../../../../../utils'
-
-const GET_PERIODS = gql`
-  query getRulePack($where: PeriodWhere, $whereRulePack: RulePackWhere) {
-    periods(where: $where) {
-      periodId
+import { setIdFromEntityId } from 'utils'
+import { PositionType } from 'utils/types'
+const GET_POSITION_TYPES = gql`
+  query getRulePack($where: PositionTypeWhere) {
+    positionTypes(where: $where) {
+      positionTypeId
       name
-      code
-      duration
-      priority
-    }
-    rulePacks(where: $whereRulePack) {
-      name
+      short
+      description
     }
   }
 `
 
-const CREATE_PERIOD = gql`
-  mutation createPeriod($input: [PeriodCreateInput!]!) {
-    createPeriods(input: $input) {
-      periods {
-        periodId
+const CREATE_POSITION_TYPE = gql`
+  mutation createPositionType($input: [PositionTypeCreateInput!]!) {
+    createPositionTypes(input: $input) {
+      positionTypes {
+        positionTypeId
         name
-        code
-        duration
-        priority
+        short
+        description
       }
     }
   }
 `
 
-const UPDATE_PERIOD = gql`
-  mutation updatePeriod($where: PeriodWhere, $update: PeriodUpdateInput) {
-    updatePeriods(where: $where, update: $update) {
-      periods {
-        periodId
+const UPDATE_POSITION_TYPE = gql`
+  mutation updatePositionType(
+    $where: PositionTypeWhere
+    $update: PositionTypeUpdateInput
+  ) {
+    updatePositionTypes(where: $where, update: $update) {
+      positionTypes {
+        positionTypeId
         name
-        code
-        duration
-        priority
+        short
+        description
       }
     }
   }
 `
 
-const DELETE_PERIOD = gql`
-  mutation deletePeriod($where: PeriodWhere) {
-    deletePeriods(where: $where) {
+const DELETE_POSITION_TYPE = gql`
+  mutation deletePositionType($where: PositionTypeWhere) {
+    deletePositionTypes(where: $where) {
       nodesDeleted
     }
   }
@@ -87,17 +81,32 @@ const DELETE_PERIOD = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  code: string(),
-  duration: number().integer().positive().required('Duration is required'),
-  priority: number().integer().positive().required('Priority is required'),
+  description: string(),
+  short: string(),
 })
 
-const Periods = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  positionTypes: PositionType[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const PositionTypes: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<PositionType | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -108,10 +117,9 @@ const Periods = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PERIODS, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_POSITION_TYPES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
     fetchPolicy: 'cache-and-network',
   })
@@ -127,32 +135,29 @@ const Periods = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deletePeriod, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_PERIOD,
+  const [deletePositionType, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_POSITION_TYPE,
     {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_PERIODS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_POSITION_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.periods.filter(
-            p => p.periodId !== deleted.periodId
+          const updatedData = queryResult?.positionTypes?.filter(
+            p => p.positionTypeId !== formData.current?.positionTypeId
           )
 
           const updatedResult = {
-            periods: updatedData,
+            positionTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PERIODS,
+            query: GET_POSITION_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -160,7 +165,7 @@ const Periods = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`Period was deleted!`, {
+        enqueueSnackbar(`Position type was deleted!`, {
           variant: 'info',
         })
       },
@@ -173,7 +178,7 @@ const Periods = props => {
     }
   )
 
-  const rulePackPeriodsColumns = useMemo(
+  const rulePackPositionTypesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -181,37 +186,24 @@ const Periods = props => {
         width: 150,
       },
       {
-        field: 'code',
-        headerName: 'Code',
+        field: 'short',
+        headerName: 'Short',
         width: 100,
       },
       {
-        field: 'duration',
-        headerName: 'Duration',
-        width: 120,
-        valueFormatter: params => {
-          return showTimeAsMinutes(params.value)
-        },
-        valueGetter: params => {
-          return params.value
-        },
+        field: 'description',
+        headerName: 'Description',
+        width: 300,
       },
       {
-        field: 'priority',
-        headerName: 'Priority',
-        width: 100,
-        valueGetter: params => {
-          return params.value
-        },
-      },
-      {
-        field: 'periodId',
+        field: 'positionTypeId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
           return (
             <Button
+              type="button"
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
@@ -234,17 +226,15 @@ const Periods = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this period?'}
-              dialogDescription={'Period will be completely delete'}
-              dialogNegativeText={'No, keep period'}
-              dialogPositiveText={'Yes, delete period'}
+              dialogTitle={'Do you really want to delete this position type?'}
+              dialogDescription={'Position type will be completely delete'}
+              dialogNegativeText={'No, keep it'}
+              dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deletePeriod({
+                deletePositionType({
                   variables: {
-                    where: { periodId: params.row.periodId },
+                    where: { positionTypeId: params.row.positionTypeId },
                   },
                 })
               }}
@@ -260,34 +250,40 @@ const Periods = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="periods-content"
-        id="periods-header"
+        aria-controls="position-types-content"
+        id="position-types-header"
       >
-        <Typography className={classes.accordionFormTitle}>Periods</Typography>
+        <Typography className={classes.accordionFormTitle}>
+          Position Types
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
               <div />
               <div>
                 <Button
+                  type="button"
                   onClick={handleOpenDialog}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<CreateIcon />}
                 >
-                  Create
+                  Create Position
                 </Button>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackPeriodsColumns}
-                rows={setIdFromEntityId(queryData?.periods, 'periodId')}
+                columns={rulePackPositionTypesColumns}
+                rows={setIdFromEntityId(
+                  queryData?.positionTypes,
+                  'positionTypeId'
+                )}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -299,7 +295,6 @@ const Periods = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -309,37 +304,42 @@ const Periods = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: PositionType | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createPeriod, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_PERIOD,
+  const [createPositionType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_POSITION_TYPE,
     {
-      update(cache, { data: { createPeriods } }) {
+      update(cache, { data: { createPositionTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PERIODS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_POSITION_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createPeriods?.periods?.[0]
+          const newItem = createPositionTypes?.positionTypes?.[0]
 
-          const existingData = queryResult?.periods
+          const existingData = queryResult?.positionTypes || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            periods: updatedData,
+            positionTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PERIODS,
+            query: GET_POSITION_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -361,30 +361,29 @@ const FormDialog = props => {
     }
   )
 
-  const [updatePeriod, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_PERIOD,
+  const [updatePositionType, { loading: mutationLoadingMerge }] = useMutation(
+    UPDATE_POSITION_TYPE,
     {
-      update(cache, { data: { updatePeriods } }) {
+      update(cache, { data: { updatePositionTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PERIODS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_POSITION_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updatePeriods?.periods?.[0]
+          const newItem = updatePositionTypes?.positionTypes?.[0]
 
-          const existingData = queryResult?.periods
+          const existingData = queryResult?.positionTypes
           const updatedData = existingData?.map(ed =>
-            ed.periodId === newItem.periodId ? newItem : ed
+            ed.positionTypeId === newItem.positionTypeId ? newItem : ed
           )
           const updatedResult = {
-            periods: updatedData,
+            positionTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PERIODS,
+            query: GET_POSITION_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -407,31 +406,21 @@ const FormDialog = props => {
   )
 
   const onSubmit = useCallback(
-    dataToCheck => {
+    dataToSubmit => {
       try {
-        const { name, duration, code, priority } = dataToCheck
-
-        data?.periodId
-          ? updatePeriod({
+        data?.positionTypeId
+          ? updatePositionType({
               variables: {
                 where: {
-                  periodId: data?.periodId,
+                  positionTypeId: data?.positionTypeId,
                 },
-                update: {
-                  name,
-                  code,
-                  duration: `${duration}` || null,
-                  priority: `${priority}` || null,
-                },
+                update: dataToSubmit,
               },
             })
-          : createPeriod({
+          : createPositionType({
               variables: {
                 input: {
-                  name,
-                  code,
-                  duration: `${duration}` || null,
-                  priority: `${priority}` || null,
+                  ...dataToSubmit,
                   rulePack: {
                     connect: {
                       where: {
@@ -458,13 +447,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new period to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new positionType`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -473,7 +457,7 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.name}
+                      defaultValue={data?.name || ''}
                       name="name"
                       label="Name"
                       required
@@ -485,36 +469,23 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.code}
-                      name="code"
-                      label="Code"
+                      defaultValue={data?.short || ''}
+                      name="short"
+                      label="Short"
                       fullWidth
                       variant="standard"
-                      error={errors?.code}
+                      error={errors?.short}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.duration}
-                      name="duration"
-                      label="Duration in minutes"
-                      required
+                      defaultValue={data?.description || ''}
+                      name="description"
+                      label="Description"
                       fullWidth
                       variant="standard"
-                      error={errors?.duration}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.priority}
-                      name="priority"
-                      label="Priority"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.priority}
+                      error={errors?.description}
                     />
                   </Grid>
                 </Grid>
@@ -534,9 +505,9 @@ const FormDialog = props => {
           </Button>
           <LoadingButton
             type="submit"
-            loading={mutationLoadingCreate || mutationLoadingUpdate}
+            loading={mutationLoadingCreate || mutationLoadingMerge}
           >
-            {mutationLoadingCreate || mutationLoadingUpdate
+            {mutationLoadingCreate || mutationLoadingMerge
               ? 'Saving...'
               : 'Save'}
           </LoadingButton>
@@ -544,10 +515,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-Periods.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { Periods }
+export { PositionTypes }

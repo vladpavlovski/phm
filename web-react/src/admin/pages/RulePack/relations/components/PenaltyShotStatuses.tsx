@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+
 import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -14,7 +14,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,34 +24,29 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-const GET_SHOT_TARGETS = gql`
-  query getRulePack($where: ShotTargetWhere, $whereRulePack: RulePackWhere) {
-    shotTargets(where: $where) {
-      shotTargetId
+import { setIdFromEntityId } from 'utils'
+import { PenaltyShotStatus } from 'utils/types'
+const GET_PENALTY_SHOT_STATUSES = gql`
+  query getRulePack($where: PenaltyShotStatusWhere) {
+    penaltyShotStatuses(where: $where) {
+      penaltyShotStatusId
       name
       code
     }
-    rulePacks(where: $whereRulePack) {
-      name
-    }
   }
 `
 
-const CREATE_SHOT_TARGET = gql`
-  mutation createShotTarget($input: [ShotTargetCreateInput!]!) {
-    createShotTargets(input: $input) {
-      shotTargets {
-        shotTargetId
+const CREATE_PENALTY_SHOT_STATUS = gql`
+  mutation createPenaltyShotStatus($input: [PenaltyShotStatusCreateInput!]!) {
+    createPenaltyShotStatuses(input: $input) {
+      penaltyShotStatuses {
+        penaltyShotStatusId
         name
         code
       }
@@ -59,14 +54,14 @@ const CREATE_SHOT_TARGET = gql`
   }
 `
 
-const UPDATE_SHOT_TARGET = gql`
-  mutation updateShotTarget(
-    $where: ShotTargetWhere
-    $update: ShotTargetUpdateInput
+const UPDATE_PENALTY_SHOT_STATUS = gql`
+  mutation updatePenaltyShotStatus(
+    $where: PenaltyShotStatusWhere
+    $update: PenaltyShotStatusUpdateInput
   ) {
-    updateShotTargets(where: $where, update: $update) {
-      shotTargets {
-        shotTargetId
+    updatePenaltyShotStatuses(where: $where, update: $update) {
+      penaltyShotStatuses {
+        penaltyShotStatusId
         name
         code
       }
@@ -74,9 +69,9 @@ const UPDATE_SHOT_TARGET = gql`
   }
 `
 
-const DELETE_SHOT_TARGET = gql`
-  mutation deleteShotTarget($where: ShotTargetWhere) {
-    deleteShotTargets(where: $where) {
+const DELETE_PENALTY_SHOT_STATUS = gql`
+  mutation deletePenaltyShotStatus($where: PenaltyShotStatusWhere) {
+    deletePenaltyShotStatuses(where: $where) {
       nodesDeleted
     }
   }
@@ -86,13 +81,27 @@ const schema = object().shape({
   name: string().required('Name is required'),
   code: string().required('Code is required'),
 })
+type TRelations = {
+  rulePackId: string
+}
 
-const ShotTargets = props => {
+type TQueryTypeData = {
+  penaltyShotStatuses: PenaltyShotStatus[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+const PenaltyShotStatuses: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<PenaltyShotStatus | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -100,13 +109,13 @@ const ShotTargets = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SHOT_TARGETS, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_PENALTY_SHOT_STATUSES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -121,32 +130,28 @@ const ShotTargets = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deleteShotTarget, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_SHOT_TARGET,
-    {
+  const [deletePenaltyShotStatus, { loading: mutationLoadingRemove }] =
+    useMutation(DELETE_PENALTY_SHOT_STATUS, {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TARGETS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PENALTY_SHOT_STATUSES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.shotTargets.filter(
-            p => p.shotTargetId !== deleted.shotTargetId
+          const updatedData = queryResult?.penaltyShotStatuses?.filter(
+            p => p.penaltyShotStatusId !== formData.current?.penaltyShotStatusId
           )
 
           const updatedResult = {
-            shotTargets: updatedData,
+            penaltyShotStatuses: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TARGETS,
+            query: GET_PENALTY_SHOT_STATUSES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -154,7 +159,7 @@ const ShotTargets = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`ShotTarget was deleted!`, {
+        enqueueSnackbar(`PenaltyShotStatus was deleted!`, {
           variant: 'info',
         })
       },
@@ -164,10 +169,9 @@ const ShotTargets = props => {
         })
         console.error(error)
       },
-    }
-  )
+    })
 
-  const rulePackShotTargetsColumns = useMemo(
+  const rulePackPenaltyShotStatusesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -181,7 +185,7 @@ const ShotTargets = props => {
         width: 100,
       },
       {
-        field: 'shotTargetId',
+        field: 'penaltyShotStatusId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -210,17 +214,21 @@ const ShotTargets = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this shot target?'}
-              dialogDescription={'Shot target will be completely delete'}
+              dialogTitle={
+                'Do you really want to delete this penalty shot status?'
+              }
+              dialogDescription={
+                'Penalty shot status will be completely delete'
+              }
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deleteShotTarget({
+                deletePenaltyShotStatus({
                   variables: {
-                    where: { shotTargetId: params.row.shotTargetId },
+                    where: {
+                      penaltyShotStatusId: params.row.penaltyShotStatusId,
+                    },
                   },
                 })
               }}
@@ -236,11 +244,11 @@ const ShotTargets = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="shot-targets-content"
-        id="shot-targets-header"
+        aria-controls="penalty-shot-statuses-content"
+        id="penalty-shot-statuses-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Shot Targets
+          Penalty Shot Status
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -264,8 +272,11 @@ const ShotTargets = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackShotTargetsColumns}
-                rows={setIdFromEntityId(queryData?.shotTargets, 'shotTargetId')}
+                columns={rulePackPenaltyShotStatusesColumns}
+                rows={setIdFromEntityId(
+                  queryData?.penaltyShotStatuses,
+                  'penaltyShotStatusId'
+                )}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -277,7 +288,6 @@ const ShotTargets = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -287,37 +297,41 @@ const ShotTargets = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: PenaltyShotStatus | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createShotTarget, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_SHOT_TARGET,
-    {
-      update(cache, { data: { createShotTargets } }) {
+  const [createPenaltyShotStatus, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_PENALTY_SHOT_STATUS, {
+      update(cache, { data: { createPenaltyShotStatuses } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TARGETS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PENALTY_SHOT_STATUSES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createShotTargets?.shotTargets?.[0]
+          const newItem = createPenaltyShotStatuses?.penaltyShotStatuses?.[0]
 
-          const existingData = queryResult?.shotTargets
+          const existingData = queryResult?.penaltyShotStatuses || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            shotTargets: updatedData,
+            penaltyShotStatuses: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TARGETS,
+            query: GET_PENALTY_SHOT_STATUSES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -336,33 +350,32 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    }
-  )
+    })
 
-  const [updateShotTarget, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_SHOT_TARGET,
-    {
-      update(cache, { data: { updateShotTargets } }) {
+  const [updatePenaltyShotStatus, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_PENALTY_SHOT_STATUS, {
+      update(cache, { data: { updatePenaltyShotStatuses } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TARGETS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PENALTY_SHOT_STATUSES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updateShotTargets?.shotTargets?.[0]
+          const newItem = updatePenaltyShotStatuses?.penaltyShotStatuses?.[0]
 
-          const existingData = queryResult?.shotTargets
+          const existingData = queryResult?.penaltyShotStatuses || []
           const updatedData = existingData?.map(ed =>
-            ed.shotTargetId === newItem.shotTargetId ? newItem : ed
+            ed.penaltyShotStatusId === newItem.penaltyShotStatusId
+              ? newItem
+              : ed
           )
           const updatedResult = {
-            shotTargets: updatedData,
+            penaltyShotStatuses: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TARGETS,
+            query: GET_PENALTY_SHOT_STATUSES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -381,19 +394,17 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    }
-  )
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
         const { name, code } = dataToCheck
-
-        data?.shotTargetId
-          ? updateShotTarget({
+        data?.penaltyShotStatusId
+          ? updatePenaltyShotStatus({
               variables: {
                 where: {
-                  shotTargetId: data?.shotTargetId,
+                  penaltyShotStatusId: data?.penaltyShotStatusId,
                 },
                 update: {
                   name,
@@ -401,7 +412,7 @@ const FormDialog = props => {
                 },
               },
             })
-          : createShotTarget({
+          : createPenaltyShotStatus({
               variables: {
                 input: {
                   name,
@@ -433,13 +444,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new shot target to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new penalty shot status`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -496,10 +502,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-ShotTargets.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { ShotTargets }
+export { PenaltyShotStatuses }

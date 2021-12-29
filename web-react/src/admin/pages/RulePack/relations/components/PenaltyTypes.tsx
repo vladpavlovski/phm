@@ -1,6 +1,11 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  MutationFunction,
+} from '@apollo/client'
+
 import { useSnackbar } from 'notistack'
 
 import { useForm } from 'react-hook-form'
@@ -15,7 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,22 +29,16 @@ import Button from '@mui/material/Button'
 
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import {
-  setIdFromEntityId,
-  showTimeAsHms,
-  getXGridValueFromArray,
-} from '../../../../../utils'
-
+import { setIdFromEntityId, showTimeAsHms, getXGridValueFromArray } from 'utils'
+import { PenaltyType, PenaltySubType } from 'utils/types'
 const GET_PENALTY_TYPES = gql`
-  query getRulePack($where: PenaltyTypeWhere, $whereRulePack: RulePackWhere) {
+  query getRulePack($where: PenaltyTypeWhere) {
     penaltyTypes(where: $where) {
       penaltyTypeId
       name
@@ -52,9 +51,6 @@ const GET_PENALTY_TYPES = gql`
         code
         priority
       }
-    }
-    rulePacks(where: $whereRulePack) {
-      name
     }
   }
 `
@@ -131,13 +127,28 @@ const schemaSubType = object().shape({
   code: string().required('Code is required'),
   priority: number().integer().positive(),
 })
+type TRelations = {
+  rulePackId: string
+}
 
-const PenaltyTypes = props => {
+type TQueryTypeData = {
+  penaltyTypes: PenaltyType[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const PenaltyTypes: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<PenaltyType | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -149,10 +160,9 @@ const PenaltyTypes = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PENALTY_TYPES, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_PENALTY_TYPES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -172,28 +182,24 @@ const PenaltyTypes = props => {
     {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_PENALTY_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
           const updatedData = queryResult?.penaltyTypes?.filter(
-            p => p.penaltyTypeId !== deleted.penaltyTypeId
+            p => p.penaltyTypeId !== formData.current?.penaltyTypeId
           )
 
           const updatedResult = {
             penaltyTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -214,7 +220,7 @@ const PenaltyTypes = props => {
     }
   )
 
-  const rulePackPenaltyTypesColumns = useMemo(
+  const rulePackPenaltyTypesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -237,7 +243,7 @@ const PenaltyTypes = props => {
         headerName: 'Duration',
         width: 150,
         valueFormatter: params => {
-          return showTimeAsHms(params.value)
+          return showTimeAsHms(params.value as number)
         },
       },
       {
@@ -278,8 +284,6 @@ const PenaltyTypes = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
               dialogTitle={'Do you really want to delete this penalty type?'}
               dialogDescription={'Penalty type will be completely delete'}
               dialogNegativeText={'No, keep it'}
@@ -312,8 +316,8 @@ const PenaltyTypes = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -348,22 +352,30 @@ const PenaltyTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={queryData?.penaltyTypes?.find(
-          gt => gt.penaltyTypeId === formData.current
-        )}
+        data={
+          queryData?.penaltyTypes?.find(
+            gt => gt.penaltyTypeId === formData.current?.penaltyTypeId
+          ) || null
+        }
       />
     </Accordion>
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: PenaltyType | null
+}
+
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
   const [newSubType, setNewSubType] = useState(false)
-  const classes = useStyles()
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
@@ -375,27 +387,24 @@ const FormDialog = props => {
     {
       update(cache, { data: { createPenaltyTypes } }) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_PENALTY_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
           const newItem = createPenaltyTypes?.penaltyTypes?.[0]
 
-          const existingData = queryResult?.penaltyTypes
+          const existingData = queryResult?.penaltyTypes || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
             penaltyTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -419,30 +428,27 @@ const FormDialog = props => {
     {
       update(cache, { data: { updatePenaltyTypes } }) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_PENALTY_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
           const newItem = updatePenaltyTypes?.penaltyTypes?.[0]
 
-          const existingData = queryResult?.penaltyTypes
+          const existingData = queryResult?.penaltyTypes || []
           const updatedData = existingData?.map(ed =>
             ed.penaltyTypeId === newItem.penaltyTypeId ? newItem : ed
           )
           const updatedResult = {
             penaltyTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
           }
           cache.writeQuery({
             query: GET_PENALTY_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -513,14 +519,9 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`Add new penalty type to ${rulePack?.name}`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`Add new penalty type`}</DialogTitle>
       <DialogContent>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className={classes.form}
-          noValidate
-          autoComplete="off"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
           <Grid container spacing={2}>
             <Grid item xs={12} sm={3} md={3} lg={3}>
               <RHFInput
@@ -576,7 +577,6 @@ const FormDialog = props => {
           {data?.subTypes?.map(st => (
             <SubType
               key={st.penaltySubTypeId}
-              rulePack={rulePack}
               rulePackId={rulePackId}
               penaltyTypeId={data?.penaltyTypeId}
               data={st}
@@ -588,14 +588,14 @@ const FormDialog = props => {
         <div style={{ margin: '2rem 0' }}>
           {data?.penaltyTypeId && newSubType ? (
             <SubType
-              rulePack={rulePack}
               rulePackId={rulePackId}
               penaltyTypeId={data?.penaltyTypeId}
               data={{
-                penaltySubTypeId: null,
+                penaltySubTypeId: '',
                 name: '',
                 code: '',
-                priority: '',
+                priority: 0,
+                duration: 0,
               }}
               updatePenaltyType={updatePenaltyType}
               mutationLoadingUpdate={mutationLoadingUpdate}
@@ -637,9 +637,17 @@ const FormDialog = props => {
       </DialogActions>
     </Dialog>
   )
+})
+
+type TSubFormDialog = {
+  rulePackId: string
+  penaltyTypeId: string
+  mutationLoadingUpdate: boolean
+  updatePenaltyType: MutationFunction
+  data: PenaltySubType | null
 }
 
-const SubType = props => {
+const SubType: React.FC<TSubFormDialog> = React.memo(props => {
   const {
     rulePackId,
     penaltyTypeId,
@@ -647,7 +655,7 @@ const SubType = props => {
     updatePenaltyType,
     mutationLoadingUpdate,
   } = props
-  const classes = useStyles()
+
   const { enqueueSnackbar } = useSnackbar()
 
   const penaltySubTypeIdDelete = React.useRef(data?.penaltySubTypeId)
@@ -665,34 +673,31 @@ const SubType = props => {
     },
     update(cache) {
       try {
-        const queryResult = cache.readQuery({
+        const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
           query: GET_PENALTY_TYPES,
           variables: {
             where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
           },
         })
 
-        const penaltyType = queryResult.penaltyTypes.find(
+        const penaltyType = queryResult?.penaltyTypes?.find(
           gt => gt.penaltyTypeId === penaltyTypeId
         )
 
-        const updatedData = penaltyType.subTypes.filter(
+        const updatedData = penaltyType?.subTypes?.filter(
           p => p.penaltySubTypeId !== penaltySubTypeIdDelete.current
         )
 
         const updatedResult = {
           penaltyTypes: [
-            ...queryResult.penaltyTypes.filter(
+            ...(queryResult?.penaltyTypes?.filter(
               gt => gt.penaltyTypeId !== penaltyTypeId
-            ),
+            ) || []),
             {
               ...penaltyType,
               subTypes: updatedData,
             },
           ],
-
-          rulePacks: queryResult?.rulePacks,
         }
 
         cache.writeQuery({
@@ -700,7 +705,6 @@ const SubType = props => {
           data: updatedResult,
           variables: {
             where: { rulePack: { rulePackId } },
-            whereRulePack: { rulePackId },
           },
         })
       } catch (error) {
@@ -762,12 +766,7 @@ const SubType = props => {
   )
 
   return (
-    <form
-      onSubmit={null}
-      className={classes.form}
-      noValidate
-      autoComplete="off"
-    >
+    <form noValidate autoComplete="off">
       <Grid container spacing={2}>
         <Grid item xs={12} sm={4} md={4} lg={4}>
           <RHFInput
@@ -830,10 +829,6 @@ const SubType = props => {
       </Grid>
     </form>
   )
-}
-
-PenaltyTypes.propTypes = {
-  rulePackId: PropTypes.string,
-}
+})
 
 export { PenaltyTypes }

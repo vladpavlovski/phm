@@ -1,10 +1,9 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string } from 'yup'
+import { object, string, number } from 'yup'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -14,7 +13,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,65 +22,58 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
+import { RHFInput, Error, Loader } from 'components'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId, showTimeAsMinutes } from 'utils'
+import { Period } from 'utils/types'
 
-const GET_GAME_EVENT_LOCATIONS = gql`
-  query getRulePack(
-    $where: GameEventLocationWhere
-    $whereRulePack: RulePackWhere
-  ) {
-    gameEventLocations(where: $where) {
-      gameEventLocationId
+const GET_PERIODS = gql`
+  query getRulePack($where: PeriodWhere) {
+    periods(where: $where) {
+      periodId
       name
-      fieldX
-      fieldY
-    }
-    rulePacks(where: $whereRulePack) {
-      name
+      code
+      duration
+      priority
     }
   }
 `
 
-const CREATE_GAME_EVENT_LOCATION = gql`
-  mutation createGameEventLocation($input: [GameEventLocationCreateInput!]!) {
-    createGameEventLocations(input: $input) {
-      gameEventLocations {
-        gameEventLocationId
+const CREATE_PERIOD = gql`
+  mutation createPeriod($input: [PeriodCreateInput!]!) {
+    createPeriods(input: $input) {
+      periods {
+        periodId
         name
-        fieldX
-        fieldY
+        code
+        duration
+        priority
       }
     }
   }
 `
 
-const UPDATE_GAME_EVENT_LOCATION = gql`
-  mutation updateGameEventLocation(
-    $where: GameEventLocationWhere
-    $update: GameEventLocationUpdateInput
-  ) {
-    updateGameEventLocations(where: $where, update: $update) {
-      gameEventLocations {
-        gameEventLocationId
+const UPDATE_PERIOD = gql`
+  mutation updatePeriod($where: PeriodWhere, $update: PeriodUpdateInput) {
+    updatePeriods(where: $where, update: $update) {
+      periods {
+        periodId
         name
-        fieldX
-        fieldY
+        code
+        duration
+        priority
       }
     }
   }
 `
 
-const DELETE_GAME_EVENT_LOCATION = gql`
-  mutation deleteGameEventLocation($where: GameEventLocationWhere) {
-    deleteGameEventLocations(where: $where) {
+const DELETE_PERIOD = gql`
+  mutation deletePeriod($where: PeriodWhere) {
+    deletePeriods(where: $where) {
       nodesDeleted
     }
   }
@@ -90,16 +81,33 @@ const DELETE_GAME_EVENT_LOCATION = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  fieldX: string().required('Field X is required'),
-  fieldY: string().required('Field Y is required'),
+  code: string(),
+  duration: number().integer().positive().required('Duration is required'),
+  priority: number().integer().positive().required('Priority is required'),
 })
 
-const GameEventLocations = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  periods: Period[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const Periods: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<Period | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -107,15 +115,14 @@ const GameEventLocations = props => {
 
     formData.current = null
   }, [])
-
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_GAME_EVENT_LOCATIONS, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_PERIODS, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
+    fetchPolicy: 'cache-and-network',
   })
 
   const openAccordion = useCallback(() => {
@@ -129,27 +136,26 @@ const GameEventLocations = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deleteGameEventLocation, { loading: mutationLoadingRemove }] =
-    useMutation(DELETE_GAME_EVENT_LOCATION, {
+  const [deletePeriod, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_PERIOD,
+    {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PERIODS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.gameEventLocations.filter(
-            p => p.gameEventLocationId !== deleted.gameEventLocationId
+          const updatedData = queryResult?.periods?.filter(
+            p => p.periodId !== formData.current?.periodId
           )
 
           const updatedResult = {
-            gameEventLocations: updatedData,
+            periods: updatedData,
           }
           cache.writeQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+            query: GET_PERIODS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -161,7 +167,7 @@ const GameEventLocations = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`GameEventLocation was deleted!`, {
+        enqueueSnackbar(`Period was deleted!`, {
           variant: 'info',
         })
       },
@@ -171,28 +177,36 @@ const GameEventLocations = props => {
         })
         console.error(error)
       },
-    })
+    }
+  )
 
-  const rulePackGameEventLocationsColumns = useMemo(
+  const rulePackPeriodsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
         width: 150,
       },
-
       {
-        field: 'fieldX',
-        headerName: 'fieldX',
+        field: 'code',
+        headerName: 'Code',
         width: 100,
       },
       {
-        field: 'fieldY',
-        headerName: 'fieldY',
+        field: 'duration',
+        headerName: 'Duration',
+        width: 120,
+        valueFormatter: params => {
+          return showTimeAsMinutes(params.value as number)
+        },
+      },
+      {
+        field: 'priority',
+        headerName: 'Priority',
         width: 100,
       },
       {
-        field: 'gameEventLocationId',
+        field: 'periodId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -221,23 +235,15 @@ const GameEventLocations = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={
-                'Do you really want to delete this game event location?'
-              }
-              dialogDescription={
-                'Game event location will be completely delete'
-              }
-              dialogNegativeText={'No, keep it'}
-              dialogPositiveText={'Yes, delete it'}
+              dialogTitle={'Do you really want to delete this period?'}
+              dialogDescription={'Period will be completely delete'}
+              dialogNegativeText={'No, keep period'}
+              dialogPositiveText={'Yes, delete period'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deleteGameEventLocation({
+                deletePeriod({
                   variables: {
-                    where: {
-                      gameEventLocationId: params.row.gameEventLocationId,
-                    },
+                    where: { periodId: params.row.periodId },
                   },
                 })
               }}
@@ -253,16 +259,14 @@ const GameEventLocations = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="game-event-locations-content"
-        id="game-event-locations-header"
+        aria-controls="periods-content"
+        id="periods-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Game Event Locations{' '}
-        </Typography>
+        <Typography className={classes.accordionFormTitle}>Periods</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -281,11 +285,8 @@ const GameEventLocations = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackGameEventLocationsColumns}
-                rows={setIdFromEntityId(
-                  queryData?.gameEventLocations,
-                  'gameEventLocationId'
-                )}
+                columns={rulePackPeriodsColumns}
+                rows={setIdFromEntityId(queryData?.periods, 'periodId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -297,7 +298,6 @@ const GameEventLocations = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -307,36 +307,42 @@ const GameEventLocations = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: Period | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createGameEventLocation, { loading: mutationLoadingCreate }] =
-    useMutation(CREATE_GAME_EVENT_LOCATION, {
-      update(cache, { data: { createGameEventLocations } }) {
+  const [createPeriod, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_PERIOD,
+    {
+      update(cache, { data: { createPeriods } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PERIODS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createGameEventLocations?.gameEventLocations?.[0]
+          const newItem = createPeriods?.periods?.[0]
 
-          const existingData = queryResult?.gameEventLocations
+          const existingData = queryResult?.periods || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            gameEventLocations: updatedData,
+            periods: updatedData,
           }
           cache.writeQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+            query: GET_PERIODS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -355,33 +361,32 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    })
+    }
+  )
 
-  const [updateGameEventLocation, { loading: mutationLoadingUpdate }] =
-    useMutation(UPDATE_GAME_EVENT_LOCATION, {
-      update(cache, { data: { updateGameEventLocations } }) {
+  const [updatePeriod, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_PERIOD,
+    {
+      update(cache, { data: { updatePeriods } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_PERIODS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updateGameEventLocations?.gameEventLocations?.[0]
+          const newItem = updatePeriods?.periods?.[0]
 
-          const existingData = queryResult?.gameEventLocations
+          const existingData = queryResult?.periods
           const updatedData = existingData?.map(ed =>
-            ed.gameEventLocationId === newItem.gameEventLocationId
-              ? newItem
-              : ed
+            ed.periodId === newItem.periodId ? newItem : ed
           )
           const updatedResult = {
-            gameEventLocations: updatedData,
+            periods: updatedData,
           }
           cache.writeQuery({
-            query: GET_GAME_EVENT_LOCATIONS,
+            query: GET_PERIODS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -400,33 +405,35 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    })
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, fieldX, fieldY } = dataToCheck
+        const { name, duration, code, priority } = dataToCheck
 
-        data?.gameEventLocationId
-          ? updateGameEventLocation({
+        data?.periodId
+          ? updatePeriod({
               variables: {
                 where: {
-                  gameEventLocationId: data?.gameEventLocationId,
+                  periodId: data?.periodId,
                 },
                 update: {
                   name,
-                  fieldX,
-                  fieldY,
+                  code,
+                  duration: `${duration}` || null,
+                  priority: `${priority}` || null,
                 },
               },
             })
-          : createGameEventLocation({
+          : createPeriod({
               variables: {
                 input: {
                   name,
-                  fieldX,
-                  fieldY,
-
+                  code,
+                  duration: `${duration}` || null,
+                  priority: `${priority}` || null,
                   rulePack: {
                     connect: {
                       where: {
@@ -453,22 +460,17 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new game event location to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new period`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.name || ''}
+                      defaultValue={data?.name}
                       name="name"
                       label="Name"
                       required
@@ -480,25 +482,36 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.fieldX || ''}
-                      name="fieldX"
-                      label="Field X"
-                      required
+                      defaultValue={data?.code}
+                      name="code"
+                      label="Code"
                       fullWidth
                       variant="standard"
-                      error={errors?.fieldX}
+                      error={errors?.code}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.fieldY || ''}
-                      name="fieldY"
-                      label="Field Y"
+                      defaultValue={data?.duration}
+                      name="duration"
+                      label="Duration in minutes"
                       required
                       fullWidth
                       variant="standard"
-                      error={errors?.fieldY}
+                      error={errors?.duration}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.priority}
+                      name="priority"
+                      label="Priority"
+                      required
+                      fullWidth
+                      variant="standard"
+                      error={errors?.priority}
                     />
                   </Grid>
                 </Grid>
@@ -530,8 +543,4 @@ const FormDialog = props => {
   )
 }
 
-GameEventLocations.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { GameEventLocations }
+export { Periods }

@@ -207,13 +207,6 @@ export type RulePack = {
   resultPoints: ResultPoint[]
 }
 
-export type ResultPoint = {
-  resultPointId: string
-  name: string
-  code: string
-  points: number
-}
-
 export type Jersey = {
   jerseyId: string
   name: string
@@ -289,4 +282,130 @@ export type Sponsor = {
   description: string
   legalName: string
   logo: string
+}
+
+export type PositionType = {
+  positionTypeId: string
+  name: string
+  short: string
+  description: string
+  priority: number
+  rulePack: RulePack
+}
+
+export type Period = {
+  periodId: string
+  name: string
+  code: string
+  duration: number
+  priority: number
+  rulePack: RulePack
+}
+
+export type ShotType = {
+  shotTypeId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+  subTypes: ShotSubType[]
+}
+
+export type ShotSubType = {
+  shotSubTypeId: string
+  name: string
+  code: string
+  priority: number
+  shotType?: ShotType
+}
+
+export type ShotTarget = {
+  shotTargetId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+}
+
+export type ShotStyle = {
+  shotStyleId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+}
+
+export type GoalType = {
+  goalTypeId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+  subTypes: GoalSubType[]
+}
+
+export type GoalSubType = {
+  goalSubTypeId: string
+  name: string
+  code: string
+  priority: number
+  goalType?: GoalType
+}
+
+export type PenaltyType = {
+  penaltyTypeId: string
+  name: string
+  code: string
+  duration: number
+  priority: number
+  rulePack: RulePack
+  subTypes: PenaltySubType[]
+}
+
+export type PenaltySubType = {
+  penaltySubTypeId: string
+  name: string
+  code: string
+  duration: number
+  priority: number
+  penaltyType?: PenaltyType
+}
+
+export type PenaltyShotStatus = {
+  penaltyShotStatusId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+}
+
+export type InjuryType = {
+  injuryTypeId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+}
+
+export type ResultType = {
+  resultTypeId: string
+  name: string
+  rulePack: RulePack
+}
+
+export type ResultPoint = {
+  resultPointId: string
+  name: string
+  code: string
+  points: number
+  rulePack: RulePack
+}
+
+export type GameEventLocation = {
+  gameEventLocationId: string
+  name: string
+  fieldX: string
+  fieldY: string
+  priority: number
+  rulePack: RulePack
 }

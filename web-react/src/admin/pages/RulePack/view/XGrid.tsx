@@ -1,19 +1,16 @@
-import React, { useMemo, useRef } from 'react'
+import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import { Container, Grid, Paper } from '@mui/material'
 import Toolbar from '@mui/material/Toolbar'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminOrgRulePackRoute } from '../../../../router/routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
-import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
+import { getAdminOrgRulePackRoute } from 'router/routes'
+import { LinkButton, Title, Error, Loader } from 'components'
+
+import { setIdFromEntityId } from 'utils'
 
 export const GET_RULEPACKS = gql`
   query getRulePacks($where: RulePackWhere) {
@@ -24,9 +21,13 @@ export const GET_RULEPACKS = gql`
   }
 `
 
-const XGridTable = () => {
+type TParams = {
+  organizationSlug: string
+}
+
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const { error, loading, data } = useQuery(GET_RULEPACKS, {
     variables: {
       org: {
@@ -37,7 +38,7 @@ const XGridTable = () => {
     fetchPolicy: 'cache-and-network',
   })
 
-  const columns = useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -64,15 +65,12 @@ const XGridTable = () => {
     [organizationSlug]
   )
 
-  const windowSize = useWindowSize()
-  const toolbarRef = useRef()
-
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
+          <Paper>
+            <Toolbar className={classes.toolbarForm}>
               <div>
                 <Title>{'RulePacks'}</Title>
               </div>
@@ -86,11 +84,11 @@ const XGridTable = () => {
               </div>
             </Toolbar>
           </Paper>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          <Error message={error?.message} />
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{ height: 'calc(100vh - 230px)' }}
               className={classes.xGridWrapper}
             >
               <DataGridPro

@@ -1,10 +1,10 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+
 import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, number } from 'yup'
+import { object, string } from 'yup'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -14,7 +14,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,62 +23,57 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-const GET_RESULT_POINTS = gql`
-  query getRulePack($where: ResultPointWhere, $whereRulePack: RulePackWhere) {
-    resultPoints(where: $where) {
-      resultPointId
+import { setIdFromEntityId } from 'utils'
+import { GameEventLocation } from 'utils/types'
+const GET_GAME_EVENT_LOCATIONS = gql`
+  query getRulePack($where: GameEventLocationWhere) {
+    gameEventLocations(where: $where) {
+      gameEventLocationId
       name
-      code
-      points
-    }
-    rulePacks(where: $whereRulePack) {
-      name
+      fieldX
+      fieldY
     }
   }
 `
 
-const CREATE_RESULT_POINT = gql`
-  mutation createResultPoint($input: [ResultPointCreateInput!]!) {
-    createResultPoints(input: $input) {
-      resultPoints {
-        resultPointId
+const CREATE_GAME_EVENT_LOCATION = gql`
+  mutation createGameEventLocation($input: [GameEventLocationCreateInput!]!) {
+    createGameEventLocations(input: $input) {
+      gameEventLocations {
+        gameEventLocationId
         name
-        code
-        points
+        fieldX
+        fieldY
       }
     }
   }
 `
 
-const UPDATE_RESULT_POINT = gql`
-  mutation updateResultPoint(
-    $where: ResultPointWhere
-    $update: ResultPointUpdateInput
+const UPDATE_GAME_EVENT_LOCATION = gql`
+  mutation updateGameEventLocation(
+    $where: GameEventLocationWhere
+    $update: GameEventLocationUpdateInput
   ) {
-    updateResultPoints(where: $where, update: $update) {
-      resultPoints {
-        resultPointId
+    updateGameEventLocations(where: $where, update: $update) {
+      gameEventLocations {
+        gameEventLocationId
         name
-        code
-        points
+        fieldX
+        fieldY
       }
     }
   }
 `
 
-const DELETE_RESULT_POINT = gql`
-  mutation deleteResultPoint($where: ResultPointWhere) {
-    deleteResultPoints(where: $where) {
+const DELETE_GAME_EVENT_LOCATION = gql`
+  mutation deleteGameEventLocation($where: GameEventLocationWhere) {
+    deleteGameEventLocations(where: $where) {
       nodesDeleted
     }
   }
@@ -87,16 +81,32 @@ const DELETE_RESULT_POINT = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  code: string(),
-  points: number().integer().required('Points is required'),
+  fieldX: string().required('Field X is required'),
+  fieldY: string().required('Field Y is required'),
 })
 
-const ResultPoints = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  gameEventLocations: GameEventLocation[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const GameEventLocations: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<GameEventLocation | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -108,10 +118,9 @@ const ResultPoints = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_RESULT_POINTS, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_GAME_EVENT_LOCATIONS, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -126,32 +135,28 @@ const ResultPoints = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deleteResultPoint, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_RESULT_POINT,
-    {
+  const [deleteGameEventLocation, { loading: mutationLoadingRemove }] =
+    useMutation(DELETE_GAME_EVENT_LOCATION, {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_RESULT_POINTS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GAME_EVENT_LOCATIONS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.resultPoints.filter(
-            p => p.resultPointId !== deleted.resultPointId
+          const updatedData = queryResult?.gameEventLocations?.filter(
+            p => p.gameEventLocationId !== formData.current?.gameEventLocationId
           )
 
           const updatedResult = {
-            resultPoints: updatedData,
+            gameEventLocations: updatedData,
           }
           cache.writeQuery({
-            query: GET_RESULT_POINTS,
+            query: GET_GAME_EVENT_LOCATIONS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -159,7 +164,7 @@ const ResultPoints = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`ResultPoint was deleted!`, {
+        enqueueSnackbar(`GameEventLocation was deleted!`, {
           variant: 'info',
         })
       },
@@ -169,28 +174,28 @@ const ResultPoints = props => {
         })
         console.error(error)
       },
-    }
-  )
+    })
 
-  const rulePackResultPointsColumns = useMemo(
+  const rulePackGameEventLocationsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
         width: 150,
       },
+
       {
-        field: 'code',
-        headerName: 'Code',
+        field: 'fieldX',
+        headerName: 'fieldX',
         width: 100,
       },
       {
-        field: 'points',
-        headerName: 'Points',
+        field: 'fieldY',
+        headerName: 'fieldY',
         width: 100,
       },
       {
-        field: 'resultPointId',
+        field: 'gameEventLocationId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -219,17 +224,21 @@ const ResultPoints = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this result point?'}
-              dialogDescription={'Result point will be completely delete'}
+              dialogTitle={
+                'Do you really want to delete this game event location?'
+              }
+              dialogDescription={
+                'Game event location will be completely delete'
+              }
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deleteResultPoint({
+                deleteGameEventLocation({
                   variables: {
-                    where: { resultPointId: params.row.resultPointId },
+                    where: {
+                      gameEventLocationId: params.row.gameEventLocationId,
+                    },
                   },
                 })
               }}
@@ -245,16 +254,16 @@ const ResultPoints = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="result-points-content"
-        id="result-points-header"
+        aria-controls="game-event-locations-content"
+        id="game-event-locations-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Result Points
+          Game Event Locations{' '}
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -273,10 +282,10 @@ const ResultPoints = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackResultPointsColumns}
+                columns={rulePackGameEventLocationsColumns}
                 rows={setIdFromEntityId(
-                  queryData?.resultPoints,
-                  'resultPointId'
+                  queryData?.gameEventLocations,
+                  'gameEventLocationId'
                 )}
                 loading={queryLoading}
                 components={{
@@ -289,7 +298,6 @@ const ResultPoints = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -299,37 +307,41 @@ const ResultPoints = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: GameEventLocation | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createResultPoint, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_RESULT_POINT,
-    {
-      update(cache, { data: { createResultPoints } }) {
+  const [createGameEventLocation, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_GAME_EVENT_LOCATION, {
+      update(cache, { data: { createGameEventLocations } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_RESULT_POINTS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GAME_EVENT_LOCATIONS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createResultPoints?.resultPoints?.[0]
+          const newItem = createGameEventLocations?.gameEventLocations?.[0]
 
-          const existingData = queryResult?.resultPoints
+          const existingData = queryResult?.gameEventLocations || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            resultPoints: updatedData,
+            gameEventLocations: updatedData,
           }
           cache.writeQuery({
-            query: GET_RESULT_POINTS,
+            query: GET_GAME_EVENT_LOCATIONS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -348,33 +360,32 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    }
-  )
+    })
 
-  const [updateResultPoint, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_RESULT_POINT,
-    {
-      update(cache, { data: { updateResultPoints } }) {
+  const [updateGameEventLocation, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_GAME_EVENT_LOCATION, {
+      update(cache, { data: { updateGameEventLocations } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_RESULT_POINTS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GAME_EVENT_LOCATIONS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updateResultPoints?.resultPoints?.[0]
+          const newItem = updateGameEventLocations?.gameEventLocations?.[0]
 
-          const existingData = queryResult?.resultPoints
+          const existingData = queryResult?.gameEventLocations || []
           const updatedData = existingData?.map(ed =>
-            ed.resultPointId === newItem.resultPointId ? newItem : ed
+            ed.gameEventLocationId === newItem.gameEventLocationId
+              ? newItem
+              : ed
           )
           const updatedResult = {
-            resultPoints: updatedData,
+            gameEventLocations: updatedData,
           }
           cache.writeQuery({
-            query: GET_RESULT_POINTS,
+            query: GET_GAME_EVENT_LOCATIONS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -393,33 +404,33 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    }
-  )
+    })
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, points, code } = dataToCheck
+        const { name, fieldX, fieldY } = dataToCheck
 
-        data?.resultPointId
-          ? updateResultPoint({
+        data?.gameEventLocationId
+          ? updateGameEventLocation({
               variables: {
                 where: {
-                  resultPointId: data?.resultPointId,
+                  gameEventLocationId: data?.gameEventLocationId,
                 },
                 update: {
                   name,
-                  code,
-                  points: `${points}` || null,
+                  fieldX,
+                  fieldY,
                 },
               },
             })
-          : createResultPoint({
+          : createGameEventLocation({
               variables: {
                 input: {
                   name,
-                  code,
-                  points: `${points}` || null,
+                  fieldX,
+                  fieldY,
+
                   rulePack: {
                     connect: {
                       where: {
@@ -446,19 +457,14 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new result point to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new game event location`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
                     <RHFInput
                       control={control}
                       defaultValue={data?.name || ''}
@@ -473,24 +479,25 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.code || ''}
-                      name="code"
-                      label="Code"
+                      defaultValue={data?.fieldX || ''}
+                      name="fieldX"
+                      label="Field X"
+                      required
                       fullWidth
                       variant="standard"
-                      error={errors?.code}
+                      error={errors?.fieldX}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.points}
-                      name="points"
-                      label="Points"
+                      defaultValue={data?.fieldY || ''}
+                      name="fieldY"
+                      label="Field Y"
                       required
                       fullWidth
                       variant="standard"
-                      error={errors?.points}
+                      error={errors?.fieldY}
                     />
                   </Grid>
                 </Grid>
@@ -520,10 +527,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-ResultPoints.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { ResultPoints }
+export { GameEventLocations }

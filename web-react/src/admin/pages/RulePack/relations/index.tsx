@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { useStyles } from '../../commonComponents/styled'
 
 import { Periods } from './components/Periods'
@@ -15,28 +14,28 @@ import { ResultTypes } from './components/ResultTypes'
 import { ResultPoints } from './components/ResultPoints'
 import { GameEventLocations } from './components/GameEventLocations'
 
-const Relations = props => {
-  const { rulePackId } = props
+type TRelations = {
+  rulePackId: string
+}
+const Relations: React.FC<TRelations> = props => {
   const classes = useStyles()
 
   return (
     <div className={classes.accordionWrapper}>
-      <PositionTypes rulePackId={rulePackId} />
-      <Periods rulePackId={rulePackId} />
-      <ShotTypes rulePackId={rulePackId} />
-      <ShotTargets rulePackId={rulePackId} />
-      <ShotStyles rulePackId={rulePackId} />
-      <GoalTypes rulePackId={rulePackId} />
-      <PenaltyTypes rulePackId={rulePackId} />
-      <PenaltyShotStatuses rulePackId={rulePackId} />
-      <InjuryTypes rulePackId={rulePackId} />
-      <ResultTypes rulePackId={rulePackId} />
-      <ResultPoints rulePackId={rulePackId} />
-      <GameEventLocations rulePackId={rulePackId} />
+      <PositionTypes {...props} />
+      <Periods {...props} />
+      <ShotTypes {...props} />
+      <ShotTargets {...props} />
+      <ShotStyles {...props} />
+      <GoalTypes {...props} />
+      <PenaltyTypes {...props} />
+      <PenaltyShotStatuses {...props} />
+      <InjuryTypes {...props} />
+      <ResultTypes {...props} />
+      <ResultPoints {...props} />
+      <GameEventLocations {...props} />
     </div>
   )
 }
-
-Relations.propTypes = { rulePackId: PropTypes.string }
 
 export { Relations }

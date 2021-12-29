@@ -1,11 +1,10 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
-import { useSnackbar } from 'notistack'
 
+import { useSnackbar } from 'notistack'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string } from 'yup'
+import { object, string, number } from 'yup'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -15,7 +14,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -25,70 +24,90 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-const GET_INJURIES = gql`
-  query getRulePack($where: InjuryTypeWhere, $whereRulePack: RulePackWhere) {
-    injuryTypes(where: $where) {
-      injuryTypeId
+import { setIdFromEntityId } from 'utils'
+import { ResultPoint } from 'utils/types'
+const GET_RESULT_POINTS = gql`
+  query getRulePack($where: ResultPointWhere) {
+    resultPoints(where: $where) {
+      resultPointId
       name
-    }
-    rulePacks(where: $whereRulePack) {
-      name
+      code
+      points
     }
   }
 `
 
-const CREATE_INJURY = gql`
-  mutation createInjuryType($input: [InjuryTypeCreateInput!]!) {
-    createInjuryTypes(input: $input) {
-      injuryTypes {
-        injuryTypeId
+const CREATE_RESULT_POINT = gql`
+  mutation createResultPoint($input: [ResultPointCreateInput!]!) {
+    createResultPoints(input: $input) {
+      resultPoints {
+        resultPointId
         name
+        code
+        points
       }
     }
   }
 `
 
-const UPDATE_INJURY = gql`
-  mutation updateInjuryType(
-    $where: InjuryTypeWhere
-    $update: InjuryTypeUpdateInput
+const UPDATE_RESULT_POINT = gql`
+  mutation updateResultPoint(
+    $where: ResultPointWhere
+    $update: ResultPointUpdateInput
   ) {
-    updateInjuryTypes(where: $where, update: $update) {
-      injuryTypes {
-        injuryTypeId
+    updateResultPoints(where: $where, update: $update) {
+      resultPoints {
+        resultPointId
         name
+        code
+        points
       }
     }
   }
 `
 
-const DELETE_INJURY = gql`
-  mutation deleteInjuryType($where: InjuryTypeWhere) {
-    deleteInjuryTypes(where: $where) {
+const DELETE_RESULT_POINT = gql`
+  mutation deleteResultPoint($where: ResultPointWhere) {
+    deleteResultPoints(where: $where) {
       nodesDeleted
     }
   }
 `
+
 const schema = object().shape({
   name: string().required('Name is required'),
+  code: string(),
+  points: number().integer().required('Points is required'),
 })
 
-const InjuryTypes = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  resultPoints: ResultPoint[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const ResultPoints: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<ResultPoint | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -100,10 +119,9 @@ const InjuryTypes = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_INJURIES, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_RESULT_POINTS, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -118,32 +136,29 @@ const InjuryTypes = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deleteInjuryType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_INJURY,
+  const [deleteResultPoint, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_RESULT_POINT,
     {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_INJURIES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_RESULT_POINTS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.injuryTypes.filter(
-            p => p.injuryTypeId !== deleted.injuryTypeId
+          const updatedData = queryResult?.resultPoints?.filter(
+            p => p.resultPointId !== formData.current?.resultPointId
           )
 
           const updatedResult = {
-            injuryTypes: updatedData,
+            resultPoints: updatedData,
           }
           cache.writeQuery({
-            query: GET_INJURIES,
+            query: GET_RESULT_POINTS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -151,7 +166,7 @@ const InjuryTypes = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`InjuryType was deleted!`, {
+        enqueueSnackbar(`ResultPoint was deleted!`, {
           variant: 'info',
         })
       },
@@ -164,7 +179,7 @@ const InjuryTypes = props => {
     }
   )
 
-  const rulePackInjuryTypesColumns = useMemo(
+  const rulePackResultPointsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -172,7 +187,17 @@ const InjuryTypes = props => {
         width: 150,
       },
       {
-        field: 'injuryTypeId',
+        field: 'code',
+        headerName: 'Code',
+        width: 100,
+      },
+      {
+        field: 'points',
+        headerName: 'Points',
+        width: 100,
+      },
+      {
+        field: 'resultPointId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -201,17 +226,15 @@ const InjuryTypes = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this injury type?'}
-              dialogDescription={'Injury type will be completely delete'}
+              dialogTitle={'Do you really want to delete this result point?'}
+              dialogDescription={'Result point will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deleteInjuryType({
+                deleteResultPoint({
                   variables: {
-                    where: { injuryTypeId: params.row.injuryTypeId },
+                    where: { resultPointId: params.row.resultPointId },
                   },
                 })
               }}
@@ -227,11 +250,11 @@ const InjuryTypes = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="injury-types-content"
-        id="injury-types-header"
+        aria-controls="result-points-content"
+        id="result-points-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Injury Types
+          Result Points
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -255,8 +278,11 @@ const InjuryTypes = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackInjuryTypesColumns}
-                rows={setIdFromEntityId(queryData?.injuryTypes, 'injuryTypeId')}
+                columns={rulePackResultPointsColumns}
+                rows={setIdFromEntityId(
+                  queryData?.resultPoints,
+                  'resultPointId'
+                )}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -268,7 +294,6 @@ const InjuryTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -278,37 +303,42 @@ const InjuryTypes = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: ResultPoint | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
+
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createInjuryType, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_INJURY,
+  const [createResultPoint, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_RESULT_POINT,
     {
-      update(cache, { data: { createInjuryTypes } }) {
+      update(cache, { data: { createResultPoints } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_INJURIES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_RESULT_POINTS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createInjuryTypes?.injuryTypes?.[0]
+          const newItem = createResultPoints?.resultPoints?.[0]
 
-          const existingData = queryResult?.injuryTypes
+          const existingData = queryResult?.resultPoints || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            injuryTypes: updatedData,
+            resultPoints: updatedData,
           }
           cache.writeQuery({
-            query: GET_INJURIES,
+            query: GET_RESULT_POINTS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -330,30 +360,29 @@ const FormDialog = props => {
     }
   )
 
-  const [updateInjuryType, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_INJURY,
+  const [updateResultPoint, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_RESULT_POINT,
     {
-      update(cache, { data: { updateInjuryTypes } }) {
+      update(cache, { data: { updateResultPoints } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_INJURIES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_RESULT_POINTS,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updateInjuryTypes?.injuryTypes?.[0]
+          const newItem = updateResultPoints?.resultPoints?.[0]
 
-          const existingData = queryResult?.injuryTypes
+          const existingData = queryResult?.resultPoints || []
           const updatedData = existingData?.map(ed =>
-            ed.injuryTypeId === newItem.injuryTypeId ? newItem : ed
+            ed.resultPointId === newItem.resultPointId ? newItem : ed
           )
           const updatedResult = {
-            injuryTypes: updatedData,
+            resultPoints: updatedData,
           }
           cache.writeQuery({
-            query: GET_INJURIES,
+            query: GET_RESULT_POINTS,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -378,23 +407,27 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name } = dataToCheck
+        const { name, points, code } = dataToCheck
 
-        data?.injuryTypeId
-          ? updateInjuryType({
+        data?.resultPointId
+          ? updateResultPoint({
               variables: {
                 where: {
-                  injuryTypeId: data?.injuryTypeId,
+                  resultPointId: data?.resultPointId,
                 },
                 update: {
                   name,
+                  code,
+                  points: `${points}` || null,
                 },
               },
             })
-          : createInjuryType({
+          : createResultPoint({
               variables: {
                 input: {
                   name,
+                  code,
+                  points: `${points}` || null,
                   rulePack: {
                     connect: {
                       where: {
@@ -421,13 +454,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new injury type to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new result point`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -443,6 +471,29 @@ const FormDialog = props => {
                       fullWidth
                       variant="standard"
                       error={errors?.name}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.code || ''}
+                      name="code"
+                      label="Code"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.code}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6} lg={6}>
+                    <RHFInput
+                      control={control}
+                      defaultValue={data?.points}
+                      name="points"
+                      label="Points"
+                      required
+                      fullWidth
+                      variant="standard"
+                      error={errors?.points}
                     />
                   </Grid>
                 </Grid>
@@ -472,10 +523,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-InjuryTypes.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { InjuryTypes }
+export { ResultPoints }

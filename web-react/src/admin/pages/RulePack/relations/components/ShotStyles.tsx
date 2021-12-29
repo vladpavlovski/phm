@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-// import PropTypes from 'prop-types'
+
 import { useSnackbar } from 'notistack'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -14,7 +15,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,62 +24,55 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-const GET_POSITION_TYPES = gql`
-  query getRulePack($where: PositionTypeWhere, $whereRulePack: RulePackWhere) {
-    positionTypes(where: $where) {
-      positionTypeId
+import { setIdFromEntityId } from 'utils'
+import { ShotStyle } from 'utils/types'
+const GET_SHOT_STYLES = gql`
+  query getRulePack($where: ShotStyleWhere) {
+    shotStyles(where: $where) {
+      shotStyleId
       name
-      short
-      description
-    }
-    rulePacks(where: $whereRulePack) {
-      name
+      code
     }
   }
 `
 
-const CREATE_POSITION_TYPE = gql`
-  mutation createPositionType($input: [PositionTypeCreateInput!]!) {
-    createPositionTypes(input: $input) {
-      positionTypes {
-        positionTypeId
+const CREATE_SHOT_STYLE = gql`
+  mutation createShotStyle($input: [ShotStyleCreateInput!]!) {
+    createShotStyles(input: $input) {
+      shotStyles {
+        shotStyleId
         name
-        short
-        description
+        code
       }
     }
   }
 `
 
-const UPDATE_POSITION_TYPE = gql`
-  mutation updatePositionType(
-    $where: PositionTypeWhere
-    $update: PositionTypeUpdateInput
+const UPDATE_SHOT_STYLE = gql`
+  mutation updateShotStyle(
+    $where: ShotStyleWhere
+    $update: ShotStyleUpdateInput
+    $create: ShotStyleRelationInput
   ) {
-    updatePositionTypes(where: $where, update: $update) {
-      positionTypes {
-        positionTypeId
+    updateShotStyles(where: $where, update: $update, create: $create) {
+      shotStyles {
+        shotStyleId
         name
-        short
-        description
+        code
       }
     }
   }
 `
 
-const DELETE_POSITION_TYPE = gql`
-  mutation deletePositionType($where: PositionTypeWhere) {
-    deletePositionTypes(where: $where) {
+const DELETE_SHOT_STYLE = gql`
+  mutation deleteShotStyle($where: ShotStyleWhere) {
+    deleteShotStyles(where: $where) {
       nodesDeleted
     }
   }
@@ -87,16 +80,31 @@ const DELETE_POSITION_TYPE = gql`
 
 const schema = object().shape({
   name: string().required('Name is required'),
-  description: string(),
-  short: string(),
+  code: string().required('Code is required'),
 })
 
-const PositionTypes = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  shotStyles: ShotStyle[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const ShotStyles: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<ShotStyle | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -104,15 +112,14 @@ const PositionTypes = props => {
 
     formData.current = null
   }, [])
+
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_POSITION_TYPES, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_SHOT_STYLES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
-    fetchPolicy: 'cache-and-network',
   })
 
   const openAccordion = useCallback(() => {
@@ -126,32 +133,29 @@ const PositionTypes = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deletePositionType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_POSITION_TYPE,
+  const [deleteShotStyle, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_SHOT_STYLE,
     {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_POSITION_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_SHOT_STYLES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.positionTypes.filter(
-            p => p.positionTypeId !== deleted.positionTypeId
+          const updatedData = queryResult?.shotStyles?.filter(
+            p => p.shotStyleId !== formData.current?.shotStyleId
           )
 
           const updatedResult = {
-            positionTypes: updatedData,
+            shotStyles: updatedData,
           }
           cache.writeQuery({
-            query: GET_POSITION_TYPES,
+            query: GET_SHOT_STYLES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -159,7 +163,7 @@ const PositionTypes = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`Position type was deleted!`, {
+        enqueueSnackbar(`ShotStyle was deleted!`, {
           variant: 'info',
         })
       },
@@ -172,32 +176,27 @@ const PositionTypes = props => {
     }
   )
 
-  const rulePackPositionTypesColumns = useMemo(
+  const rulePackShotStylesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
         width: 150,
       },
+
       {
-        field: 'short',
-        headerName: 'Short',
+        field: 'code',
+        headerName: 'Code',
         width: 100,
       },
       {
-        field: 'description',
-        headerName: 'Description',
-        width: 300,
-      },
-      {
-        field: 'positionTypeId',
+        field: 'shotStyleId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
           return (
             <Button
-              type="button"
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
@@ -220,17 +219,15 @@ const PositionTypes = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this position type?'}
-              dialogDescription={'Position type will be completely delete'}
+              dialogTitle={'Do you really want to delete this shot style?'}
+              dialogDescription={'Shot style will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deletePositionType({
+                deleteShotStyle({
                   variables: {
-                    where: { positionTypeId: params.row.positionTypeId },
+                    where: { shotStyleId: params.row.shotStyleId },
                   },
                 })
               }}
@@ -246,40 +243,36 @@ const PositionTypes = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="position-types-content"
-        id="position-types-header"
+        aria-controls="shot-styles-content"
+        id="shot-styles-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Position Types
+          Shot Styles
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
               <div />
               <div>
                 <Button
-                  type="button"
                   onClick={handleOpenDialog}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<CreateIcon />}
                 >
-                  Create Position
+                  Create
                 </Button>
               </div>
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackPositionTypesColumns}
-                rows={setIdFromEntityId(
-                  queryData?.positionTypes,
-                  'positionTypeId'
-                )}
+                columns={rulePackShotStylesColumns}
+                rows={setIdFromEntityId(queryData?.shotStyles, 'shotStyleId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -291,7 +284,6 @@ const PositionTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -300,38 +292,42 @@ const PositionTypes = props => {
     </Accordion>
   )
 }
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: ShotStyle | null
+}
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
 
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createPositionType, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_POSITION_TYPE,
+  const [createShotStyle, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_SHOT_STYLE,
     {
-      update(cache, { data: { createPositionTypes } }) {
+      update(cache, { data: { createShotStyles } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_POSITION_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_SHOT_STYLES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createPositionTypes?.positionTypes?.[0]
+          const newItem = createShotStyles?.shotStyles?.[0]
 
-          const existingData = queryResult?.positionTypes
+          const existingData = queryResult?.shotStyles || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            positionTypes: updatedData,
+            shotStyles: updatedData,
           }
           cache.writeQuery({
-            query: GET_POSITION_TYPES,
+            query: GET_SHOT_STYLES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -353,30 +349,29 @@ const FormDialog = props => {
     }
   )
 
-  const [updatePositionType, { loading: mutationLoadingMerge }] = useMutation(
-    UPDATE_POSITION_TYPE,
+  const [updateShotStyle, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_SHOT_STYLE,
     {
-      update(cache, { data: { updatePositionTypes } }) {
+      update(cache, { data: { updateShotStyles } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_POSITION_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_SHOT_STYLES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updatePositionTypes?.positionTypes?.[0]
+          const newItem = updateShotStyles?.shotStyles?.[0]
 
-          const existingData = queryResult?.positionTypes
+          const existingData = queryResult?.shotStyles || []
           const updatedData = existingData?.map(ed =>
-            ed.positionTypeId === newItem.positionTypeId ? newItem : ed
+            ed.shotStyleId === newItem.shotStyleId ? newItem : ed
           )
           const updatedResult = {
-            positionTypes: updatedData,
+            shotStyles: updatedData,
           }
           cache.writeQuery({
-            query: GET_POSITION_TYPES,
+            query: GET_SHOT_STYLES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -399,21 +394,28 @@ const FormDialog = props => {
   )
 
   const onSubmit = useCallback(
-    dataToSubmit => {
+    dataToCheck => {
       try {
-        data?.positionTypeId
-          ? updatePositionType({
+        const { name, code } = dataToCheck
+
+        data?.shotStyleId
+          ? updateShotStyle({
               variables: {
                 where: {
-                  positionTypeId: data?.positionTypeId,
+                  shotStyleId: data?.shotStyleId,
                 },
-                update: dataToSubmit,
+                update: {
+                  name,
+                  code,
+                },
               },
             })
-          : createPositionType({
+          : createShotStyle({
               variables: {
                 input: {
-                  ...dataToSubmit,
+                  name,
+                  code,
+
                   rulePack: {
                     connect: {
                       where: {
@@ -440,13 +442,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new positionType to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new shot style`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -467,23 +464,13 @@ const FormDialog = props => {
                   <Grid item xs={12} sm={6} md={6} lg={6}>
                     <RHFInput
                       control={control}
-                      defaultValue={data?.short || ''}
-                      name="short"
-                      label="Short"
+                      defaultValue={data?.code || ''}
+                      name="code"
+                      label="Code"
+                      required
                       fullWidth
                       variant="standard"
-                      error={errors?.short}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.description || ''}
-                      name="description"
-                      label="Description"
-                      fullWidth
-                      variant="standard"
-                      error={errors?.description}
+                      error={errors?.code}
                     />
                   </Grid>
                 </Grid>
@@ -503,9 +490,9 @@ const FormDialog = props => {
           </Button>
           <LoadingButton
             type="submit"
-            loading={mutationLoadingCreate || mutationLoadingMerge}
+            loading={mutationLoadingCreate || mutationLoadingUpdate}
           >
-            {mutationLoadingCreate || mutationLoadingMerge
+            {mutationLoadingCreate || mutationLoadingUpdate
               ? 'Saving...'
               : 'Save'}
           </LoadingButton>
@@ -513,6 +500,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-export { PositionTypes }
+export { ShotStyles }

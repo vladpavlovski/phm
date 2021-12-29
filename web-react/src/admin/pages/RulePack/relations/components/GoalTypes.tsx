@@ -1,7 +1,13 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  MutationFunction,
+  useLazyQuery,
+  useMutation,
+} from '@apollo/client'
+
 import { useSnackbar } from 'notistack'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string, number } from 'yup'
@@ -14,7 +20,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -23,46 +28,42 @@ import Button from '@mui/material/Button'
 
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { GoalType, GoalSubType } from 'utils/types'
 
-const GET_SHOT_TYPES = gql`
-  query getRulePack($where: ShotTypeWhere, $whereRulePack: RulePackWhere) {
-    shotTypes(where: $where) {
-      shotTypeId
+const GET_GOAL_TYPES = gql`
+  query getRulePack($where: GoalTypeWhere) {
+    goalTypes(where: $where) {
+      goalTypeId
       name
       code
       priority
       subTypes {
-        shotSubTypeId
+        goalSubTypeId
         name
         code
         priority
       }
     }
-    rulePacks(where: $whereRulePack) {
-      name
-    }
   }
 `
 
-const CREATE_SHOT_TYPE = gql`
-  mutation createShotType($input: [ShotTypeCreateInput!]!) {
-    createShotTypes(input: $input) {
-      shotTypes {
-        shotTypeId
+const CREATE_GOAL_TYPE = gql`
+  mutation createGoalType($input: [GoalTypeCreateInput!]!) {
+    createGoalTypes(input: $input) {
+      goalTypes {
+        goalTypeId
         name
         code
         priority
         subTypes {
-          shotSubTypeId
+          goalSubTypeId
           name
           code
           priority
@@ -72,20 +73,20 @@ const CREATE_SHOT_TYPE = gql`
   }
 `
 
-const UPDATE_SHOT_TYPE = gql`
-  mutation updateShotType(
-    $where: ShotTypeWhere
-    $update: ShotTypeUpdateInput
-    $create: ShotTypeRelationInput
+const UPDATE_GOAL_TYPE = gql`
+  mutation updateGoalType(
+    $where: GoalTypeWhere
+    $update: GoalTypeUpdateInput
+    $create: GoalTypeRelationInput
   ) {
-    updateShotTypes(where: $where, update: $update, create: $create) {
-      shotTypes {
-        shotTypeId
+    updateGoalTypes(where: $where, update: $update, create: $create) {
+      goalTypes {
+        goalTypeId
         name
         code
         priority
         subTypes {
-          shotSubTypeId
+          goalSubTypeId
           name
           code
           priority
@@ -95,17 +96,17 @@ const UPDATE_SHOT_TYPE = gql`
   }
 `
 
-const DELETE_SHOT_TYPE = gql`
-  mutation deleteShotType($where: ShotTypeWhere) {
-    deleteShotTypes(where: $where) {
+const DELETE_GOAL_TYPE = gql`
+  mutation deleteGoalType($where: GoalTypeWhere) {
+    deleteGoalTypes(where: $where) {
       nodesDeleted
     }
   }
 `
 
-const DELETE_SHOT_SUB_TYPE = gql`
-  mutation deleteShotSubType($where: ShotSubTypeWhere) {
-    deleteShotSubTypes(where: $where) {
+const DELETE_GOAL_SUB_TYPE = gql`
+  mutation deleteGoalSubType($where: GoalSubTypeWhere) {
+    deleteGoalSubTypes(where: $where) {
       nodesDeleted
     }
   }
@@ -116,13 +117,28 @@ const schema = object().shape({
   code: string().required('Code is required'),
   priority: number().integer().positive(),
 })
+type TRelations = {
+  rulePackId: string
+}
 
-const ShotTypes = props => {
+type TQueryTypeData = {
+  goalTypes: GoalType[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const GoalTypes: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<GoalType | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -133,10 +149,9 @@ const ShotTypes = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SHOT_TYPES, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_GOAL_TYPES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -151,33 +166,29 @@ const ShotTypes = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deleteShotType, { loading: mutationLoadingRemove }] = useMutation(
-    DELETE_SHOT_TYPE,
+  const [deleteGoalType, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_GOAL_TYPE,
     {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GOAL_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult?.shotTypes?.filter(
-            p => p.shotTypeId !== deleted.shotTypeId
+          const updatedData = queryResult?.goalTypes?.filter(
+            p => p.goalTypeId !== formData.current?.goalTypeId
           )
 
           const updatedResult = {
-            shotTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
+            goalTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TYPES,
+            query: GET_GOAL_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -185,7 +196,7 @@ const ShotTypes = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`ShotType was deleted!`, {
+        enqueueSnackbar(`GoalType was deleted!`, {
           variant: 'info',
         })
       },
@@ -198,7 +209,7 @@ const ShotTypes = props => {
     }
   )
 
-  const rulePackShotTypesColumns = useMemo(
+  const rulePackGoalTypesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -225,7 +236,7 @@ const ShotTypes = props => {
         },
       },
       {
-        field: 'shotTypeId',
+        field: 'goalTypeId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -254,17 +265,15 @@ const ShotTypes = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this shot type?'}
-              dialogDescription={'Shot type will be completely delete'}
+              dialogTitle={'Do you really want to delete this goal type?'}
+              dialogDescription={'Goal type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deleteShotType({
+                deleteGoalType({
                   variables: {
-                    where: { shotTypeId: params.row.shotTypeId },
+                    where: { goalTypeId: params.row.goalTypeId },
                   },
                 })
               }}
@@ -280,16 +289,16 @@ const ShotTypes = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="shot-types-content"
-        id="shot-types-header"
+        aria-controls="goal-types-content"
+        id="goal-types-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Shot Types
+          Goal Types
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
@@ -308,8 +317,8 @@ const ShotTypes = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackShotTypesColumns}
-                rows={setIdFromEntityId(queryData?.shotTypes, 'shotTypeId')}
+                columns={rulePackGoalTypesColumns}
+                rows={setIdFromEntityId(queryData?.goalTypes, 'goalTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -321,54 +330,58 @@ const ShotTypes = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
-        data={queryData?.shotTypes?.find(
-          gt => gt.shotTypeId === formData.current
-        )}
+        data={
+          queryData?.goalTypes?.find(
+            gt => gt.goalTypeId === formData.current?.goalTypeId
+          ) || null
+        }
       />
     </Accordion>
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: GoalType | null
+}
+
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
   const [newSubType, setNewSubType] = useState(false)
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createShotType, { loading: mutationLoadingCreate }] = useMutation(
-    CREATE_SHOT_TYPE,
+  const [createGoalType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_GOAL_TYPE,
     {
-      update(cache, { data: { createShotTypes } }) {
+      update(cache, { data: { createGoalTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GOAL_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createShotTypes?.shotTypes?.[0]
+          const newItem = createGoalTypes?.goalTypes?.[0]
 
-          const existingData = queryResult?.shotTypes
+          const existingData = queryResult?.goalTypes || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            shotTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
+            goalTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TYPES,
+            query: GET_GOAL_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -387,35 +400,32 @@ const FormDialog = props => {
     }
   )
 
-  const [updateShotType, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_SHOT_TYPE,
+  const [updateGoalType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_GOAL_TYPE,
     {
-      update(cache, { data: { updateShotTypes } }) {
+      update(cache, { data: { updateGoalTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GOAL_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updateShotTypes?.shotTypes?.[0]
+          const newItem = updateGoalTypes?.goalTypes?.[0]
 
-          const existingData = queryResult?.shotTypes
+          const existingData = queryResult?.goalTypes || []
           const updatedData = existingData?.map(ed =>
-            ed.shotTypeId === newItem.shotTypeId ? newItem : ed
+            ed.goalTypeId === newItem.goalTypeId ? newItem : ed
           )
           const updatedResult = {
-            shotTypes: updatedData,
-            rulePacks: queryResult?.rulePacks,
+            goalTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_SHOT_TYPES,
+            query: GET_GOAL_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -439,12 +449,11 @@ const FormDialog = props => {
     dataToCheck => {
       try {
         const { name, code, priority } = dataToCheck
-
-        data?.shotTypeId
-          ? updateShotType({
+        data?.goalTypeId
+          ? updateGoalType({
               variables: {
                 where: {
-                  shotTypeId: data?.shotTypeId,
+                  goalTypeId: data?.goalTypeId,
                 },
                 update: {
                   name,
@@ -453,12 +462,13 @@ const FormDialog = props => {
                 },
               },
             })
-          : createShotType({
+          : createGoalType({
               variables: {
                 input: {
                   name,
                   code,
                   priority: `${priority}`,
+
                   rulePack: {
                     connect: {
                       where: {
@@ -481,18 +491,16 @@ const FormDialog = props => {
       fullWidth
       maxWidth="md"
       open={openDialog}
-      onClose={handleCloseDialog}
+      onClose={() => {
+        handleCloseDialog()
+        setNewSubType(false)
+      }}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{`Add new shot type to ${rulePack?.name}`}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{`Add new goal type`}</DialogTitle>
       <DialogContent>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className={classes.form}
-          noValidate
-          autoComplete="off"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4} md={4} lg={4}>
               <RHFInput
@@ -535,32 +543,31 @@ const FormDialog = props => {
         <div style={{ margin: '2rem 0' }}>
           {data?.subTypes?.map(st => (
             <SubType
-              updateShotType={updateShotType}
-              key={st.shotSubTypeId}
-              rulePack={rulePack}
+              key={st.goalSubTypeId}
               rulePackId={rulePackId}
-              shotTypeId={data?.shotTypeId}
+              goalTypeId={data?.goalTypeId}
               data={st}
+              updateGoalType={updateGoalType}
               mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ))}
         </div>
         <div style={{ margin: '2rem 0' }}>
-          {data?.shotTypeId && newSubType ? (
+          {data?.goalTypeId && newSubType ? (
             <SubType
-              updateShotType={updateShotType}
-              rulePack={rulePack}
               rulePackId={rulePackId}
-              shotTypeId={data?.shotTypeId}
+              goalTypeId={data?.goalTypeId}
               data={{
-                shotSubTypeId: null,
+                goalSubTypeId: '',
                 name: '',
                 code: '',
+                priority: 0,
               }}
+              updateGoalType={updateGoalType}
               mutationLoadingUpdate={mutationLoadingUpdate}
             />
           ) : (
-            data?.shotTypeId && (
+            data?.goalTypeId && (
               <Button
                 type="button"
                 variant="contained"
@@ -580,15 +587,14 @@ const FormDialog = props => {
           type="button"
           onClick={() => {
             handleCloseDialog()
+            setNewSubType(false)
           }}
         >
           {'Cancel'}
         </Button>
         <LoadingButton
-          onClick={() => {
-            handleSubmit(onSubmit)()
-          }}
           type="button"
+          onClick={handleSubmit(onSubmit)}
           loading={mutationLoadingCreate || mutationLoadingUpdate}
         >
           {mutationLoadingCreate || mutationLoadingUpdate
@@ -598,64 +604,68 @@ const FormDialog = props => {
       </DialogActions>
     </Dialog>
   )
+})
+
+type TSubFormDialog = {
+  rulePackId: string
+  goalTypeId: string
+  mutationLoadingUpdate: boolean
+  updateGoalType: MutationFunction
+  data: GoalSubType | null
 }
 
-const SubType = props => {
+const SubType: React.FC<TSubFormDialog> = React.memo(props => {
   const {
     rulePackId,
-    shotTypeId,
+    goalTypeId,
     data,
-    updateShotType,
+    updateGoalType,
     mutationLoadingUpdate,
   } = props
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
 
-  const shotSubTypeIdDelete = React.useRef(data?.shotSubTypeId)
+  const goalSubTypeIdDelete = React.useRef(data?.goalSubTypeId)
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [deleteShotSubType, { loading: mutationLoadingDeleteShotSubType }] =
-    useMutation(DELETE_SHOT_SUB_TYPE, {
+  const [deleteGoalSubType, { loading: mutationLoadingDeleteGoalSubType }] =
+    useMutation(DELETE_GOAL_SUB_TYPE, {
       variables: {
-        where: { shotSubTypeId: data?.shotSubTypeId },
+        where: { goalSubTypeId: data?.goalSubTypeId },
       },
       update(cache) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SHOT_TYPES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GOAL_TYPES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const shotType = queryResult.shotTypes.find(
-            gt => gt.shotTypeId === shotTypeId
+          const goalType = queryResult?.goalTypes?.find(
+            gt => gt.goalTypeId === goalTypeId
           )
 
-          const updatedData = shotType.subTypes.filter(
-            p => p.shotSubTypeId !== shotSubTypeIdDelete.current
+          const updatedData = goalType?.subTypes?.filter(
+            p => p.goalSubTypeId !== goalSubTypeIdDelete.current
           )
 
           const updatedResult = {
-            shotTypes: [
-              ...queryResult.shotTypes.filter(
-                gt => gt.shotTypeId !== shotTypeId
-              ),
+            goalTypes: [
+              ...(queryResult?.goalTypes?.filter(
+                gt => gt.goalTypeId !== goalTypeId
+              ) || []),
               {
-                ...shotType,
+                ...goalType,
                 subTypes: updatedData,
               },
             ],
-
-            rulePacks: queryResult?.rulePacks,
           }
 
           cache.writeQuery({
-            query: GET_SHOT_TYPES,
+            query: GET_GOAL_TYPES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -667,7 +677,7 @@ const SubType = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`ShotSubType was deleted!`, {
+        enqueueSnackbar(`GoalSubType was deleted!`, {
           variant: 'info',
         })
       },
@@ -683,28 +693,33 @@ const SubType = props => {
     dataToCheck => {
       try {
         const { name, code, priority } = dataToCheck
-        data?.shotSubTypeId
-          ? updateShotType({
+
+        data?.goalSubTypeId
+          ? updateGoalType({
               variables: {
                 where: {
-                  shotTypeId,
+                  goalTypeId,
                 },
                 update: {
                   subTypes: {
                     where: {
-                      node: { shotSubTypeId: data?.shotSubTypeId },
+                      node: { goalSubTypeId: data?.goalSubTypeId },
                     },
                     update: {
-                      node: { name, code, priority: `${priority}` },
+                      node: {
+                        name,
+                        code,
+                        priority: `${priority}`,
+                      },
                     },
                   },
                 },
               },
             })
-          : updateShotType({
+          : updateGoalType({
               variables: {
                 where: {
-                  shotTypeId,
+                  goalTypeId,
                 },
 
                 create: {
@@ -716,16 +731,11 @@ const SubType = props => {
         console.error(error)
       }
     },
-    [shotTypeId, data]
+    [goalTypeId, data]
   )
 
   return (
-    <form
-      onSubmit={null}
-      className={classes.form}
-      noValidate
-      autoComplete="off"
-    >
+    <form noValidate autoComplete="off">
       <Grid container spacing={2}>
         <Grid item xs={12} sm={4} md={4} lg={4}>
           <RHFInput
@@ -751,6 +761,7 @@ const SubType = props => {
             error={errors?.code}
           />
         </Grid>
+
         <Grid item xs={12} sm={3} md={3} lg={3}>
           <RHFInput
             control={control}
@@ -764,15 +775,15 @@ const SubType = props => {
         </Grid>
 
         <Grid item xs={12} sm={2} md={2} lg={2}>
-          {data?.shotSubTypeId && (
+          {data?.goalSubTypeId && (
             <LoadingButton
               onClick={() => {
-                deleteShotSubType()
+                deleteGoalSubType()
               }}
               type="button"
-              loading={mutationLoadingDeleteShotSubType}
+              loading={mutationLoadingDeleteGoalSubType}
             >
-              {mutationLoadingDeleteShotSubType ? 'Deleting...' : 'Delete'}
+              {mutationLoadingDeleteGoalSubType ? 'Deleting...' : 'Delete'}
             </LoadingButton>
           )}
           <LoadingButton
@@ -788,10 +799,6 @@ const SubType = props => {
       </Grid>
     </form>
   )
-}
+})
 
-ShotTypes.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { ShotTypes }
+export { GoalTypes }

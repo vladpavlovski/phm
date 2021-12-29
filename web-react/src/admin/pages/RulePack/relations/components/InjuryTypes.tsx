@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+
 import { useSnackbar } from 'notistack'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { object, string } from 'yup'
@@ -14,7 +15,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -24,78 +25,81 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput } from '../../../../../components/RHFInput'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-const GET_PENALTY_SHOT_STATUSES = gql`
-  query getRulePack(
-    $where: PenaltyShotStatusWhere
-    $whereRulePack: RulePackWhere
-  ) {
-    penaltyShotStatuses(where: $where) {
-      penaltyShotStatusId
-      name
-      code
-    }
-    rulePacks(where: $whereRulePack) {
+import { setIdFromEntityId } from 'utils'
+import { InjuryType } from 'utils/types'
+const GET_INJURIES = gql`
+  query getRulePack($where: InjuryTypeWhere) {
+    injuryTypes(where: $where) {
+      injuryTypeId
       name
     }
   }
 `
 
-const CREATE_PENALTY_SHOT_STATUS = gql`
-  mutation createPenaltyShotStatus($input: [PenaltyShotStatusCreateInput!]!) {
-    createPenaltyShotStatuses(input: $input) {
-      penaltyShotStatuses {
-        penaltyShotStatusId
+const CREATE_INJURY = gql`
+  mutation createInjuryType($input: [InjuryTypeCreateInput!]!) {
+    createInjuryTypes(input: $input) {
+      injuryTypes {
+        injuryTypeId
         name
-        code
       }
     }
   }
 `
 
-const UPDATE_PENALTY_SHOT_STATUS = gql`
-  mutation updatePenaltyShotStatus(
-    $where: PenaltyShotStatusWhere
-    $update: PenaltyShotStatusUpdateInput
+const UPDATE_INJURY = gql`
+  mutation updateInjuryType(
+    $where: InjuryTypeWhere
+    $update: InjuryTypeUpdateInput
   ) {
-    updatePenaltyShotStatuses(where: $where, update: $update) {
-      penaltyShotStatuses {
-        penaltyShotStatusId
+    updateInjuryTypes(where: $where, update: $update) {
+      injuryTypes {
+        injuryTypeId
         name
-        code
       }
     }
   }
 `
 
-const DELETE_PENALTY_SHOT_STATUS = gql`
-  mutation deletePenaltyShotStatus($where: PenaltyShotStatusWhere) {
-    deletePenaltyShotStatuses(where: $where) {
+const DELETE_INJURY = gql`
+  mutation deleteInjuryType($where: InjuryTypeWhere) {
+    deleteInjuryTypes(where: $where) {
       nodesDeleted
     }
   }
 `
-
 const schema = object().shape({
   name: string().required('Name is required'),
-  code: string().required('Code is required'),
 })
 
-const PenaltyShotStatuses = props => {
+type TRelations = {
+  rulePackId: string
+}
+
+type TQueryTypeData = {
+  injuryTypes: InjuryType[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    rulePack: {
+      rulePackId: string
+    }
+  }
+}
+
+const InjuryTypes: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
-  const formData = useRef(null)
+  const formData = useRef<InjuryType | null>(null)
   const { enqueueSnackbar } = useSnackbar()
 
   const handleCloseDialog = useCallback(() => {
@@ -107,10 +111,9 @@ const PenaltyShotStatuses = props => {
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PENALTY_SHOT_STATUSES, {
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_INJURIES, {
     variables: {
       where: { rulePack: { rulePackId } },
-      whereRulePack: { rulePackId },
     },
   })
 
@@ -125,31 +128,29 @@ const PenaltyShotStatuses = props => {
     setOpenDialog(true)
   }, [])
 
-  const [deletePenaltyShotStatus, { loading: mutationLoadingRemove }] =
-    useMutation(DELETE_PENALTY_SHOT_STATUS, {
+  const [deleteInjuryType, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_INJURY,
+    {
       update(cache) {
         try {
-          const deleted = formData.current
-          const queryResult = cache.readQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_INJURIES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const updatedData = queryResult.penaltyShotStatuses.filter(
-            p => p.penaltyShotStatusId !== deleted.penaltyShotStatusId
+          const updatedData = queryResult?.injuryTypes?.filter(
+            p => p.injuryTypeId !== formData.current?.injuryTypeId
           )
 
           const updatedResult = {
-            penaltyShotStatuses: updatedData,
+            injuryTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+            query: GET_INJURIES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
         } catch (error) {
@@ -157,7 +158,7 @@ const PenaltyShotStatuses = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar(`PenaltyShotStatus was deleted!`, {
+        enqueueSnackbar(`InjuryType was deleted!`, {
           variant: 'info',
         })
       },
@@ -167,23 +168,18 @@ const PenaltyShotStatuses = props => {
         })
         console.error(error)
       },
-    })
+    }
+  )
 
-  const rulePackPenaltyShotStatusesColumns = useMemo(
+  const rulePackInjuryTypesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
         width: 150,
       },
-
       {
-        field: 'code',
-        headerName: 'Code',
-        width: 100,
-      },
-      {
-        field: 'penaltyShotStatusId',
+        field: 'injuryTypeId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -212,23 +208,15 @@ const PenaltyShotStatuses = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={
-                'Do you really want to delete this penalty shot status?'
-              }
-              dialogDescription={
-                'Penalty shot status will be completely delete'
-              }
+              dialogTitle={'Do you really want to delete this injury type?'}
+              dialogDescription={'Injury type will be completely delete'}
               dialogNegativeText={'No, keep it'}
               dialogPositiveText={'Yes, delete it'}
               onDialogClosePositive={() => {
                 formData.current = params.row
-                deletePenaltyShotStatus({
+                deleteInjuryType({
                   variables: {
-                    where: {
-                      penaltyShotStatusId: params.row.penaltyShotStatusId,
-                    },
+                    where: { injuryTypeId: params.row.injuryTypeId },
                   },
                 })
               }}
@@ -244,11 +232,11 @@ const PenaltyShotStatuses = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="penalty-shot-statuses-content"
-        id="penalty-shot-statuses-header"
+        aria-controls="injury-types-content"
+        id="injury-types-header"
       >
         <Typography className={classes.accordionFormTitle}>
-          Penalty Shot Status
+          Injury Types
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
@@ -272,11 +260,8 @@ const PenaltyShotStatuses = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={rulePackPenaltyShotStatusesColumns}
-                rows={setIdFromEntityId(
-                  queryData?.penaltyShotStatuses,
-                  'penaltyShotStatusId'
-                )}
+                columns={rulePackInjuryTypesColumns}
+                rows={setIdFromEntityId(queryData?.injuryTypes, 'injuryTypeId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -288,7 +273,6 @@ const PenaltyShotStatuses = props => {
       </AccordionDetails>
 
       <FormDialog
-        rulePack={queryData?.rulePack}
         rulePackId={rulePackId}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
@@ -298,36 +282,41 @@ const PenaltyShotStatuses = props => {
   )
 }
 
-const FormDialog = props => {
-  const { rulePack, rulePackId, openDialog, handleCloseDialog, data } = props
+type TFormDialog = {
+  rulePackId: string
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: InjuryType | null
+}
 
-  const classes = useStyles()
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { rulePackId, openDialog, handleCloseDialog, data } = props
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
 
-  const [createPenaltyShotStatus, { loading: mutationLoadingCreate }] =
-    useMutation(CREATE_PENALTY_SHOT_STATUS, {
-      update(cache, { data: { createPenaltyShotStatuses } }) {
+  const [createInjuryType, { loading: mutationLoadingCreate }] = useMutation(
+    CREATE_INJURY,
+    {
+      update(cache, { data: { createInjuryTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_INJURIES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
-          const newItem = createPenaltyShotStatuses?.penaltyShotStatuses?.[0]
+          const newItem = createInjuryTypes?.injuryTypes?.[0]
 
-          const existingData = queryResult?.penaltyShotStatuses
+          const existingData = queryResult?.injuryTypes || []
           const updatedData = [newItem, ...existingData]
           const updatedResult = {
-            penaltyShotStatuses: updatedData,
+            injuryTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+            query: GET_INJURIES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -346,33 +335,32 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    })
+    }
+  )
 
-  const [updatePenaltyShotStatus, { loading: mutationLoadingUpdate }] =
-    useMutation(UPDATE_PENALTY_SHOT_STATUS, {
-      update(cache, { data: { updatePenaltyShotStatuses } }) {
+  const [updateInjuryType, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_INJURY,
+    {
+      update(cache, { data: { updateInjuryTypes } }) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_INJURIES,
             variables: {
               where: { rulePack: { rulePackId } },
-              whereRulePack: { rulePackId },
             },
           })
 
-          const newItem = updatePenaltyShotStatuses?.penaltyShotStatuses?.[0]
+          const newItem = updateInjuryTypes?.injuryTypes?.[0]
 
-          const existingData = queryResult?.penaltyShotStatuses
+          const existingData = queryResult?.injuryTypes || []
           const updatedData = existingData?.map(ed =>
-            ed.penaltyShotStatusId === newItem.penaltyShotStatusId
-              ? newItem
-              : ed
+            ed.injuryTypeId === newItem.injuryTypeId ? newItem : ed
           )
           const updatedResult = {
-            penaltyShotStatuses: updatedData,
+            injuryTypes: updatedData,
           }
           cache.writeQuery({
-            query: GET_PENALTY_SHOT_STATUSES,
+            query: GET_INJURIES,
             data: updatedResult,
             variables: {
               where: { rulePack: { rulePackId } },
@@ -391,30 +379,29 @@ const FormDialog = props => {
           variant: 'error',
         })
       },
-    })
+    }
+  )
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { name, code } = dataToCheck
-        data?.penaltyShotStatusId
-          ? updatePenaltyShotStatus({
+        const { name } = dataToCheck
+
+        data?.injuryTypeId
+          ? updateInjuryType({
               variables: {
                 where: {
-                  penaltyShotStatusId: data?.penaltyShotStatusId,
+                  injuryTypeId: data?.injuryTypeId,
                 },
                 update: {
                   name,
-                  code,
                 },
               },
             })
-          : createPenaltyShotStatus({
+          : createInjuryType({
               variables: {
                 input: {
                   name,
-                  code,
-
                   rulePack: {
                     connect: {
                       where: {
@@ -441,13 +428,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`Add new penalty shot status to ${rulePack?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new injury type`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -463,18 +445,6 @@ const FormDialog = props => {
                       fullWidth
                       variant="standard"
                       error={errors?.name}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6} lg={6}>
-                    <RHFInput
-                      control={control}
-                      defaultValue={data?.code || ''}
-                      name="code"
-                      label="Code"
-                      required
-                      fullWidth
-                      variant="standard"
-                      error={errors?.code}
                     />
                   </Grid>
                 </Grid>
@@ -504,10 +474,6 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
-}
+})
 
-PenaltyShotStatuses.propTypes = {
-  rulePackId: PropTypes.string,
-}
-
-export { PenaltyShotStatuses }
+export { InjuryTypes }
