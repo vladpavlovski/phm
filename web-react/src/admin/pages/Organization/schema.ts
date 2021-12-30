@@ -9,4 +9,7 @@ export const schema = object().shape({
   foundDate: date().nullable(),
   urlSlug: string().required('Url slug is required'),
   urlGameLinks: string(),
+  bankAccountNumber: string(),
+  bankAccountCurrency: string(),
+  bankCode: string(),
 })

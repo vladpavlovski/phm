@@ -277,6 +277,9 @@ export type Organization = {
   urlSlug: string
   urlGameLinks: string
   ownerId: string
+  bankAccountNumber: string
+  bankAccountCurrency: string
+  bankCode: string
   competitions: Competition[]
   persons: Person[]
   occupations: Occupation

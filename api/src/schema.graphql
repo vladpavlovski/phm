@@ -1113,6 +1113,9 @@ type Organization {
   urlSlug: String
   urlGameLinks: String
   ownerId: ID
+  bankAccountNumber: String
+  bankAccountCurrency: String
+  bankCode: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)

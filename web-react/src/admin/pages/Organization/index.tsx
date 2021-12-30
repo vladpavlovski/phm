@@ -50,6 +50,9 @@ export const GET_ORGANIZATION = gql`
       ownerId
       foundDate
       urlGameLinks
+      bankAccountNumber
+      bankAccountCurrency
+      bankCode
       persons {
         personId
         firstName
@@ -84,6 +87,9 @@ const CREATE_ORGANIZATION = gql`
         urlGameLinks
         ownerId
         foundDate
+        bankAccountNumber
+        bankAccountCurrency
+        bankCode
       }
     }
   }
@@ -107,6 +113,9 @@ const UPDATE_ORGANIZATION = gql`
         urlGameLinks
         ownerId
         foundDate
+        bankAccountNumber
+        bankAccountCurrency
+        bankCode
       }
     }
   }
@@ -422,7 +431,40 @@ const Organization: React.FC = () => {
                       label="Url Game Links"
                       fullWidth
                       variant="standard"
-                      error={errors?.urlSlug}
+                      error={errors?.urlGameLinks}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={orgData?.bankAccountNumber}
+                      control={control}
+                      name="bankAccountNumber"
+                      label="Bank Account Number"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.bankAccountNumber}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={orgData?.bankCode}
+                      control={control}
+                      name="bankCode"
+                      label="Bank Code"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.bankCode}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={orgData?.bankAccountCurrency}
+                      control={control}
+                      name="bankAccountCurrency"
+                      label="Bank Account Currency"
+                      fullWidth
+                      variant="standard"
+                      error={errors?.bankAccountCurrency}
                     />
                   </Grid>
                 </Grid>

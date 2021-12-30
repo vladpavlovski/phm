@@ -13,21 +13,18 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import ButtonGroup from '@mui/material/ButtonGroup'
-// import DatePicker from '@mui/lab/DatePicker'
 import Link from '@mui/material/Link'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import StarIcon from '@mui/icons-material/Star'
 import BalconyIcon from '@mui/icons-material/Balcony'
-// import TodayIcon from '@mui/icons-material/Today'
 import { DataGridPro } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
+import { GameQrPayment } from '../components'
+import { Error, Loader, LinkButton } from 'components'
+import { useXGridSearch } from 'utils/hooks'
 
-import { Error } from 'components/Error'
-import { useWindowSize, useXGridSearch } from 'utils/hooks'
-import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import {
   setIdFromEntityId,
@@ -125,12 +122,15 @@ export const GET_GAMES = gql`
       }
       org {
         urlGameLinks
+        bankAccountNumber
+        bankAccountCurrency
+        bankCode
       }
     }
   }
 `
 
-export const getColumns = (organizationSlug, organizationUrlGameLinks) => [
+export const getColumns = organizationSlug => [
   {
     field: 'gameId',
     headerName: 'Edit',
@@ -651,6 +651,41 @@ export const getColumns = (organizationSlug, organizationUrlGameLinks) => [
         : ''
     },
   },
+  {
+    field: 'GameQrPayment',
+    headerName: 'QR Platba',
+    width: 180,
+    disableColumnMenu: true,
+    sortable: false,
+    align: 'center',
+    headerAlign: 'center',
+    renderCell: params => {
+      const { foreignId, org, startDate, teamsConnection } = params.row
+      const { bankAccountCurrency, bankAccountNumber, bankCode } = org
+      const hostTeamNick = teamsConnection.edges.find(e => e.host)?.node?.nick
+      const guestTeamNick = teamsConnection.edges.find(e => !e.host)?.node?.nick
+      const canBeRendered =
+        foreignId &&
+        startDate &&
+        bankAccountCurrency &&
+        bankAccountNumber &&
+        bankCode &&
+        hostTeamNick &&
+        guestTeamNick
+
+      return canBeRendered ? (
+        <GameQrPayment
+          bankAccountNumber={bankAccountNumber}
+          bankCode={bankCode}
+          currency={bankAccountCurrency}
+          vs={foreignId}
+          message={`${hostTeamNick} - ${startDate} - ${guestTeamNick}`}
+        />
+      ) : (
+        <></>
+      )
+    },
+  },
 ]
 
 const XGridTable = () => {
@@ -809,17 +844,14 @@ const XGridTable = () => {
     data: gameData,
   })
 
-  const windowSize = useWindowSize()
-  const toolbarRef = React.useRef()
-
   // const [datepickerIsOpen, setDatepickerIsOpen] = React.useState(false)
   // const [selectedDate, setSelectedDate] = React.useState()
   return (
     <Container maxWidth={false} className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
+          <Paper>
+            <Toolbar className={classes.toolbarForm}>
               <div>
                 {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
                   {'Games'}
@@ -929,10 +961,10 @@ const XGridTable = () => {
             </Toolbar>
           </Paper>
           {loadingGames && <Loader />}
-          {errorGames && <Error message={errorGames.message} />}
+          <Error message={errorGames?.message} />
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{ height: 'calc(100vh - 230px)' }}
               className={classes.xGridWrapper}
             >
               <DataGridPro

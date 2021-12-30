@@ -82,6 +82,12 @@ const GET_GAMES = gql`
       gameResult {
         gameStatus
       }
+      org {
+        urlGameLinks
+        bankAccountNumber
+        bankAccountCurrency
+        bankCode
+      }
     }
   }
 `
