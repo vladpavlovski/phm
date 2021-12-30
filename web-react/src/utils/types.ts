@@ -56,13 +56,24 @@ export type Person = {
 export type Group = {
   groupId: string
   name: string
+  nick: string
+  short: string
+  teamsLimit: number
+  status: string
   competition: Competition
+  season: Season
 }
 
 export type Phase = {
   phaseId: string
   name: string
+  nick: string
+  short: string
+  startDate: Date
+  endDate: Date
+  status: string
   competition: Competition
+  season: Season
 }
 
 export type Competition = {
@@ -71,6 +82,10 @@ export type Competition = {
   phases: Phase[]
   groups: Group[]
   seasons: Season[]
+  org: Organization
+  sponsors: Sponsor[]
+  teams: Team[]
+  venues: Venue[]
 }
 
 export type Season = {

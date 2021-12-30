@@ -1,11 +1,16 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import { useParams } from 'react-router-dom'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  MutationFunction,
+} from '@apollo/client'
+
 import { useSnackbar } from 'notistack'
+
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, date } from 'yup'
+import { object, string, number } from 'yup'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -15,103 +20,96 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import TextField from '@mui/material/TextField'
 import LoadingButton from '@mui/lab/LoadingButton'
 import MenuItem from '@mui/material/MenuItem'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFDatepicker } from 'components/RHFDatepicker'
-import { RHFInput } from 'components/RHFInput'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { RHFSelect } from 'components/RHFSelect'
-
-import { Error } from 'components/Error'
 import { timeUnitStatusList } from 'components/lists'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
+import { RHFInput } from 'components/RHFInput'
+import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, decomposeDate, formatDate } from 'utils'
-const sortByName = (a, b) => {
-  if (a?.name < b?.name) {
-    return 1
-  }
-  if (a?.name > b?.name) {
-    return -1
-  }
-  return 0
-}
-
-const GET_PHASES = gql`
-  query getCompetition($where: CompetitionWhere, $whereSeason: SeasonWhere) {
-    competition: competitions(where: $where) {
+import { setIdFromEntityId } from 'utils'
+import { Competition, Group, Season } from 'utils/types'
+const GET_GROUPS = gql`
+  query getCompetition($where: CompetitionWhere) {
+    competitions(where: $where) {
       competitionId
       name
-      phases {
-        phaseId
+      groups {
+        groupId
         name
         nick
         short
         status
-        startDate
-        endDate
+        teamsLimit
         season {
           seasonId
           name
         }
       }
     }
-    seasons(where: $whereSeason) {
+    seasons {
       seasonId
       name
     }
   }
 `
 
-const CREATE_COMPETITION_PHASE = gql`
-  mutation createCompetitionPhase($input: [PhaseCreateInput!]!) {
-    createPhases(input: $input) {
-      phases {
-        phaseId
+const CREATE_COMPETITION_GROUP = gql`
+  mutation createCompetitionGroup($input: [GroupCreateInput!]!) {
+    createGroups(input: $input) {
+      groups {
+        groupId
         name
         nick
         short
         status
-        startDate
-        endDate
+        teamsLimit
+        season {
+          seasonId
+          name
+        }
       }
     }
   }
 `
 
-const UPDATE_COMPETITION_PHASE = gql`
-  mutation updateCompetitionPhase(
-    $where: PhaseWhere
-    $update: PhaseUpdateInput
+const UPDATE_COMPETITION_GROUP = gql`
+  mutation updateCompetitionGroup(
+    $where: GroupWhere
+    $update: GroupUpdateInput
   ) {
-    updatePhases(where: $where, update: $update) {
-      phases {
-        phaseId
+    updateGroups(where: $where, update: $update) {
+      groups {
+        groupId
         name
         nick
         short
         status
-        startDate
-        endDate
+        teamsLimit
+        season {
+          seasonId
+          name
+        }
       }
     }
   }
 `
 
-const DELETE_COMPETITION_PHASE = gql`
-  mutation deletePhase($where: PhaseWhere) {
-    deletePhases(where: $where) {
+const DELETE_COMPETITION_GROUP = gql`
+  mutation deleteGroup($where: GroupWhere) {
+    deleteGroups(where: $where) {
       nodesDeleted
     }
   }
@@ -122,13 +120,27 @@ const schema = object().shape({
   nick: string(),
   short: string(),
   status: string(),
-  startDate: date().nullable(),
-  endDate: date().nullable(),
+  teamsLimit: number().integer().positive().required('Teams limit is required'),
 })
 
-const Phases = props => {
+type TRelations = {
+  competitionId: string
+  competition: Competition
+  updateCompetition: MutationFunction
+}
+
+type TQueryTypeData = {
+  competitions: Competition[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    competitionId: string
+  }
+}
+
+const Groups: React.FC<TRelations> = props => {
   const { competitionId } = props
-  const { organizationSlug } = useParams()
   const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -142,54 +154,54 @@ const Phases = props => {
   }, [])
   const [
     getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_PHASES, {
+    {
+      loading: queryLoading,
+      error: queryError,
+      data: { competitions: [competition] } = { competitions: [] },
+    },
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_GROUPS, {
     variables: { where: { competitionId } },
-    fetchPolicy: 'cache-and-network',
   })
 
-  const competition = queryData?.competition?.[0]
-
   const openAccordion = useCallback(() => {
-    if (!queryData) {
+    if (!competition) {
       getData()
     }
-  }, [])
+  }, [competition])
 
   const handleOpenDialog = useCallback(data => {
     formData.current = data
     setOpenDialog(true)
   }, [])
 
-  const [deleteCompetitionPhase, { loading: mutationLoadingRemove }] =
-    useMutation(DELETE_COMPETITION_PHASE, {
+  const [deleteGroup, { loading: mutationLoadingRemove }] = useMutation(
+    DELETE_COMPETITION_GROUP,
+    {
       update(cache) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PHASES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GROUPS,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
-          const updatedData = queryResult?.competition?.[0]?.phases?.filter(
-            p => p.phaseId !== deletedItemId.current
+          const updatedData = queryResult?.competitions?.[0]?.groups?.filter(
+            p => p.groupId !== deletedItemId.current
           )
 
           const updatedResult = {
-            competition: [
+            competitions: [
               {
-                ...queryResult.competition?.[0],
-                phases: updatedData,
+                ...queryResult?.competitions?.[0],
+                groups: updatedData,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_PHASES,
+            query: GET_GROUPS,
             data: updatedResult,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
         } catch (error) {
@@ -197,15 +209,23 @@ const Phases = props => {
         }
       },
       onCompleted: () => {
-        deletedItemId.current = null
-        enqueueSnackbar('Phase was deleted!')
+        enqueueSnackbar(`Group was deleted!`, {
+          variant: 'info',
+        })
       },
-    })
+      onError: error => {
+        enqueueSnackbar(`Error happened :( ${error}`, {
+          variant: 'error',
+        })
+        console.error(error)
+      },
+    }
+  )
 
-  const competitionPhasesColumns = useMemo(
+  const competitionGroupsColumns = useMemo<GridColumns>(
     () => [
       {
-        field: 'phaseId',
+        field: 'groupId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -234,17 +254,15 @@ const Phases = props => {
               text={'Delete'}
               textLoading={'Deleting...'}
               loading={mutationLoadingRemove}
-              size="small"
-              startIcon={<DeleteForeverIcon />}
-              dialogTitle={'Do you really want to delete this phase?'}
-              dialogDescription={'Phase will be completely delete'}
-              dialogNegativeText={'No, keep phase'}
-              dialogPositiveText={'Yes, delete phase'}
+              dialogTitle={'Do you really want to delete this group?'}
+              dialogDescription={'Group will be completely delete'}
+              dialogNegativeText={'No, keep group'}
+              dialogPositiveText={'Yes, delete group'}
               onDialogClosePositive={() => {
-                deletedItemId.current = params.row.phaseId
-                deleteCompetitionPhase({
+                deletedItemId.current = params.row.groupId
+                deleteGroup({
                   variables: {
-                    where: { phaseId: params.row.phaseId },
+                    where: { groupId: params.row.groupId },
                   },
                 })
               }}
@@ -274,18 +292,9 @@ const Phases = props => {
         width: 120,
       },
       {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate,
-        valueFormatter: params => formatDate(params.value),
+        field: 'teamsLimit',
+        headerName: 'Limit',
+        width: 120,
       },
       {
         field: 'season',
@@ -301,21 +310,21 @@ const Phases = props => {
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="phases-content"
-        id="phases-header"
+        aria-controls="groups-content"
+        id="groups-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography className={classes.accordionFormTitle}>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryError && <Error message={queryError.message} />}
-        {queryData && (
+        <Error message={queryError?.message} />
+        {competition && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
               <div />
               <div>
                 <Button
                   onClick={() => {
-                    handleOpenDialog()
+                    handleOpenDialog(null)
                   }}
                   variant={'outlined'}
                   size="small"
@@ -328,15 +337,15 @@ const Phases = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={competitionPhasesColumns}
-                rows={setIdFromEntityId(competition?.phases, 'phaseId')}
+                columns={competitionGroupsColumns}
+                rows={setIdFromEntityId(competition?.groups, 'groupId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
                 }}
                 sortModel={[
                   {
-                    field: 'startDate',
+                    field: 'season',
                     sort: 'desc',
                   },
                 ]}
@@ -349,28 +358,26 @@ const Phases = props => {
       <FormDialog
         competition={competition}
         competitionId={competitionId}
-        seasons={queryData?.seasons}
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         data={formData.current}
-        organizationSlug={organizationSlug}
       />
     </Accordion>
   )
 }
 
-const FormDialog = props => {
-  const {
-    competition,
-    competitionId,
-    seasons,
-    openDialog,
-    handleCloseDialog,
-    data,
-    organizationSlug,
-  } = props
-  const [selectedSeason, setSelectedSeason] = useState()
-  const classes = useStyles()
+type TFormDialog = {
+  competitionId: string
+  competition: Competition
+  openDialog: boolean
+  handleCloseDialog: () => void
+  data: Group | null
+}
+
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+  const { competition, competitionId, openDialog, handleCloseDialog, data } =
+    props
+  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>()
   const { enqueueSnackbar } = useSnackbar()
 
   const { handleSubmit, control, errors } = useForm({
@@ -383,31 +390,31 @@ const FormDialog = props => {
     }
   }, [data])
 
-  const [createCompetitionPhase, { loading: mutationLoadingCreate }] =
-    useMutation(CREATE_COMPETITION_PHASE, {
+  const [createCompetitionGroup, { loading: mutationLoadingCreate }] =
+    useMutation(CREATE_COMPETITION_GROUP, {
       update(
         cache,
         {
           data: {
-            createPhases: { phases },
+            createGroups: { groups },
           },
         }
       ) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_PHASES,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GROUPS,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
-          const existingData = queryResult?.competition?.[0]?.phases
-          const newItem = phases?.[0]
+
+          const existingData = queryResult?.competitions?.[0]?.groups || []
+          const newItem = groups?.[0]
           let updatedData = []
-          if (existingData?.find(ed => ed.phaseId === newItem.phaseId)) {
+          if (existingData?.find(ed => ed.groupId === newItem.groupId)) {
             // replace if item exist in array
             updatedData = existingData?.map(ed =>
-              ed.phaseId === newItem.phaseId ? newItem : ed
+              ed.groupId === newItem.groupId ? newItem : ed
             )
           } else {
             // add new item if item not in array
@@ -415,19 +422,18 @@ const FormDialog = props => {
           }
 
           const updatedResult = {
-            competition: [
+            competitions: [
               {
-                ...queryResult.competition?.[0],
-                phases: updatedData,
+                ...queryResult?.competitions?.[0],
+                groups: updatedData,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_PHASES,
+            query: GET_GROUPS,
             data: updatedResult,
             variables: {
               where: { competitionId },
-              organizationSlug,
             },
           })
         } catch (error) {
@@ -435,25 +441,25 @@ const FormDialog = props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar('Competition phase created!', { variant: 'success' })
+        enqueueSnackbar('Competition group created!', { variant: 'success' })
         handleCloseDialog()
-        setSelectedSeason(null)
+        setSelectedSeason(undefined)
       },
     })
 
-  const [updateCompetitionPhase, { loading: mutationLoadingUpdate }] =
-    useMutation(UPDATE_COMPETITION_PHASE, {
+  const [updateCompetitionGroup, { loading: mutationLoadingUpdate }] =
+    useMutation(UPDATE_COMPETITION_GROUP, {
       onCompleted: () => {
-        enqueueSnackbar('Competition phase updated!', { variant: 'success' })
+        enqueueSnackbar('Competition group updated!', { variant: 'success' })
       },
     })
 
   const handleSeasonChange = useCallback(
     selected => {
-      updateCompetitionPhase({
+      updateCompetitionGroup({
         variables: {
           where: {
-            phaseId: data?.phaseId,
+            groupId: data?.groupId,
           },
           update: {
             season: {
@@ -480,26 +486,25 @@ const FormDialog = props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { startDate, endDate, ...rest } = dataToCheck
-        data?.phaseId
-          ? updateCompetitionPhase({
+        const { teamsLimit, ...rest } = dataToCheck
+
+        data?.groupId
+          ? updateCompetitionGroup({
               variables: {
                 where: {
-                  phaseId: data?.phaseId,
+                  groupId: data?.groupId,
                 },
                 update: {
                   ...rest,
-                  ...decomposeDate(startDate, 'startDate'),
-                  ...decomposeDate(endDate, 'endDate'),
+                  teamsLimit: `${teamsLimit}`,
                 },
               },
             })
-          : createCompetitionPhase({
+          : createCompetitionGroup({
               variables: {
                 input: {
                   ...rest,
-                  ...decomposeDate(startDate, 'startDate'),
-                  ...decomposeDate(endDate, 'endDate'),
+                  teamsLimit: `${teamsLimit}`,
                   competition: {
                     connect: {
                       where: {
@@ -526,15 +531,8 @@ const FormDialog = props => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={classes.form}
-        noValidate
-        autoComplete="off"
-      >
-        <DialogTitle id="alert-dialog-title">{`${
-          data?.phaseId ? 'Edit phase in' : 'Add new phase to'
-        } ${competition?.name}`}</DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+        <DialogTitle id="alert-dialog-title">{`Add new group to ${competition?.name}`}</DialogTitle>
         <DialogContent>
           <Container>
             <Grid container spacing={2}>
@@ -556,7 +554,7 @@ const FormDialog = props => {
 
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={data?.nick}
+                      defaultValue={data?.nick || ''}
                       control={control}
                       name="nick"
                       label="Nick"
@@ -567,13 +565,25 @@ const FormDialog = props => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={data?.short}
+                      defaultValue={data?.short || ''}
                       control={control}
                       name="short"
                       label="Short"
                       fullWidth
                       variant="standard"
                       error={errors?.short}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={data?.teamsLimit || ''}
+                      control={control}
+                      name="teamsLimit"
+                      label="Teams Limit"
+                      fullWidth
+                      required
+                      variant="standard"
+                      error={errors?.teamsLimit}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -595,40 +605,9 @@ const FormDialog = props => {
                     </RHFSelect>
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFDatepicker
-                      fullWidth
-                      control={control}
-                      variant="standard"
-                      name="startDate"
-                      label="Start Date"
-                      id="startDate"
-                      openTo="year"
-                      inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'day']}
-                      defaultValue={data?.startDate}
-                      error={errors?.startDate}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFDatepicker
-                      fullWidth
-                      control={control}
-                      variant="standard"
-                      name="endDate"
-                      label="End Date"
-                      id="endDate"
-                      openTo="year"
-                      inputFormat={'DD/MM/YYYY'}
-                      views={['year', 'month', 'day']}
-                      defaultValue={data?.endDate}
-                      error={errors?.endDate}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} lg={3}>
-                    {data?.phaseId && (
+                    {data?.groupId && (
                       <Autocomplete
-                        id="phase-season-select"
-                        name="season"
+                        id="group-season-select"
                         value={selectedSeason}
                         disableClearable
                         getOptionLabel={option => option.name}
@@ -638,7 +617,7 @@ const FormDialog = props => {
                         // getOptionSelected={(option, value) =>
                         //   option.seasonId === value.seasonId
                         // }
-                        options={[...seasons].sort(sortByName)}
+                        options={[...competition.seasons].sort(sortByName)}
                         onChange={(_, data) => {
                           handleSeasonChange(data)
                         }}
@@ -655,7 +634,7 @@ const FormDialog = props => {
                             variant="standard"
                             inputProps={{
                               ...params.inputProps,
-                              autoComplete: 'off',
+                              autoComplete: 'new-password',
                             }}
                           />
                         )}
@@ -684,10 +663,16 @@ const FormDialog = props => {
       </form>
     </Dialog>
   )
+})
+
+const sortByName = (a: { name: string }, b: { name: string }) => {
+  if (a?.name < b?.name) {
+    return 1
+  }
+  if (a?.name > b?.name) {
+    return -1
+  }
+  return 0
 }
 
-Phases.propTypes = {
-  competitionId: PropTypes.string,
-}
-
-export { Phases }
+export { Groups }

@@ -1,6 +1,10 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  MutationFunction,
+} from '@apollo/client'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
@@ -12,7 +16,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,41 +25,39 @@ import AccountBox from '@mui/icons-material/AccountBox'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
+import { getAdminOrgVenueRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { formatDate, setIdFromEntityId } from '../../../../../utils'
-
-const GET_SEASONS = gql`
-  query getSeasons($where: CompetitionWhere) {
-    competition: competitions(where: $where) {
+import { setIdFromEntityId } from '../../../../../utils'
+import { Competition } from 'utils/types'
+const GET_VENUES = gql`
+  query getVenues($where: CompetitionWhere) {
+    competitions(where: $where) {
       competitionId
       name
-      seasons {
-        seasonId
+      venues {
+        venueId
         name
         nick
-        startDate
-        endDate
+        capacity
       }
     }
   }
 `
 
-const UPDATE_SEASON = gql`
-  mutation updateSeason($where: SeasonWhere, $update: SeasonUpdateInput) {
-    updateSeasons(where: $where, update: $update) {
-      seasons {
-        seasonId
+const UPDATE_VENUE = gql`
+  mutation updateVenue($where: VenueWhere, $update: VenueUpdateInput) {
+    updateVenues(where: $where, update: $update) {
+      venues {
+        venueId
         name
         nick
-        startDate
-        endDate
+        capacity
         competitions {
           competitionId
           name
@@ -66,57 +67,77 @@ const UPDATE_SEASON = gql`
   }
 `
 
-export const GET_ALL_SEASONS = gql`
-  query getSeasons {
-    seasons {
-      seasonId
+export const GET_ALL_VENUES = gql`
+  query getVenues {
+    venues {
+      venueId
       name
       nick
-      startDate
-      endDate
+      capacity
     }
   }
 `
 
-const Seasons = props => {
+type TRelations = {
+  competitionId: string
+  competition: Competition
+  updateCompetition: MutationFunction
+}
+
+type TQueryTypeData = {
+  competitions: Competition[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    competitionId: string
+  }
+}
+
+type TParams = { organizationSlug: string }
+
+const Venues: React.FC<TRelations> = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const { organizationSlug } = useParams()
-  const [openAddSeason, setOpenAddSeason] = useState(false)
-  const updateStatus = React.useRef()
+  const { organizationSlug } = useParams<TParams>()
+  const [openAddVenue, setOpenAddVenue] = useState(false)
+  const updateStatus = React.useRef<string | null>(null)
 
-  const handleCloseAddSeason = useCallback(() => {
-    setOpenAddSeason(false)
+  const setUpdateStatus = useCallback(value => {
+    updateStatus.current = value
+  }, [])
+  const handleCloseAddVenue = useCallback(() => {
+    setOpenAddVenue(false)
   }, [])
   const [
     getData,
     { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SEASONS)
+  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_VENUES)
 
   const [
-    getAllSeasons,
+    getAllVenues,
     {
-      loading: queryAllSeasonsLoading,
-      error: queryAllSeasonsError,
-      data: queryAllSeasonsData,
+      loading: queryAllVenuesLoading,
+      error: queryAllVenuesError,
+      data: { competitions: [competition] } = { competitions: [] },
     },
-  ] = useLazyQuery(GET_ALL_SEASONS)
+  ] = useLazyQuery(GET_ALL_VENUES)
 
-  const [updateSeason, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_SEASON,
+  const [updateVenue, { loading: mutationLoadingUpdate }] = useMutation(
+    UPDATE_VENUE,
     {
       update(
         cache,
         {
           data: {
-            updateSeasons: { seasons },
+            updateVenues: { venues },
           },
         }
       ) {
         try {
-          const queryResult = cache.readQuery({
-            query: GET_SEASONS,
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_VENUES,
             variables: {
               where: { competitionId },
             },
@@ -124,21 +145,21 @@ const Seasons = props => {
 
           const updatedData =
             updateStatus.current === 'disconnect'
-              ? queryResult?.competition?.[0]?.seasons?.filter(
-                  p => p.seasonId !== seasons?.[0]?.seasonId
+              ? queryResult?.competitions?.[0]?.venues?.filter(
+                  p => p.venueId !== venues?.[0]?.venueId
                 )
-              : [...queryResult?.competition?.[0]?.seasons, ...seasons]
+              : [...(queryResult?.competitions?.[0]?.venues || []), ...venues]
 
           const updatedResult = {
-            competition: [
+            competitions: [
               {
-                ...queryResult?.competition?.[0],
-                seasons: updatedData,
+                ...queryResult?.competitions?.[0],
+                venues: updatedData,
               },
             ],
           }
           cache.writeQuery({
-            query: GET_SEASONS,
+            query: GET_VENUES,
             data: updatedResult,
             variables: {
               where: { competitionId },
@@ -149,14 +170,11 @@ const Seasons = props => {
         }
       },
       onCompleted: () => {
-        // getData()
         updateStatus.current = null
         enqueueSnackbar('Season updated!', { variant: 'success' })
       },
     }
   )
-
-  const competition = queryData?.competition?.[0] || {}
 
   const openAccordion = useCallback(() => {
     if (!queryData) {
@@ -164,14 +182,14 @@ const Seasons = props => {
     }
   }, [])
 
-  const handleOpenAddSeason = useCallback(() => {
-    if (!queryAllSeasonsData) {
-      getAllSeasons()
+  const handleOpenAddVenue = useCallback(() => {
+    if (!competition) {
+      getAllVenues()
     }
-    setOpenAddSeason(true)
+    setOpenAddVenue(true)
   }, [])
 
-  const competitionSeasonsColumns = useMemo(
+  const competitionVenuesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -186,22 +204,14 @@ const Seasons = props => {
       },
 
       {
-        field: 'startDate',
-        headerName: 'Start Date',
+        field: 'capacity',
+        headerName: 'Capacity',
         width: 180,
-        valueGetter: params => params.row?.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row?.endDate,
-        valueFormatter: params => formatDate(params.value),
+        valueGetter: params => params.row?.capacity?.low || '',
       },
 
       {
-        field: 'seasonId',
+        field: 'venueId',
         headerName: 'Profile',
         width: 120,
         disableColumnMenu: true,
@@ -209,7 +219,7 @@ const Seasons = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+              to={getAdminOrgVenueRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -227,20 +237,18 @@ const Seasons = props => {
               text={'Detach'}
               textLoading={'Detaching...'}
               loading={mutationLoadingUpdate}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach competition from season?'
+                'Do you really want to detach competition from venue?'
               }
-              dialogDescription={'You can add competition to season later.'}
-              dialogNegativeText={'No, keep in season'}
-              dialogPositiveText={'Yes, detach season'}
+              dialogDescription={'You can add competition to venue later.'}
+              dialogNegativeText={'No, keep in venue'}
+              dialogPositiveText={'Yes, detach venue'}
               onDialogClosePositive={() => {
                 updateStatus.current = 'disconnect'
-                updateSeason({
+                updateVenue({
                   variables: {
                     where: {
-                      seasonId: params.row?.seasonId,
+                      venueId: params.row?.venueId,
                     },
                     update: {
                       competitions: {
@@ -264,7 +272,7 @@ const Seasons = props => {
     [organizationSlug]
   )
 
-  const allSeasonsColumns = useMemo(
+  const allVenuesColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -279,48 +287,40 @@ const Seasons = props => {
       },
 
       {
-        field: 'startDate',
-        headerName: 'Start Date',
+        field: 'capacity',
+        headerName: 'Capacity',
         width: 180,
-        valueGetter: params => params.row?.startDate,
-        valueFormatter: params => formatDate(params?.value),
+        valueGetter: params => params.row?.capacity?.low || '',
       },
       {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row?.endDate,
-        valueFormatter: params => formatDate(params?.value),
-      },
-      {
-        field: 'seasonId',
+        field: 'venueId',
         headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewSeason
-              seasonId={params.value}
+            <ToggleNewVenue
+              venueId={params.value}
               competitionId={competitionId}
               competition={competition}
-              update={updateSeason}
-              updateStatus={updateStatus}
+              update={updateVenue}
+              setUpdateStatus={setUpdateStatus}
             />
           )
         },
       },
     ],
-    [competition, competitionId]
+    [competition]
   )
 
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="seasons-content"
-        id="seasons-header"
+        aria-controls="venues-content"
+        id="venues-header"
       >
-        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
+        <Typography className={classes.accordionFormTitle}>Venues</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && !queryError && <Loader />}
@@ -331,18 +331,18 @@ const Seasons = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenAddSeason}
+                  onClick={handleOpenAddVenue}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
                   startIcon={<AddIcon />}
                 >
-                  Add Season
+                  Add Venue
                 </Button>
 
                 <LinkButton
                   startIcon={<CreateIcon />}
-                  to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
+                  to={getAdminOrgVenueRoute(organizationSlug, 'new')}
                 >
                   Create
                 </LinkButton>
@@ -350,8 +350,8 @@ const Seasons = props => {
             </Toolbar>
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
-                columns={competitionSeasonsColumns}
-                rows={setIdFromEntityId(competition.seasons, 'seasonId')}
+                columns={competitionVenuesColumns}
+                rows={setIdFromEntityId(competition.venues, 'venueId')}
                 loading={queryLoading}
                 components={{
                   Toolbar: GridToolbar,
@@ -364,44 +364,35 @@ const Seasons = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddSeason}
-        onClose={handleCloseAddSeason}
+        open={openAddVenue}
+        onClose={handleCloseAddVenue}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllSeasonsLoading && !queryAllSeasonsError && <Loader />}
-        {queryAllSeasonsError && !queryAllSeasonsLoading && (
-          <Error message={queryAllSeasonsError.message} />
+        {queryAllVenuesLoading && <Loader />}
+        <Error message={queryAllVenuesError?.message} />
+        {competition && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add ${competition?.name} to new venue`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allVenuesColumns}
+                  rows={setIdFromEntityId(competition.venues, 'venueId')}
+                  disableSelectionOnClick
+                  loading={queryAllVenuesLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllSeasonsData &&
-          !queryAllSeasonsLoading &&
-          !queryAllSeasonsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add ${
-                competition && competition.name
-              } to new season`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allSeasonsColumns}
-                    rows={setIdFromEntityId(
-                      queryAllSeasonsData.seasons,
-                      'seasonId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllSeasonsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddSeason()
+              handleCloseAddVenue()
             }}
           >
             {'Done'}
@@ -412,10 +403,18 @@ const Seasons = props => {
   )
 }
 
-const ToggleNewSeason = props => {
-  const { seasonId, competitionId, competition, update, updateStatus } = props
+type TToggleNew = {
+  venueId: string
+  competitionId: string
+  competition: Competition
+  update: MutationFunction
+  setUpdateStatus: (value: string | null) => void
+}
+
+const ToggleNewVenue: React.FC<TToggleNew> = React.memo(props => {
+  const { venueId, competitionId, competition, update, setUpdateStatus } = props
   const [isMember, setIsMember] = useState(
-    !!competition?.seasons?.find(p => p.seasonId === seasonId)
+    !!competition.venues.find(p => p.venueId === venueId)
   )
 
   return (
@@ -426,7 +425,7 @@ const ToggleNewSeason = props => {
           ? update({
               variables: {
                 where: {
-                  seasonId,
+                  venueId,
                 },
                 update: {
                   competitions: {
@@ -444,7 +443,7 @@ const ToggleNewSeason = props => {
           : update({
               variables: {
                 where: {
-                  seasonId,
+                  venueId,
                 },
                 update: {
                   competitions: {
@@ -457,25 +456,14 @@ const ToggleNewSeason = props => {
                 },
               },
             })
-        updateStatus.current = isMember ? 'disconnect' : null
+        setUpdateStatus(isMember ? 'disconnect' : null)
+
         setIsMember(!isMember)
       }}
-      name="seasonMember"
+      name="venueMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
+})
 
-ToggleNewSeason.propTypes = {
-  playerId: PropTypes.string,
-  competitionId: PropTypes.string,
-  competition: PropTypes.object,
-  update: PropTypes.func,
-}
-
-Seasons.propTypes = {
-  competitionId: PropTypes.string,
-}
-
-export { Seasons }
+export { Venues }

@@ -1,6 +1,10 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  useLazyQuery,
+  useMutation,
+  MutationFunction,
+} from '@apollo/client'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
@@ -12,7 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
+
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,7 +26,7 @@ import AccountBox from '@mui/icons-material/AccountBox'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgSponsorRoute } from '../../../../../router/routes'
@@ -30,11 +34,11 @@ import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
+import { setIdFromEntityId } from 'utils'
+import { Competition } from 'utils/types'
 const GET_SPONSORS = gql`
   query getSponsors($where: CompetitionWhere) {
-    competition: competitions(where: $where) {
+    competitions(where: $where) {
       competitionId
       name
       sponsors {
@@ -71,13 +75,37 @@ export const GET_ALL_SPONSORS = gql`
   }
 `
 
-const Sponsors = props => {
+type TRelations = {
+  competitionId: string
+  competition: Competition
+  updateCompetition: MutationFunction
+}
+
+type TQueryTypeData = {
+  competitions: Competition[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    competitionId: string
+  }
+}
+
+type TParams = {
+  organizationSlug: string
+}
+
+const Sponsors: React.FC<TRelations> = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
-  const updateStatus = React.useRef()
+  const updateStatus = React.useRef<string | null>(null)
+  const setUpdateStatus = useCallback(value => {
+    updateStatus.current = value
+  }, [])
+
   const handleCloseAddSponsor = useCallback(() => {
     setOpenAddSponsor(false)
   }, [])
@@ -107,7 +135,7 @@ const Sponsors = props => {
         }
       ) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_SPONSORS,
             variables: {
               where: { competitionId },
@@ -116,15 +144,18 @@ const Sponsors = props => {
 
           const updatedData =
             updateStatus.current === 'disconnect'
-              ? queryResult?.competition?.[0]?.sponsors?.filter(
+              ? queryResult?.competitions?.[0]?.sponsors?.filter(
                   p => p.sponsorId !== sponsors?.[0]?.sponsorId
                 )
-              : [...queryResult?.competition?.[0]?.sponsors, ...sponsors]
+              : [
+                  ...(queryResult?.competitions?.[0]?.sponsors || []),
+                  ...sponsors,
+                ]
 
           const updatedResult = {
-            competition: [
+            competitions: [
               {
-                ...queryResult?.competition?.[0],
+                ...queryResult?.competitions?.[0],
                 sponsors: updatedData,
               },
             ],
@@ -163,7 +194,7 @@ const Sponsors = props => {
     setOpenAddSponsor(true)
   }, [])
 
-  const competitionSponsorsColumns = useMemo(
+  const competitionSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -204,8 +235,6 @@ const Sponsors = props => {
               text={'Detach'}
               textLoading={'Detaching...'}
               loading={mutationLoadingUpdate}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to detach sponsor from the competition?'
               }
@@ -241,7 +270,7 @@ const Sponsors = props => {
     [organizationSlug]
   )
 
-  const allSponsorsColumns = useMemo(
+  const allSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -265,7 +294,7 @@ const Sponsors = props => {
               competitionId={competitionId}
               competition={competition}
               update={updateSponsor}
-              updateStatus={updateStatus}
+              setUpdateStatus={setUpdateStatus}
             />
           )
         },
@@ -371,8 +400,17 @@ const Sponsors = props => {
   )
 }
 
-const ToggleNewSponsor = props => {
-  const { sponsorId, competitionId, competition, update, updateStatus } = props
+type TToggleNew = {
+  sponsorId: string
+  competitionId: string
+  competition: Competition
+  update: MutationFunction
+  setUpdateStatus: (value: string | null) => void
+}
+
+const ToggleNewSponsor: React.FC<TToggleNew> = React.memo(props => {
+  const { sponsorId, competitionId, competition, update, setUpdateStatus } =
+    props
   const [isMember, setIsMember] = useState(
     !!competition.sponsors.find(p => p.sponsorId === sponsorId)
   )
@@ -416,25 +454,13 @@ const ToggleNewSponsor = props => {
                 },
               },
             })
-        updateStatus.current = isMember ? 'disconnect' : null
+        setUpdateStatus(isMember ? 'disconnect' : null)
         setIsMember(!isMember)
       }}
       name="sponsorMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not member'}
     />
   )
-}
-
-ToggleNewSponsor.propTypes = {
-  playerId: PropTypes.string,
-  competitionId: PropTypes.string,
-  competition: PropTypes.object,
-  update: PropTypes.func,
-}
-
-Sponsors.propTypes = {
-  competitionId: PropTypes.string,
-}
+})
 
 export { Sponsors }

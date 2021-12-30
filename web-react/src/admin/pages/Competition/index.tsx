@@ -85,11 +85,16 @@ const DELETE_COMPETITION = gql`
   }
 `
 
-const Competition = () => {
+type TParams = {
+  competitionId: string
+  organizationSlug: string
+}
+
+const Competition: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
-  const { competitionId, organizationSlug } = useParams()
+  const { competitionId, organizationSlug } = useParams<TParams>()
   const client = useApolloClient()
   const { organizationData } = React.useContext(OrganizationContext)
   const {
@@ -188,7 +193,7 @@ const Competition = () => {
 
   const updateLogo = React.useCallback(
     url => {
-      setValue('logo', url, true)
+      setValue('logo', url, { shouldValidate: true, shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_COMPETITION,
@@ -218,169 +223,160 @@ const Competition = () => {
 
   return (
     <Container maxWidth="lg" className={classes.container}>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
-      {errorDelete && !loadingDelete && <Error message={errorDelete.message} />}
-      {mutationErrorMerge ||
-        (mutationErrorCreate && (
-          <Error
-            message={mutationErrorMerge.message || mutationErrorCreate.message}
-          />
-        ))}
-      {(competitionData || competitionId === 'new') &&
-        !queryLoading &&
-        !queryError &&
-        !mutationErrorMerge && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
-            <Helmet>
-              <title>{competitionData.name || 'Competition'}</title>
-            </Helmet>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4} lg={3}>
-                <Paper className={classes.paper}>
-                  <Img
-                    placeholder={placeholderOrganization}
-                    src={competitionData.logo}
-                    className={classes.logo}
-                    alt={competitionData.name}
+      {queryLoading && <Loader />}
+      <Error
+        message={
+          queryError?.message ||
+          errorDelete?.message ||
+          mutationErrorMerge?.message ||
+          mutationErrorCreate?.message
+        }
+      />
+
+      {(competitionData || competitionId === 'new') && (
+        <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
+          <Helmet>
+            <title>{competitionData.name || 'Competition'}</title>
+          </Helmet>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4} lg={3}>
+              <Paper className={classes.paper}>
+                <Img
+                  placeholder={placeholderOrganization}
+                  src={competitionData.logo}
+                  className={classes.logo}
+                  alt={competitionData.name}
+                />
+
+                <RHFInput
+                  style={{ display: 'none' }}
+                  defaultValue={competitionData.logo}
+                  control={control}
+                  name="logo"
+                  label="Logo URL"
+                  disabled
+                  fullWidth
+                  variant="standard"
+                  error={errors.logo}
+                />
+
+                {isValidUuid(competitionId) && (
+                  <Uploader
+                    buttonText={'Change logo'}
+                    onSubmit={updateLogo}
+                    folderName="images/competitions"
                   />
-
-                  <RHFInput
-                    style={{ display: 'none' }}
-                    defaultValue={competitionData.logo}
-                    control={control}
-                    name="logo"
-                    label="Logo URL"
-                    disabled
-                    fullWidth
-                    variant="standard"
-                    error={errors.logo}
-                  />
-
-                  {isValidUuid(competitionId) && (
-                    <Uploader
-                      buttonText={'Change logo'}
-                      onSubmit={updateLogo}
-                      folderName="images/competitions"
-                    />
-                  )}
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12} md={12} lg={9}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
-                    <div>
-                      <Title>{'Competition'}</Title>
-                    </div>
-                    <div>
-                      {formState.isDirty && (
-                        <ButtonSave
-                          loading={
-                            mutationLoadingCreate || mutationLoadingMerge
-                          }
-                        />
-                      )}
-                      {competitionId !== 'new' && (
-                        <ButtonDelete
-                          loading={loadingDelete}
-                          onClick={() => {
-                            deleteCompetition({
-                              variables: { where: { competitionId } },
-                            })
-                          }}
-                        />
-                      )}
-                    </div>
-                  </Toolbar>
-
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData?.name}
-                        control={control}
-                        name="name"
-                        label="Name"
-                        required
-                        fullWidth
-                        variant="standard"
-                        error={errors.name}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData?.nick}
-                        control={control}
-                        name="nick"
-                        label="Nick"
-                        fullWidth
-                        variant="standard"
-                        error={errors.nick}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFInput
-                        defaultValue={competitionData?.short}
-                        control={control}
-                        name="short"
-                        label="Short"
-                        fullWidth
-                        variant="standard"
-                        error={errors.short}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFSelect
-                        fullWidth
-                        control={control}
-                        name="status"
-                        label="Status"
-                        defaultValue={competitionData?.status || ''}
-                        error={errors.status}
-                      >
-                        {timeUnitStatusList.map(s => {
-                          return (
-                            <MenuItem key={s.value} value={s.value}>
-                              {s.name}
-                            </MenuItem>
-                          )
-                        })}
-                      </RHFSelect>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFDatepicker
-                        fullWidth
-                        control={control}
-                        variant="standard"
-                        name="foundDate"
-                        label="Found Date"
-                        id="foundDate"
-                        openTo="year"
-                        disableFuture
-                        inputFormat={'DD/MM/YYYY'}
-                        views={['year', 'month', 'day']}
-                        defaultValue={competitionData?.foundDate}
-                        error={errors.foundDate}
-                      />
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
+                )}
+              </Paper>
             </Grid>
-            {isValidUuid(competitionId) && (
-              <Relations
-                competitionId={competitionId}
-                competition={competitionData}
-                updateCompetition={updateCompetition}
-              />
-            )}
-          </form>
-        )}
+
+            <Grid item xs={12} md={12} lg={9}>
+              <Paper className={classes.paper}>
+                <Toolbar disableGutters className={classes.toolbarForm}>
+                  <div>
+                    <Title>{'Competition'}</Title>
+                  </div>
+                  <div>
+                    {formState.isDirty && (
+                      <ButtonSave
+                        loading={mutationLoadingCreate || mutationLoadingMerge}
+                      />
+                    )}
+                    {competitionId !== 'new' && (
+                      <ButtonDelete
+                        loading={loadingDelete}
+                        onClick={() => {
+                          deleteCompetition({
+                            variables: { where: { competitionId } },
+                          })
+                        }}
+                      />
+                    )}
+                  </div>
+                </Toolbar>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={competitionData?.name}
+                      control={control}
+                      name="name"
+                      label="Name"
+                      required
+                      fullWidth
+                      variant="standard"
+                      error={errors.name}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={competitionData?.nick}
+                      control={control}
+                      name="nick"
+                      label="Nick"
+                      fullWidth
+                      variant="standard"
+                      error={errors.nick}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFInput
+                      defaultValue={competitionData?.short}
+                      control={control}
+                      name="short"
+                      label="Short"
+                      fullWidth
+                      variant="standard"
+                      error={errors.short}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFSelect
+                      fullWidth
+                      control={control}
+                      name="status"
+                      label="Status"
+                      defaultValue={competitionData?.status || ''}
+                      error={errors.status}
+                    >
+                      {timeUnitStatusList.map(s => {
+                        return (
+                          <MenuItem key={s.value} value={s.value}>
+                            {s.name}
+                          </MenuItem>
+                        )
+                      })}
+                    </RHFSelect>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3} lg={3}>
+                    <RHFDatepicker
+                      fullWidth
+                      control={control}
+                      variant="standard"
+                      name="foundDate"
+                      label="Found Date"
+                      id="foundDate"
+                      openTo="year"
+                      disableFuture
+                      inputFormat={'DD/MM/YYYY'}
+                      views={['year', 'month', 'day']}
+                      defaultValue={competitionData?.foundDate}
+                      error={errors.foundDate}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          </Grid>
+          {isValidUuid(competitionId) && (
+            <Relations
+              competitionId={competitionId}
+              competition={competitionData}
+              updateCompetition={updateCompetition}
+            />
+          )}
+        </form>
+      )}
     </Container>
   )
 }

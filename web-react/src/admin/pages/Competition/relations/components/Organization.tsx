@@ -1,6 +1,6 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import { gql, useLazyQuery } from '@apollo/client'
+
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -10,9 +10,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import TextField from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
 import Grid from '@mui/material/Grid'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
+import { Competition, Organization as OrganizationType } from 'utils/types'
 
 const GET_ORGANIZATIONS = gql`
   query getCompetitionOrganizations($where: OrganizationWhere) {
@@ -23,14 +23,20 @@ const GET_ORGANIZATIONS = gql`
   }
 `
 
-const Organization = props => {
+type TRelations = {
+  competitionId: string
+  competition: Competition
+  updateCompetition: MutationFunction
+}
+
+const Organization: React.FC<TRelations> = props => {
   const { competitionId, competition, updateCompetition } = props
 
   const classes = useStyles()
 
-  const [selectedOrganization, setSelectedOrganization] = React.useState(
-    competition?.org
-  )
+  const [selectedOrganization, setSelectedOrganization] = React.useState<
+    OrganizationType | undefined
+  >(competition?.org)
 
   const [
     getData,
@@ -90,15 +96,14 @@ const Organization = props => {
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
                 <Autocomplete
                   id="organization-select"
-                  name="organization"
                   value={selectedOrganization}
                   getOptionLabel={option => option.name}
                   isOptionEqualToValue={(option, value) =>
@@ -137,7 +142,4 @@ const Organization = props => {
   )
 }
 
-Organization.propTypes = {
-  competitionId: PropTypes.string,
-}
 export { Organization }

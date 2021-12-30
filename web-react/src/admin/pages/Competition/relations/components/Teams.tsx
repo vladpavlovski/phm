@@ -1,6 +1,10 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
+import {
+  gql,
+  MutationFunction,
+  useLazyQuery,
+  useMutation,
+} from '@apollo/client'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
@@ -13,7 +17,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,7 +25,7 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { getAdminOrgTeamRoute } from '../../../../../router/routes'
@@ -30,11 +33,11 @@ import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
+import { setIdFromEntityId } from 'utils'
+import { Competition } from 'utils/types'
 const GET_TEAMS = gql`
   query getCompetitionTeams($where: CompetitionWhere) {
-    competition: competitions(where: $where) {
+    competitions(where: $where) {
       competitionId
       name
       teams {
@@ -69,25 +72,47 @@ export const GET_ALL_TEAMS = gql`
   }
 `
 
-const Teams = props => {
+type TRelations = {
+  competitionId: string
+  competition: Competition
+  updateCompetition: MutationFunction
+}
+
+type TQueryTypeData = {
+  competitions: Competition[]
+}
+
+type TQueryTypeVars = {
+  where: {
+    competitionId: string
+  }
+}
+
+type TParams = { organizationSlug: string }
+
+const Teams: React.FC<TRelations> = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const [openAddCompetition, setOpenAddCompetition] = useState(false)
-  const updateStatus = React.useRef()
-
+  const updateStatus = React.useRef<string | null>(null)
+  const setUpdateStatus = useCallback(value => {
+    updateStatus.current = value
+  }, [])
   const handleCloseAddCompetition = useCallback(() => {
     setOpenAddCompetition(false)
   }, [])
   const [
     getData,
-    { loading: queryLoading, error: queryError, data: queryData },
+    {
+      loading: queryLoading,
+      error: queryError,
+      data: { competitions: [competition] } = { competitions: [] },
+    },
   ] = useLazyQuery(GET_TEAMS, {
     fetchPolicy: 'cache-and-network',
   })
-
-  const competition = queryData?.competition?.[0]
 
   const [updateTeam, { loading: mutationLoadingUpdate }] = useMutation(
     UPDATE_TEAM,
@@ -101,7 +126,7 @@ const Teams = props => {
         }
       ) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_TEAMS,
             variables: {
               where: { competitionId },
@@ -110,15 +135,15 @@ const Teams = props => {
 
           const updatedData =
             updateStatus.current === 'disconnect'
-              ? queryResult?.competition?.[0]?.teams?.filter(
+              ? queryResult?.competitions?.[0]?.teams?.filter(
                   p => p.teamId !== teams?.[0]?.teamId
                 )
-              : [...(queryResult?.competition?.[0]?.teams || []), ...teams]
+              : [...(queryResult?.competitions?.[0]?.teams || []), ...teams]
 
           const updatedResult = {
-            competition: [
+            competitions: [
               {
-                ...queryResult?.competition?.[0],
+                ...queryResult?.competitions?.[0],
                 teams: updatedData,
               },
             ],
@@ -153,7 +178,7 @@ const Teams = props => {
   })
 
   const openAccordion = useCallback(() => {
-    if (!queryData) {
+    if (!competition) {
       getData({ variables: { where: { competitionId } } })
     }
   }, [])
@@ -165,7 +190,7 @@ const Teams = props => {
     setOpenAddCompetition(true)
   }, [])
 
-  const competitionTeamsColumns = useMemo(
+  const competitionTeamsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -200,8 +225,6 @@ const Teams = props => {
               text={'Detach'}
               textLoading={'Detaching...'}
               loading={mutationLoadingUpdate}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
                 'Do you really want to detach team from competition?'
               }
@@ -239,7 +262,7 @@ const Teams = props => {
     []
   )
 
-  const allTeamsColumns = useMemo(
+  const allTeamsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -259,7 +282,7 @@ const Teams = props => {
               competitionId={competitionId}
               competition={competition}
               update={updateTeam}
-              updateStatus={updateStatus}
+              setUpdateStatus={setUpdateStatus}
             />
           )
         },
@@ -278,9 +301,9 @@ const Teams = props => {
         <Typography className={classes.accordionFormTitle}>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
+        {competition && (
           <>
             <Toolbar disableGutters className={classes.toolbarForm}>
               <div />
@@ -360,8 +383,16 @@ const Teams = props => {
   )
 }
 
-const ToggleNewTeam = props => {
-  const { competitionId, teamId, competition, update, updateStatus } = props
+type TToggleNew = {
+  teamId: string
+  competitionId: string
+  competition: Competition
+  update: MutationFunction
+  setUpdateStatus: (value: string | null) => void
+}
+
+const ToggleNewTeam: React.FC<TToggleNew> = React.memo(props => {
+  const { competitionId, teamId, competition, update, setUpdateStatus } = props
   const [isMember, setIsMember] = useState(
     !!competition.teams.find(p => p.teamId === teamId)
   )
@@ -405,25 +436,13 @@ const ToggleNewTeam = props => {
                 },
               },
             })
-        updateStatus.current = isMember ? 'disconnect' : null
+        setUpdateStatus(isMember ? 'disconnect' : null)
         setIsMember(!isMember)
       }}
       name="teamMember"
       color="primary"
-      label={isMember ? 'Member' : 'Not Member'}
     />
   )
-}
-
-ToggleNewTeam.propTypes = {
-  competitionId: PropTypes.string,
-  teamId: PropTypes.string,
-  team: PropTypes.object,
-  update: PropTypes.func,
-}
-
-Teams.propTypes = {
-  competitionId: PropTypes.string,
-}
+})
 
 export { Teams }
