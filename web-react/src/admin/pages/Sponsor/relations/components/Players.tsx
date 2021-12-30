@@ -1,9 +1,7 @@
-import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import React, { useCallback, useState, useMemo } from 'react'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import { useParams } from 'react-router-dom'
-
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -13,7 +11,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -22,54 +19,73 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgAwardRoute } from '../../../../../router/routes'
+import { getAdminOrgPlayerRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
+import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
+import { Sponsor } from 'utils/types'
 
-export const GET_ALL_AWARDS = gql`
-  query getAwards {
-    awards {
-      awardId
+export const GET_ALL_PLAYERS = gql`
+  query getPlayers {
+    players {
+      playerId
+      firstName
+      lastName
       name
-      description
+      teams {
+        name
+      }
+      positions {
+        name
+      }
     }
   }
 `
 
-const Awards = props => {
+type TRelations = {
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+type TParams = {
+  organizationSlug: string
+}
+
+const Players: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
 
   const classes = useStyles()
-  const { organizationSlug } = useParams()
-  const [openAddAward, setOpenAddAward] = React.useState(false)
-
-  const handleCloseAddAward = React.useCallback(() => {
-    setOpenAddAward(false)
+  const [openAddPlayer, setOpenAddPlayer] = useState(false)
+  const { organizationSlug } = useParams<TParams>()
+  const handleCloseAddPlayer = useCallback(() => {
+    setOpenAddPlayer(false)
   }, [])
 
   const [
-    getAllAwards,
+    getAllPlayers,
     {
-      loading: queryAllAwardsLoading,
-      error: queryAllAwardsError,
-      data: queryAllAwardsData,
+      loading: queryAllPlayersLoading,
+      error: queryAllPlayersError,
+      data: queryAllPlayersData,
     },
-  ] = useLazyQuery(GET_ALL_AWARDS)
+  ] = useLazyQuery(GET_ALL_PLAYERS, {
+    fetchPolicy: 'cache-and-network',
+  })
 
-  const handleOpenAddAward = React.useCallback(() => {
-    if (!queryAllAwardsData) {
-      getAllAwards()
+  const handleOpenAddPlayer = useCallback(() => {
+    if (!queryAllPlayersData) {
+      getAllPlayers()
     }
-    setOpenAddAward(true)
+    setOpenAddPlayer(true)
   }, [])
 
-  const sponsorAwardsColumns = React.useMemo(
+  const sponsorPlayersColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -78,13 +94,25 @@ const Awards = props => {
       },
 
       {
-        field: 'description',
-        headerName: 'Description',
-        width: 300,
+        field: 'teams',
+        headerName: 'Teams',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.teams, 'name')
+        },
       },
 
       {
-        field: 'awardId',
+        field: 'positions',
+        headerName: 'Positions',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.positions, 'name')
+        },
+      },
+
+      {
+        field: 'playerId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -92,7 +120,7 @@ const Awards = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminOrgAwardRoute(organizationSlug, params.value)}
+              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -109,14 +137,11 @@ const Awards = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach award from the sponsor?'
+                'Do you really want to detach player from the sponsor?'
               }
-              dialogDescription={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep award'}
-              dialogPositiveText={'Yes, detach award'}
+              dialogNegativeText={'No, keep player'}
+              dialogPositiveText={'Yes, detach player'}
               onDialogClosePositive={() => {
                 updateSponsor({
                   variables: {
@@ -124,11 +149,11 @@ const Awards = props => {
                       sponsorId,
                     },
                     update: {
-                      awards: {
+                      players: {
                         disconnect: {
                           where: {
                             node: {
-                              awardId: params.row.awardId,
+                              playerId: params.row.playerId,
                             },
                           },
                         },
@@ -145,7 +170,7 @@ const Awards = props => {
     [organizationSlug]
   )
 
-  const allAwardsColumns = React.useMemo(
+  const allPlayersColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -153,20 +178,31 @@ const Awards = props => {
         width: 150,
       },
       {
-        field: 'description',
-        headerName: 'Description',
-        width: 300,
+        field: 'teams',
+        headerName: 'Teams',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.teams, 'name')
+        },
+      },
+      {
+        field: 'positions',
+        headerName: 'Positions',
+        width: 200,
+        valueGetter: params => {
+          return getXGridValueFromArray(params.row.positions, 'name')
+        },
       },
 
       {
-        field: 'awardId',
+        field: 'playerId',
         headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewAward
-              awardId={params.value}
+            <ToggleNewPlayer
+              playerId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
               updateSponsor={updateSponsor}
@@ -182,31 +218,31 @@ const Awards = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="awards-content"
-        id="awards-header"
+        aria-controls="players-content"
+        id="players-header"
       >
-        <Typography className={classes.accordionFormTitle}>Awards</Typography>
+        <Typography className={classes.accordionFormTitle}>Players</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div />
           <div>
             <Button
-              onClick={handleOpenAddAward}
+              onClick={handleOpenAddPlayer}
               variant={'outlined'}
               size="small"
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Award
+              Add Player
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={sponsorAwardsColumns}
-            rows={setIdFromEntityId(sponsor?.awards, 'awardId')}
-            loading={queryAllAwardsLoading}
+            columns={sponsorPlayersColumns}
+            rows={setIdFromEntityId(sponsor?.players, 'playerId')}
+            loading={queryAllPlayersLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -216,42 +252,44 @@ const Awards = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddAward}
-        onClose={handleCloseAddAward}
+        open={openAddPlayer}
+        onClose={handleCloseAddPlayer}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllAwardsLoading && !queryAllAwardsError && <Loader />}
-        {queryAllAwardsError && !queryAllAwardsLoading && (
-          <Error message={queryAllAwardsError.message} />
+        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
+        {queryAllPlayersError && !queryAllPlayersLoading && (
+          <Error message={queryAllPlayersError.message} />
         )}
-        {queryAllAwardsData && !queryAllAwardsLoading && !queryAllAwardsError && (
-          <>
-            <DialogTitle id="alert-dialog-title">{`Add award to ${
-              sponsor && sponsor.name
-            }`}</DialogTitle>
-            <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <DataGridPro
-                  columns={allAwardsColumns}
-                  rows={setIdFromEntityId(
-                    queryAllAwardsData?.awards,
-                    'awardId'
-                  )}
-                  disableSelectionOnClick
-                  loading={queryAllAwardsLoading}
-                  components={{
-                    Toolbar: GridToolbar,
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </>
-        )}
+        {queryAllPlayersData &&
+          !queryAllPlayersLoading &&
+          !queryAllPlayersError && (
+            <>
+              <DialogTitle id="alert-dialog-title">{`Add player to ${
+                sponsor && sponsor.name
+              }`}</DialogTitle>
+              <DialogContent>
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <DataGridPro
+                    columns={allPlayersColumns}
+                    rows={setIdFromEntityId(
+                      queryAllPlayersData.players,
+                      'playerId'
+                    )}
+                    disableSelectionOnClick
+                    loading={queryAllPlayersLoading}
+                    components={{
+                      Toolbar: GridToolbar,
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </>
+          )}
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddAward()
+              handleCloseAddPlayer()
             }}
           >
             {'Done'}
@@ -262,10 +300,17 @@ const Awards = props => {
   )
 }
 
-const ToggleNewAward = props => {
-  const { awardId, sponsorId, sponsor, updateSponsor } = props
-  const [isMember, setIsMember] = React.useState(
-    !!sponsor.awards.find(p => p.awardId === awardId)
+type TToggleNew = {
+  playerId: string
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+const ToggleNewPlayer: React.FC<TToggleNew> = React.memo(props => {
+  const { playerId, sponsorId, sponsor, updateSponsor } = props
+  const [isMember, setIsMember] = useState(
+    !!sponsor.players.find(p => p.playerId === playerId)
   )
 
   return (
@@ -279,11 +324,11 @@ const ToggleNewAward = props => {
                   sponsorId,
                 },
                 update: {
-                  awards: {
+                  players: {
                     disconnect: {
                       where: {
                         node: {
-                          awardId,
+                          playerId,
                         },
                       },
                     },
@@ -297,10 +342,10 @@ const ToggleNewAward = props => {
                   sponsorId,
                 },
                 update: {
-                  awards: {
+                  players: {
                     connect: {
                       where: {
-                        node: { awardId },
+                        node: { playerId },
                       },
                     },
                   },
@@ -312,22 +357,8 @@ const ToggleNewAward = props => {
       }}
       name="sponsorMember"
       color="primary"
-      label={isMember ? 'Sponsored' : 'Not sponsored'}
     />
   )
-}
+})
 
-ToggleNewAward.propTypes = {
-  awardId: PropTypes.string,
-  sponsorId: PropTypes.string,
-  sponsor: PropTypes.object,
-  updateSponsor: PropTypes.func,
-}
-
-Awards.propTypes = {
-  sponsorId: PropTypes.string,
-  updateSponsor: PropTypes.func,
-  sponsor: PropTypes.object,
-}
-
-export { Awards }
+export { Players }

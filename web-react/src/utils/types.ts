@@ -283,6 +283,23 @@ export type Sponsor = {
   description: string
   legalName: string
   logo: string
+  awards: Award[]
+  competitions: Competition[]
+  groups: Group[]
+  phases: Phase[]
+  players: Player[]
+  teams: Team[]
+}
+
+export type Award = {
+  awardId: string
+  name: string
+  nick: string
+  short: string
+  description: string
+  type: string
+  foundDate: Date
+  sponsors: Sponsor[]
 }
 
 export type PositionType = {

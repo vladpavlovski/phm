@@ -1,6 +1,7 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,7 +12,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,61 +20,65 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPhaseRoute } from '../../../../../router/routes'
+import { getAdminOrgAwardRoute } from 'router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
 
-export const GET_ALL_PHASES = gql`
-  query getPhases {
-    phases {
-      phaseId
+export const GET_ALL_AWARDS = gql`
+  query getAwards {
+    awards {
+      awardId
       name
-      nick
-      status
-      startDate
-      endDate
-      competition {
-        name
-      }
+      description
     }
   }
 `
 
-const Phases = props => {
-  const { sponsorId, sponsor, updateSponsor } = props
-  // const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const [openAddPhase, setOpenAddPhase] = React.useState(false)
+type TRelations = {
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
 
-  const handleCloseAddPhase = React.useCallback(() => {
-    setOpenAddPhase(false)
+type TParams = {
+  organizationSlug: string
+}
+
+const Awards: React.FC<TRelations> = props => {
+  const { sponsorId, sponsor, updateSponsor } = props
+
+  const classes = useStyles()
+  const { organizationSlug } = useParams<TParams>()
+  const [openAddAward, setOpenAddAward] = React.useState(false)
+
+  const handleCloseAddAward = React.useCallback(() => {
+    setOpenAddAward(false)
   }, [])
 
   const [
-    getAllPhases,
+    getAllAwards,
     {
-      loading: queryAllPhasesLoading,
-      error: queryAllPhasesError,
-      data: queryAllPhasesData,
+      loading: queryAllAwardsLoading,
+      error: queryAllAwardsError,
+      data: queryAllAwardsData,
     },
-  ] = useLazyQuery(GET_ALL_PHASES, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_ALL_AWARDS)
 
-  const handleOpenAddPhase = React.useCallback(() => {
-    if (!queryAllPhasesData) {
-      getAllPhases()
+  const handleOpenAddAward = React.useCallback(() => {
+    if (!queryAllAwardsData) {
+      getAllAwards()
     }
-    setOpenAddPhase(true)
+    setOpenAddAward(true)
   }, [])
 
-  const sponsorPhasesColumns = React.useMemo(
+  const sponsorAwardsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -83,39 +87,13 @@ const Phases = props => {
       },
 
       {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 150,
-      },
-      {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
+        field: 'description',
+        headerName: 'Description',
+        width: 300,
       },
 
       {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-
-      {
-        field: 'phaseId',
+        field: 'awardId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -123,7 +101,7 @@ const Phases = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminPhaseRoute(params.value)}
+              to={getAdminOrgAwardRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -140,14 +118,12 @@ const Phases = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach phase from the sponsor?'
+                'Do you really want to detach award from the sponsor?'
               }
-              dialogNick={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep phase'}
-              dialogPositiveText={'Yes, detach phase'}
+              dialogDescription={'You can add him to sponsor later.'}
+              dialogNegativeText={'No, keep award'}
+              dialogPositiveText={'Yes, detach award'}
               onDialogClosePositive={() => {
                 updateSponsor({
                   variables: {
@@ -155,11 +131,11 @@ const Phases = props => {
                       sponsorId,
                     },
                     update: {
-                      phases: {
+                      awards: {
                         disconnect: {
                           where: {
                             node: {
-                              phaseId: params.row.phaseId,
+                              awardId: params.row.awardId,
                             },
                           },
                         },
@@ -173,10 +149,10 @@ const Phases = props => {
         },
       },
     ],
-    []
+    [organizationSlug]
   )
 
-  const allPhasesColumns = React.useMemo(
+  const allAwardsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -184,47 +160,20 @@ const Phases = props => {
         width: 150,
       },
       {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 150,
+        field: 'description',
+        headerName: 'Description',
+        width: 300,
       },
 
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-
-      {
-        field: 'status',
-        headerName: 'Status',
-        width: 200,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-
-      {
-        field: 'phaseId',
-        headerName: 'Sponsor',
+        field: 'awardId',
+        headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPhase
-              phaseId={params.value}
+            <ToggleNewAward
+              awardId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
               updateSponsor={updateSponsor}
@@ -240,31 +189,31 @@ const Phases = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="phases-content"
-        id="phases-header"
+        aria-controls="awards-content"
+        id="awards-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography className={classes.accordionFormTitle}>Awards</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div />
           <div>
             <Button
-              onClick={handleOpenAddPhase}
+              onClick={handleOpenAddAward}
               variant={'outlined'}
               size="small"
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Phase
+              Add Award
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={sponsorPhasesColumns}
-            rows={setIdFromEntityId(sponsor.phases, 'phaseId')}
-            loading={queryAllPhasesLoading}
+            columns={sponsorAwardsColumns}
+            rows={setIdFromEntityId(sponsor?.awards, 'awardId')}
+            loading={queryAllAwardsLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -274,27 +223,28 @@ const Phases = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddPhase}
-        onClose={handleCloseAddPhase}
+        open={openAddAward}
+        onClose={handleCloseAddAward}
         aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-nick"
+        aria-describedby="alert-dialog-description"
       >
-        {queryAllPhasesLoading && !queryAllPhasesError && <Loader />}
-        {queryAllPhasesError && !queryAllPhasesLoading && (
-          <Error message={queryAllPhasesError.message} />
+        {queryAllAwardsLoading && !queryAllAwardsError && <Loader />}
+        {queryAllAwardsError && !queryAllAwardsLoading && (
+          <Error message={queryAllAwardsError.message} />
         )}
-        {queryAllPhasesData && !queryAllPhasesLoading && !queryAllPhasesError && (
+        {queryAllAwardsData && !queryAllAwardsLoading && !queryAllAwardsError && (
           <>
-            <DialogTitle id="alert-dialog-title">{`Add phase to ${
-              sponsor && sponsor.name
-            }`}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{`Add award to ${sponsor?.name}`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
-                  columns={allPhasesColumns}
-                  rows={setIdFromEntityId(queryAllPhasesData.phases, 'phaseId')}
+                  columns={allAwardsColumns}
+                  rows={setIdFromEntityId(
+                    queryAllAwardsData?.awards,
+                    'awardId'
+                  )}
                   disableSelectionOnClick
-                  loading={queryAllPhasesLoading}
+                  loading={queryAllAwardsLoading}
                   components={{
                     Toolbar: GridToolbar,
                   }}
@@ -306,7 +256,7 @@ const Phases = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddPhase()
+              handleCloseAddAward()
             }}
           >
             {'Done'}
@@ -317,10 +267,17 @@ const Phases = props => {
   )
 }
 
-const ToggleNewPhase = props => {
-  const { phaseId, sponsorId, sponsor, updateSponsor } = props
+type TToggleNew = {
+  awardId: string
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+const ToggleNewAward: React.FC<TToggleNew> = React.memo(props => {
+  const { awardId, sponsorId, sponsor, updateSponsor } = props
   const [isMember, setIsMember] = React.useState(
-    !!sponsor.phases.find(p => p.phaseId === phaseId)
+    !!sponsor.awards.find(p => p.awardId === awardId)
   )
 
   return (
@@ -334,11 +291,11 @@ const ToggleNewPhase = props => {
                   sponsorId,
                 },
                 update: {
-                  phases: {
+                  awards: {
                     disconnect: {
                       where: {
                         node: {
-                          phaseId,
+                          awardId,
                         },
                       },
                     },
@@ -352,10 +309,10 @@ const ToggleNewPhase = props => {
                   sponsorId,
                 },
                 update: {
-                  phases: {
+                  awards: {
                     connect: {
                       where: {
-                        node: { phaseId },
+                        node: { awardId },
                       },
                     },
                   },
@@ -367,22 +324,8 @@ const ToggleNewPhase = props => {
       }}
       name="sponsorMember"
       color="primary"
-      label={isMember ? 'Sponsored' : 'Not sponsored'}
     />
   )
-}
+})
 
-ToggleNewPhase.propTypes = {
-  phaseId: PropTypes.string,
-  sponsorId: PropTypes.string,
-  sponsor: PropTypes.object,
-  updateSponsor: PropTypes.func,
-}
-
-Phases.propTypes = {
-  sponsorId: PropTypes.string,
-  updateSponsor: PropTypes.func,
-  sponsor: PropTypes.object,
-}
-
-export { Phases }
+export { Awards }

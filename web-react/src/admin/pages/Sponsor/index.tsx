@@ -14,22 +14,19 @@ import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFInput } from '../../../components/RHFInput'
-import { isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { Uploader, RHFInput, Loader, Error, Title } from 'components'
+import { isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
 import {
   getAdminOrgSponsorsRoute,
   getAdminOrgSponsorRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderOrganization from '../../../img/placeholderOrganization.png'
+} from 'router/routes'
+
+import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
-import OrganizationContext from '../../../context/organization'
+import OrganizationContext from 'context/organization'
 
 const GET_SPONSOR = gql`
   query getSponsor($where: SponsorWhere) {
@@ -179,10 +176,15 @@ const DELETE_SPONSOR = gql`
   }
 `
 
-const Sponsor = () => {
+type TParams = {
+  sponsorId: string
+  organizationSlug: string
+}
+
+const Sponsor: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { sponsorId, organizationSlug } = useParams()
+  const { sponsorId, organizationSlug } = useParams<TParams>()
   const { organizationData } = React.useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
@@ -284,7 +286,7 @@ const Sponsor = () => {
 
   const updateLogo = React.useCallback(
     url => {
-      setValue('logo', url, true)
+      setValue('logo', url, { shouldValidate: true, shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_SPONSOR,
@@ -313,29 +315,20 @@ const Sponsor = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       {queryLoading && <Loader />}
-      {(mutationErrorCreate ||
-        mutationErrorUpdate ||
-        queryError ||
-        errorDelete) && (
-        <Error
-          message={
-            mutationErrorCreate.message ||
-            mutationErrorUpdate.message ||
-            queryError.message ||
-            errorDelete.message
-          }
-        />
-      )}
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          queryError?.message ||
+          errorDelete?.message
+        }
+      />
+
       {(sponsorData || sponsorId === 'new') && (
         <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
               <title>{sponsorData.name || 'Sponsor'}</title>
             </Helmet>

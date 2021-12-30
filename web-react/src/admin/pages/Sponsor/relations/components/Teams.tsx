@@ -1,6 +1,7 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+
+import { useParams } from 'react-router-dom'
 
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,7 +12,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -20,56 +20,64 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminGroupRoute } from '../../../../../router/routes'
+import { getAdminOrgTeamRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-
-export const GET_ALL_GROUPS = gql`
-  query getGroups {
-    groups {
-      groupId
+import { setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
+export const GET_ALL_TEAMS = gql`
+  query getTeams {
+    teams {
+      teamId
       name
-      nick
-      competition {
-        name
-      }
     }
   }
 `
 
-const Groups = props => {
+type TRelations = {
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+type TParams = {
+  organizationSlug: string
+}
+
+const Teams: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
 
   const classes = useStyles()
-  const [openAddGroup, setOpenAddGroup] = React.useState(false)
-
-  const handleCloseAddGroup = React.useCallback(() => {
-    setOpenAddGroup(false)
+  const [openAddSponsor, setOpenAddSponsor] = React.useState(false)
+  const { organizationSlug } = useParams<TParams>()
+  const handleCloseAddSponsor = React.useCallback(() => {
+    setOpenAddSponsor(false)
   }, [])
 
   const [
-    getAllGroups,
+    getAllTeams,
     {
-      loading: queryAllGroupsLoading,
-      error: queryAllGroupsError,
-      data: queryAllGroupsData,
+      loading: queryAllSponsorsLoading,
+      error: queryAllSponsorsError,
+      data: queryAllSponsorsData,
     },
-  ] = useLazyQuery(GET_ALL_GROUPS)
+  ] = useLazyQuery(GET_ALL_TEAMS, {
+    fetchPolicy: 'cache-and-network',
+  })
 
-  const handleOpenAddGroup = React.useCallback(() => {
-    if (!queryAllGroupsData) {
-      getAllGroups()
+  const handleOpenAddSponsor = React.useCallback(() => {
+    if (!queryAllSponsorsData) {
+      getAllTeams()
     }
-    setOpenAddGroup(true)
+    setOpenAddSponsor(true)
   }, [])
 
-  const sponsorGroupsColumns = React.useMemo(
+  const sponsorTeamsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -78,20 +86,7 @@ const Groups = props => {
       },
 
       {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 150,
-      },
-
-      {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-
-      {
-        field: 'groupId',
+        field: 'teamId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -99,7 +94,7 @@ const Groups = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminGroupRoute(params.value)}
+              to={getAdminOrgTeamRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -108,7 +103,7 @@ const Groups = props => {
       },
       {
         field: 'removeButton',
-        headerName: 'Remove',
+        headerName: 'Detach',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
@@ -116,14 +111,10 @@ const Groups = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
-              dialogTitle={
-                'Do you really want to detach group from the sponsor?'
-              }
-              dialogNick={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep group'}
-              dialogPositiveText={'Yes, detach group'}
+              dialogTitle={'Do you really want to detach team from sponsor?'}
+              dialogDescription={'You can add it to sponsor later.'}
+              dialogNegativeText={'No, keep team'}
+              dialogPositiveText={'Yes, detach team'}
               onDialogClosePositive={() => {
                 updateSponsor({
                   variables: {
@@ -131,11 +122,11 @@ const Groups = props => {
                       sponsorId,
                     },
                     update: {
-                      groups: {
+                      teams: {
                         disconnect: {
                           where: {
                             node: {
-                              groupId: params.row.groupId,
+                              teamId: params.row.teamId,
                             },
                           },
                         },
@@ -152,35 +143,23 @@ const Groups = props => {
     []
   )
 
-  const allGroupsColumns = React.useMemo(
+  const allTeamsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
         headerName: 'Name',
-        width: 150,
-      },
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 150,
+        width: 300,
       },
 
       {
-        field: 'competition',
-        headerName: 'Competition',
-        width: 200,
-        valueGetter: params => params?.row?.competition?.name,
-      },
-
-      {
-        field: 'groupId',
-        headerName: 'Sponsor',
+        field: 'teamId',
+        headerName: 'Membership',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewGroup
-              groupId={params.value}
+            <ToggleNewTeam
+              teamId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
               updateSponsor={updateSponsor}
@@ -196,31 +175,31 @@ const Groups = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="groups-content"
-        id="groups-header"
+        aria-controls="teams-content"
+        id="teams-header"
       >
-        <Typography className={classes.accordionFormTitle}>Groups</Typography>
+        <Typography className={classes.accordionFormTitle}>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div />
           <div>
             <Button
-              onClick={handleOpenAddGroup}
+              onClick={handleOpenAddSponsor}
               variant={'outlined'}
               size="small"
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Group
+              Add Team
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={sponsorGroupsColumns}
-            rows={setIdFromEntityId(sponsor?.groups, 'groupId')}
-            loading={queryAllGroupsLoading}
+            columns={sponsorTeamsColumns}
+            rows={setIdFromEntityId(sponsor.teams, 'teamId')}
+            loading={queryAllSponsorsLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -230,27 +209,25 @@ const Groups = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddGroup}
-        onClose={handleCloseAddGroup}
+        open={openAddSponsor}
+        onClose={handleCloseAddSponsor}
         aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-nick"
+        aria-describedby="alert-dialog-description"
       >
-        {queryAllGroupsLoading && !queryAllGroupsError && <Loader />}
-        {queryAllGroupsError && !queryAllGroupsLoading && (
-          <Error message={queryAllGroupsError.message} />
-        )}
-        {queryAllGroupsData && !queryAllGroupsLoading && !queryAllGroupsError && (
+        {queryAllSponsorsLoading && <Loader />}
+
+        <Error message={queryAllSponsorsError?.message} />
+
+        {queryAllSponsorsData && (
           <>
-            <DialogTitle id="alert-dialog-title">{`Add group to ${
-              sponsor && sponsor.name
-            }`}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{`Add ${sponsor?.name} to team`}</DialogTitle>
             <DialogContent>
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
-                  columns={allGroupsColumns}
-                  rows={setIdFromEntityId(queryAllGroupsData.groups, 'groupId')}
+                  columns={allTeamsColumns}
+                  rows={setIdFromEntityId(queryAllSponsorsData.teams, 'teamId')}
                   disableSelectionOnClick
-                  loading={queryAllGroupsLoading}
+                  loading={queryAllSponsorsLoading}
                   components={{
                     Toolbar: GridToolbar,
                   }}
@@ -262,7 +239,7 @@ const Groups = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddGroup()
+              handleCloseAddSponsor()
             }}
           >
             {'Done'}
@@ -273,10 +250,17 @@ const Groups = props => {
   )
 }
 
-const ToggleNewGroup = props => {
-  const { groupId, sponsorId, sponsor, updateSponsor } = props
+type TToggleNew = {
+  teamId: string
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+const ToggleNewTeam: React.FC<TToggleNew> = React.memo(props => {
+  const { sponsorId, teamId, sponsor, updateSponsor } = props
   const [isMember, setIsMember] = React.useState(
-    !!sponsor.groups.find(p => p.groupId === groupId)
+    !!sponsor.teams.find(p => p.teamId === teamId)
   )
 
   return (
@@ -290,11 +274,11 @@ const ToggleNewGroup = props => {
                   sponsorId,
                 },
                 update: {
-                  groups: {
+                  teams: {
                     disconnect: {
                       where: {
                         node: {
-                          groupId,
+                          teamId,
                         },
                       },
                     },
@@ -308,37 +292,22 @@ const ToggleNewGroup = props => {
                   sponsorId,
                 },
                 update: {
-                  groups: {
+                  teams: {
                     connect: {
                       where: {
-                        node: { groupId },
+                        node: { teamId },
                       },
                     },
                   },
                 },
               },
             })
-
         setIsMember(!isMember)
       }}
-      name="sponsorMember"
+      name="teamMember"
       color="primary"
-      label={isMember ? 'Sponsored' : 'Not sponsored'}
     />
   )
-}
+})
 
-ToggleNewGroup.propTypes = {
-  groupId: PropTypes.string,
-  sponsorId: PropTypes.string,
-  sponsor: PropTypes.object,
-  updateSponsor: PropTypes.func,
-}
-
-Groups.propTypes = {
-  sponsorId: PropTypes.string,
-  updateSponsor: PropTypes.func,
-  sponsor: PropTypes.object,
-}
-
-export { Groups }
+export { Teams }

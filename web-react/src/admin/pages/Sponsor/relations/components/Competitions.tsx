@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
+import React from 'react'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import { useParams } from 'react-router-dom'
+
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -12,7 +12,6 @@ import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 
 import Toolbar from '@mui/material/Toolbar'
-import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -21,62 +20,64 @@ import Button from '@mui/material/Button'
 
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgPlayerRoute } from '../../../../../router/routes'
+import { getAdminOrgCompetitionRoute } from '../../../../../router/routes'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, getXGridValueFromArray } from '../../../../../utils'
+import { setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
 
-export const GET_ALL_PLAYERS = gql`
-  query getPlayers {
-    players {
-      playerId
-      firstName
-      lastName
+export const GET_ALL_COMPETITIONS = gql`
+  query getCompetitions {
+    competitions {
+      competitionId
       name
-      teams {
-        name
-      }
-      positions {
-        name
-      }
+      nick
     }
   }
 `
+type TRelations = {
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
 
-const Players = props => {
+type TParams = {
+  organizationSlug: string
+}
+
+const Competitions: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
 
   const classes = useStyles()
-  const [openAddPlayer, setOpenAddPlayer] = useState(false)
-  const { organizationSlug } = useParams()
-  const handleCloseAddPlayer = useCallback(() => {
-    setOpenAddPlayer(false)
+  const { organizationSlug } = useParams<TParams>()
+  const [openAddCompetition, setOpenAddCompetition] = React.useState(false)
+
+  const handleCloseAddCompetition = React.useCallback(() => {
+    setOpenAddCompetition(false)
   }, [])
 
   const [
-    getAllPlayers,
+    getAllCompetitions,
     {
-      loading: queryAllPlayersLoading,
-      error: queryAllPlayersError,
-      data: queryAllPlayersData,
+      loading: queryAllCompetitionsLoading,
+      error: queryAllCompetitionsError,
+      data: queryAllCompetitionsData,
     },
-  ] = useLazyQuery(GET_ALL_PLAYERS, {
-    fetchPolicy: 'cache-and-network',
-  })
+  ] = useLazyQuery(GET_ALL_COMPETITIONS)
 
-  const handleOpenAddPlayer = useCallback(() => {
-    if (!queryAllPlayersData) {
-      getAllPlayers()
+  const handleOpenAddCompetition = React.useCallback(() => {
+    if (!queryAllCompetitionsData) {
+      getAllCompetitions()
     }
-    setOpenAddPlayer(true)
+    setOpenAddCompetition(true)
   }, [])
 
-  const sponsorPlayersColumns = useMemo(
+  const sponsorCompetitionsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -85,25 +86,13 @@ const Players = props => {
       },
 
       {
-        field: 'teams',
-        headerName: 'Teams',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
-        },
+        field: 'nick',
+        headerName: 'Nick',
+        width: 300,
       },
 
       {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-
-      {
-        field: 'playerId',
+        field: 'competitionId',
         headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
@@ -111,7 +100,7 @@ const Players = props => {
           return (
             <LinkButton
               startIcon={<AccountBox />}
-              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
+              to={getAdminOrgCompetitionRoute(organizationSlug, params.value)}
             >
               Profile
             </LinkButton>
@@ -128,14 +117,11 @@ const Players = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              size="small"
-              startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach player from the sponsor?'
+                'Do you really want to detach competition from the sponsor?'
               }
-              dialogDescription={'You can add him to sponsor later.'}
-              dialogNegativeText={'No, keep player'}
-              dialogPositiveText={'Yes, detach player'}
+              dialogNegativeText={'No, keep competition'}
+              dialogPositiveText={'Yes, detach competition'}
               onDialogClosePositive={() => {
                 updateSponsor({
                   variables: {
@@ -143,11 +129,11 @@ const Players = props => {
                       sponsorId,
                     },
                     update: {
-                      players: {
+                      competitions: {
                         disconnect: {
                           where: {
                             node: {
-                              playerId: params.row.playerId,
+                              competitionId: params.row.competitionId,
                             },
                           },
                         },
@@ -161,10 +147,10 @@ const Players = props => {
         },
       },
     ],
-    [organizationSlug]
+    []
   )
 
-  const allPlayersColumns = useMemo(
+  const allCompetitionsColumns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -172,31 +158,20 @@ const Players = props => {
         width: 150,
       },
       {
-        field: 'teams',
-        headerName: 'Teams',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
-        },
-      },
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
+        field: 'nick',
+        headerName: 'Nick',
+        width: 300,
       },
 
       {
-        field: 'playerId',
+        field: 'competitionId',
         headerName: 'Member',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
           return (
-            <ToggleNewPlayer
-              playerId={params.value}
+            <ToggleNewCompetition
+              competitionId={params.value}
               sponsorId={sponsorId}
               sponsor={sponsor}
               updateSponsor={updateSponsor}
@@ -212,31 +187,33 @@ const Players = props => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="players-content"
-        id="players-header"
+        aria-controls="competitions-content"
+        id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>Players</Typography>
+        <Typography className={classes.accordionFormTitle}>
+          Competitions
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div />
           <div>
             <Button
-              onClick={handleOpenAddPlayer}
+              onClick={handleOpenAddCompetition}
               variant={'outlined'}
               size="small"
               className={classes.submit}
               startIcon={<AddIcon />}
             >
-              Add Player
+              Add Competition
             </Button>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={sponsorPlayersColumns}
-            rows={setIdFromEntityId(sponsor?.players, 'playerId')}
-            loading={queryAllPlayersLoading}
+            columns={sponsorCompetitionsColumns}
+            rows={setIdFromEntityId(sponsor.competitions, 'competitionId')}
+            loading={queryAllCompetitionsLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -246,32 +223,34 @@ const Players = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddPlayer}
-        onClose={handleCloseAddPlayer}
+        open={openAddCompetition}
+        onClose={handleCloseAddCompetition}
         aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        aria-describedby="alert-dialog-nick"
       >
-        {queryAllPlayersLoading && !queryAllPlayersError && <Loader />}
-        {queryAllPlayersError && !queryAllPlayersLoading && (
-          <Error message={queryAllPlayersError.message} />
+        {queryAllCompetitionsLoading && !queryAllCompetitionsError && (
+          <Loader />
         )}
-        {queryAllPlayersData &&
-          !queryAllPlayersLoading &&
-          !queryAllPlayersError && (
+        {queryAllCompetitionsError && !queryAllCompetitionsLoading && (
+          <Error message={queryAllCompetitionsError.message} />
+        )}
+        {queryAllCompetitionsData &&
+          !queryAllCompetitionsLoading &&
+          !queryAllCompetitionsError && (
             <>
-              <DialogTitle id="alert-dialog-title">{`Add player to ${
+              <DialogTitle id="alert-dialog-title">{`Add competition to ${
                 sponsor && sponsor.name
               }`}</DialogTitle>
               <DialogContent>
                 <div style={{ height: 600 }} className={classes.xGridDialog}>
                   <DataGridPro
-                    columns={allPlayersColumns}
+                    columns={allCompetitionsColumns}
                     rows={setIdFromEntityId(
-                      queryAllPlayersData.players,
-                      'playerId'
+                      queryAllCompetitionsData.competitions,
+                      'competitionId'
                     )}
                     disableSelectionOnClick
-                    loading={queryAllPlayersLoading}
+                    loading={queryAllCompetitionsLoading}
                     components={{
                       Toolbar: GridToolbar,
                     }}
@@ -283,7 +262,7 @@ const Players = props => {
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddPlayer()
+              handleCloseAddCompetition()
             }}
           >
             {'Done'}
@@ -294,10 +273,17 @@ const Players = props => {
   )
 }
 
-const ToggleNewPlayer = props => {
-  const { playerId, sponsorId, sponsor, updateSponsor } = props
-  const [isMember, setIsMember] = useState(
-    !!sponsor.players.find(p => p.playerId === playerId)
+type TToggleNew = {
+  competitionId: string
+  sponsorId: string
+  sponsor: Sponsor
+  updateSponsor: MutationFunction
+}
+
+const ToggleNewCompetition: React.FC<TToggleNew> = React.memo(props => {
+  const { competitionId, sponsorId, sponsor, updateSponsor } = props
+  const [isMember, setIsMember] = React.useState(
+    !!sponsor.competitions.find(p => p.competitionId === competitionId)
   )
 
   return (
@@ -311,11 +297,11 @@ const ToggleNewPlayer = props => {
                   sponsorId,
                 },
                 update: {
-                  players: {
+                  competitions: {
                     disconnect: {
                       where: {
                         node: {
-                          playerId,
+                          competitionId,
                         },
                       },
                     },
@@ -329,10 +315,10 @@ const ToggleNewPlayer = props => {
                   sponsorId,
                 },
                 update: {
-                  players: {
+                  competitions: {
                     connect: {
                       where: {
-                        node: { playerId },
+                        node: { competitionId },
                       },
                     },
                   },
@@ -344,22 +330,8 @@ const ToggleNewPlayer = props => {
       }}
       name="sponsorMember"
       color="primary"
-      label={isMember ? 'Sponsored' : 'Not sponsored'}
     />
   )
-}
+})
 
-ToggleNewPlayer.propTypes = {
-  playerId: PropTypes.string,
-  sponsorId: PropTypes.string,
-  sponsor: PropTypes.object,
-  updateSponsor: PropTypes.func,
-}
-
-Players.propTypes = {
-  sponsorId: PropTypes.string,
-  updateSponsor: PropTypes.func,
-  sponsor: PropTypes.object,
-}
-
-export { Players }
+export { Competitions }
