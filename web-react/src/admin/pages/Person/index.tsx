@@ -16,27 +16,27 @@ import MenuItem from '@mui/material/MenuItem'
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 
-import { RHFAutocomplete } from 'components/RHFAutocomplete'
-import { RHFDatepicker } from 'components/RHFDatepicker'
-import { RHFSelect } from 'components/RHFSelect'
-import { RHFInput } from 'components/RHFInput'
-import { Uploader } from 'components/Uploader'
+import {
+  RHFAutocomplete,
+  RHFDatepicker,
+  RHFSelect,
+  RHFInput,
+  Uploader,
+  Title,
+  Loader,
+  Error,
+} from 'components'
+
 import { countriesNames } from 'utils/constants/countries'
 import { decomposeDate, isValidUuid } from 'utils'
-import { Title } from 'components/Title'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 import { activityStatusList } from 'components/lists'
 import { Relations } from './relations'
 
-import {
-  getAdminOrgPersonsRoute,
-  getAdminOrgPersonRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderAvatar from '../../../img/placeholderPerson.jpg'
-import OrganizationContext from '../../../context/organization'
+import { getAdminOrgPersonsRoute, getAdminOrgPersonRoute } from 'router/routes'
+import placeholderAvatar from 'img/placeholderPerson.jpg'
+import OrganizationContext from 'context/organization'
 
 const GET_PERSON = gql`
   query getPerson($where: PersonWhere) {
@@ -100,23 +100,26 @@ const DELETE_PERSON = gql`
   }
 `
 
-const Person = () => {
+type TParams = {
+  organizationSlug: string
+  personId: string
+}
+
+const Person: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
-  const { personId, organizationSlug } = useParams()
+  const { personId, organizationSlug } = useParams<TParams>()
   const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
     loading: queryLoading,
-    data: queryData,
+    data: { people: [personData] } = { people: [] },
     error: queryError,
   } = useQuery(GET_PERSON, {
     fetchPolicy: 'network-only',
     variables: { where: { personId } },
   })
-
-  const personData = queryData?.people?.[0]
 
   const [
     createPerson,
@@ -165,9 +168,6 @@ const Person = () => {
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: {
-      country: '',
-    },
   })
 
   useEffect(() => {
@@ -210,7 +210,7 @@ const Person = () => {
 
   const updateAvatar = useCallback(
     url => {
-      setValue('avatar', url, true)
+      setValue('avatar', url, { shouldValidate: true, shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_PERSON,
@@ -239,29 +239,21 @@ const Person = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth={false} className={classes.container}>
       {queryLoading && <Loader />}
-      {(mutationErrorCreate ||
-        mutationErrorUpdate ||
-        queryError ||
-        errorDelete) && (
-        <Error
-          message={
-            mutationErrorCreate.message ||
-            mutationErrorUpdate.message ||
-            queryError.message ||
-            errorDelete.message
-          }
-        />
-      )}
+
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          queryError?.message ||
+          errorDelete?.message
+        }
+      />
+
       {(personData || personId === 'new') && (
         <>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className={classes.form}
-            noValidate
-            autoComplete="off"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
               <title>{personData.name || 'Person'}</title>
             </Helmet>
@@ -284,7 +276,7 @@ const Person = () => {
                     disabled
                     fullWidth
                     variant="standard"
-                    error={errors.avatar}
+                    error={errors?.avatar}
                   />
 
                   {isValidUuid(personId) && (
@@ -314,7 +306,7 @@ const Person = () => {
                         <ButtonDelete
                           loading={loadingDelete}
                           onClick={() => {
-                            deletePerson({ variables: { personId } })
+                            deletePerson()
                           }}
                         />
                       )}
@@ -324,14 +316,14 @@ const Person = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.firstName}
+                        defaultValue={personData?.firstName}
                         control={control}
                         name="firstName"
                         label="First name"
                         required
                         fullWidth
                         variant="standard"
-                        error={errors.firstName}
+                        error={errors?.firstName}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -343,40 +335,40 @@ const Person = () => {
                         required
                         fullWidth
                         variant="standard"
-                        error={errors.lastName}
+                        error={errors?.lastName}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.externalId}
+                        defaultValue={personData?.externalId}
                         control={control}
                         name="externalId"
                         label="External Id"
                         fullWidth
                         variant="standard"
-                        error={errors.externalId}
+                        error={errors?.externalId}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.phone}
+                        defaultValue={personData?.phone}
                         control={control}
                         name="phone"
                         label="Phone"
                         fullWidth
                         variant="standard"
-                        error={errors.phone}
+                        error={errors?.phone}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.email}
+                        defaultValue={personData?.email}
                         control={control}
                         name="email"
                         label="Email"
                         fullWidth
                         variant="standard"
-                        error={errors.email}
+                        error={errors?.email}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -392,7 +384,7 @@ const Person = () => {
                         inputFormat={'DD/MM/YYYY'}
                         views={['year', 'month', 'day']}
                         defaultValue={personData?.birthday}
-                        error={errors.birthday}
+                        error={errors?.birthday}
                       />
                     </Grid>
 
@@ -403,7 +395,7 @@ const Person = () => {
                         name="activityStatus"
                         label="Activity Status"
                         defaultValue={personData?.activityStatus || ''}
-                        error={errors.activityStatus}
+                        error={errors?.activityStatus}
                       >
                         {activityStatusList.map(s => {
                           return (
@@ -429,20 +421,19 @@ const Person = () => {
                         //   return equals(option, value)
                         // }}
                         control={control}
-                        id="country"
                         name="country"
                         label="Country"
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.city}
+                        defaultValue={personData?.city}
                         control={control}
                         name="city"
                         label="City"
                         fullWidth
                         variant="standard"
-                        error={errors.city}
+                        error={errors?.city}
                       />
                     </Grid>
 
@@ -453,12 +444,8 @@ const Person = () => {
                         label="Gender"
                         id="gender"
                         control={control}
-                        defaultValue={
-                          (personData.gender &&
-                            personData.gender.toLowerCase()) ||
-                          ''
-                        }
-                        error={errors.gender}
+                        defaultValue={personData?.gender?.toLowerCase() || ''}
+                        error={errors?.gender}
                       >
                         <MenuItem value="male">Male</MenuItem>
                         <MenuItem value="female">Female</MenuItem>
