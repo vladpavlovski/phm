@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { MutationFunction } from '@apollo/client'
 import { useStyles } from '../../commonComponents/styled'
 import { Seasons } from './components/Seasons'
 import { Competitions } from './components/Competitions'
@@ -10,10 +10,16 @@ import { Games } from './components/Games'
 import { Players } from './components/Players'
 import { Persons } from './components/Persons'
 import { Venues } from './components/Venues'
-import { Stars } from './components/Stars'
 import { Sponsors } from './components/Sponsors'
+import { Award } from 'utils/types'
 
-const Relations = props => {
+type TRelations = {
+  awardId: string
+  award: Award
+  updateAward: MutationFunction
+}
+
+const Relations: React.FC<TRelations> = props => {
   const classes = useStyles()
 
   return (
@@ -27,7 +33,6 @@ const Relations = props => {
       <Players {...props} />
       <Persons {...props} />
       <Venues {...props} />
-      <Stars {...props} />
       <Sponsors {...props} />
     </div>
   )

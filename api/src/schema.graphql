@@ -554,9 +554,6 @@ type MetaHistory {
   competition: Competition @relationship(type: "PARTICIPATE_IN", direction: OUT)
 }
 
-# person types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
-# orgs: [Organization]
-#   @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
 type Person {
   personId: ID! @id
   name: String

@@ -1,7 +1,6 @@
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import PropTypes from 'prop-types'
-// import { useSnackbar } from 'notistack'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+
 import { useParams } from 'react-router-dom'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -11,33 +10,38 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AccountBox from '@mui/icons-material/AccountBox'
 import Switch from '@mui/material/Switch'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
-import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+import { getAdminOrgSeasonRoute } from 'router/routes'
+import { Error, Loader, LinkButton } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { formatDate, setIdFromEntityId } from '../../../../../utils'
+import { formatDate, setIdFromEntityId } from 'utils'
+import { Award } from 'utils/types'
 
 export const GET_ALL_SEASONS = gql`
-  query getSeasons {
-    seasons {
+  query getSeasons($where: SeasonWhere) {
+    seasons(where: $where) {
       seasonId
       name
       nick
       startDate
       endDate
-      awards {
-        awardId
-        name
-      }
     }
   }
 `
 
-const Seasons = props => {
+type TRelations = {
+  awardId: string
+  award: Award
+  updateAward: MutationFunction
+}
+
+type TParams = {
+  organizationSlug: string
+}
+
+const Seasons: React.FC<TRelations> = props => {
   const { awardId, award, updateAward } = props
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const classes = useStyles()
 
   const [
@@ -47,16 +51,35 @@ const Seasons = props => {
 
   const openAccordion = React.useCallback(() => {
     if (!queryData) {
-      getData()
+      getData({
+        variables: { where: { org: { urlSlug: organizationSlug } } },
+      })
     }
   }, [])
 
-  const awardSeasonsColumns = React.useMemo(
+  const awardSeasonsColumns = React.useMemo<GridColumns>(
     () => [
+      {
+        field: 'seasonId',
+        headerName: 'Profile',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<AccountBox />}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+              target="_blank"
+            >
+              Profile
+            </LinkButton>
+          )
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',
-        width: 150,
+        width: 250,
       },
 
       {
@@ -69,7 +92,6 @@ const Seasons = props => {
             <ToggleAward
               seasonId={params.row.seasonId}
               awardId={awardId}
-              season={params.row}
               award={award}
               updateAward={updateAward}
             />
@@ -91,24 +113,6 @@ const Seasons = props => {
         valueGetter: params => params.row.endDate,
         valueFormatter: params => formatDate(params.value),
       },
-
-      {
-        field: 'seasonId',
-        headerName: 'Profile',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<AccountBox />}
-              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
-              target="_blank"
-            >
-              Profile
-            </LinkButton>
-          )
-        },
-      },
     ],
     [organizationSlug]
   )
@@ -123,8 +127,8 @@ const Seasons = props => {
         <Typography className={classes.accordionFormTitle}>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
         {queryData && (
           <div style={{ height: 600 }} className={classes.xGridDialog}>
             <DataGridPro
@@ -144,10 +148,17 @@ const Seasons = props => {
   )
 }
 
-const ToggleAward = props => {
-  const { seasonId, awardId, season, updateAward } = props
+type TToggleNew = {
+  seasonId: string
+  awardId: string
+  award: Award
+  updateAward: MutationFunction
+}
+
+const ToggleAward: React.FC<TToggleNew> = props => {
+  const { seasonId, awardId, award, updateAward } = props
   const [isMember, setIsMember] = React.useState(
-    !!season?.awards?.find(p => p.awardId === awardId)
+    !!award?.seasons?.find(p => p.seasonId === seasonId)
   )
 
   return (
@@ -186,21 +197,8 @@ const ToggleAward = props => {
       }}
       name="seasonMember"
       color="primary"
-      label={isMember ? 'Award' : 'Not award'}
     />
   )
-}
-
-ToggleAward.propTypes = {
-  playerId: PropTypes.string,
-  awardId: PropTypes.string,
-  award: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
-}
-
-Seasons.propTypes = {
-  awardId: PropTypes.string,
 }
 
 export { Seasons }

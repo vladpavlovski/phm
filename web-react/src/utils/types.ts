@@ -16,6 +16,7 @@ export type Team = {
   teamId: string
   name: string
   logo: string
+  status: string
   groups: Group[]
   phases: Phase[]
   orgs: Organization[]
@@ -318,6 +319,15 @@ export type Award = {
   type: string
   foundDate: Date
   sponsors: Sponsor[]
+  competitions: Competition[]
+  seasons: Season[]
+  phases: Phase[]
+  groups: Group[]
+  teams: Team[]
+  games: Game[]
+  players: Player[]
+  persons: Person[]
+  venues: Venue[]
 }
 
 export type PositionType = {
