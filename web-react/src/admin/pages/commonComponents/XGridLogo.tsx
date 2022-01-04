@@ -1,9 +1,14 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import Img from 'react-cool-img'
 import { useStyles } from './styled'
 
-const XGridLogo = props => {
+type TXGridLogo = {
+  src: string
+  placeholder: string
+  alt: string
+}
+
+const XGridLogo: React.FC<TXGridLogo> = props => {
   const { src, placeholder, alt } = props
   const classes = useStyles()
 
@@ -15,12 +20,6 @@ const XGridLogo = props => {
       alt={alt}
     />
   )
-}
-
-XGridLogo.propTypes = {
-  src: PropTypes.string,
-  placeholder: PropTypes.string,
-  alt: PropTypes.string,
 }
 
 export { XGridLogo }

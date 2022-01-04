@@ -27,7 +27,6 @@ import {
 import { AddPlayer } from './AddPlayer'
 import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
 import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
-// import { TeamPlayersProvider } from './context'
 import placeholderPerson from 'img/placeholderPerson.jpg'
 import { Team, Player } from 'utils/types'
 

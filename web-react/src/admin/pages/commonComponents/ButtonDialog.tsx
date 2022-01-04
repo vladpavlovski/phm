@@ -1,16 +1,30 @@
 import React, { useState, useCallback } from 'react'
-import PropTypes from 'prop-types'
 
-import LoadingButton from '@mui/lab/LoadingButton'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
+import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
+import Button, { ButtonProps } from '@mui/material/Button'
+import Dialog, { DialogProps } from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 
-const ButtonDialogComponent = props => {
+type TButtonDialog = Omit<DialogProps, 'open'> &
+  ButtonProps &
+  LoadingButtonProps & {
+    onClick?: () => void
+    onDialogClosePositive?: () => void
+    onDialogCloseNegative?: () => void
+    dialogTitle?: string
+    dialogDescription?: string
+    dialogNegativeText?: string
+    dialogPositiveText?: string
+    textLoading?: string
+    text?: string
+    icon?: React.ReactElement
+  }
+
+const ButtonDialog: React.FC<TButtonDialog> = React.memo(props => {
   const {
     onDialogClosePositive,
     onDialogCloseNegative,
@@ -91,14 +105,10 @@ const ButtonDialogComponent = props => {
       </Dialog>
     </>
   )
-}
+})
 
-ButtonDialogComponent.defaultProps = {
+ButtonDialog.defaultProps = {
   loading: false,
-  className: '',
-  onClick: null,
-  onDialogCloseNegative: null,
-  onDialogClosePositive: null,
   text: 'Button',
   textLoading: 'Loading...',
   type: 'button',
@@ -110,28 +120,6 @@ ButtonDialogComponent.defaultProps = {
     'This action will permanently delete this entity. Are you sure?',
   dialogNegativeText: 'No, leave it',
   dialogPositiveText: 'Sure, delete it!',
-  icon: false,
 }
-
-ButtonDialogComponent.propTypes = {
-  loading: PropTypes.bool,
-  className: PropTypes.string,
-  onClick: PropTypes.func,
-  onDialogClosePositive: PropTypes.func,
-  onDialogCloseNegative: PropTypes.func,
-  text: PropTypes.string,
-  textLoading: PropTypes.string,
-  type: PropTypes.string,
-  variant: PropTypes.string,
-  loadingPosition: PropTypes.string,
-  color: PropTypes.string,
-  dialogTitle: PropTypes.string,
-  dialogDescription: PropTypes.string,
-  dialogNegativeText: PropTypes.string,
-  dialogPositiveText: PropTypes.string,
-  icon: PropTypes.any,
-}
-
-const ButtonDialog = React.memo(ButtonDialogComponent)
 
 export { ButtonDialog }

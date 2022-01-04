@@ -1,7 +1,8 @@
 import React from 'react'
 import { Router } from 'react-router-dom'
-import { ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+
 import { HelmetProvider } from 'react-helmet-async'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
@@ -53,9 +54,11 @@ const App: React.FC<TApp> = ({ history }) => {
                   <SnackbarProvider maxSnack={5}>
                     <OrganizationProvider>
                       <LayoutProvider>
-                        <Layout>
-                          <RouteSwitcher />
-                        </Layout>
+                        <StyledEngineProvider injectFirst>
+                          <Layout>
+                            <RouteSwitcher />
+                          </Layout>
+                        </StyledEngineProvider>
                       </LayoutProvider>
                     </OrganizationProvider>
                   </SnackbarProvider>

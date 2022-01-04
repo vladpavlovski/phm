@@ -549,7 +549,9 @@ const Game = () => {
                         {gameId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={deleteGame}
+                            onClick={() => {
+                              deleteGame()
+                            }}
                           />
                         )}
                       </div>

@@ -1,11 +1,10 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import clsx from 'clsx'
-import LoadingButton from '@mui/lab/LoadingButton'
+import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
 import SaveIcon from '@mui/icons-material/Save'
 import { useStyles } from './styled'
 
-const ButtonSave = props => {
+const ButtonSave: React.FC<LoadingButtonProps> = props => {
   const { loading, className } = props
   const classes = useStyles()
   return (
@@ -26,11 +25,6 @@ const ButtonSave = props => {
 ButtonSave.defaultProps = {
   loading: false,
   className: '',
-}
-
-ButtonSave.propTypes = {
-  loading: PropTypes.bool,
-  className: PropTypes.string,
 }
 
 export { ButtonSave }

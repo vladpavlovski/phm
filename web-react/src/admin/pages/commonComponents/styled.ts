@@ -1,6 +1,7 @@
 import { makeStyles } from '@mui/styles'
+import { Theme } from '@mui/system'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: Theme) => ({
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),

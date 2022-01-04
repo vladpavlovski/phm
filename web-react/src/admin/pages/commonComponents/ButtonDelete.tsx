@@ -1,11 +1,10 @@
 import React, { useState, useCallback } from 'react'
-import PropTypes from 'prop-types'
 import clsx from 'clsx'
 
-import LoadingButton from '@mui/lab/LoadingButton'
+import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
 import DeleteForever from '@mui/icons-material/DeleteForever'
 import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
+import Dialog, { DialogProps } from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -13,7 +12,12 @@ import DialogTitle from '@mui/material/DialogTitle'
 
 import { useStyles } from './styled'
 
-const ButtonDelete = props => {
+type TButtonDelete = LoadingButtonProps &
+  Omit<DialogProps, 'open'> & {
+    onClick: () => void
+  }
+
+const ButtonDelete: React.FC<TButtonDelete> = props => {
   const { onClick, className, loading } = props
   const classes = useStyles()
 
@@ -71,13 +75,6 @@ const ButtonDelete = props => {
 ButtonDelete.defaultProps = {
   loading: false,
   className: '',
-  onClick: null,
-}
-
-ButtonDelete.propTypes = {
-  loading: PropTypes.bool,
-  className: PropTypes.string,
-  onClick: PropTypes.func,
 }
 
 export { ButtonDelete }

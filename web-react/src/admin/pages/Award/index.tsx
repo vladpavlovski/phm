@@ -112,6 +112,59 @@ export const UPDATE_AWARD = gql`
           name
           status
         }
+        games {
+          gameId
+          name
+        }
+        persons {
+          personId
+          firstName
+          lastName
+          name
+          teams {
+            teamId
+            name
+          }
+          games {
+            gameId
+            name
+          }
+          competitions {
+            competitionId
+            name
+          }
+        }
+        players {
+          playerId
+          firstName
+          lastName
+          name
+          teams {
+            teamId
+            name
+          }
+        }
+        seasons {
+          seasonId
+          name
+          nick
+          startDate
+          endDate
+        }
+        sponsors {
+          sponsorId
+          name
+        }
+        teams {
+          teamId
+          name
+          nick
+          status
+        }
+        venues {
+          venueId
+          name
+        }
       }
     }
   }
@@ -283,7 +336,9 @@ const Award: React.FC = () => {
                       {awardId !== 'new' && (
                         <ButtonDelete
                           loading={loadingDelete}
-                          onClick={deleteAward}
+                          onClick={() => {
+                            deleteAward()
+                          }}
                         />
                       )}
                     </div>

@@ -37,10 +37,6 @@ export const GET_ALL_PERSONS = gql`
         competitionId
         name
       }
-      awards {
-        awardId
-        name
-      }
     }
   }
 `

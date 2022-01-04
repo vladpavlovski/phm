@@ -411,7 +411,9 @@ const Player: React.FC = () => {
                         {playerId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={deletePlayer}
+                            onClick={() => {
+                              deletePlayer()
+                            }}
                           />
                         )}
                       </div>

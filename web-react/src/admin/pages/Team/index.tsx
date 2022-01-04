@@ -401,7 +401,9 @@ const Team: React.FC = () => {
                         {teamId !== 'new' && (
                           <ButtonDelete
                             loading={loadingDelete}
-                            onClick={deleteTeam}
+                            onClick={() => {
+                              deleteTeam()
+                            }}
                           />
                         )}
                       </div>
