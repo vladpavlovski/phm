@@ -1,21 +1,17 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Container, Grid, Paper } from '@mui/material'
 import Toolbar from '@mui/material/Toolbar'
 import EditIcon from '@mui/icons-material/Edit'
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
-import { getAdminUserRoute } from '../../../../router/routes'
-import { LinkButton } from '../../../../components/LinkButton'
-import { Title } from '../../../../components/Title'
-import { Error } from '../../../../components/Error'
-import { useWindowSize } from '../../../../utils/hooks'
-import { Loader } from '../../../../components/Loader'
-import { setIdFromEntityId, getXGridHeight } from '../../../../utils'
+import { getAdminUserRoute } from 'router/routes'
+import { LinkButton, Title, Error, Loader } from 'components'
+import { setIdFromEntityId } from 'utils'
 
 export const GET_USERS = gql`
   query getUsers {
-    users: User {
+    users {
       userId
       firstName
       lastName
@@ -25,16 +21,29 @@ export const GET_USERS = gql`
   }
 `
 
-const XGridTable = () => {
+const XGridTable: React.FC = () => {
   const classes = useStyles()
 
-  const { error, loading, data } = useQuery(GET_USERS, {
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-and-network',
-  })
+  const { error, loading, data } = useQuery(GET_USERS)
 
-  const columns = useMemo(
+  const columns = useMemo<GridColumns>(
     () => [
+      {
+        field: 'userId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminUserRoute(params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
       {
         field: 'firstName',
         headerName: 'First name',
@@ -55,46 +64,27 @@ const XGridTable = () => {
         headerName: 'Phone',
         width: 150,
       },
-      {
-        field: 'userId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminUserRoute(params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
-        },
-      },
     ],
     []
   )
-
-  const windowSize = useWindowSize()
-  const toolbarRef = useRef()
 
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Paper className={classes.root}>
-            <Toolbar ref={toolbarRef} className={classes.toolbarForm}>
+          <Paper>
+            <Toolbar className={classes.toolbarForm}>
               <div>
                 <Title>{'Users'}</Title>
               </div>
               <div></div>
             </Toolbar>
           </Paper>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          <Error message={error?.message} />
           {data && (
             <div
-              style={{ height: getXGridHeight(toolbarRef.current, windowSize) }}
+              style={{ height: 'calc(100vh - 230px)' }}
               className={classes.xGridWrapper}
             >
               <DataGridPro
