@@ -7,29 +7,30 @@ import { useForm } from 'react-hook-form'
 import { Helmet } from 'react-helmet-async'
 import Img from 'react-cool-img'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Container, Grid, Paper } from '@mui/material'
 
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFTimepicker } from '../../../components/RHFTimepicker'
-
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, decomposeTime, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
+import { getAdminOrgEventsRoute, getAdminOrgEventRoute } from 'router/routes'
 import {
-  getAdminOrgEventsRoute,
-  getAdminOrgEventRoute,
-} from '../../../router/routes'
-import { Loader } from '../../../components/Loader'
-import { Error } from '../../../components/Error'
-import placeholderEvent from '../../../img/placeholderEvent.png'
+  Loader,
+  Error,
+  Title,
+  RHFInput,
+  RHFTimepicker,
+  RHFDatepicker,
+  Uploader,
+} from 'components'
+
+import placeholderEvent from 'img/placeholderEvent.png'
 // import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
 
@@ -87,26 +88,29 @@ const DELETE_EVENT = gql`
   }
 `
 
-const Event = () => {
+type TParams = {
+  eventId: string
+  organizationSlug: string
+}
+
+const Event: React.FC = () => {
   const history = useHistory()
   const classes = useStyles()
   const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
-  const { eventId, organizationSlug } = useParams()
+  const { eventId, organizationSlug } = useParams<TParams>()
   const { user } = useAuth0()
 
   const client = useApolloClient()
   const {
     loading: queryLoading,
-    data: queryData,
+    data: { events: [eventData] } = { events: [] },
     error: queryError,
   } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only',
     variables: { where: { eventId } },
     skip: eventId === 'new',
   })
-
-  const eventData = queryData?.events?.[0]
 
   const [
     createEvent,
@@ -201,7 +205,7 @@ const Event = () => {
 
   const updateLogo = useCallback(
     url => {
-      setValue('logo', url, true)
+      setValue('logo', url, { shouldValidate: true, shouldDirty: true })
 
       const queryResult = client.readQuery({
         query: GET_EVENT,
@@ -232,26 +236,16 @@ const Event = () => {
   return (
     <Container maxWidth="lg" className={classes.container}>
       {queryLoading && <Loader />}
-      {(mutationErrorCreate ||
-        mutationErrorUpdate ||
-        queryError ||
-        errorDelete) && (
-        <Error
-          message={
-            mutationErrorCreate?.message ||
-            mutationErrorUpdate?.message ||
-            queryError?.message ||
-            errorDelete?.message
-          }
-        />
-      )}
+      <Error
+        message={
+          mutationErrorCreate?.message ||
+          mutationErrorUpdate?.message ||
+          queryError?.message ||
+          errorDelete?.message
+        }
+      />
       {(eventData || eventId === 'new') && (
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className={classes.form}
-          noValidate
-          autoComplete="off"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
           <Helmet>
             <title>{eventData?.name || 'Event'}</title>
           </Helmet>
@@ -303,7 +297,7 @@ const Event = () => {
                       <ButtonDelete
                         loading={loadingDelete}
                         onClick={() => {
-                          deleteEvent({ variables: { eventId } })
+                          deleteEvent()
                         }}
                       />
                     )}

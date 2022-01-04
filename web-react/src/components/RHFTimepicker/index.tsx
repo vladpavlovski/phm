@@ -6,20 +6,15 @@ import TimePicker, { TimePickerProps } from '@mui/lab/TimePicker'
 import { getDateFromTime } from '../../utils'
 
 type TRHFTimepickerComponent = TextFieldProps &
-  TimePickerProps & {
-    control: Control
+  Omit<TimePickerProps, 'onChange' | 'value' | 'renderInput'> & {
     name: string
+    control: Control
     error: {
       message: string
     }
-    openTo: string
-    views: string[]
-    disableFuture: boolean
-    ampm: boolean
-    ampmInClock: boolean
   }
 
-const RHFTimepickerComponent: React.FC<TRHFTimepickerComponent> = props => {
+const RHFTimepicker: React.FC<TRHFTimepickerComponent> = React.memo(props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
@@ -46,18 +41,15 @@ const RHFTimepickerComponent: React.FC<TRHFTimepickerComponent> = props => {
       defaultValue={defaultValue ? dayjs(getDateFromTime(defaultValue)) : null}
     />
   )
-}
+})
 
-RHFTimepickerComponent.defaultProps = {
+RHFTimepicker.defaultProps = {
   defaultValue: null,
   fullWidth: false,
   openTo: 'hours',
-  disableFuture: false,
   views: ['hours', 'minutes', 'seconds'],
   ampm: false,
   ampmInClock: false,
 }
-
-const RHFTimepicker = React.memo(RHFTimepickerComponent)
 
 export { RHFTimepicker }
