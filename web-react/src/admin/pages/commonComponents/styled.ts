@@ -3,8 +3,8 @@ import { Theme } from '@mui/system'
 
 const useStyles = makeStyles((theme: Theme) => ({
   container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    // paddingTop: theme.spacing(4),
+    // paddingBottom: theme.spacing(4),
   },
   paper: {
     padding: theme.spacing(2),

@@ -2,17 +2,20 @@ import React from 'react'
 import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import Avatar from '@mui/material/Avatar'
+// import Avatar from '@mui/material/Avatar'
 import Fade from '@mui/material/Fade'
-import { useStyles } from './styled'
+// import { useStyles } from './styled'
 import { useAuth0 } from '@auth0/auth0-react'
-import { getInitials } from 'utils'
+// import { getInitials } from 'utils'
 import { useUserSetup } from 'utils/hooks'
 
-const UserMenuComponent = () => {
-  const [anchorEl, setAnchorEl] = React.useState(null)
-  const classes = useStyles()
-  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0()
+const UserMenuComponent: React.FC = () => {
+  const [anchorEl, setAnchorEl] = React.useState<
+    (EventTarget & Element) | null
+  >(null)
+  // const classes = useStyles()
+  // loginWithRedirect,
+  const { logout, user, isAuthenticated } = useAuth0()
   useUserSetup({ user, isAuthenticated })
 
   return (
@@ -22,28 +25,21 @@ const UserMenuComponent = () => {
           aria-controls="user-menu"
           aria-haspopup="true"
           onClick={handleClick}
-          className={classes.userMenuButton}
+          // className={classes.userMenuButton}
           sx={{ color: 'white' }}
         >
-          {isAuthenticated && user.name}
-          <Avatar
+          {isAuthenticated && user?.name}
+          {/* <Avatar
             mx="auto"
             sx={{ marginLeft: '1.5rem' }}
             alt={user?.name}
             src={user?.picture}
-          >
+          > 
             {isAuthenticated && getInitials(user?.name)}
-          </Avatar>
+          </Avatar>*/}
         </Button>
       ) : (
-        <Button
-          aria-controls="user-menu"
-          aria-haspopup="true"
-          onClick={loginWithRedirect}
-          sx={{ color: 'white' }}
-        >
-          {'Log In'}
-        </Button>
+        <></>
       )}
       <Menu
         id="user-menu"
@@ -75,7 +71,7 @@ const UserMenuComponent = () => {
     </>
   )
 
-  function handleClick(event) {
+  function handleClick(event: React.SyntheticEvent) {
     setAnchorEl(event.currentTarget)
   }
 
