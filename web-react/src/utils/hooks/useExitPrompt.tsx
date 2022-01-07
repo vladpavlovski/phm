@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const initBeforeUnLoad = showExitPrompt => {
+const initBeforeUnLoad = <T,>(showExitPrompt: T) => {
   window.onbeforeunload = event => {
     if (showExitPrompt) {
       const e = event || window.event
@@ -14,8 +14,11 @@ const initBeforeUnLoad = showExitPrompt => {
 }
 
 // Hook
-export function useExitPrompt(bool, cb) {
-  const [showExitPrompt, setShowExitPrompt] = useState(bool)
+const useExitPrompt = <T,>(
+  bool: T,
+  cb: () => void
+): [T, React.Dispatch<React.SetStateAction<T>>] => {
+  const [showExitPrompt, setShowExitPrompt] = useState<T>(bool)
 
   window.onload = function () {
     initBeforeUnLoad(showExitPrompt)
@@ -28,3 +31,5 @@ export function useExitPrompt(bool, cb) {
 
   return [showExitPrompt, setShowExitPrompt]
 }
+
+export { useExitPrompt }
