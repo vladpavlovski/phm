@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
@@ -17,8 +16,14 @@ import dayjs from 'dayjs'
 import Img from 'react-cool-img'
 
 import { useStyles } from 'admin/pages/commonComponents/styled'
+import { Game } from 'utils/types'
 
-const GameInvitation = props => {
+type TGameInvitation = {
+  gameData: Game
+}
+
+const GameInvitation: React.FC<TGameInvitation> = React.memo(props => {
+  const { gameData } = props
   const [openDialog, setOpenDialog] = React.useState(false)
   return (
     <Stack direction="row" spacing={2}>
@@ -32,16 +37,24 @@ const GameInvitation = props => {
       >
         {`Invitation`}
       </Button>
-      <FormDialogMemo
-        {...props}
-        openDialog={openDialog}
-        setOpenDialog={setOpenDialog}
-      />
+      {openDialog && (
+        <FormDialog
+          gameData={gameData}
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+        />
+      )}
     </Stack>
   )
+})
+
+type TFormDialog = {
+  openDialog: boolean
+  setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>
+  gameData: Game
 }
 
-const FormDialog = props => {
+const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const { openDialog, setOpenDialog, gameData } = props
   const classes = useStyles()
   const teamHost = React.useMemo(
@@ -205,12 +218,6 @@ const FormDialog = props => {
       </DialogActions>
     </Dialog>
   )
-}
-
-const FormDialogMemo = React.memo(FormDialog)
-
-GameInvitation.propTypes = {
-  gameData: PropTypes.object,
-}
+})
 
 export { GameInvitation }

@@ -67,42 +67,45 @@ const ButtonDialog: React.FC<TButtonDialog> = React.memo(props => {
             onClick && onClick()
           }}
           loadingPosition={startIcon ? loadingPosition : undefined}
+          startIcon={startIcon}
           loading={loading}
         >
           {loading ? textLoading : text}
         </LoadingButton>
       )}
-      <Dialog
-        open={openDialog}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{dialogTitle}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {dialogDescription}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              handleClose()
-              onDialogCloseNegative && onDialogCloseNegative()
-            }}
-          >
-            {dialogNegativeText}
-          </Button>
-          <Button
-            onClick={() => {
-              handleClose()
-              onDialogClosePositive && onDialogClosePositive()
-            }}
-          >
-            {dialogPositiveText}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDialog && (
+        <Dialog
+          open={openDialog}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">{dialogTitle}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              {dialogDescription}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                handleClose()
+                onDialogCloseNegative && onDialogCloseNegative()
+              }}
+            >
+              {dialogNegativeText}
+            </Button>
+            <Button
+              onClick={() => {
+                handleClose()
+                onDialogClosePositive && onDialogClosePositive()
+              }}
+            >
+              {dialogPositiveText}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   )
 })

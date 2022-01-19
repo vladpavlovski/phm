@@ -1,8 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react'
-import PropTypes from 'prop-types'
 import { useParams } from 'react-router-dom'
-import { useSnackbar } from 'notistack'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
 
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
@@ -30,7 +28,7 @@ import IconButton from '@mui/material/IconButton'
 import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import StarIcon from '@mui/icons-material/Star'
 
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { LinkButton } from 'components/LinkButton'
 import { Title } from 'components/Title'
 import { Loader } from 'components/Loader'
@@ -48,15 +46,14 @@ import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
 import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
-import { GET_GAME } from '../../../index'
 import { SetLineupPosition } from './SetLineupPosition'
 import { SetLineupJersey } from './SetLineupJersey'
 
-import { UPDATE_GAME } from '../../../index'
+import { Team, Player, Position, Jersey } from 'utils/types'
 
 const GET_TEAM_PLAYERS = gql`
   query getTeamPlayers($where: TeamWhere) {
-    team: teams(where: $where) {
+    teams(where: $where) {
       teamId
       name
       players {
@@ -86,8 +83,20 @@ const GET_TEAM_PLAYERS = gql`
   }
 `
 
-const LineupsComponent = props => {
-  const { gameId, teams, players } = props
+type TRelations = {
+  gameId: string
+  teams: {
+    host: boolean
+    node: Team
+  }[]
+  players: {
+    node: Player
+    host: boolean
+  }[]
+  updateGame: MutationFunction
+}
+const Lineups: React.FC<TRelations> = React.memo(props => {
+  const { gameId, teams, players, updateGame } = props
 
   const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
   const teamGuest = useMemo(
@@ -104,45 +113,58 @@ const LineupsComponent = props => {
   )
 
   return (
-    <>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6} lg={6}>
-          <LineupList
-            host
-            team={teamHost}
-            gameId={gameId}
-            players={playersHost}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6} lg={6}>
-          <LineupList
-            host={false}
-            team={teamGuest}
-            gameId={gameId}
-            players={playersGuest}
-          />
-        </Grid>
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={6} lg={6}>
+        <LineupList
+          host
+          team={teamHost}
+          gameId={gameId}
+          players={playersHost}
+          updateGame={updateGame}
+        />
       </Grid>
-    </>
+
+      <Grid item xs={12} md={6} lg={6}>
+        <LineupList
+          host={false}
+          team={teamGuest}
+          gameId={gameId}
+          players={playersGuest}
+          updateGame={updateGame}
+        />
+      </Grid>
+    </Grid>
   )
+})
+
+type TLineupList = {
+  gameId: string
+  team: Team | null
+  host: boolean
+  players: {
+    node: Player
+    host: boolean
+  }[]
+  updateGame: MutationFunction
 }
 
-const Lineups = React.memo(LineupsComponent)
+type TParams = {
+  organizationSlug: string
+}
 
-const LineupList = props => {
-  const { gameId, team, host = false, players } = props
+const LineupList: React.FC<TLineupList> = React.memo(props => {
+  const { gameId, team, host = false, players, updateGame } = props
   const [playerDialog, setPlayerDialog] = useState(false)
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const classes = useStyles()
-  const { enqueueSnackbar } = useSnackbar()
+  // const { enqueueSnackbar } = useSnackbar()
 
   const [
     getTeamPlayers,
     {
       loading: queryTeamPlayersLoading,
       error: queryTeamPlayersError,
-      data: queryTeamPlayersData,
+      data: { teams: [queryTeam] } = { teams: [] },
     },
   ] = useLazyQuery(GET_TEAM_PLAYERS, {
     variables: {
@@ -152,14 +174,14 @@ const LineupList = props => {
   })
 
   const openPlayerDialog = useCallback(() => {
-    if (!queryTeamPlayersData) {
+    if (!players) {
       getTeamPlayers()
     }
     setPlayerDialog(true)
   }, [])
 
   const addAllTeamPlayersToGame = useCallback(() => {
-    const allPlayers = queryTeamPlayersData?.team?.[0]?.players
+    const allPlayers: Player[] = queryTeam?.players
 
     const dataToConnect = allPlayers.map(player => {
       const position =
@@ -170,10 +192,11 @@ const LineupList = props => {
         p => p.team?.teamId === team?.teamId
       )?.[0]
 
-      const jersey =
-        typeof firstJersey?.number === 'object'
-          ? firstJersey?.number?.low
-          : firstJersey?.number || null
+      const jersey = firstJersey?.number || null
+      // typeof firstJersey?.number === 'object'
+      //   ? firstJersey?.number?.low
+      //   : firstJersey?.number || null
+
       return {
         where: {
           node: { playerId: player.playerId },
@@ -184,6 +207,7 @@ const LineupList = props => {
           jersey,
           captain: false,
           goalkeeper: false,
+          teamId: team?.teamId,
         },
       }
     })
@@ -200,64 +224,64 @@ const LineupList = props => {
         },
       },
     })
-  }, [team, host, gameId, queryTeamPlayersData])
+  }, [team, host, gameId, queryTeam])
 
   const handleClosePlayerDialog = useCallback(() => {
     setPlayerDialog(false)
   }, [])
 
-  const [updateGame] = useMutation(UPDATE_GAME, {
-    update(cache, { data: { updateGame } }) {
-      try {
-        const queryResult = cache.readQuery({
-          query: GET_GAME,
-          variables: {
-            where: { gameId },
-          },
-        })
-        const updatedData = updateGame?.games?.find(
-          g => g.gameId === gameId
-        )?.playersConnection
+  // const [updateGame] = useMutation(UPDATE_GAME, {
+  //   update(cache, { data: { updateGame } }) {
+  //     try {
+  //       const queryResult = cache.readQuery({
+  //         query: GET_GAME,
+  //         variables: {
+  //           where: { gameId },
+  //         },
+  //       })
+  //       const updatedData = updateGame?.games?.find(
+  //         g => g.gameId === gameId
+  //       )?.playersConnection
 
-        const updatedResult = {
-          games: [
-            {
-              ...queryResult.games?.find(g => g.gameId === gameId),
-              playersConnection: updatedData,
-            },
-          ],
-          venues: queryResult?.venues,
-        }
-        cache.writeQuery({
-          query: GET_GAME,
-          data: updatedResult,
-          variables: {
-            where: { gameId },
-          },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    onCompleted: () => {
-      enqueueSnackbar(`Game updated`, {
-        variant: 'success',
-      })
-    },
-    onError: error => {
-      enqueueSnackbar(`${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+  //       const updatedResult = {
+  //         games: [
+  //           {
+  //             ...queryResult.games?.find(g => g.gameId === gameId),
+  //             playersConnection: updatedData,
+  //           },
+  //         ],
+  //         venues: queryResult?.venues,
+  //       }
+  //       cache.writeQuery({
+  //         query: GET_GAME,
+  //         data: updatedResult,
+  //         variables: {
+  //           where: { gameId },
+  //         },
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   },
+  //   onCompleted: () => {
+  //     enqueueSnackbar(`Game updated`, {
+  //       variant: 'success',
+  //     })
+  //   },
+  //   onError: error => {
+  //     enqueueSnackbar(`${error}`, {
+  //       variant: 'error',
+  //     })
+  //     console.error(error)
+  //   },
+  // })
 
   const lineupPlayers = useMemo(
     () => setXGridForRelation(players, 'playerId', 'node'),
     [players]
   )
 
-  const teamPlayersColumns = useMemo(
+  const teamPlayersColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'avatar',
@@ -285,9 +309,9 @@ const LineupList = props => {
         headerName: 'Positions',
         width: 150,
         valueGetter: params => {
-          const positions =
+          const positions: Position[] =
             params?.row?.positions?.filter(
-              p => p.team?.teamId === team?.teamId
+              (p: Position) => p.team?.teamId === team?.teamId
             ) || []
           return getXGridValueFromArray(positions, 'name')
         },
@@ -298,9 +322,10 @@ const LineupList = props => {
         headerName: 'Jerseys',
         width: 200,
         valueGetter: params => {
-          const jerseys =
-            params.row?.jerseys?.filter(p => p.team?.teamId === team?.teamId) ||
-            []
+          const jerseys: Jersey[] =
+            params.row?.jerseys?.filter(
+              (p: Jersey) => p.team?.teamId === team?.teamId
+            ) || []
           return getXGridValueFromArray(jerseys, 'name')
         },
       },
@@ -405,7 +430,7 @@ const LineupList = props => {
     })
   }, [])
 
-  const gameLineupColumns = useMemo(
+  const gameLineupColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'actions',
@@ -414,9 +439,13 @@ const LineupList = props => {
         disableColumnMenu: true,
         renderCell: params => {
           const isCaptain = !!params?.row?.captain
-          const teamHasCaptain = !!lineupPlayers.find(p => p.captain)
+          const teamHasCaptain = !!lineupPlayers.find(
+            (p: { captain: boolean }) => p.captain
+          )
           const isGoalkeeper = !!params?.row?.goalkeeper
-          const teamHasGoalkeeper = !!lineupPlayers.find(p => p.goalkeeper)
+          const teamHasGoalkeeper = !!lineupPlayers.find(
+            (p: { goalkeeper: boolean }) => p.goalkeeper
+          )
           const isStar = !!params?.row?.star
 
           return (
@@ -613,13 +642,8 @@ const LineupList = props => {
 
   const teamPlayersData = useMemo(
     () =>
-      queryTeamPlayersData
-        ? setIdFromEntityId(
-            queryTeamPlayersData?.team?.[0]?.players || [],
-            'playerId'
-          )
-        : [],
-    [queryTeamPlayersData]
+      queryTeam ? setIdFromEntityId(queryTeam?.players || [], 'playerId') : [],
+    [queryTeam]
   )
 
   const [searchText, searchData, requestSearch] = useXGridSearch({
@@ -627,7 +651,8 @@ const LineupList = props => {
     data: teamPlayersData,
   })
 
-  const [anchorEl, setAnchorEl] = React.useState(null)
+  const [anchorEl, setAnchorEl] =
+    React.useState<React.SetStateAction<Element>>()
 
   return (
     <>
@@ -697,22 +722,22 @@ const LineupList = props => {
               keepMounted
               open={Boolean(anchorEl)}
               onClose={() => {
-                setAnchorEl(null)
+                setAnchorEl(undefined)
               }}
             >
               <MenuItem
                 onClick={() => {
                   openPlayerDialog()
-                  setAnchorEl(null)
+                  setAnchorEl(undefined)
                 }}
               >
                 Choose specific
               </MenuItem>
               <MenuItem
-                disabled={!queryTeamPlayersData}
+                disabled={!queryTeam}
                 onClick={() => {
                   addAllTeamPlayersToGame()
-                  setAnchorEl(null)
+                  setAnchorEl(undefined)
                 }}
               >
                 All
@@ -732,21 +757,19 @@ const LineupList = props => {
           />
         </div>
       </Paper>
-      <Dialog
-        fullWidth
-        maxWidth="lg"
-        open={playerDialog}
-        onClose={handleClosePlayerDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        {queryTeamPlayersLoading && !queryTeamPlayersError && <Loader />}
-        {queryTeamPlayersError && !queryTeamPlayersLoading && (
-          <Error message={queryTeamPlayersError.message} />
-        )}
-        {queryTeamPlayersData &&
-          !queryTeamPlayersLoading &&
-          !queryTeamPlayersError && (
+      {playerDialog && (
+        <Dialog
+          fullWidth
+          maxWidth="lg"
+          open={playerDialog}
+          onClose={handleClosePlayerDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          {queryTeamPlayersLoading && <Loader />}
+
+          <Error message={queryTeamPlayersError?.message} />
+          {queryTeam && (
             <>
               <DialogTitle id="alert-dialog-title">{`Add player to game`}</DialogTitle>
               <DialogContent>
@@ -768,7 +791,9 @@ const LineupList = props => {
                     componentsProps={{
                       toolbar: {
                         value: searchText,
-                        onChange: event => requestSearch(event.target.value),
+                        onChange: (
+                          event: React.ChangeEvent<HTMLInputElement>
+                        ): void => requestSearch(event.target.value),
                         clearSearch: () => requestSearch(''),
                       },
                     }}
@@ -777,21 +802,27 @@ const LineupList = props => {
               </DialogContent>
             </>
           )}
-        <DialogActions>
-          <Button type="button" onClick={handleClosePlayerDialog}>
-            {'Done'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <DialogActions>
+            <Button type="button" onClick={handleClosePlayerDialog}>
+              {'Done'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   )
+})
+
+type TTogglePlayerGame = {
+  gameId: string
+  team: Team | null
+  player: Player
+  host: boolean
+  updateGame: MutationFunction
+  lineupPlayers: Player[]
 }
 
-LineupsComponent.propTypes = {
-  players: PropTypes.array,
-}
-
-const TogglePlayerGame = props => {
+const TogglePlayerGame: React.FC<TTogglePlayerGame> = React.memo(props => {
   const { gameId, team, player, host, updateGame, lineupPlayers } = props
   const [isMember, setIsMember] = useState(
     !!lineupPlayers?.find(p => p.playerId === player.playerId)
@@ -808,11 +839,11 @@ const TogglePlayerGame = props => {
     const jersey = player?.jerseys?.filter(
       p => p.team?.teamId === team?.teamId
     )?.[0]
-    const number =
-      typeof jersey?.number === 'string'
-        ? jersey?.number
-        : jersey?.number?.low || null
-    return parseInt(number)
+    const number = jersey?.number
+    // typeof jersey?.number === 'string'
+    //   ? jersey?.number
+    //   : jersey?.number?.low || null
+    return number
   }, [])
 
   return (
@@ -845,6 +876,7 @@ const TogglePlayerGame = props => {
                           host,
                           position,
                           jersey,
+                          teamId: team?.teamId,
                         },
                       },
                     }),
@@ -857,14 +889,6 @@ const TogglePlayerGame = props => {
       }}
     />
   )
-}
-
-TogglePlayerGame.propTypes = {
-  playerId: PropTypes.string,
-  awardId: PropTypes.string,
-  award: PropTypes.object,
-  remove: PropTypes.func,
-  merge: PropTypes.func,
-}
+})
 
 export { Lineups }

@@ -19,16 +19,16 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 
 import { useStyles } from '../../../commonComponents/styled'
-import { getEventSettings } from './gameEvents'
+import { getEventSettings, TEventType } from './gameEvents'
 import { setIdFromEntityId } from 'utils'
 
 // import GameEventFormContext from '../context'
-import { prepareGameResultUpdate } from '../handlers'
-import { GET_GAME_PLAY } from '../index'
-
+import { prepareGameResultUpdate, ensure } from '../handlers'
+import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
+import { Game, Player, Team, GameEventSimple } from 'utils/types'
 const DELETE_GAME_EVENT_SIMPLE = gql`
   mutation deleteGameEventSimple(
     $where: GameEventSimpleWhere
@@ -77,7 +77,12 @@ const DELETE_GAME_EVENT_SIMPLE = gql`
   }
 `
 
-const PlayerNameFormat = props => {
+type TPlayerNameFormat = {
+  name: string
+  jersey: number | null
+}
+
+const PlayerNameFormat: React.FC<TPlayerNameFormat> = React.memo(props => {
   const { name, jersey } = props
 
   return (
@@ -86,11 +91,15 @@ const PlayerNameFormat = props => {
       <span>{name}</span>
     </>
   )
+})
+
+type TEventsTable = {
+  gameData: Game
+  players: { node: Player; jersey: number }[]
+  teams: { node: Team; host: boolean }[]
 }
 
-const PlayerNameFormatMemo = React.memo(PlayerNameFormat)
-
-const EventsTable = props => {
+const EventsTable: React.FC<TEventsTable> = props => {
   //gameSettings
   const { gameData, players, teams } = props
   const classes = useStyles()
@@ -100,7 +109,7 @@ const EventsTable = props => {
 
   const [eventsView, setEventsView] = React.useState('filtered')
 
-  const gameEventSimpleIdToDelete = React.useRef()
+  const gameEventSimpleIdToDelete = React.useRef<GameEventSimple | null>(null)
 
   // const { setGameEventSettings, setGameEventData, setOpenGameEventDialog } =
   //   React.useContext(GameEventFormContext)
@@ -108,7 +117,7 @@ const EventsTable = props => {
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
     update(cache, { data }) {
       try {
-        const queryResult = cache.readQuery({
+        const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
           query: GET_GAME_PLAY,
           variables: {
             whereGame: { gameId: gameData?.gameId },
@@ -117,7 +126,7 @@ const EventsTable = props => {
         })
 
         const updatedEvents =
-          queryResult.games[0].gameEventsSimple?.filter(
+          queryResult?.games?.[0]?.gameEventsSimple?.filter(
             ges =>
               ges?.gameEventSimpleId !==
               gameEventSimpleIdToDelete.current?.gameEventSimpleId
@@ -126,12 +135,12 @@ const EventsTable = props => {
         const updatedResult = {
           games: [
             {
-              ...queryResult.games[0],
+              ...(queryResult?.games?.[0] || []),
               gameResult: data?.updateGameResults?.gameResults?.[0],
               gameEventsSimple: updatedEvents,
             },
           ],
-          systemSettings: queryResult.systemSettings,
+          systemSettings: queryResult?.systemSettings,
         }
 
         cache.writeQuery({
@@ -160,7 +169,7 @@ const EventsTable = props => {
     },
   })
 
-  const columns = React.useMemo(
+  const columns = React.useMemo<GridColumns>(
     () => [
       {
         field: 'period',
@@ -304,7 +313,6 @@ const EventsTable = props => {
               <IconButton
                 type="button"
                 size="small"
-                variant="contained"
                 color="primary"
                 onClick={() => {
                   gameEventSimpleIdToDelete.current = params.row
@@ -372,7 +380,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.scoredBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.scoredBy?.player?.name}
             />
@@ -394,7 +402,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.firstAssist?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.firstAssist?.player?.name}
             />
@@ -416,7 +424,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.secondAssist?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.secondAssist?.player?.name}
             />
@@ -444,7 +452,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.penalized?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.penalized?.player?.name}
             />
@@ -513,7 +521,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.wonBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.wonBy?.player?.name}
             />
@@ -533,7 +541,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.lostBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.lostBy?.player?.name}
             />
@@ -554,7 +562,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.executedBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.executedBy?.player?.name}
             />
@@ -575,7 +583,7 @@ const EventsTable = props => {
                 p?.node?.playerId === params.row?.facedAgainst?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.facedAgainst?.player?.name}
             />
@@ -595,7 +603,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.suffered?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.suffered?.player?.name}
             />
@@ -623,7 +631,7 @@ const EventsTable = props => {
               p => p?.node?.playerId === params.row?.savedBy?.player.playerId
             )?.jersey || null
           return (
-            <PlayerNameFormatMemo
+            <PlayerNameFormat
               jersey={jersey}
               name={params?.row?.savedBy?.player?.name}
             />
@@ -636,7 +644,8 @@ const EventsTable = props => {
         width: 120,
         disableColumnMenu: true,
         resizable: false,
-        valueFormatter: params => dayjs(params?.value).format('HH:mm:ss'),
+        valueFormatter: params =>
+          params?.value ? dayjs(Number(params.value)).format('HH:mm:ss') : '',
       },
     ],
     [players, teams]
@@ -687,8 +696,8 @@ const EventsTable = props => {
                     : true
                 ),
               ].sort((x, y) => {
-                const date1 = new Date(x.timestamp)
-                const date2 = new Date(y.timestamp)
+                const date1 = new Date(x.timestamp).valueOf()
+                const date2 = new Date(y.timestamp).valueOf()
                 return date2 - date1
               }),
               'gameEventSimpleId'
@@ -727,34 +736,39 @@ const EventsTable = props => {
             No, leave it
           </Button>
           <Button
+            disabled={!!gameEventSimpleIdToDelete.current}
             onClick={() => {
-              setOpenDeleteEventDialog(false)
-              const gameEventSettings = getEventSettings(
-                gameEventSimpleIdToDelete.current?.eventTypeCode
-              )
+              if (gameEventSimpleIdToDelete.current) {
+                setOpenDeleteEventDialog(false)
+                const gameEventSettings = getEventSettings(
+                  gameEventSimpleIdToDelete.current.eventTypeCode
+                ) as TEventType
 
-              const isHost = teams?.find(
-                t =>
-                  t?.node?.teamId ===
-                  gameEventSimpleIdToDelete.current?.team?.teamId
-              )?.host
+                const isHost = ensure(
+                  teams?.find(
+                    t =>
+                      t?.node?.teamId ===
+                      gameEventSimpleIdToDelete.current?.team?.teamId
+                  )?.host
+                )
 
-              const { where, update } = prepareGameResultUpdate({
-                gameData,
-                gameEventSettings,
-                host: isHost,
-                changeUp: false,
-              })
-              deleteGameEventSimple({
-                variables: {
-                  where: {
-                    gameEventSimpleId:
-                      gameEventSimpleIdToDelete.current?.gameEventSimpleId,
+                const { where, update } = prepareGameResultUpdate({
+                  gameData,
+                  gameEventSettings,
+                  host: isHost,
+                  changeUp: false,
+                })
+                deleteGameEventSimple({
+                  variables: {
+                    where: {
+                      gameEventSimpleId:
+                        gameEventSimpleIdToDelete.current?.gameEventSimpleId,
+                    },
+                    gameResultWhere: where,
+                    gameResultUpdateInput: update,
                   },
-                  gameResultWhere: where,
-                  gameResultUpdateInput: update,
-                },
-              })
+                })
+              }
             }}
           >
             Sure, delete it!

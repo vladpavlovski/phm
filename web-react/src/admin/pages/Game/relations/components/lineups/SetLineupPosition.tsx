@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import PropTypes from 'prop-types'
+import { MutationFunction } from '@apollo/client'
 
 import TextField from '@mui/material/TextField'
 import Dialog from '@mui/material/Dialog'
@@ -9,37 +9,56 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import EditIcon from '@mui/icons-material/Edit'
 import Tooltip from '@mui/material/Tooltip'
-import { LinkButton } from '../../../../../../components/LinkButton'
+import { LinkButton } from 'components/LinkButton'
 import ButtonBase from '@mui/material/ButtonBase'
+import { GamePlayersRelationship } from 'utils/types'
 
-export const SetLineupPosition = props => {
-  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
-    useState(false)
-
-  return (
-    <>
-      <LinkButton
-        component={ButtonBase}
-        variant="text"
-        icon
-        onClick={() => {
-          setLineupPositionDialogOpen(true)
-        }}
-      >
-        <Tooltip arrow title="Change Position" placement="top">
-          <EditIcon />
-        </Tooltip>
-      </LinkButton>
-      <MemoizedPositionDialog
-        {...props}
-        lineupPositionDialogOpen={lineupPositionDialogOpen}
-        setLineupPositionDialogOpen={setLineupPositionDialogOpen}
-      />
-    </>
-  )
+type TSetLineupPosition = {
+  player: GamePlayersRelationship
+  gameId: string
+  updateGame: MutationFunction
 }
 
-const PositionDialog = props => {
+export const SetLineupPosition: React.FC<TSetLineupPosition> = React.memo(
+  props => {
+    const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
+      useState(false)
+
+    return (
+      <>
+        <LinkButton
+          component={ButtonBase}
+          variant="text"
+          icon
+          onClick={() => {
+            setLineupPositionDialogOpen(true)
+          }}
+        >
+          <Tooltip arrow title="Change Position" placement="top">
+            <EditIcon />
+          </Tooltip>
+        </LinkButton>
+        {lineupPositionDialogOpen && (
+          <PositionDialog
+            {...props}
+            lineupPositionDialogOpen={lineupPositionDialogOpen}
+            setLineupPositionDialogOpen={setLineupPositionDialogOpen}
+          />
+        )}
+      </>
+    )
+  }
+)
+
+type TPositionDialog = {
+  player: GamePlayersRelationship
+  gameId: string
+  updateGame: MutationFunction
+  lineupPositionDialogOpen: boolean
+  setLineupPositionDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const PositionDialog: React.FC<TPositionDialog> = React.memo(props => {
   const {
     player,
     gameId,
@@ -47,7 +66,8 @@ const PositionDialog = props => {
     lineupPositionDialogOpen,
     setLineupPositionDialogOpen,
   } = props
-  const [positionValue, setPositionValue] = useState(player?.position || '')
+
+  const [positionValue, setPositionValue] = useState(player?.jersey || '')
 
   const handleCloseDialog = useCallback(() => {
     setLineupPositionDialogOpen(false)
@@ -121,10 +141,4 @@ const PositionDialog = props => {
       </DialogActions>
     </Dialog>
   )
-}
-
-const MemoizedPositionDialog = React.memo(PositionDialog)
-
-SetLineupPosition.propTypes = {
-  player: PropTypes.object,
-}
+})

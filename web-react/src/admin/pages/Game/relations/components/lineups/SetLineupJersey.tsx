@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
-import PropTypes from 'prop-types'
 
+import { MutationFunction } from '@apollo/client'
 import TextField from '@mui/material/TextField'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -11,8 +11,15 @@ import EditIcon from '@mui/icons-material/Edit'
 import Tooltip from '@mui/material/Tooltip'
 import { LinkButton } from 'components/LinkButton'
 import ButtonBase from '@mui/material/ButtonBase'
+import { GamePlayersRelationship } from 'utils/types'
 
-export const SetLineupJersey = props => {
+type TSetLineupJersey = {
+  player: GamePlayersRelationship
+  gameId: string
+  updateGame: MutationFunction
+}
+
+export const SetLineupJersey: React.FC<TSetLineupJersey> = React.memo(props => {
   const [lineupJerseyDialogOpen, setLineupJerseyDialogOpen] = useState(false)
 
   return (
@@ -29,16 +36,26 @@ export const SetLineupJersey = props => {
           <EditIcon />
         </Tooltip>
       </LinkButton>
-      <MemoizedJerseyDialog
-        {...props}
-        lineupJerseyDialogOpen={lineupJerseyDialogOpen}
-        setLineupJerseyDialogOpen={setLineupJerseyDialogOpen}
-      />
+      {lineupJerseyDialogOpen && (
+        <JerseyDialog
+          {...props}
+          lineupJerseyDialogOpen={lineupJerseyDialogOpen}
+          setLineupJerseyDialogOpen={setLineupJerseyDialogOpen}
+        />
+      )}
     </>
   )
+})
+
+type TJerseyDialog = {
+  player: GamePlayersRelationship
+  gameId: string
+  updateGame: MutationFunction
+  lineupJerseyDialogOpen: boolean
+  setLineupJerseyDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const JerseyDialog = props => {
+const JerseyDialog: React.FC<TJerseyDialog> = React.memo(props => {
   const {
     player,
     gameId,
@@ -46,7 +63,6 @@ const JerseyDialog = props => {
     lineupJerseyDialogOpen,
     setLineupJerseyDialogOpen,
   } = props
-
   const [jerseyValue, setJerseyValue] = useState(player?.jersey || '')
 
   const handleCloseDialog = useCallback(() => {
@@ -73,7 +89,7 @@ const JerseyDialog = props => {
               variant="standard"
               value={jerseyValue}
               onChange={e => {
-                setJerseyValue(e.target.value)
+                setJerseyValue(parseInt(e.target.value))
               }}
               required
               error={!jerseyValue}
@@ -105,7 +121,7 @@ const JerseyDialog = props => {
                         node: { playerId: player?.playerId },
                       },
                       edge: {
-                        jersey: parseInt(jerseyValue),
+                        jersey: jerseyValue,
                       },
                     },
                   },
@@ -120,10 +136,4 @@ const JerseyDialog = props => {
       </DialogActions>
     </Dialog>
   )
-}
-
-const MemoizedJerseyDialog = React.memo(JerseyDialog)
-
-SetLineupJersey.propTypes = {
-  player: PropTypes.object,
-}
+})

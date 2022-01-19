@@ -1,5 +1,4 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react'
-import PropTypes from 'prop-types'
 
 import { useSnackbar } from 'notistack'
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
@@ -16,17 +15,20 @@ import Toolbar from '@mui/material/Toolbar'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 
-import { DataGridPro } from '@mui/x-data-grid-pro'
-import { Title } from 'components/Title'
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
-import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
+import { Title, Loader, Error, QuickSearchToolbar } from 'components'
+
 import { setIdFromEntityId, sortByStatus } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
-
-import { GET_GAME, UPDATE_GAME } from '../../index'
+import { Team } from 'utils/types'
+import {
+  GET_GAME,
+  UPDATE_GAME,
+  TQueryTypeData,
+  TQueryTypeVars,
+} from '../../index'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams {
@@ -39,7 +41,15 @@ export const GET_ALL_TEAMS = gql`
   }
 `
 
-const Teams = props => {
+type TTeams = {
+  gameId: string
+  teams: {
+    host: boolean
+    node: Team
+  }[]
+}
+
+const Teams: React.FC<TTeams> = props => {
   const { gameId, teams } = props
   const { enqueueSnackbar } = useSnackbar()
   const classes = useStyles()
@@ -68,7 +78,7 @@ const Teams = props => {
     {
       update(cache, { data: { updateGame } }) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_GAME,
             variables: {
               where: { gameId },
@@ -79,7 +89,7 @@ const Teams = props => {
           const updatedResult = {
             games: [
               {
-                ...queryResult.games?.[0],
+                ...queryResult?.games?.[0],
                 teamsConnection: updatedData,
               },
             ],
@@ -121,7 +131,7 @@ const Teams = props => {
     setTeamDialog(false)
   }, [])
 
-  const allTeamsColumns = useMemo(
+  const allTeamsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'logo',
@@ -235,54 +245,65 @@ const Teams = props => {
           />
         </Grid>
       </Grid>
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={teamDialog}
-        onClose={handleCloseTeamDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        {queryAllTeamsLoading && !queryAllTeamsError && <Loader />}
-        {queryAllTeamsError && !queryAllTeamsLoading && (
-          <Error message={queryAllTeamsError.message} />
-        )}
-        {queryAllTeamsData && !queryAllTeamsLoading && !queryAllTeamsError && (
-          <>
-            <DialogTitle id="alert-dialog-title">{`Add team to game`}</DialogTitle>
-            <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
-                <DataGridPro
-                  columns={allTeamsColumns}
-                  rows={sortByStatus(searchData, 'status')}
-                  disableSelectionOnClick
-                  loading={queryAllTeamsLoading}
-                  components={{
-                    Toolbar: QuickSearchToolbar,
-                  }}
-                  componentsProps={{
-                    toolbar: {
-                      value: searchText,
-                      onChange: event => requestSearch(event.target.value),
-                      clearSearch: () => requestSearch(''),
-                    },
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </>
-        )}
-        <DialogActions>
-          <Button type="button" onClick={handleCloseTeamDialog}>
-            {'Done'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {teamDialog && (
+        <Dialog
+          fullWidth
+          maxWidth="md"
+          open={teamDialog}
+          onClose={handleCloseTeamDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          {queryAllTeamsLoading && <Loader />}
+
+          <Error message={queryAllTeamsError?.message} />
+
+          {queryAllTeamsData && (
+            <>
+              <DialogTitle id="alert-dialog-title">{`Add team to game`}</DialogTitle>
+              <DialogContent>
+                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                  <DataGridPro
+                    columns={allTeamsColumns}
+                    rows={sortByStatus(searchData, 'status')}
+                    disableSelectionOnClick
+                    loading={queryAllTeamsLoading}
+                    components={{
+                      Toolbar: QuickSearchToolbar,
+                    }}
+                    componentsProps={{
+                      toolbar: {
+                        value: searchText,
+                        onChange: (
+                          event: React.ChangeEvent<HTMLInputElement>
+                        ): void => requestSearch(event.target.value),
+                        clearSearch: () => requestSearch(''),
+                      },
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </>
+          )}
+          <DialogActions>
+            <Button type="button" onClick={handleCloseTeamDialog}>
+              {'Done'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   )
 }
 
-const TeamCard = props => {
+type TTeamCard = {
+  team: Team | null
+  host: boolean
+  openTeamDialog: ({ asHost }: { asHost: boolean }) => void
+  gameId: string
+}
+
+const TeamCard: React.FC<TTeamCard> = React.memo(props => {
   const { team, host = false, openTeamDialog, gameId } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
@@ -292,7 +313,7 @@ const TeamCard = props => {
     {
       update(cache, { data: { updateGame } }) {
         try {
-          const queryResult = cache.readQuery({
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
             query: GET_GAME,
             variables: {
               where: { gameId },
@@ -303,7 +324,7 @@ const TeamCard = props => {
           const updatedResult = {
             games: [
               {
-                ...queryResult.games?.[0],
+                ...queryResult?.games?.[0],
                 teamsConnection: updatedData,
               },
             ],
@@ -412,11 +433,6 @@ const TeamCard = props => {
       )}
     </Paper>
   )
-}
-
-Teams.propTypes = {
-  gameId: PropTypes.string,
-  teams: PropTypes.array,
-}
+})
 
 export { Teams }

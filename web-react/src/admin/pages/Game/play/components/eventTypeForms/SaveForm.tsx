@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
 import Grid from '@mui/material/Grid'
@@ -12,21 +11,23 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
-import GameEventFormContext from '../../context'
+import { GameEventFormContext } from '../../components/GameEventWizard'
+import { TEventTypeForm } from './index'
+// const formInitialState = {
+//   remainingTime: '00:00',
+//   savedBy: null,
+// }
 
-const formInitialState = {
-  remainingTime: '00:00',
-  savedBy: null,
-}
-
-const SaveForm = props => {
+const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
   const { gameEventSettings, activeStep, players, handleNextStep } = props
 
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-    tempRemainingTime,
+    state: { gameEventData, tempRemainingTime },
+    update,
+    // setNextButtonDisabled,
+    // gameEventData,
+    // setGameEventData,
+    // tempRemainingTime,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -36,17 +37,28 @@ const SaveForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({
-        ...formInitialState,
-        timestamp: dayjs().format(),
-        remainingTime: tempRemainingTime.current,
-      })
+      // setGameEventData({
+      //   ...formInitialState,
+      //   timestamp: dayjs().format(),
+      //   remainingTime: tempRemainingTime.current,
+      // })
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+          remainingTime: tempRemainingTime,
+        },
+      }))
   }, [])
 
   React.useEffect(() => {
     switch (activeStep) {
       case 0:
-        setNextButtonDisabled(gameEventData?.remainingTime === '')
+        update(state => ({
+          ...state,
+          nextButtonDisabled: gameEventData?.remainingTime === '',
+        }))
+        // setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
     }
   }, [gameEventData, activeStep])
@@ -55,11 +67,7 @@ const SaveForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <RemainingTime
-            gameEventData={gameEventData}
-            setGameEventData={setGameEventData}
-            activeStepData={activeStepData}
-          />
+          <RemainingTime activeStepData={activeStepData} />
         </Grid>
       )}
       {activeStep === 1 && (
@@ -67,11 +75,19 @@ const SaveForm = props => {
           <PlayerSelect
             players={players}
             onClick={savedBy => {
-              setGameEventData(state => ({ ...state, savedBy }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  ...(savedBy && savedBy),
+                },
+              }))
+              // setGameEventData(state => ({ ...state, savedBy }))
+              // setNextButtonDisabled(false)
               handleNextStep()
             }}
-            selected={gameEventData?.savedBy}
+            selected={gameEventData?.savedBy || null}
           />
         </Grid>
       )}
@@ -104,7 +120,7 @@ const SaveForm = props => {
                     {gameEventData?.remainingTime}
                   </TableCell>
                   <TableCell align="right">
-                    {`${gameEventData?.savedBy?.player?.name} (${gameEventData?.savedBy?.jersey})`}
+                    {`${gameEventData?.savedBy?.node?.name} (${gameEventData?.savedBy?.jersey})`}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -114,11 +130,6 @@ const SaveForm = props => {
       )}
     </Grid>
   ) : null
-}
-
-SaveForm.propTypes = {
-  gameEventSettings: PropTypes.object,
-  activeStep: PropTypes.number,
-}
+})
 
 export { SaveForm }

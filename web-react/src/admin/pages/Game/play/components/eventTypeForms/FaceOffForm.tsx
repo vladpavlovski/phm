@@ -1,5 +1,5 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+
 import dayjs from 'dayjs'
 
 import Grid from '@mui/material/Grid'
@@ -12,15 +12,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
-import GameEventFormContext from '../../context'
+import { GameEventFormContext } from '../../components/GameEventWizard'
+import { TEventTypeForm } from './index'
 
-const formInitialState = {
-  remainingTime: '00:00',
-  wonBy: null,
-  lostBy: null,
-}
-
-const FaceOffForm = props => {
+const FaceOffForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     gameEventSettings,
     activeStep,
@@ -30,10 +25,8 @@ const FaceOffForm = props => {
   } = props
 
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-    tempRemainingTime,
+    state: { gameEventData, tempRemainingTime },
+    update,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -43,23 +36,36 @@ const FaceOffForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({
-        ...formInitialState,
-        timestamp: dayjs().format(),
-        remainingTime: tempRemainingTime.current,
-      })
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+          remainingTime: tempRemainingTime,
+        },
+      }))
   }, [])
 
   React.useEffect(() => {
     switch (activeStep) {
       case 0:
-        setNextButtonDisabled(gameEventData?.remainingTime === '')
+        update(state => ({
+          ...state,
+          nextButtonDisabled: gameEventData?.remainingTime === '',
+        }))
         break
       case 1:
-        setNextButtonDisabled(!gameEventData?.wonBy)
+        update(state => ({
+          ...state,
+          nextButtonDisabled: !gameEventData?.wonBy,
+        }))
+
         break
       case 2:
-        setNextButtonDisabled(!gameEventData?.lostBy)
+        update(state => ({
+          ...state,
+          nextButtonDisabled: !gameEventData?.lostBy,
+        }))
+
         break
     }
   }, [gameEventData, activeStep])
@@ -68,11 +74,7 @@ const FaceOffForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <RemainingTime
-            gameEventData={gameEventData}
-            setGameEventData={setGameEventData}
-            activeStepData={activeStepData}
-          />
+          <RemainingTime activeStepData={activeStepData} />
         </Grid>
       )}
       {activeStep === 1 && (
@@ -80,11 +82,17 @@ const FaceOffForm = props => {
           <PlayerSelect
             players={players}
             onClick={wonBy => {
-              setGameEventData(state => ({ ...state, wonBy }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  wonBy,
+                },
+              }))
               handleNextStep()
             }}
-            selected={gameEventData?.wonBy}
+            selected={gameEventData?.wonBy || null}
           />
         </Grid>
       )}
@@ -93,11 +101,17 @@ const FaceOffForm = props => {
           <PlayerSelect
             players={playersRival}
             onClick={lostBy => {
-              setGameEventData(state => ({ ...state, lostBy }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  lostBy,
+                },
+              }))
               handleNextStep()
             }}
-            selected={gameEventData?.lostBy}
+            selected={gameEventData?.lostBy || null}
           />
         </Grid>
       )}
@@ -143,11 +157,6 @@ const FaceOffForm = props => {
       )}
     </Grid>
   ) : null
-}
-
-FaceOffForm.propTypes = {
-  gameEventSettings: PropTypes.object,
-  activeStep: PropTypes.number,
-}
+})
 
 export { FaceOffForm }

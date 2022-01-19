@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import { experimentalStyled as styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
@@ -72,7 +71,11 @@ const ImageMarked = styled('span')(({ theme }) => ({
   transition: theme.transitions.create('opacity'),
 }))
 
-const GameEventTypes = props => {
+type TGameEventTypes = {
+  onClick: (type: string) => void
+}
+
+const GameEventTypes: React.FC<TGameEventTypes> = props => {
   const { onClick } = props
 
   return (
@@ -112,10 +115,6 @@ const GameEventTypes = props => {
       ))}
     </Box>
   )
-}
-
-GameEventTypes.propTypes = {
-  onClick: PropTypes.func,
 }
 
 export { GameEventTypes }

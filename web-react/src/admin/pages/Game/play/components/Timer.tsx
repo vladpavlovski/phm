@@ -1,18 +1,25 @@
 import React from 'react'
 import dayjs from 'dayjs'
-import PropTypes from 'prop-types'
+import { MutationFunction } from '@apollo/client'
 import { useTimer, useTime } from 'react-timer-hook'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import { Prompt } from 'react-router-dom'
-import GameEventFormContext from '../context'
+// import { GameEventFormContext } from './GameEventWizard'
+import { Game } from 'utils/types'
 
-const TimerComponent = props => {
+type TTimer = {
+  timeInMinutes: number
+  gameData: Game
+  updateGameResult: MutationFunction
+}
+
+const Timer: React.FC<TTimer> = React.memo(props => {
   const { timeInMinutes, gameData, updateGameResult } = props
-
-  const { setTempRemainingTime } = React.useContext(GameEventFormContext)
+  // TODO: think about new way of setting time to context
+  // const { update } = React.useContext(GameEventFormContext)
   const [timerStarted, setTimerStarted] = React.useState(false)
 
   const { seconds, minutes, isRunning, start, pause, resume, restart } =
@@ -67,9 +74,12 @@ const TimerComponent = props => {
               fontFamily: 'Digital Numbers Regular',
             }}
           >
-            {setTempRemainingTime(
-              `${formatTimeValue(minutes)}:${formatTimeValue(seconds)}`
-            )}
+            {/* {update(state => ({
+              ...state,
+              tempRemainingTime: `${formatTimeValue(minutes)}:${formatTimeValue(
+                seconds
+              )}`,
+            }))} */}
             <span>{formatTimeValue(minutes)}</span>:
             <span>{formatTimeValue(seconds)}</span>
           </div>
@@ -103,21 +113,22 @@ const TimerComponent = props => {
       )}
     </div>
   )
-}
+})
 
-const getTimerColor = (min, sec) => {
+const getTimerColor = (min: number, sec: number): string => {
   if (min === 0 && sec < 30) return 'red'
   return 'inherit'
 }
 
-const formatTimeValue = time => (time < 10 ? `0${time}` : time)
+const formatTimeValue = (time: number): string =>
+  time < 10 ? `0${time}` : `${time}`
 
-const Time = () => {
+const Time: React.FC = () => {
   const {
     seconds: timeSeconds,
     minutes: timeMinutes,
     hours: timeHours,
-  } = useTime({ format: '24-hour' })
+  } = useTime({ format: undefined })
 
   return (
     <div style={{ fontSize: '1.8rem' }}>
@@ -127,15 +138,5 @@ const Time = () => {
     </div>
   )
 }
-
-TimerComponent.defaultProp = {
-  timeInMinutes: 0,
-}
-
-TimerComponent.propTypes = {
-  timeInMinutes: PropTypes.number,
-}
-
-const Timer = React.memo(TimerComponent)
 
 export { Timer }

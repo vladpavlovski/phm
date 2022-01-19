@@ -1,4 +1,17 @@
-export const eventTypes = [
+export type TEventType = {
+  type: string
+  name: string
+  color: string
+  steps: TStep[]
+}
+
+export type TStep = {
+  name: string
+  optional: boolean
+  field: string
+}
+
+export const eventTypes: TEventType[] = [
   {
     type: 'goal',
     name: 'Goal',
@@ -216,6 +229,6 @@ export const eventTypes = [
   // },
 ]
 
-export const getEventSettings = type => {
-  return eventTypes.find(et => et.type === type)
+export const getEventSettings = (type: string): TEventType | null => {
+  return eventTypes.find(et => et.type === type) || null
 }

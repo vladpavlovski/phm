@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
 import TextField from '@mui/material/TextField'
@@ -14,19 +13,18 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
-import GameEventFormContext from '../../context'
+import { GameEventFormContext } from '../../components/GameEventWizard'
+import { sortByPriority } from 'utils'
+import { TEventTypeForm } from './index'
+// const formInitialState = {
+//   remainingTime: '00:00',
+//   penalized: null,
+//   penaltyType: null,
+//   penaltySubType: null,
+//   duration: '',
+// }
 
-import { sortByPriority } from '../../../../../../utils'
-
-const formInitialState = {
-  remainingTime: '00:00',
-  penalized: null,
-  penaltyType: null,
-  penaltySubType: null,
-  duration: '',
-}
-
-const PenaltyForm = props => {
+const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     gameEventSettings,
     activeStep,
@@ -36,10 +34,8 @@ const PenaltyForm = props => {
   } = props
 
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-    tempRemainingTime,
+    state: { gameEventData, tempRemainingTime },
+    update,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -49,20 +45,30 @@ const PenaltyForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({
-        ...formInitialState,
-        timestamp: dayjs().format(),
-        remainingTime: tempRemainingTime.current,
-      })
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+          remainingTime: tempRemainingTime,
+        },
+      }))
   }, [])
 
   React.useEffect(() => {
     switch (activeStep) {
       case 0:
-        setNextButtonDisabled(gameEventData?.remainingTime === '')
+        update(state => ({
+          ...state,
+          nextButtonDisabled: gameEventData?.remainingTime === '',
+        }))
+
         break
       case 1:
-        setNextButtonDisabled(!gameEventData?.penalized)
+        update(state => ({
+          ...state,
+          nextButtonDisabled: !gameEventData?.penalized,
+        }))
+
         break
     }
   }, [gameEventData, activeStep])
@@ -71,11 +77,7 @@ const PenaltyForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <RemainingTime
-            gameEventData={gameEventData}
-            setGameEventData={setGameEventData}
-            activeStepData={activeStepData}
-          />
+          <RemainingTime activeStepData={activeStepData} />
         </Grid>
       )}
       {activeStep === 1 && (
@@ -83,11 +85,17 @@ const PenaltyForm = props => {
           <PlayerSelect
             players={players}
             onClick={penalized => {
-              setGameEventData(state => ({ ...state, penalized }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  ...(penalized && penalized),
+                },
+              }))
               handleNextStep()
             }}
-            selected={gameEventData?.penalized}
+            selected={gameEventData?.penalized || null}
           />
         </Grid>
       )}
@@ -105,13 +113,16 @@ const PenaltyForm = props => {
               )}
               getOptionLabel={option => option.name}
               isOptionEqualToValue={(option, value) =>
-                option.type === value.type
+                option.name === value.name
               }
               onChange={(_, penaltyType) => {
-                setGameEventData(state => ({
+                update(state => ({
                   ...state,
-                  penaltyType,
-                  duration: penaltyType.duration,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    penaltyType,
+                    duration: penaltyType.duration,
+                  },
                 }))
               }}
             />
@@ -125,9 +136,12 @@ const PenaltyForm = props => {
               variant="standard"
               value={gameEventData?.duration}
               onChange={e => {
-                setGameEventData(state => ({
+                update(state => ({
                   ...state,
-                  duration: e.target.value,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    duration: Number(e.target.value),
+                  },
                 }))
               }}
               fullWidth
@@ -142,29 +156,36 @@ const PenaltyForm = props => {
             />
           </Grid>
 
-          {gameEventData?.penaltyType?.subTypes?.length > 0 && (
-            <Grid item xs={4}>
-              <Autocomplete
-                // disablePortal
-                disableClearable
-                id="combo-box-penalty-sub-type"
-                options={[...gameEventData?.penaltyType?.subTypes].sort(
-                  sortByPriority
-                )}
-                value={gameEventData?.penaltySubType}
-                renderInput={params => (
-                  <TextField {...params} label="Penalty Sub type" />
-                )}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) =>
-                  option.type === value.type
-                }
-                onChange={(_, penaltySubType) => {
-                  setGameEventData(state => ({ ...state, penaltySubType }))
-                }}
-              />
-            </Grid>
-          )}
+          {gameEventData?.penaltyType?.subTypes &&
+            gameEventData?.penaltyType?.subTypes?.length > 0 && (
+              <Grid item xs={4}>
+                <Autocomplete
+                  // disablePortal
+                  disableClearable
+                  id="combo-box-penalty-sub-type"
+                  options={[...gameEventData?.penaltyType?.subTypes].sort(
+                    sortByPriority
+                  )}
+                  value={gameEventData?.penaltySubType}
+                  renderInput={params => (
+                    <TextField {...params} label="Penalty Sub type" />
+                  )}
+                  getOptionLabel={option => option.name}
+                  isOptionEqualToValue={(option, value) =>
+                    option.name === value.name
+                  }
+                  onChange={(_, penaltySubType) => {
+                    update(state => ({
+                      ...state,
+                      gameEventData: {
+                        ...state.gameEventData,
+                        penaltySubType,
+                      },
+                    }))
+                  }}
+                />
+              </Grid>
+            )}
         </>
       )}
 
@@ -199,7 +220,7 @@ const PenaltyForm = props => {
                     {gameEventData?.remainingTime}
                   </TableCell>
                   <TableCell align="right">
-                    {`${gameEventData?.penalized?.player?.name} (${gameEventData?.penalized?.jersey})`}
+                    {`${gameEventData?.penalized?.node?.name} (${gameEventData?.penalized?.jersey})`}
                   </TableCell>
                   <TableCell align="right">
                     {gameEventData?.penaltyType?.name}
@@ -216,11 +237,6 @@ const PenaltyForm = props => {
       )}
     </Grid>
   ) : null
-}
-
-PenaltyForm.propTypes = {
-  gameEventSettings: PropTypes.object,
-  activeStep: PropTypes.number,
-}
+})
 
 export { PenaltyForm }

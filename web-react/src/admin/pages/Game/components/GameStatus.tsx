@@ -1,5 +1,5 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+import { MutationFunction } from '@apollo/client'
 import dayjs from 'dayjs'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -16,17 +16,23 @@ import Avatar from '@mui/material/Avatar'
 import SafetyDividerIcon from '@mui/icons-material/SafetyDivider'
 
 import { Title } from 'components/Title'
-import { getFieldName } from '../play/handlers'
+import { getKeyValue, setKeyValue, getFieldName } from '../play/handlers'
+import { Game, Team, PeriodStatistic, GameResult } from 'utils/types'
 
-const GameStatus = props => {
+type TGameStatus = {
+  gameData: Game
+  updateGame: MutationFunction
+}
+
+const GameStatus: React.FC<TGameStatus> = props => {
   const { gameData, updateGame } = props
   const loading = false
 
-  const hostTeam = React.useMemo(
+  const hostTeam = React.useMemo<Team | undefined>(
     () => gameData?.teamsConnection?.edges.find(e => e.host)?.node,
     [gameData]
   )
-  const guestTeam = React.useMemo(
+  const guestTeam = React.useMemo<Team | undefined>(
     () => gameData?.teamsConnection?.edges.find(e => !e.host)?.node,
     [gameData]
   )
@@ -37,26 +43,34 @@ const GameStatus = props => {
     return null
   }, [gameData, hostTeam, guestTeam])
 
-  const looser = React.useMemo(() => {
+  const looser = React.useMemo<Team | undefined | null>(() => {
     if (!gameData?.gameResult?.hostWin) return hostTeam
     if (!gameData?.gameResult?.guestWin) return guestTeam
     return null
   }, [gameData, hostTeam, guestTeam])
 
   const recomputeGameResult = React.useCallback(() => {
-    let gameResultNew = { ...gameData?.gameResult }
+    const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      __typename,
+      ...restGameData
+    } = gameData?.gameResult
+    const gameResultNew: GameResult = {
+      ...restGameData,
+      periodStatistics: [],
+    }
 
     // clear previous values
     const periodStatisticsToDelete =
       gameData?.gameResult?.periodStatistics?.map(ps => ({
         where: { node: { periodStatisticId: ps?.periodStatisticId } },
       }))
-    gameResultNew.periodStatistics = []
-    for (let key in gameResultNew) {
+    let key: keyof GameResult
+    for (key in gameResultNew) {
       // skip loop if the property is from prototype
       if (!Object.prototype.hasOwnProperty.call(gameResultNew, key)) continue
       if (typeof gameResultNew[key] === 'number') {
-        gameResultNew[key] = 0
+        setKeyValue<keyof GameResult, GameResult>(key, 0)(gameResultNew)
       }
     }
 
@@ -66,7 +80,11 @@ const GameStatus = props => {
         host: isHostEvent,
         type: ges?.eventTypeCode,
       })
-      gameResultNew[eventFieldName] = 0
+
+      setKeyValue<keyof GameResult, GameResult>(
+        eventFieldName as keyof GameResult,
+        0
+      )(gameResultNew)
     })
 
     // count new values
@@ -76,26 +94,46 @@ const GameStatus = props => {
         host: isHostEvent,
         type: ges?.eventTypeCode,
       })
-      gameResultNew[eventFieldName] += 1
+
+      const fieldValue = getKeyValue<keyof GameResult, GameResult>(
+        eventFieldName as keyof GameResult,
+        gameResultNew
+      ) as number
+
+      setKeyValue<keyof GameResult, GameResult>(
+        eventFieldName as keyof GameResult,
+        fieldValue + 1
+      )(gameResultNew)
+
       if (ges?.period) {
         const periodStatistics = gameResultNew.periodStatistics?.find(
-          ps => ps?.node?.period === ges.period
+          ps => ps?.period === ges.period
         )
+
         if (periodStatistics) {
-          let field = periodStatistics.node[eventFieldName]
-          periodStatistics.node[eventFieldName] = field ? field + 1 : 1
+          const field = getKeyValue<keyof PeriodStatistic, PeriodStatistic>(
+            eventFieldName as keyof PeriodStatistic,
+            periodStatistics
+          ) as number
+
+          setKeyValue<keyof PeriodStatistic, PeriodStatistic>(
+            eventFieldName as keyof PeriodStatistic,
+            field ? field + 1 : 1
+          )(periodStatistics)
         } else {
           if (gameResultNew.periodStatistics) {
             gameResultNew.periodStatistics = [
               ...gameResultNew.periodStatistics,
               {
-                node: { period: ges?.period, [eventFieldName]: 1 },
+                period: ges?.period,
+                [eventFieldName]: 1,
               },
             ]
           } else {
             gameResultNew.periodStatistics = [
               {
-                node: { period: ges?.period, [eventFieldName]: 1 },
+                period: ges?.period,
+                [eventFieldName]: 1,
               },
             ]
           }
@@ -122,8 +160,9 @@ const GameStatus = props => {
     gameResultNew.gameStatus = dayjs().isAfter(dayjs(gameData?.startDate))
       ? 'Finished'
       : 'Not played'
-    delete gameResultNew.__typename
+
     const { gameResultId, periodStatistics, ...rest } = gameResultNew
+
     const result = {
       where: {
         node: { gameResultId },
@@ -133,7 +172,7 @@ const GameStatus = props => {
           ...rest,
           periodStatistics: {
             delete: periodStatisticsToDelete,
-            create: periodStatistics,
+            create: periodStatistics.map(ps => ({ node: ps })),
           },
         },
       },
@@ -168,9 +207,9 @@ const GameStatus = props => {
             type="button"
             variant="contained"
             color="primary"
-            startIcon={<CompareIcon />}
             loading={loading}
             loadingPosition="start"
+            startIcon={<CompareIcon />}
             onClick={() => {
               recomputeGameResult()
             }}
@@ -296,11 +335,6 @@ const GameStatus = props => {
       </Table>
     </>
   )
-}
-
-GameStatus.propTypes = {
-  gameData: PropTypes.object.isRequired,
-  updateGame: PropTypes.func.isRequired,
 }
 
 export { GameStatus }

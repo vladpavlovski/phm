@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
 import TextField from '@mui/material/TextField'
@@ -14,16 +13,16 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
-import GameEventFormContext from '../../context'
+import { TEventTypeForm } from './index'
+import { GameEventFormContext } from '../../components/GameEventWizard'
+// const formInitialState = {
+//   remainingTime: '00:00',
+//   suffered: null,
+//   injuryType: null,
+//   description: '',
+// }
 
-const formInitialState = {
-  remainingTime: '00:00',
-  suffered: null,
-  injuryType: null,
-  description: '',
-}
-
-const InjuryForm = props => {
+const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     gameEventSettings,
     activeStep,
@@ -33,10 +32,8 @@ const InjuryForm = props => {
   } = props
 
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-    tempRemainingTime,
+    state: { gameEventData, tempRemainingTime },
+    update,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -46,20 +43,35 @@ const InjuryForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({
-        ...formInitialState,
-        timestamp: dayjs().format(),
-        remainingTime: tempRemainingTime.current,
-      })
+      // setGameEventData({
+      //   ...formInitialState,
+      //   timestamp: dayjs().format(),
+      //   remainingTime: tempRemainingTime.current,
+      // })
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+          remainingTime: tempRemainingTime,
+        },
+      }))
   }, [])
 
   React.useEffect(() => {
     switch (activeStep) {
       case 0:
-        setNextButtonDisabled(gameEventData?.remainingTime === '')
+        update(state => ({
+          ...state,
+          nextButtonDisabled: gameEventData?.remainingTime === '',
+        }))
+        // setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
       case 1:
-        setNextButtonDisabled(!gameEventData?.suffered)
+        update(state => ({
+          ...state,
+          nextButtonDisabled: !gameEventData?.suffered,
+        }))
+        // setNextButtonDisabled(!gameEventData?.suffered)
         break
     }
   }, [gameEventData, activeStep])
@@ -68,11 +80,7 @@ const InjuryForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <RemainingTime
-            gameEventData={gameEventData}
-            setGameEventData={setGameEventData}
-            activeStepData={activeStepData}
-          />
+          <RemainingTime activeStepData={activeStepData} />
         </Grid>
       )}
       {activeStep === 1 && (
@@ -80,11 +88,19 @@ const InjuryForm = props => {
           <PlayerSelect
             players={players}
             onClick={suffered => {
-              setGameEventData(state => ({ ...state, suffered }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  ...(suffered && suffered),
+                },
+              }))
+              // setGameEventData(state => ({ ...state, suffered }))
+              // setNextButtonDisabled(false)
               handleNextStep()
             }}
-            selected={gameEventData?.suffered}
+            selected={gameEventData?.suffered || null}
           />
         </Grid>
       )}
@@ -102,13 +118,20 @@ const InjuryForm = props => {
               )}
               getOptionLabel={option => option.name}
               isOptionEqualToValue={(option, value) =>
-                option.type === value.type
+                option.name === value.name
               }
               onChange={(_, injuryType) => {
-                setGameEventData(state => ({
+                update(state => ({
                   ...state,
-                  injuryType,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    ...(injuryType && injuryType),
+                  },
                 }))
+                // setGameEventData(state => ({
+                //   ...state,
+                //   injuryType,
+                // }))
               }}
             />
           </Grid>
@@ -121,10 +144,17 @@ const InjuryForm = props => {
               variant="standard"
               value={gameEventData?.description}
               onChange={e => {
-                setGameEventData(state => ({
+                update(state => ({
                   ...state,
-                  description: e.target.value,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    description: e.target.value,
+                  },
                 }))
+                // setGameEventData(state => ({
+                //   ...state,
+                //   description: e.target.value,
+                // }))
               }}
               fullWidth
               inputProps={{
@@ -165,7 +195,7 @@ const InjuryForm = props => {
                     {gameEventData?.remainingTime}
                   </TableCell>
                   <TableCell align="right">
-                    {`${gameEventData?.suffered?.player?.name} (${gameEventData?.suffered?.jersey})`}
+                    {`${gameEventData?.suffered?.node?.name} (${gameEventData?.suffered?.jersey})`}
                   </TableCell>
                   <TableCell align="right">
                     {gameEventData?.injuryType?.name}
@@ -181,11 +211,6 @@ const InjuryForm = props => {
       )}
     </Grid>
   ) : null
-}
-
-InjuryForm.propTypes = {
-  gameEventSettings: PropTypes.object,
-  activeStep: PropTypes.number,
-}
+})
 
 export { InjuryForm }

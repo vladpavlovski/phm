@@ -6,7 +6,7 @@ import XGridTable from './XGrid'
 
 import LayoutContext from '../../../../context/layout'
 
-const View = () => {
+const View: React.FC = () => {
   const { setBarTitle } = useContext(LayoutContext)
 
   useEffect(() => {

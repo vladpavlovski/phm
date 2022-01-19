@@ -12,9 +12,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Img from 'react-cool-img'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useStyles } from '../../commonComponents/styled'
-import { Title } from 'components/Title'
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
+import { Title, Loader, Error } from 'components'
 import { getAdminOrgGameRoute } from 'router/routes'
 import { useExitPrompt } from 'utils/hooks'
 import placeholderPerson from 'img/placeholderPerson.jpg'
@@ -27,6 +25,13 @@ import {
   EventsTable,
   Finalization,
 } from './components'
+
+import {
+  Game as GameType,
+  SystemSettings as SystemSettingsType,
+  GameTeamsRelationship,
+  GamePlayersRelationship,
+} from 'utils/types'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
@@ -57,6 +62,7 @@ export const GET_GAME_PLAY = gql`
           jersey
           position
           goalkeeper
+          teamId
           node {
             avatar
             playerId
@@ -330,9 +336,28 @@ const UPDATE_GAME_RESULT = gql`
   }
 `
 
-const Play = () => {
+type TParams = {
+  gameId: string
+  organizationSlug: string
+}
+
+export type TQueryTypeData = {
+  games: GameType[]
+  systemSettings: SystemSettingsType[]
+}
+
+export type TQueryTypeVars = {
+  whereGame: {
+    gameId: string
+  }
+  whereSystemSettings: {
+    systemSettingsId: string
+  }
+}
+
+const Play: React.FC = () => {
   const classes = useStyles()
-  const { gameId, organizationSlug } = useParams()
+  const { gameId, organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
 
   const [showExitPrompt, setShowExitPrompt] = useExitPrompt(true)
@@ -345,7 +370,13 @@ const Play = () => {
 
   const {
     loading: queryLoading,
-    data: queryData,
+    data: {
+      games: [gameData],
+      systemSettings: [{ rulePack: gameSettings }],
+    } = {
+      games: [],
+      systemSettings: [{ rulePack: null }],
+    },
     error: queryError,
   } = useQuery(GET_GAME_PLAY, {
     variables: {
@@ -358,16 +389,13 @@ const Play = () => {
   const [updateGameResult] = useMutation(UPDATE_GAME_RESULT, {
     update(cache, { data }) {
       try {
-        const queryResult = cache.readQuery({
+        const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
           query: GET_GAME_PLAY,
           variables: {
             whereGame: { gameId },
             whereSystemSettings: { systemSettingsId: 'system-settings' },
           },
         })
-
-        console.log(queryResult)
-        console.log(data?.updateGameResults?.gameResults?.[0])
 
         cache.writeQuery({
           query: GET_GAME_PLAY,
@@ -402,63 +430,33 @@ const Play = () => {
     },
   })
 
-  // const [
-  //   updateGame,
-  //   // { loading: mutationLoadingMerge, error: mutationErrorMerge },
-  // ] = useMutation(UPDATE_GAME, {
-  // update(cache, { data }) {
-  //   try {
-  //     const queryResult = cache.readQuery({
-  //       query: GET_GAME_PLAY,
-  //       variables: {
-  //         where: { gameId },
-  //         whereSystemSettings: { systemSettingsId: 'system-settings' },
-  //       },
-  //     })
-
-  //     cache.writeQuery({
-  //       query: GET_GAME_PLAY,
-  //       data: {
-  //         games: data?.updateGame?.games,
-  //         systemSettings: queryResult?.systemSettings,
-  //       },
-  //       variables: {
-  //         where: { gameId },
-  //         whereSystemSettings: { systemSettingsId: 'system-settings' },
-  //       },
-  //     })
-  //   } catch (error) {
-  //     console.error(error)
-  //   }
-  // },
-  //   // onCompleted: () => {
-  //   //   enqueueSnackbar('Game updated!', { variant: 'success' })
-  //   // },
-  //   // onError: error => {
-  //   //   enqueueSnackbar(`Error: ${error}`, {
-  //   //     variant: 'error',
-  //   //   })
-  //   // },
-  // })
-
-  const gameData = queryData?.games?.[0] || null
-  const gameSettings = queryData?.systemSettings[0]?.rulePack || null
-
   const teamHost = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
+    () =>
+      gameData?.teamsConnection?.edges?.find(
+        (t: GameTeamsRelationship) => t.host
+      )?.node,
     [gameData]
   )
 
   const teamGuest = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => !t.host)?.node,
+    () =>
+      gameData?.teamsConnection?.edges?.find(
+        (t: GameTeamsRelationship) => !t.host
+      )?.node,
     [gameData]
   )
   const playersHost = React.useMemo(
-    () => gameData?.playersConnection?.edges?.filter(t => t.host),
+    () =>
+      gameData?.playersConnection?.edges?.filter(
+        (t: GamePlayersRelationship) => t.host
+      ),
     [gameData]
   )
   const playersGuest = React.useMemo(
-    () => gameData?.playersConnection?.edges?.filter(t => !t.host),
+    () =>
+      gameData?.playersConnection?.edges?.filter(
+        (t: GamePlayersRelationship) => !t.host
+      ),
     [gameData]
   )
 
@@ -599,7 +597,6 @@ const Play = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <Finalization
-                    gameSettings={gameSettings}
                     gameData={gameData}
                     updateGameResult={updateGameResult}
                   />
@@ -612,7 +609,7 @@ const Play = () => {
               teams={gameData?.teamsConnection?.edges}
               players={gameData?.playersConnection?.edges}
               gameData={gameData}
-              gameSettings={gameSettings}
+              // gameSettings={gameSettings}
             />
           </Grid>
         </Grid>

@@ -1,7 +1,14 @@
 import React from 'react'
 import Button from '@mui/material/Button'
+import { GamePlayersRelationship } from 'utils/types'
 
-const PlayerSelect = props => {
+type TPlayerSelect = {
+  players: GamePlayersRelationship[]
+  onClick: (p: GamePlayersRelationship) => void
+  selected: GamePlayersRelationship | null
+}
+
+const PlayerSelect: React.FC<TPlayerSelect> = React.memo(props => {
   const { players, onClick, selected } = props
   return (
     <div
@@ -32,6 +39,6 @@ const PlayerSelect = props => {
       })}
     </div>
   )
-}
+})
 
 export { PlayerSelect }

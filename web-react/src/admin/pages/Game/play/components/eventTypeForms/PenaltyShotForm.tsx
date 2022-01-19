@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 
 import Grid from '@mui/material/Grid'
@@ -12,15 +11,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
 import { PlayerSelect, RemainingTime } from './components'
-import GameEventFormContext from '../../context'
+import { GameEventFormContext } from '../../components/GameEventWizard'
+import { TEventTypeForm } from './index'
 
-const formInitialState = {
-  remainingTime: '00:00',
-  executedBy: null,
-  facedAgainst: null,
-}
-
-const PenaltyShotForm = props => {
+const PenaltyShotForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     gameEventSettings,
     activeStep,
@@ -30,10 +24,8 @@ const PenaltyShotForm = props => {
   } = props
 
   const {
-    setNextButtonDisabled,
-    gameEventData,
-    setGameEventData,
-    tempRemainingTime,
+    state: { gameEventData, tempRemainingTime },
+    update,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -43,17 +35,22 @@ const PenaltyShotForm = props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      setGameEventData({
-        ...formInitialState,
-        timestamp: dayjs().format(),
-        remainingTime: tempRemainingTime.current,
-      })
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+          remainingTime: tempRemainingTime,
+        },
+      }))
   }, [])
 
   React.useEffect(() => {
     switch (activeStep) {
       case 0:
-        setNextButtonDisabled(gameEventData?.remainingTime === '')
+        update(state => ({
+          ...state,
+          nextButtonDisabled: gameEventData?.remainingTime === '',
+        }))
         break
     }
   }, [gameEventData, activeStep])
@@ -62,11 +59,7 @@ const PenaltyShotForm = props => {
     <Grid container spacing={2}>
       {activeStep === 0 && (
         <Grid item xs={12}>
-          <RemainingTime
-            gameEventData={gameEventData}
-            setGameEventData={setGameEventData}
-            activeStepData={activeStepData}
-          />
+          <RemainingTime activeStepData={activeStepData} />
         </Grid>
       )}
 
@@ -75,11 +68,17 @@ const PenaltyShotForm = props => {
           <PlayerSelect
             players={players}
             onClick={executedBy => {
-              setGameEventData(state => ({ ...state, executedBy }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  ...(executedBy && executedBy),
+                },
+              }))
               handleNextStep()
             }}
-            selected={gameEventData?.executedBy}
+            selected={gameEventData?.executedBy || null}
           />
         </Grid>
       )}
@@ -88,11 +87,17 @@ const PenaltyShotForm = props => {
           <PlayerSelect
             players={playersRival}
             onClick={facedAgainst => {
-              setGameEventData(state => ({ ...state, facedAgainst }))
-              setNextButtonDisabled(false)
+              update(state => ({
+                ...state,
+                nextButtonDisabled: false,
+                gameEventData: {
+                  ...state.gameEventData,
+                  ...(facedAgainst && facedAgainst),
+                },
+              }))
               handleNextStep()
             }}
-            selected={gameEventData?.facedAgainst}
+            selected={gameEventData?.facedAgainst || null}
           />
         </Grid>
       )}
@@ -126,10 +131,10 @@ const PenaltyShotForm = props => {
                     {gameEventData?.remainingTime}
                   </TableCell>
                   <TableCell align="right">
-                    {`${gameEventData?.executedBy?.player?.name} (${gameEventData?.executedBy?.jersey})`}
+                    {`${gameEventData?.executedBy?.node?.name} (${gameEventData?.executedBy?.jersey})`}
                   </TableCell>
                   <TableCell align="right">
-                    {`${gameEventData?.facedAgainst?.player?.name} (${gameEventData?.facedAgainst?.jersey})`}
+                    {`${gameEventData?.facedAgainst?.node?.name} (${gameEventData?.facedAgainst?.jersey})`}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -139,11 +144,6 @@ const PenaltyShotForm = props => {
       )}
     </Grid>
   ) : null
-}
-
-PenaltyShotForm.propTypes = {
-  gameEventSettings: PropTypes.object,
-  activeStep: PropTypes.number,
-}
+})
 
 export { PenaltyShotForm }

@@ -18,7 +18,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import StarIcon from '@mui/icons-material/Star'
 import BalconyIcon from '@mui/icons-material/Balcony'
-import { DataGridPro } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from '../../commonComponents/styled'
 import { getAdminOrgGameRoute } from 'router/routes'
 import { GameQrPayment } from '../components'
@@ -26,13 +26,13 @@ import { Error, Loader, LinkButton } from 'components'
 import { useXGridSearch } from 'utils/hooks'
 
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { setIdFromEntityId, formatDate, formatTime } from 'utils'
 import {
-  setIdFromEntityId,
-  getXGridHeight,
-  formatDate,
-  formatTime,
-} from 'utils'
-
+  GameTeamsRelationship,
+  GamePlayersRelationship,
+  GameEventSimple,
+  Game,
+} from 'utils/types'
 const useGamesViewState = createPersistedState('HMS-GamesView')
 const useGamesColumnsTypeState = createPersistedState('HMS-GamesColumnsType')
 
@@ -130,7 +130,7 @@ export const GET_GAMES = gql`
   }
 `
 
-export const getColumns = organizationSlug => [
+export const getColumns = (organizationSlug: string): GridColumns => [
   {
     field: 'gameId',
     headerName: 'Edit',
@@ -177,7 +177,9 @@ export const getColumns = organizationSlug => [
     headerName: 'Host team',
     width: 230,
     renderCell: params => {
-      const team = params?.row?.teamsConnection?.edges?.find(t => t?.host)?.node
+      const team = params?.row?.teamsConnection?.edges?.find(
+        (t: GameTeamsRelationship) => t?.host
+      )?.node
 
       return (
         <div
@@ -206,17 +208,17 @@ export const getColumns = organizationSlug => [
     width: 130,
     renderCell: params => {
       const teamHost = params?.row?.teamsConnection?.edges?.find(
-        t => t?.host
+        (t: GameTeamsRelationship) => t?.host
       )?.node
 
       const teamGuest = params?.row?.teamsConnection?.edges?.find(
-        t => !t?.host
+        (t: GameTeamsRelationship) => !t?.host
       )?.node
       const goalsHost = params?.row?.gameEventsSimple?.filter(
-        ges => ges?.team?.teamId === teamHost?.teamId
+        (ges: GameEventSimple) => ges?.team?.teamId === teamHost?.teamId
       )?.length
       const goalsGuest = params?.row?.gameEventsSimple?.filter(
-        ges => ges?.team?.teamId === teamGuest?.teamId
+        (ges: GameEventSimple) => ges?.team?.teamId === teamGuest?.teamId
       )?.length
       return (
         <Link
@@ -251,7 +253,7 @@ export const getColumns = organizationSlug => [
     width: 230,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(
-        t => !t?.host
+        (t: GameTeamsRelationship) => !t?.host
       )?.node
 
       return (
@@ -287,12 +289,12 @@ export const getColumns = organizationSlug => [
     sortable: false,
     renderCell: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
-        e => e.host && e.star
+        (e: GamePlayersRelationship) => e.host && e.star
       )
 
       return (
         <Stack spacing={1} direction="row">
-          {stars?.map(hs => {
+          {stars?.map((hs: GamePlayersRelationship) => {
             return (
               <Chip
                 size="small"
@@ -317,12 +319,12 @@ export const getColumns = organizationSlug => [
     sortable: false,
     renderCell: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
-        e => !e.host && e.star
+        (e: GamePlayersRelationship) => !e.host && e.star
       )
 
       return (
         <Stack spacing={1} direction="row">
-          {stars?.map(hs => {
+          {stars?.map((hs: GamePlayersRelationship) => {
             return (
               <Chip
                 size="small"
@@ -347,7 +349,7 @@ export const getColumns = organizationSlug => [
     sortable: false,
     renderCell: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
-        e => e.host && e.goalkeeper
+        (e: GamePlayersRelationship) => e.host && e.goalkeeper
       )
 
       return (
@@ -375,7 +377,7 @@ export const getColumns = organizationSlug => [
     sortable: false,
     renderCell: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
-        e => !e.host && e.goalkeeper
+        (e: GamePlayersRelationship) => !e.host && e.goalkeeper
       )
 
       return (
@@ -598,10 +600,11 @@ export const getColumns = organizationSlug => [
     sortable: false,
     valueGetter: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
-        e => e.host && e.star
+        (e: GamePlayersRelationship) => e.host && e.star
       )
       return stars?.map(
-        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
+        (hs: GamePlayersRelationship) =>
+          `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
       )
     },
   },
@@ -611,11 +614,12 @@ export const getColumns = organizationSlug => [
     width: 180,
     valueGetter: params => {
       const stars = params?.row?.playersConnection?.edges?.filter(
-        e => !e.host && e.star
+        (e: GamePlayersRelationship) => !e.host && e.star
       )
 
       return stars?.map(
-        hs => `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
+        (hs: GamePlayersRelationship) =>
+          `${hs?.node?.name} ${hs?.jersey && '(' + hs?.jersey + ')'} `
       )
     },
   },
@@ -625,7 +629,7 @@ export const getColumns = organizationSlug => [
     width: 180,
     valueGetter: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
-        e => e.host && e.goalkeeper
+        (e: GamePlayersRelationship) => e.host && e.goalkeeper
       )
 
       return goalkeeper
@@ -641,7 +645,7 @@ export const getColumns = organizationSlug => [
     width: 180,
     valueGetter: params => {
       const goalkeeper = params?.row?.playersConnection?.edges?.find(
-        e => !e.host && e.goalkeeper
+        (e: GamePlayersRelationship) => !e.host && e.goalkeeper
       )
 
       return goalkeeper
@@ -662,8 +666,12 @@ export const getColumns = organizationSlug => [
     renderCell: params => {
       const { foreignId, org, startDate, teamsConnection } = params.row
       const { bankAccountCurrency, bankAccountNumber, bankCode } = org
-      const hostTeamNick = teamsConnection.edges.find(e => e.host)?.node?.nick
-      const guestTeamNick = teamsConnection.edges.find(e => !e.host)?.node?.nick
+      const hostTeamNick = teamsConnection.edges.find(
+        (e: GameTeamsRelationship) => e.host
+      )?.node?.nick
+      const guestTeamNick = teamsConnection.edges.find(
+        (e: GameTeamsRelationship) => !e.host
+      )?.node?.nick
       const canBeRendered =
         foreignId &&
         startDate &&
@@ -688,9 +696,13 @@ export const getColumns = organizationSlug => [
   },
 ]
 
-const XGridTable = () => {
+type TParams = {
+  organizationSlug: string
+}
+
+const XGridTable: React.FC = () => {
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
 
   const [gamesView, setGamesView] = useGamesViewState('all')
   const [gamesColumnsType, setGamesColumnsType] =
@@ -724,7 +736,7 @@ const XGridTable = () => {
   const columns = React.useMemo(() => {
     const columnsBase = getColumns(organizationSlug)
     let cols
-    let stopList
+    let stopList: string[]
     switch (gamesColumnsType) {
       case 'admin':
         stopList = [
@@ -805,11 +817,13 @@ const XGridTable = () => {
 
   const gameData = React.useMemo(() => {
     const preparedData = setIdFromEntityId(data?.games || [], 'gameId').map(
-      g => {
-        const hostTeamName = g.teamsConnection?.edges?.find(e => e.host)?.node
-          ?.name
-        const guestTeamName = g.teamsConnection?.edges?.find(e => !e.host)?.node
-          ?.name
+      (g: Game) => {
+        const hostTeamName = g.teamsConnection?.edges?.find(
+          (e: GameTeamsRelationship) => e.host
+        )?.node?.name
+        const guestTeamName = g.teamsConnection?.edges?.find(
+          (e: GameTeamsRelationship) => !e.host
+        )?.node?.name
         return { ...g, hostTeamName, guestTeamName }
       }
     )
@@ -978,7 +992,9 @@ const XGridTable = () => {
                 componentsProps={{
                   toolbar: {
                     value: searchText,
-                    onChange: event => requestSearch(event.target.value),
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => requestSearch(event.target.value),
                     clearSearch: () => requestSearch(''),
                   },
                 }}

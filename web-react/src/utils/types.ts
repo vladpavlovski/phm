@@ -15,6 +15,7 @@ export type Player = {
 export type Team = {
   teamId: string
   name: string
+  nick: string
   logo: string
   status: string
   groups: Group[]
@@ -92,6 +93,7 @@ export type Competition = {
 export type Season = {
   seasonId: string
   name: string
+  nick: string
   groups: Group[]
   phases: Phase[]
   competitions: Competition[]
@@ -99,7 +101,7 @@ export type Season = {
   venues: Venue[]
 }
 
-type Meta = {
+export type Meta = {
   metaPlayerId: string
 }
 
@@ -161,12 +163,18 @@ export type GamePlayersConnection = {
 export type GamePlayersRelationship = {
   node: Player
   host: boolean
-  jersey: number
-  position: string
+  jersey: number | null
+  position: string | null
   captain: boolean
-  goalkeeper: boolean
-  star: boolean
+  goalkeeper: boolean | null
+  star: boolean | null
   teamId: string
+  avatar: string
+  firstName: string
+  id: string
+  lastName: string
+  name: string
+  playerId: string
 }
 
 export type GameResult = {
@@ -190,24 +198,26 @@ export type GameResult = {
   draw: boolean
   periodStatistics: PeriodStatistic[]
   game: Game
+  gameStartedAt: string
+  __typename?: string
 }
 
-type PeriodStatistic = {
-  periodStatisticId: string
-  period: string
-  hostGoals: number
-  guestGoals: number
-  hostPenalties: number
-  guestPenalties: number
-  hostPenaltyShots: number
-  guestPenaltyShots: number
-  hostInjuries: number
-  guestInjuries: number
-  hostSaves: number
-  guestSaves: number
-  hostFaceOffs: number
-  guestFaceOffs: number
-  gameResult: GameResult
+export type PeriodStatistic = {
+  periodStatisticId?: string
+  period?: string
+  hostGoals?: number
+  guestGoals?: number
+  hostPenalties?: number
+  guestPenalties?: number
+  hostPenaltyShots?: number
+  guestPenaltyShots?: number
+  hostInjuries?: number
+  guestInjuries?: number
+  hostSaves?: number
+  guestSaves?: number
+  hostFaceOffs?: number
+  guestFaceOffs?: number
+  gameResult?: GameResult
 }
 
 export type SystemSettings = {
@@ -221,6 +231,11 @@ export type RulePack = {
   rulePackId: string
   name: string
   resultPoints: ResultPoint[]
+  periods: Period[]
+  goalTypes: GoalType[]
+  shotTypes: ShotType[]
+  injuryTypes: InjuryType[]
+  penaltyTypes: PenaltyType[]
 }
 
 export type Jersey = {
@@ -264,6 +279,28 @@ export type GameEventSimple = {
   remainingTime: string
   eventType: string
   eventTypeCode: string
+  team: Team
+  game: Game
+  scoredBy: Meta
+  allowedBy: Meta
+  firstAssist: Meta
+  secondAssist: Meta
+  goalType: string
+  goalSubType: string
+  shotType: string
+  shotSubType: string
+  lostBy: Meta
+  wonBy: Meta
+  penaltyType: string
+  penaltySubType: string
+  duration: string
+  penalized: Meta
+  facedAgainst: Meta
+  executedBy: Meta
+  description: string
+  injuryType: string
+  suffered: Meta
+  savedBy: Meta
 }
 
 export type Organization = {

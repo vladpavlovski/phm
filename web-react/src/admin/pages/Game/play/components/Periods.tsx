@@ -1,14 +1,21 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import { Timer } from './Timer'
-import GameEventFormContext from '../context'
+import { GameEventFormContext } from './GameEventWizard'
+import { MutationFunction } from '@apollo/client'
+import { RulePack, Game } from 'utils/types'
 
-const PeriodsComponent = props => {
+type TPeriods = {
+  gameSettings: RulePack
+  gameData: Game
+  updateGameResult: MutationFunction
+}
+
+const Periods: React.FC<TPeriods> = React.memo(props => {
   const { gameSettings, gameData, updateGameResult } = props
 
-  const { setPeriod } = React.useContext(GameEventFormContext)
+  const { update } = React.useContext(GameEventFormContext)
 
   return (
     <>
@@ -28,7 +35,11 @@ const PeriodsComponent = props => {
                   if (
                     periodObject?.name !== gameData?.gameResult?.periodActive
                   ) {
-                    setPeriod(periodObject?.name)
+                    update(state => ({
+                      ...state,
+                      period: periodObject?.name,
+                    }))
+
                     updateGameResult({
                       variables: {
                         where: {
@@ -62,12 +73,6 @@ const PeriodsComponent = props => {
       />
     </>
   )
-}
-
-PeriodsComponent.propTypes = {
-  gameSettings: PropTypes.object,
-}
-
-const Periods = React.memo(PeriodsComponent)
+})
 
 export { Periods }

@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react'
 
 import { gql, useLazyQuery, useMutation } from '@apollo/client'
-import PropTypes from 'prop-types'
 import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
 
@@ -27,13 +26,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Loader } from 'components/Loader'
 import { Error } from 'components/Error'
 import { useStyles } from '../../../commonComponents/styled'
+import { Competition, Game, Phase, Group, Season } from 'utils/types'
 
 const GET_MEMBERSHIP = gql`
   query getMembership(
     $whereGame: GameWhere
     $whereCompetition: CompetitionWhere
   ) {
-    game: games(where: $whereGame) {
+    games(where: $whereGame) {
       gameId
       name
       phase {
@@ -78,7 +78,7 @@ const UPDATE_GAME = gql`
   }
 `
 
-const sortBySeasonNick = (a, b) => {
+const sortBySeasonNick = (a: { season: Season }, b: { season: Season }) => {
   if (a?.season && a?.season?.nick < b?.season?.nick) {
     return 1
   }
@@ -87,19 +87,30 @@ const sortBySeasonNick = (a, b) => {
   }
   return 0
 }
-const Membership = props => {
+
+type TParams = {
+  organizationSlug: string
+}
+
+type TMembership = {
+  gameId: string
+}
+
+const Membership: React.FC<TMembership> = props => {
   const { gameId } = props
   const classes = useStyles()
-  const { organizationSlug } = useParams()
+  const { organizationSlug } = useParams<TParams>()
   const [
     getData,
-    { loading: queryLoading, error: queryError, data: queryData },
+    {
+      loading: queryLoading,
+      error: queryError,
+      data: { games: [game], competitions } = { games: [], competitions: [] },
+    },
   ] = useLazyQuery(GET_MEMBERSHIP)
 
-  const game = queryData?.game?.[0] || {}
-
   const handleOnChange = useCallback(() => {
-    if (!queryData) {
+    if (!game) {
       getData({
         variables: {
           whereGame: {
@@ -129,9 +140,9 @@ const Membership = props => {
         <Typography className={classes.accordionFormDescription}></Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
+        {game && (
           <>
             <TableContainer>
               <Typography variant="h6" gutterBottom component="div">
@@ -151,7 +162,7 @@ const Membership = props => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {queryData?.competitions.map(competition => (
+                  {competitions.map((competition: Competition) => (
                     <CompetitionRow
                       key={competition.competitionId}
                       game={game}
@@ -168,14 +179,19 @@ const Membership = props => {
   )
 }
 
-const CompetitionRow = props => {
+type TCompetitionRow = {
+  competition: Competition
+  game: Game
+}
+
+const CompetitionRow: React.FC<TCompetitionRow> = React.memo(props => {
   const { competition, game } = props
   const [competitionOpen, setCompetitionOpen] = useState(false)
   const [selectedPhaseId, setSelectedPhaseId] = useState(
-    game?.phase?.phaseId || null
+    game?.phase?.phaseId || ''
   )
   const [selectedGroupId, setSelectedGroupId] = useState(
-    game?.group?.groupId || null
+    game?.group?.groupId || ''
   )
   return (
     <>
@@ -258,9 +274,16 @@ const CompetitionRow = props => {
       </TableRow>
     </>
   )
+})
+
+type TPhaseRow = {
+  game: Game
+  phase: Phase
+  selectedPhaseId: string
+  setSelectedPhaseId: React.Dispatch<React.SetStateAction<string>>
 }
 
-const PhaseRow = props => {
+const PhaseRow: React.FC<TPhaseRow> = React.memo(props => {
   const { game, phase, selectedPhaseId, setSelectedPhaseId } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -268,7 +291,7 @@ const PhaseRow = props => {
     game?.phase?.phaseId === phase?.phaseId
   )
 
-  const [updateGame, { loading }] = useMutation(UPDATE_GAME, {
+  const [updateGame] = useMutation(UPDATE_GAME, {
     onCompleted: () => {
       enqueueSnackbar('Game updated!', { variant: 'success' })
       setIsMember(!isMember)
@@ -296,7 +319,7 @@ const PhaseRow = props => {
           checked={isMember}
           disabled={isDisabled}
           onChange={() => {
-            setSelectedPhaseId(isMember ? null : phase?.phaseId)
+            setSelectedPhaseId(isMember ? '' : phase?.phaseId)
 
             updateGame({
               variables: {
@@ -328,14 +351,20 @@ const PhaseRow = props => {
           }}
           name="isMember"
           color="primary"
-          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
   )
+})
+
+type TGroupRow = {
+  game: Game
+  group: Group
+  selectedGroupId: string
+  setSelectedGroupId: React.Dispatch<React.SetStateAction<string>>
 }
 
-const GroupRow = props => {
+const GroupRow: React.FC<TGroupRow> = React.memo(props => {
   const { game, group, selectedGroupId, setSelectedGroupId } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -343,7 +372,7 @@ const GroupRow = props => {
     game?.group?.groupId === group?.groupId
   )
 
-  const [updateGame, { loading }] = useMutation(UPDATE_GAME, {
+  const [updateGame] = useMutation(UPDATE_GAME, {
     onCompleted: () => {
       enqueueSnackbar('Game updated!', { variant: 'success' })
       setIsMember(!isMember)
@@ -371,7 +400,7 @@ const GroupRow = props => {
           checked={isMember}
           disabled={isDisabled}
           onChange={() => {
-            setSelectedGroupId(isMember ? null : group?.groupId)
+            setSelectedGroupId(isMember ? '' : group?.groupId)
             updateGame({
               variables: {
                 where: {
@@ -402,15 +431,10 @@ const GroupRow = props => {
           }}
           name="isMember"
           color="primary"
-          label={loading ? 'thinking...' : isMember ? 'Member' : 'Not member'}
         />
       </TableCell>
     </TableRow>
   )
-}
-
-Membership.propTypes = {
-  gameId: PropTypes.string,
-}
+})
 
 export { Membership }

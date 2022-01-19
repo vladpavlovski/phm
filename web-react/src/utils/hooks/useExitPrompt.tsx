@@ -16,7 +16,7 @@ const initBeforeUnLoad = <T,>(showExitPrompt: T) => {
 // Hook
 const useExitPrompt = <T,>(
   bool: T,
-  cb: () => void
+  cb?: () => void
 ): [T, React.Dispatch<React.SetStateAction<T>>] => {
   const [showExitPrompt, setShowExitPrompt] = useState<T>(bool)
 
