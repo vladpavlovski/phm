@@ -16,13 +16,6 @@ import { PlayerSelect, RemainingTime } from './components'
 import { GameEventFormContext } from '../../components/GameEventWizard'
 import { sortByPriority } from 'utils'
 import { TEventTypeForm } from './index'
-// const formInitialState = {
-//   remainingTime: '00:00',
-//   penalized: null,
-//   penaltyType: null,
-//   penaltySubType: null,
-//   duration: '',
-// }
 
 const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
@@ -90,7 +83,7 @@ const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(penalized && penalized),
+                  ...(penalized && { penalized }),
                 },
               }))
               handleNextStep()
@@ -145,11 +138,6 @@ const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
                 }))
               }}
               fullWidth
-              // error={!gameEventData?.remainingTime}
-              // helperText={
-              //   !gameEventData?.remainingTime &&
-              //   'Remaining time should be defined'
-              // }
               inputProps={{
                 autoComplete: 'off',
               }}
@@ -160,7 +148,6 @@ const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
             gameEventData?.penaltyType?.subTypes?.length > 0 && (
               <Grid item xs={4}>
                 <Autocomplete
-                  // disablePortal
                   disableClearable
                   id="combo-box-penalty-sub-type"
                   options={[...gameEventData?.penaltyType?.subTypes].sort(

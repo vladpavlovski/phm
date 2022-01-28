@@ -87,7 +87,7 @@ const FaceOffForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  wonBy,
+                  ...(wonBy && { wonBy }),
                 },
               }))
               handleNextStep()
@@ -106,7 +106,7 @@ const FaceOffForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  lostBy,
+                  ...(lostBy && { lostBy }),
                 },
               }))
               handleNextStep()

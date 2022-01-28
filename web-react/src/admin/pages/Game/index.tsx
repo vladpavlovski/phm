@@ -235,6 +235,7 @@ export const UPDATE_GAME = gql`
             captain
             goalkeeper
             star
+            teamId
             node {
               avatar
               playerId

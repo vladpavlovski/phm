@@ -17,7 +17,6 @@ import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
-import { v4 as uuidv4 } from 'uuid'
 import dayjs from 'dayjs'
 
 import { GameEventTypes } from './GameEventTypes'
@@ -41,191 +40,135 @@ import {
   InjuryType,
 } from 'utils/types'
 
-const CREATE_GAME_EVENT_SIMPLE = gql`
-  mutation mergeGameEventSimple(
-    $teamId: ID!
-    $gameId: ID!
-    $gameEventSimpleId: ID!
-    $previousGameEventSimpleId: ID
-    $metaPlayerScoredById: ID
-    $metaPlayerAllowedById: ID
-    $metaPlayerFirstAssistId: ID
-    $metaPlayerSecondAssistId: ID
-    $metaPlayerSavedById: ID
-    $metaPlayerLostById: ID
-    $metaPlayerWonById: ID
-    $eventType: String
-    $eventTypeCode: String
-    $timestamp: String
-    $period: String
-    $remainingTime: String
-    $goalType: String
-    $goalSubType: String
-    $shotType: String
-    $shotSubType: String
-    $penaltyType: String
-    $penaltySubType: String
-    $duration: String
-    $metaPlayerPenalizedId: ID
-    $metaPlayerExecutedById: ID
-    $metaPlayerFacedAgainstId: ID
-    $description: String
-    $injuryType: String
-    $metaPlayerSufferedId: ID
+const CREATE_GES = gql`
+  mutation createGameEventSimples(
+    $input: [GameEventSimpleCreateInput!]!
     $gameResultWhere: GameResultWhere
     $gameResultUpdateInput: GameResultUpdateInput
   ) {
-    gameEventSimple: CreateGameEventSimple(
-      teamId: $teamId
-      gameId: $gameId
-      gameEventSimpleId: $gameEventSimpleId
-      previousGameEventSimpleId: $previousGameEventSimpleId
-      metaPlayerScoredById: $metaPlayerScoredById
-      metaPlayerAllowedById: $metaPlayerAllowedById
-      metaPlayerFirstAssistId: $metaPlayerFirstAssistId
-      metaPlayerSecondAssistId: $metaPlayerSecondAssistId
-      metaPlayerSavedById: $metaPlayerSavedById
-      metaPlayerLostById: $metaPlayerLostById
-      metaPlayerWonById: $metaPlayerWonById
-      eventType: $eventType
-      eventTypeCode: $eventTypeCode
-      timestamp: $timestamp
-      period: $period
-      remainingTime: $remainingTime
-      goalType: $goalType
-      goalSubType: $goalSubType
-      shotType: $shotType
-      shotSubType: $shotSubType
-      penaltyType: $penaltyType
-      penaltySubType: $penaltySubType
-      duration: $duration
-      metaPlayerPenalizedId: $metaPlayerPenalizedId
-      metaPlayerExecutedById: $metaPlayerExecutedById
-      metaPlayerFacedAgainstId: $metaPlayerFacedAgainstId
-      description: $description
-      injuryType: $injuryType
-      metaPlayerSufferedId: $metaPlayerSufferedId
-    ) {
-      gameEventSimpleId
-      timestamp
-      period
-      remainingTime
-      eventType
-      eventTypeCode
-      goalType
-      goalSubType
-      shotType
-      shotSubType
-      penaltyType
-      penaltySubType
-      duration
-      injuryType
-      team {
-        teamId
-        nick
-        logo
-      }
-      nextGameEvent {
+    createGameEventSimples(input: $input) {
+      gameEventSimples {
         gameEventSimpleId
         timestamp
-      }
-      scoredBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        period
+        remainingTime
+        eventType
+        eventTypeCode
+        goalType
+        goalSubType
+        shotType
+        shotSubType
+        penaltyType
+        penaltySubType
+        duration
+        injuryType
+        team {
+          teamId
+          nick
+          logo
         }
-      }
-      allowedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        nextGameEvent {
+          gameEventSimpleId
+          timestamp
         }
-      }
-      firstAssist {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        scoredBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      secondAssist {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        allowedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      lostBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        firstAssist {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      wonBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        secondAssist {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      penalized {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        lostBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      executedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        wonBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      facedAgainst {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        penalized {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      suffered {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        executedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
-      }
-      savedBy {
-        metaPlayerId
-        player {
-          playerId
-          name
-          firstName
-          lastName
+        facedAgainst {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        suffered {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
+        }
+        savedBy {
+          metaPlayerId
+          player {
+            playerId
+            name
+            firstName
+            lastName
+          }
         }
       }
     }
@@ -267,6 +210,243 @@ const CREATE_GAME_EVENT_SIMPLE = gql`
     }
   }
 `
+
+export const UPDATE_GES = gql`
+  mutation updateGameEventSimples(
+    $where: GameEventSimpleWhere
+    $update: GameEventSimpleUpdateInput
+  ) {
+    updateGameEventSimples(where: $where, update: $update) {
+      gameEventSimples {
+        gameEventSimpleId
+        timestamp
+        period
+        remainingTime
+        eventType
+        eventTypeCode
+        goalType
+        goalSubType
+        shotType
+        shotSubType
+        penaltyType
+        penaltySubType
+        duration
+        injuryType
+        team {
+          teamId
+          nick
+          logo
+        }
+      }
+    }
+  }
+`
+
+// const DELETE_GES = gql`
+//   mutation deleteGameEventSimples($where: GameEventSimpleWhere) {
+//     deleteGameEventSimples(where: $where) {
+//       nodesDeleted
+//     }
+//   }
+// `
+
+const getInputVarsForGES = ({
+  gameEventData,
+  team,
+  gameData,
+  gameEventSettings,
+}: {
+  gameEventData: TWizardGameEventSimple | null
+  team: Team
+  gameData: Game
+  gameEventSettings: TEventType
+}) => {
+  const metaPlayerScoredById =
+    gameEventData?.scoredBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerAllowedById =
+    gameEventData?.allowedBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerFirstAssistId =
+    gameEventData?.firstAssist?.node?.meta?.metaPlayerId || null
+  const metaPlayerSecondAssistId =
+    gameEventData?.secondAssist?.node?.meta?.metaPlayerId || null
+  const metaPlayerSavedById =
+    gameEventData?.savedBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerWonById =
+    gameEventData?.wonBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerLostById =
+    gameEventData?.lostBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerPenalizedId =
+    gameEventData?.penalized?.node?.meta?.metaPlayerId || null
+  const metaPlayerExecutedById =
+    gameEventData?.executedBy?.node?.meta?.metaPlayerId || null
+  const metaPlayerFacedAgainstId =
+    gameEventData?.facedAgainst?.node?.meta?.metaPlayerId || null
+  const metaPlayerSufferedId =
+    gameEventData?.suffered?.node?.meta?.metaPlayerId || null
+  const teamId = team?.teamId
+  const gameId = gameData?.gameId
+
+  return {
+    ...(metaPlayerScoredById && {
+      scoredBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerScoredById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerAllowedById && {
+      allowedBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerAllowedById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerFirstAssistId && {
+      firstAssist: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerFirstAssistId,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerSecondAssistId && {
+      secondAssist: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerSecondAssistId,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerSavedById && {
+      savedBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerSavedById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerWonById && {
+      wonBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerWonById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerLostById && {
+      lostBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerLostById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerPenalizedId && {
+      penalized: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerPenalizedId,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerExecutedById && {
+      executedBy: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerExecutedById,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerFacedAgainstId && {
+      facedAgainst: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerFacedAgainstId,
+            },
+          },
+        },
+      },
+    }),
+    ...(metaPlayerSufferedId && {
+      suffered: {
+        connect: {
+          where: {
+            node: {
+              metaPlayerId: metaPlayerSufferedId,
+            },
+          },
+        },
+      },
+    }),
+    ...(teamId && {
+      team: {
+        connect: {
+          where: {
+            node: {
+              teamId: teamId,
+            },
+          },
+        },
+      },
+    }),
+    ...(gameId && {
+      game: {
+        connect: {
+          where: {
+            node: {
+              gameId: gameId,
+            },
+          },
+        },
+      },
+    }),
+
+    eventType: gameEventSettings?.name || '',
+    eventTypeCode: gameEventSettings?.type || '',
+    timestamp: gameEventData?.timestamp || '',
+    period: gameData?.gameResult?.periodActive || '',
+    remainingTime: gameEventData?.remainingTime || '',
+    goalType: gameEventData?.goalType?.name || '',
+    goalSubType: gameEventData?.goalSubType?.name || '',
+    shotType: gameEventData?.shotType?.name || '',
+    shotSubType: gameEventData?.shotSubType?.name || '',
+    penaltyType: gameEventData?.penaltyType?.name || '',
+    penaltySubType: gameEventData?.penaltySubType?.name || '',
+    duration: `${gameEventData?.duration || ''}`,
+    description: gameEventData?.description || '',
+    injuryType: gameEventData?.injuryType?.name || '',
+  }
+}
 
 type TWizardGameEventSimple = {
   gameEventSimpleId?: string
@@ -344,11 +524,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
     gameData,
   } = props
   const { enqueueSnackbar } = useSnackbar()
-  //   setGameEventData,
-  //   setGameEventSettings,
-  //   setOpenGameEventDialog,
-  //   setEventsTableUpdate,
-  //   setNextButtonDisabled
+
   const {
     state: {
       nextButtonDisabled,
@@ -364,7 +540,65 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
   const [activeStep, setActiveStep] = React.useState(0)
   const [skipped, setSkipped] = React.useState(new Set())
 
-  const [createGameEventSimple] = useMutation(CREATE_GAME_EVENT_SIMPLE, {
+  // const [createGameEventSimple] = useMutation(CREATE_GAME_EVENT_SIMPLE, {
+  //   update(cache, { data }) {
+  //     try {
+  //       const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+  //         query: GET_GAME_PLAY,
+  //         variables: {
+  //           whereGame: { gameId: gameData?.gameId },
+  //           whereSystemSettings: { systemSettingsId: 'system-settings' },
+  //         },
+  //       })
+
+  //       const updatedResult = {
+  //         games: [
+  //           {
+  //             ...queryResult?.games?.[0],
+  //             gameResult: data?.updateGameResults?.gameResults?.[0],
+  //             gameEventsSimple: [
+  //               data?.gameEventSimple,
+  //               ...(queryResult?.games?.[0]?.gameEventsSimple || []),
+  //             ],
+  //           },
+  //         ],
+  //         systemSettings: queryResult?.systemSettings,
+  //       }
+  //       cache.writeQuery({
+  //         query: GET_GAME_PLAY,
+  //         data: updatedResult,
+  //         variables: {
+  //           whereGame: { gameId: gameData?.gameId },
+  //           whereSystemSettings: { systemSettingsId: 'system-settings' },
+  //         },
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   },
+  //   onCompleted: data => {
+  //     previousGameEventSimpleId.current =
+  //       data?.gameEventSimple?.gameEventSimpleId
+
+  //     enqueueSnackbar(`${data?.gameEventSimple?.eventType} event created 🏒`, {
+  //       variant: 'success',
+  //     })
+
+  //     update(state => ({
+  //       ...state,
+  //       gameEventData: null,
+  //       eventsTableUpdate: state.eventsTableUpdate + 1,
+  //     }))
+  //   },
+  //   onError: error => {
+  //     enqueueSnackbar(`${error}`, {
+  //       variant: 'error',
+  //     })
+  //     console.error(error)
+  //   },
+  // })
+
+  const [createGameEventSimple] = useMutation(CREATE_GES, {
     update(cache, { data }) {
       try {
         const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
@@ -381,7 +615,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
               ...queryResult?.games?.[0],
               gameResult: data?.updateGameResults?.gameResults?.[0],
               gameEventsSimple: [
-                data?.gameEventSimple,
+                data?.createGameEventSimples?.gameEventSimples?.[0],
                 ...(queryResult?.games?.[0]?.gameEventsSimple || []),
               ],
             },
@@ -402,13 +636,15 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
     },
     onCompleted: data => {
       previousGameEventSimpleId.current =
-        data?.gameEventSimple?.gameEventSimpleId
+        data?.createGameEventSimples?.gameEventSimples?.[0]?.gameEventSimpleId
 
-      enqueueSnackbar(`${data?.gameEventSimple?.eventType} event created 🏒`, {
-        variant: 'success',
-      })
-      // setEventsTableUpdate(val => val + 1)
-      // setGameEventData(null)
+      enqueueSnackbar(
+        `${data?.createGameEventSimples?.gameEventSimples?.[0]?.eventType} event created 🏒`,
+        {
+          variant: 'success',
+        }
+      )
+
       update(state => ({
         ...state,
         gameEventData: null,
@@ -431,49 +667,18 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
         host,
       })
 
+      const input = getInputVarsForGES({
+        gameEventData,
+        team,
+        gameData,
+        gameEventSettings,
+      })
+
       createGameEventSimple({
         variables: {
+          input,
           gameResultWhere: where,
           gameResultUpdateInput: update,
-          teamId: team?.teamId,
-          gameId: gameData?.gameId,
-          previousGameEventSimpleId: previousGameEventSimpleId.current || null,
-          metaPlayerScoredById:
-            gameEventData?.scoredBy?.node?.meta?.metaPlayerId || null,
-          metaPlayerAllowedById:
-            gameEventData?.allowedBy?.node?.meta?.metaPlayerId || null,
-          metaPlayerFirstAssistId:
-            gameEventData?.firstAssist?.node?.meta?.metaPlayerId || null,
-          metaPlayerSecondAssistId:
-            gameEventData?.secondAssist?.node?.meta?.metaPlayerId || null,
-          metaPlayerSavedById:
-            gameEventData?.savedBy?.node?.meta?.metaPlayerId || null,
-          metaPlayerWonById:
-            gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
-          metaPlayerLostById:
-            gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
-          eventType: gameEventSettings?.name || '',
-          eventTypeCode: gameEventSettings?.type || '',
-          timestamp: gameEventData?.timestamp || '',
-          period: gameData?.gameResult?.periodActive || '',
-          remainingTime: gameEventData?.remainingTime || '',
-          goalType: gameEventData?.goalType?.name || '',
-          goalSubType: gameEventData?.goalSubType?.name || '',
-          shotType: gameEventData?.shotType?.name || '',
-          shotSubType: gameEventData?.shotSubType?.name || '',
-          penaltyType: gameEventData?.penaltyType?.name || '',
-          penaltySubType: gameEventData?.penaltySubType?.name || '',
-          duration: `${gameEventData?.duration}` || '',
-          metaPlayerPenalizedId:
-            gameEventData?.penalized?.node?.meta?.metaPlayerId || null,
-          metaPlayerExecutedById:
-            gameEventData?.executedBy?.node?.meta?.metaPlayerId || null,
-          metaPlayerFacedAgainstId:
-            gameEventData?.facedAgainst?.node?.meta?.metaPlayerId || null,
-          description: gameEventData?.description || '',
-          injuryType: gameEventData?.injuryType?.name || '',
-          metaPlayerSufferedId:
-            gameEventData?.suffered?.node?.meta?.metaPlayerId || null,
         },
       })
       handleClose()
@@ -521,9 +726,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
 
   const handleReset = React.useCallback(() => {
     setActiveStep(0)
-    // setGameEventSettings(null)
-    // setNextButtonDisabled(false)
-    // setGameEventData(null)
+
     update(state => ({
       ...state,
       gameEventData: null,
@@ -533,7 +736,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
   }, [])
 
   const handleClose = React.useCallback(() => {
-    // setOpenGameEventDialog(false)
     update(state => ({
       ...state,
       gameEventData: null,
@@ -565,7 +767,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
                 ...state,
                 openGameEventDialog: host ? 'host' : 'guest',
               }))
-              // setOpenGameEventDialog(host ? 'host' : 'guest')
             }}
             startIcon={<AddTaskIcon />}
           >
@@ -576,7 +777,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
             color="primary"
             onClick={() => {
               const data = getEventSettings('save')
-              // setGameEventSettings(data)
               if (data) {
                 const { where, update } = prepareGameResultUpdate({
                   gameData,
@@ -584,62 +784,21 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
                   host,
                 })
                 setTimeout(() => {
+                  const input = getInputVarsForGES({
+                    gameEventData,
+                    team,
+                    gameData,
+                    gameEventSettings: data,
+                  })
                   createGameEventSimple({
                     variables: {
+                      input: {
+                        ...input,
+                        timestamp: dayjs().format(),
+                        remainingTime: tempRemainingTime,
+                      },
                       gameResultWhere: where,
                       gameResultUpdateInput: update,
-                      teamId: team?.teamId,
-                      gameId: gameData?.gameId,
-                      gameEventSimpleId:
-                        gameEventData?.gameEventSimpleId || uuidv4(),
-                      previousGameEventSimpleId:
-                        previousGameEventSimpleId.current || null,
-                      remainingTime: tempRemainingTime,
-                      savedBy: null,
-                      timestamp: dayjs().format(),
-                      metaPlayerScoredById:
-                        gameEventData?.scoredBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerAllowedById:
-                        gameEventData?.allowedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerFirstAssistId:
-                        gameEventData?.firstAssist?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerSecondAssistId:
-                        gameEventData?.secondAssist?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerSavedById:
-                        gameEventData?.savedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerWonById:
-                        gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
-                      metaPlayerLostById:
-                        gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
-                      eventType: data?.name || '',
-                      eventTypeCode: data?.type || '',
-                      period: gameData?.gameResult?.periodActive || '',
-                      goalType: gameEventData?.goalType?.name || '',
-                      goalSubType: gameEventData?.goalSubType?.name || '',
-                      shotType: gameEventData?.shotType?.name || '',
-                      shotSubType: gameEventData?.shotSubType?.name || '',
-                      penaltyType: gameEventData?.penaltyType?.name || '',
-                      penaltySubType: gameEventData?.penaltySubType?.name || '',
-                      duration: `${gameEventData?.duration}` || '',
-                      metaPlayerPenalizedId:
-                        gameEventData?.penalized?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerExecutedById:
-                        gameEventData?.executedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerFacedAgainstId:
-                        gameEventData?.facedAgainst?.node?.meta?.metaPlayerId ||
-                        null,
-                      description: gameEventData?.description || '',
-                      injuryType: gameEventData?.injuryType?.name || '',
-                      metaPlayerSufferedId:
-                        gameEventData?.suffered?.node?.meta?.metaPlayerId ||
-                        null,
                     },
                   })
                   handleClose()
@@ -654,17 +813,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
             color="primary"
             onClick={() => {
               const data = getEventSettings('faceOff')
-              // setGameEventSettings(data)
-              // setGameEventData({
-              //   remainingTime: '',
-              //   wonBy: null,
-              //   lostBy: null,
-              //   timestamp: dayjs().format(),
-              // })
-              // update(state => {
-              //   ...state,
-              //   gameEventData: null
-              // })
+
               if (data) {
                 const { where, update } = prepareGameResultUpdate({
                   gameData,
@@ -672,63 +821,21 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
                   host,
                 })
                 setTimeout(() => {
+                  const input = getInputVarsForGES({
+                    gameEventData,
+                    team,
+                    gameData,
+                    gameEventSettings: data,
+                  })
                   createGameEventSimple({
                     variables: {
+                      input: {
+                        ...input,
+                        timestamp: dayjs().format(),
+                        remainingTime: tempRemainingTime,
+                      },
                       gameResultWhere: where,
                       gameResultUpdateInput: update,
-                      teamId: team?.teamId,
-                      gameId: gameData?.gameId,
-                      gameEventSimpleId:
-                        gameEventData?.gameEventSimpleId || uuidv4(),
-                      previousGameEventSimpleId:
-                        previousGameEventSimpleId.current || null,
-                      remainingTime: tempRemainingTime,
-                      wonBy: null,
-                      lostBy: null,
-                      timestamp: dayjs().format(),
-                      metaPlayerScoredById:
-                        gameEventData?.scoredBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerAllowedById:
-                        gameEventData?.allowedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerFirstAssistId:
-                        gameEventData?.firstAssist?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerSecondAssistId:
-                        gameEventData?.secondAssist?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerSavedById:
-                        gameEventData?.savedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerWonById:
-                        gameEventData?.wonBy?.node?.meta?.metaPlayerId || null,
-                      metaPlayerLostById:
-                        gameEventData?.lostBy?.node?.meta?.metaPlayerId || null,
-                      eventType: data?.name || '',
-                      eventTypeCode: data?.type || '',
-                      period: gameData?.gameResult?.periodActive || '',
-                      goalType: gameEventData?.goalType?.name || '',
-                      goalSubType: gameEventData?.goalSubType?.name || '',
-                      shotType: gameEventData?.shotType?.name || '',
-                      shotSubType: gameEventData?.shotSubType?.name || '',
-                      penaltyType: gameEventData?.penaltyType?.name || '',
-                      penaltySubType: gameEventData?.penaltySubType?.name || '',
-                      duration: `${gameEventData?.duration}` || '',
-                      metaPlayerPenalizedId:
-                        gameEventData?.penalized?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerExecutedById:
-                        gameEventData?.executedBy?.node?.meta?.metaPlayerId ||
-                        null,
-                      metaPlayerFacedAgainstId:
-                        gameEventData?.facedAgainst?.node?.meta?.metaPlayerId ||
-                        null,
-                      description: gameEventData?.description || '',
-                      injuryType: gameEventData?.injuryType?.name || '',
-                      metaPlayerSufferedId:
-                        gameEventData?.suffered?.node?.meta?.metaPlayerId ||
-                        null,
                     },
                   })
 
@@ -777,9 +884,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
             {`Game event. ${team?.name}`}
           </DialogTitle>
           <DialogContent>
-            {/* <DialogContentText id="alert-dialog-description">
-            Wizard
-          </DialogContentText> */}
             {!gameEventSettings && (
               <GameEventTypes
                 onClick={(type: string) => {

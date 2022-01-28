@@ -17,11 +17,11 @@ const TextMaskCustom = React.forwardRef<HTMLElement, CustomProps>(
     return (
       <IMaskInput
         {...other}
-        // @ts-expect-error https://github.com/uNmAnNeR/imaskjs/issues/554
         mask="00:00"
         definitions={{
           '#': /^([0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/,
         }}
+        // @ts-expect-error check it later
         inputRef={ref}
         onAccept={(value: string) =>
           onChange({ target: { name: props.name, value } })
@@ -42,6 +42,8 @@ const RemainingTime: React.FC<TRemainingTime> = props => {
     state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
+  const [value, setValue] = React.useState(gameEventData?.remainingTime)
+
   return (
     <>
       {/* <FormControl variant="standard"> */}
@@ -51,11 +53,17 @@ const RemainingTime: React.FC<TRemainingTime> = props => {
       <Input
         fullWidth
         placeholder="Remaining time"
-        value={gameEventData?.remainingTime}
+        value={value}
         onChange={e => {
+          setValue(e.target.value)
+        }}
+        onBlur={() => {
           update(state => ({
             ...state,
-            remainingTime: e.target.value,
+            gameEventData: {
+              ...state.gameEventData,
+              remainingTime: value,
+            },
           }))
         }}
         onFocus={event => {

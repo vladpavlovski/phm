@@ -73,7 +73,7 @@ const PenaltyShotForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(executedBy && executedBy),
+                  ...(executedBy && { executedBy }),
                 },
               }))
               handleNextStep()
@@ -92,7 +92,7 @@ const PenaltyShotForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(facedAgainst && facedAgainst),
+                  ...(facedAgainst && { facedAgainst }),
                 },
               }))
               handleNextStep()

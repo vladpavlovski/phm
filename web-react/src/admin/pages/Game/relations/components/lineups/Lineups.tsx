@@ -840,10 +840,11 @@ const TogglePlayerGame: React.FC<TTogglePlayerGame> = React.memo(props => {
       p => p.team?.teamId === team?.teamId
     )?.[0]
     const number = jersey?.number
+
     // typeof jersey?.number === 'string'
     //   ? jersey?.number
     //   : jersey?.number?.low || null
-    return number
+    return parseInt(number + '')
   }, [])
 
   return (

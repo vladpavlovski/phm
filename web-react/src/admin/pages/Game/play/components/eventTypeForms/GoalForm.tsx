@@ -17,17 +17,6 @@ import { GameEventFormContext } from '../../components/GameEventWizard'
 import { sortByPriority } from 'utils'
 import { TEventTypeForm } from './index'
 
-// const formInitialState = {
-//   remainingTime: '00:00',
-//   scoredBy: null,
-//   firstAssist: null,
-//   secondAssist: null,
-//   goalType: null,
-//   goalSubType: null,
-//   shotType: null,
-//   shotSubType: null,
-// }
-
 const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     gameEventSettings,
@@ -41,10 +30,6 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     state: { gameEventData, tempRemainingTime },
     update,
-    // setNextButtonDisabled,
-    // gameEventData,
-    // setGameEventData,
-    // tempRemainingTime,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -55,12 +40,6 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
     if (!gameEventData) {
       // get goalkeeper from another team to set allowed goal
       const goalkeeperTeamRival = playersRival.find(p => p.goalkeeper)
-      // setGameEventData({
-      //   ...formInitialState,
-      //   allowedBy: goalkeeperTeamRival,
-      //   timestamp: dayjs().format(),
-      //   remainingTime: tempRemainingTime.current,
-      // })
 
       update(state => ({
         ...state,
@@ -80,14 +59,12 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
           ...state,
           nextButtonDisabled: gameEventData?.remainingTime === '',
         }))
-        // setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
       case 1:
         update(state => ({
           ...state,
           nextButtonDisabled: !gameEventData?.scoredBy,
         }))
-        // setNextButtonDisabled(!gameEventData?.scoredBy)
         break
     }
   }, [gameEventData, activeStep])
@@ -109,11 +86,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(scoredBy && scoredBy),
+                  ...(scoredBy && { scoredBy }),
                 },
               }))
-              // setGameEventData(state => ({ ...state, scoredBy }))
-              // setNextButtonDisabled(false)
               handleNextStep()
             }}
             selected={gameEventData?.scoredBy || null}
@@ -135,13 +110,11 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
             onClick={firstAssist => {
               update(state => ({
                 ...state,
-                // nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  firstAssist,
+                  ...(firstAssist && { firstAssist }),
                 },
               }))
-              // setGameEventData(state => ({ ...state, firstAssist }))
               handleNextStep()
             }}
             selected={gameEventData?.firstAssist || null}
@@ -165,10 +138,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                 ...state,
                 gameEventData: {
                   ...state.gameEventData,
-                  secondAssist,
+                  ...(secondAssist && { secondAssist }),
                 },
               }))
-              // setGameEventData(state => ({ ...state, secondAssist }))
               handleNextStep()
             }}
             selected={gameEventData?.secondAssist || null}
@@ -181,7 +153,11 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
             <Autocomplete
               disableClearable
               id="combo-box-goal-type"
-              options={[...gameSettings?.goalTypes].sort(sortByPriority)}
+              options={
+                gameSettings?.goalTypes
+                  ? [...gameSettings?.goalTypes].sort(sortByPriority)
+                  : []
+              }
               value={gameEventData?.goalType}
               renderInput={params => (
                 <TextField {...params} autoFocus label="Goal type" />
@@ -195,10 +171,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                   ...state,
                   gameEventData: {
                     ...state.gameEventData,
-                    ...(goalType && goalType),
+                    ...(goalType && { goalType }),
                   },
                 }))
-                // setGameEventData(state => ({ ...state, goalType }))
               }}
             />
           </Grid>
@@ -225,10 +200,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                       ...state,
                       gameEventData: {
                         ...state.gameEventData,
-                        ...(goalSubType && goalSubType),
+                        ...(goalSubType && { goalSubType }),
                       },
                     }))
-                    // setGameEventData(state => ({ ...state, goalSubType }))
                   }}
                 />
               </Grid>
@@ -255,10 +229,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                   ...state,
                   gameEventData: {
                     ...state.gameEventData,
-                    shotType,
+                    ...(shotType && { shotType }),
                   },
                 }))
-                // setGameEventData(state => ({ ...state, shotType }))
               }}
             />
           </Grid>
@@ -289,10 +262,9 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
                       ...state,
                       gameEventData: {
                         ...state.gameEventData,
-                        shotSubType,
+                        ...(shotSubType && { shotSubType }),
                       },
                     }))
-                    // setGameEventData(state => ({ ...state, shotSubType }))
                   }}
                 />
               </Grid>

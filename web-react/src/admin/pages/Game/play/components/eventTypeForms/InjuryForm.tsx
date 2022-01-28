@@ -15,12 +15,6 @@ import TableRow from '@mui/material/TableRow'
 import { PlayerSelect, RemainingTime } from './components'
 import { TEventTypeForm } from './index'
 import { GameEventFormContext } from '../../components/GameEventWizard'
-// const formInitialState = {
-//   remainingTime: '00:00',
-//   suffered: null,
-//   injuryType: null,
-//   description: '',
-// }
 
 const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
@@ -43,11 +37,6 @@ const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      // setGameEventData({
-      //   ...formInitialState,
-      //   timestamp: dayjs().format(),
-      //   remainingTime: tempRemainingTime.current,
-      // })
       update(state => ({
         ...state,
         gameEventData: {
@@ -64,14 +53,12 @@ const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
           ...state,
           nextButtonDisabled: gameEventData?.remainingTime === '',
         }))
-        // setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
       case 1:
         update(state => ({
           ...state,
           nextButtonDisabled: !gameEventData?.suffered,
         }))
-        // setNextButtonDisabled(!gameEventData?.suffered)
         break
     }
   }, [gameEventData, activeStep])
@@ -93,11 +80,9 @@ const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(suffered && suffered),
+                  ...(suffered && { suffered }),
                 },
               }))
-              // setGameEventData(state => ({ ...state, suffered }))
-              // setNextButtonDisabled(false)
               handleNextStep()
             }}
             selected={gameEventData?.suffered || null}
@@ -125,13 +110,9 @@ const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
                   ...state,
                   gameEventData: {
                     ...state.gameEventData,
-                    ...(injuryType && injuryType),
+                    ...(injuryType && { injuryType }),
                   },
                 }))
-                // setGameEventData(state => ({
-                //   ...state,
-                //   injuryType,
-                // }))
               }}
             />
           </Grid>
@@ -151,10 +132,6 @@ const InjuryForm: React.FC<TEventTypeForm> = React.memo(props => {
                     description: e.target.value,
                   },
                 }))
-                // setGameEventData(state => ({
-                //   ...state,
-                //   description: e.target.value,
-                // }))
               }}
               fullWidth
               inputProps={{

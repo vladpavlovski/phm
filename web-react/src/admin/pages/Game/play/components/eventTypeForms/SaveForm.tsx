@@ -13,10 +13,6 @@ import TableRow from '@mui/material/TableRow'
 import { PlayerSelect, RemainingTime } from './components'
 import { GameEventFormContext } from '../../components/GameEventWizard'
 import { TEventTypeForm } from './index'
-// const formInitialState = {
-//   remainingTime: '00:00',
-//   savedBy: null,
-// }
 
 const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
   const { gameEventSettings, activeStep, players, handleNextStep } = props
@@ -24,10 +20,6 @@ const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
   const {
     state: { gameEventData, tempRemainingTime },
     update,
-    // setNextButtonDisabled,
-    // gameEventData,
-    // setGameEventData,
-    // tempRemainingTime,
   } = React.useContext(GameEventFormContext)
 
   const activeStepData = React.useMemo(
@@ -37,11 +29,6 @@ const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
 
   React.useEffect(() => {
     if (!gameEventData)
-      // setGameEventData({
-      //   ...formInitialState,
-      //   timestamp: dayjs().format(),
-      //   remainingTime: tempRemainingTime.current,
-      // })
       update(state => ({
         ...state,
         gameEventData: {
@@ -58,7 +45,6 @@ const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
           ...state,
           nextButtonDisabled: gameEventData?.remainingTime === '',
         }))
-        // setNextButtonDisabled(gameEventData?.remainingTime === '')
         break
     }
   }, [gameEventData, activeStep])
@@ -80,11 +66,10 @@ const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
                 nextButtonDisabled: false,
                 gameEventData: {
                   ...state.gameEventData,
-                  ...(savedBy && savedBy),
+                  ...(savedBy && { savedBy }),
                 },
               }))
-              // setGameEventData(state => ({ ...state, savedBy }))
-              // setNextButtonDisabled(false)
+
               handleNextStep()
             }}
             selected={gameEventData?.savedBy || null}

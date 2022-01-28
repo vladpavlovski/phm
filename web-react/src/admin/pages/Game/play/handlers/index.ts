@@ -79,9 +79,9 @@ export const prepareGameResultUpdate = (
 ): Record<string, unknown> => {
   const { gameData, gameEventSettings, host, changeUp = true } = props
   const period = gameData?.gameResult?.periodActive
-  const possiblePeriod: PeriodStatistic = ensure(
+  const possiblePeriod: PeriodStatistic | undefined =
     gameData?.gameResult?.periodStatistics?.find(ps => ps.period === period)
-  )
+
   const fieldName = getFieldName({
     host,
     type: gameEventSettings.type,
@@ -92,10 +92,12 @@ export const prepareGameResultUpdate = (
     gameData?.gameResult
   )
 
-  const fieldValuePeriod = getKeyValue<keyof PeriodStatistic, PeriodStatistic>(
-    fieldName as keyof PeriodStatistic,
-    possiblePeriod
-  )
+  const fieldValuePeriod = possiblePeriod
+    ? getKeyValue<keyof PeriodStatistic, PeriodStatistic>(
+        fieldName as keyof PeriodStatistic,
+        possiblePeriod
+      )
+    : null
 
   const preparedOutput = {
     where: {
