@@ -1,4 +1,5 @@
 import { Game, GameResult, PeriodStatistic } from 'utils/types'
+
 import { TEventType } from '../components/gameEvents'
 type TFieldNameParams = {
   type: string
@@ -51,7 +52,7 @@ type TPrepareGameResultUpdate = {
   gameData: Game
   gameEventSettings: TEventType
   host: boolean
-  changeUp?: boolean
+  changeUp?: boolean | null
 }
 
 export const getKeyValue = <T extends keyof U, U>(key: T, obj: U): U[T] =>
@@ -106,7 +107,8 @@ export const prepareGameResultUpdate = (
     update: {
       ...(fieldName && {
         [fieldName]:
-          typeof fieldValueGameResult === 'number'
+          typeof fieldValueGameResult === 'number' &&
+          typeof changeUp === 'boolean'
             ? changeUp
               ? fieldValueGameResult + 1
               : fieldValueGameResult - 1
@@ -123,7 +125,8 @@ export const prepareGameResultUpdate = (
                   node: {
                     period,
                     [fieldName]:
-                      typeof fieldValuePeriod === 'number'
+                      typeof fieldValuePeriod === 'number' &&
+                      typeof changeUp === 'boolean'
                         ? changeUp
                           ? fieldValuePeriod + 1
                           : fieldValuePeriod - 1

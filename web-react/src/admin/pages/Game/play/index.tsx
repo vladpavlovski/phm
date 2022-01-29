@@ -609,7 +609,7 @@ const Play: React.FC = () => {
               teams={gameData?.teamsConnection?.edges}
               players={gameData?.playersConnection?.edges}
               gameData={gameData}
-              // gameSettings={gameSettings}
+              gameSettings={gameSettings}
             />
           </Grid>
         </Grid>

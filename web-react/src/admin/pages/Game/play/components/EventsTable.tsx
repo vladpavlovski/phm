@@ -1,11 +1,11 @@
 import React from 'react'
-// import PropTypes from 'prop-types'
+
 import { gql, useMutation } from '@apollo/client'
 import dayjs from 'dayjs'
 import Img from 'react-cool-img'
 import { useSnackbar } from 'notistack'
 
-// import EditIcon from '@mui/icons-material/Edit'
+import EditIcon from '@mui/icons-material/Edit'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
@@ -25,10 +25,11 @@ import { useStyles } from '../../../commonComponents/styled'
 import { getEventSettings, TEventType } from './gameEvents'
 import { setIdFromEntityId } from 'utils'
 
-// import GameEventFormContext from '../context'
+import { GameEventFormContext, TWizardGameEventSimple } from './GameEventWizard'
 import { prepareGameResultUpdate, ensure } from '../handlers'
 import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
-import { Game, Player, Team, GameEventSimple } from 'utils/types'
+import { Game, Player, Team, GameEventSimple, RulePack } from 'utils/types'
+
 const DELETE_GAME_EVENT_SIMPLE = gql`
   mutation deleteGameEventSimple(
     $where: GameEventSimpleWhere
@@ -97,11 +98,11 @@ type TEventsTable = {
   gameData: Game
   players: { node: Player; jersey: number }[]
   teams: { node: Team; host: boolean }[]
+  gameSettings: RulePack
 }
 
 const EventsTable: React.FC<TEventsTable> = props => {
-  //gameSettings
-  const { gameData, players, teams } = props
+  const { gameData, players, teams, gameSettings } = props
   const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const [openDeleteEventDialog, setOpenDeleteEventDialog] =
@@ -111,8 +112,7 @@ const EventsTable: React.FC<TEventsTable> = props => {
 
   const gameEventSimpleIdToDelete = React.useRef<GameEventSimple | null>(null)
 
-  // const { setGameEventSettings, setGameEventData, setOpenGameEventDialog } =
-  //   React.useContext(GameEventFormContext)
+  const { update } = React.useContext(GameEventFormContext)
 
   const [deleteGameEventSimple] = useMutation(DELETE_GAME_EVENT_SIMPLE, {
     update(cache, { data }) {
@@ -187,18 +187,18 @@ const EventsTable: React.FC<TEventsTable> = props => {
         renderCell: params => {
           return (
             <>
-              {/* <IconButton
+              <IconButton
                 type="button"
                 size="small"
-                variant="contained"
                 color="primary"
                 onClick={() => {
                   // find and set gameEventSettings based on eventTypeCode
-                  const data = getEventSettings(params.row?.eventTypeCode)
-                  setGameEventSettings(data)
+                  const data = getEventSettings(
+                    params.row?.eventTypeCode
+                  ) as TEventType
 
                   // compose gameEventData object
-                  const gameEventDataObject = {
+                  const gameEventDataObject: TWizardGameEventSimple = {
                     ...params.row,
                     goalType:
                       gameSettings?.goalTypes?.find(
@@ -295,21 +295,23 @@ const EventsTable: React.FC<TEventsTable> = props => {
                           params.row?.savedBy?.player?.playerId
                       ) || null,
                   }
-
-                  // set setGameEventData
-                  setGameEventData(gameEventDataObject)
                   // detect host/guest team
                   const isHost = teams?.find(
-                    t => t?.team?.teamId === params.row?.team?.teamId
+                    t => t?.node?.teamId === params.row?.team?.teamId
                   )?.host
-                  // open eventType dialog
-                  setOpenGameEventDialog(isHost ? 'host' : 'guest')
+
+                  update(state => ({
+                    ...state,
+                    gameEventSettings: data,
+                    gameEventData: gameEventDataObject,
+                    openGameEventDialog: isHost ? 'host' : 'guest',
+                  }))
                 }}
               >
                 <Tooltip arrow title="Edit" placement="top">
                   <EditIcon />
                 </Tooltip>
-              </IconButton> */}
+              </IconButton>
               <IconButton
                 type="button"
                 size="small"
@@ -645,7 +647,7 @@ const EventsTable: React.FC<TEventsTable> = props => {
         disableColumnMenu: true,
         resizable: false,
         valueFormatter: params =>
-          params?.value ? dayjs(Number(params.value)).format('HH:mm:ss') : '',
+          params?.value ? dayjs(String(params.value)).format('HH:mm:ss') : '',
       },
     ],
     [players, teams]
@@ -709,72 +711,74 @@ const EventsTable: React.FC<TEventsTable> = props => {
           />
         </div>
       )}
-      <Dialog
-        open={openDeleteEventDialog}
-        onClose={() => {
-          setOpenDeleteEventDialog(false)
-          gameEventSimpleIdToDelete.current = null
-        }}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {'Do you really want to delete it?'}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This action will permanently delete this entity. Are you sure?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setOpenDeleteEventDialog(false)
-              gameEventSimpleIdToDelete.current = null
-            }}
-          >
-            No, leave it
-          </Button>
-          <Button
-            disabled={!!gameEventSimpleIdToDelete.current}
-            onClick={() => {
-              if (gameEventSimpleIdToDelete.current) {
+      {openDeleteEventDialog && (
+        <Dialog
+          open={openDeleteEventDialog}
+          onClose={() => {
+            setOpenDeleteEventDialog(false)
+            gameEventSimpleIdToDelete.current = null
+          }}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {'Do you really want to delete it?'}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This action will permanently delete this entity. Are you sure?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
                 setOpenDeleteEventDialog(false)
-                const gameEventSettings = getEventSettings(
-                  gameEventSimpleIdToDelete.current.eventTypeCode
-                ) as TEventType
+                gameEventSimpleIdToDelete.current = null
+              }}
+            >
+              No, leave it
+            </Button>
+            <Button
+              disabled={!gameEventSimpleIdToDelete.current?.gameEventSimpleId}
+              onClick={() => {
+                if (gameEventSimpleIdToDelete.current) {
+                  setOpenDeleteEventDialog(false)
+                  const gameEventSettings = getEventSettings(
+                    gameEventSimpleIdToDelete.current.eventTypeCode
+                  ) as TEventType
 
-                const isHost = ensure(
-                  teams?.find(
-                    t =>
-                      t?.node?.teamId ===
-                      gameEventSimpleIdToDelete.current?.team?.teamId
-                  )?.host
-                )
+                  const isHost = ensure(
+                    teams?.find(
+                      t =>
+                        t?.node?.teamId ===
+                        gameEventSimpleIdToDelete.current?.team?.teamId
+                    )?.host
+                  )
 
-                const { where, update } = prepareGameResultUpdate({
-                  gameData,
-                  gameEventSettings,
-                  host: isHost,
-                  changeUp: false,
-                })
-                deleteGameEventSimple({
-                  variables: {
-                    where: {
-                      gameEventSimpleId:
-                        gameEventSimpleIdToDelete.current?.gameEventSimpleId,
+                  const { where, update } = prepareGameResultUpdate({
+                    gameData,
+                    gameEventSettings,
+                    host: isHost,
+                    changeUp: false,
+                  })
+                  deleteGameEventSimple({
+                    variables: {
+                      where: {
+                        gameEventSimpleId:
+                          gameEventSimpleIdToDelete.current?.gameEventSimpleId,
+                      },
+                      gameResultWhere: where,
+                      gameResultUpdateInput: update,
                     },
-                    gameResultWhere: where,
-                    gameResultUpdateInput: update,
-                  },
-                })
-              }
-            }}
-          >
-            Sure, delete it!
-          </Button>
-        </DialogActions>
-      </Dialog>
+                  })
+                }
+              }}
+            >
+              Sure, delete it!
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Paper>
   )
 }
