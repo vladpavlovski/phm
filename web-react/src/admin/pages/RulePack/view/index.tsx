@@ -1,30 +1,94 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
+import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
+import { getAdminOrgRulePackRoute } from 'router/routes'
+import { Title, LinkButton, XGridPage } from 'components'
+import { setIdFromEntityId } from 'utils'
 
-import { Grid } from '@mui/material'
+export const GET_RULEPACKS = gql`
+  query getRulePacks($where: RulePackWhere) {
+    rulePacks(where: $where) {
+      rulePackId
+      name
+    }
+  }
+`
 
-import LayoutContext from '../../../../context/layout'
-import { Helmet } from 'react-helmet-async'
-
-import XGridTable from './XGrid'
+type TParams = {
+  organizationSlug: string
+}
 
 const View: React.FC = () => {
-  const { setBarTitle } = useContext(LayoutContext)
+  const { organizationSlug } = useParams<TParams>()
+  const { error, loading, data } = useQuery(GET_RULEPACKS, {
+    variables: {
+      org: {
+        urlSlug: organizationSlug,
+      },
+    },
+    notifyOnNetworkStatusChange: true,
+    fetchPolicy: 'cache-and-network',
+  })
 
-  useEffect(() => {
-    setBarTitle('RulePack')
-    return () => {
-      setBarTitle('')
-    }
-  }, [])
+  const columns = React.useMemo<GridColumns>(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'rulePackId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgRulePackRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
+    ],
+    [organizationSlug]
+  )
+  const queryData = React.useMemo(
+    (): GridRowsProp[] =>
+      setIdFromEntityId(data?.rulePacks || [], 'rulePackId'),
+
+    [data]
+  )
+
+  const searchIndexes = React.useMemo(() => ['name'], [])
+
   return (
-    <Grid container spacing={3}>
-      <Helmet>
-        <title>Teams</title>
-      </Helmet>
-      <Grid item xs={12}>
-        <XGridTable />
-      </Grid>
-    </Grid>
+    <XGridPage
+      title="RulePack"
+      loading={loading}
+      error={error}
+      columns={columns}
+      rows={queryData}
+      searchIndexes={searchIndexes}
+    >
+      <div>
+        <Title>{'RulePacks'}</Title>
+      </div>
+      <div>
+        <LinkButton
+          startIcon={<AddIcon />}
+          to={getAdminOrgRulePackRoute(organizationSlug, 'new')}
+        >
+          Create
+        </LinkButton>
+      </div>
+    </XGridPage>
   )
 }
 

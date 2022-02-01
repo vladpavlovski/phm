@@ -1,30 +1,144 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
+import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
+import { getAdminOrgSeasonRoute } from 'router/routes'
+import { Title, LinkButton, XGridPage } from 'components'
+import { setIdFromEntityId } from 'utils'
+import dayjs from 'dayjs'
 
-import { Grid } from '@mui/material'
+const GET_SEASONS = gql`
+  query getSeasons($where: SeasonWhere) {
+    seasons(where: $where) {
+      seasonId
+      name
+      status
+      startDate
+      endDate
+      nick
+      org {
+        name
+      }
+    }
+  }
+`
 
-import LayoutContext from '../../../../context/layout'
-import { Helmet } from 'react-helmet-async'
-
-import XGridTable from './XGrid'
+type TParams = {
+  organizationSlug: string
+}
 
 const View: React.FC = () => {
-  const { setBarTitle } = useContext(LayoutContext)
+  const { organizationSlug } = useParams<TParams>()
+  const { error, loading, data } = useQuery(GET_SEASONS)
 
-  useEffect(() => {
-    setBarTitle('Seasons')
-    return () => {
-      setBarTitle('')
-    }
-  }, [])
+  const columns = React.useMemo<GridColumns>(
+    () => [
+      {
+        field: 'seasonId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgSeasonRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
+      },
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 100,
+        disableColumnMenu: true,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        width: 120,
+        disableColumnMenu: true,
+      },
+      {
+        field: 'startDate',
+        headerName: 'Start Date',
+        disableColumnMenu: true,
+        width: 180,
+        valueGetter: params => {
+          return params.row.startDate
+        },
+        valueFormatter: params => {
+          const stringifyDate = String(params.value)
+          return dayjs(stringifyDate).format('LL')
+        },
+      },
+      {
+        field: 'endDate',
+        headerName: 'End Date',
+        disableColumnMenu: true,
+        width: 180,
+        valueGetter: params => {
+          return params.row.endDate
+        },
+        valueFormatter: params => {
+          const stringifyDate = String(params.value)
+          return dayjs(stringifyDate).format('LL')
+        },
+      },
+      {
+        field: 'org',
+        headerName: 'Organization',
+        disableColumnMenu: true,
+        width: 250,
+        valueGetter: params => {
+          return params.row?.org?.name
+        },
+      },
+    ],
+    [organizationSlug]
+  )
+
+  const queryData = React.useMemo(
+    (): GridRowsProp[] => setIdFromEntityId(data?.seasons || [], 'seasonId'),
+
+    [data]
+  )
+
+  const searchIndexes = React.useMemo(
+    () => ['name', 'nick', 'status', 'org'],
+    []
+  )
+
   return (
-    <Grid container spacing={3}>
-      <Helmet>
-        <title>Seasons</title>
-      </Helmet>
-      <Grid item xs={12}>
-        <XGridTable />
-      </Grid>
-    </Grid>
+    <XGridPage
+      title="Seasons"
+      loading={loading}
+      error={error}
+      columns={columns}
+      rows={queryData}
+      searchIndexes={searchIndexes}
+    >
+      <div>
+        <Title>{'Seasons'}</Title>
+      </div>
+      <div>
+        <LinkButton
+          startIcon={<AddIcon />}
+          to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
+        >
+          Create
+        </LinkButton>
+      </div>
+    </XGridPage>
   )
 }
 

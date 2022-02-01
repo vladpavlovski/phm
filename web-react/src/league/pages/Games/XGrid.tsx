@@ -11,7 +11,7 @@ import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import { setIdFromEntityId } from 'utils'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { getColumns } from 'admin/pages/Game/view/XGrid'
+import { getColumns } from 'admin/pages/Game/view'
 import { useTheme } from '@mui/material/styles'
 
 import { Game } from 'utils/types'

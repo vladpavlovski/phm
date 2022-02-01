@@ -1,30 +1,92 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
+import { gql, useQuery } from '@apollo/client'
+import { useParams } from 'react-router-dom'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
+import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
+import { getAdminOrgVenueRoute } from 'router/routes'
+import { Title, LinkButton, XGridPage } from 'components'
+import { setIdFromEntityId } from 'utils'
 
-import { Grid } from '@mui/material'
+export const GET_VENUES = gql`
+  query getVenues {
+    venues {
+      venueId
+      name
+      nick
+    }
+  }
+`
 
-import LayoutContext from 'context/layout'
-import { Helmet } from 'react-helmet-async'
-
-import XGridTable from './XGrid'
+type TParams = {
+  organizationSlug: string
+}
 
 const View: React.FC = () => {
-  const { setBarTitle } = useContext(LayoutContext)
+  const { organizationSlug } = useParams<TParams>()
+  const { error, loading, data } = useQuery(GET_VENUES)
 
-  useEffect(() => {
-    setBarTitle('Venues')
-    return () => {
-      setBarTitle('')
-    }
-  }, [])
+  const columns = React.useMemo<GridColumns>(
+    () => [
+      {
+        field: 'venueId',
+        headerName: 'Edit',
+        width: 120,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            <LinkButton
+              startIcon={<EditIcon />}
+              to={getAdminOrgVenueRoute(organizationSlug, params.value)}
+            >
+              Edit
+            </LinkButton>
+          )
+        },
+      },
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
+      },
+      {
+        field: 'nick',
+        headerName: 'Nick',
+        width: 200,
+      },
+    ],
+    [organizationSlug]
+  )
+
+  const queryData = React.useMemo(
+    (): GridRowsProp[] => setIdFromEntityId(data?.venues || [], 'venueId'),
+
+    [data]
+  )
+
+  const searchIndexes = React.useMemo(() => ['name', 'nick'], [])
+
   return (
-    <Grid container spacing={3}>
-      <Helmet>
-        <title>Venues</title>
-      </Helmet>
-      <Grid item xs={12}>
-        <XGridTable />
-      </Grid>
-    </Grid>
+    <XGridPage
+      title="Venues"
+      loading={loading}
+      error={error}
+      columns={columns}
+      rows={queryData}
+      searchIndexes={searchIndexes}
+    >
+      <div>
+        <Title>{'Venues'}</Title>
+      </div>
+      <div>
+        <LinkButton
+          startIcon={<AddIcon />}
+          to={getAdminOrgVenueRoute(organizationSlug, 'new')}
+        >
+          Create
+        </LinkButton>
+      </div>
+    </XGridPage>
   )
 }
 
