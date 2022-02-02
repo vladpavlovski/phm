@@ -1,4 +1,5 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/687a8e7b-4dda-4bff-8138-2b979e63e11f/deploy-status)](https://app.netlify.com/sites/hockey-management-system/deploys)
+[![CodeFactor](https://www.codefactor.io/repository/github/vladpavlovski/phm/badge)](https://www.codefactor.io/repository/github/vladpavlovski/phm)
 
 # HMS - Hockey Management System
 
