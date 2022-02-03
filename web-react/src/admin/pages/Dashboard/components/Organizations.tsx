@@ -2,6 +2,7 @@ import React, { useMemo, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import Grid from '@mui/material/Grid'
 import Toolbar from '@mui/material/Toolbar'
+import Paper from '@mui/material/Paper'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import {
@@ -12,17 +13,14 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import Tooltip from '@mui/material/Tooltip'
 
-import OrganizationContext from '../../../../context/organization'
+import OrganizationContext from 'context/organization'
 import { useStyles } from '../../commonComponents/styled'
 import {
   getAdminOrganizationRoute,
   getAdminOrganizationDashboardRoute,
 } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
-import { Title } from 'components/Title'
-import { Error } from 'components/Error'
+import { LinkButton, Title, Error, Loader } from 'components'
 
-import { Loader } from 'components/Loader'
 import { setIdFromEntityId } from 'utils'
 
 const GET_ORGANIZATIONS = gql`
@@ -87,36 +85,38 @@ const Organizations: React.FC = () => {
   )
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={12} lg={12}>
-        <Toolbar className={classes.toolbarForm}>
-          <div>
-            <Title>{'Organizations'}</Title>
-          </div>
-          <div>
-            <LinkButton
-              startIcon={<AddIcon />}
-              to={getAdminOrganizationRoute('new')}
-              target="_blank"
-            >
-              Create
-            </LinkButton>
-          </div>
-        </Toolbar>
-        {loading && !error && <Loader />}
-        {error && !loading && <Error message={error.message} />}
-        {data && (
-          <div style={{ height: 440 }} className={classes.xGridWrapper}>
-            <DataGridPro
-              columns={columns}
-              rows={setIdFromEntityId(data.organizations, 'organizationId')}
-              loading={loading}
-              disableSelectionOnClick
-            />
-          </div>
-        )}
+    <Paper className={classes.paper}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={12} lg={12}>
+          <Toolbar className={classes.toolbarForm}>
+            <div>
+              <Title>{'Organizations'}</Title>
+            </div>
+            <div>
+              <LinkButton
+                startIcon={<AddIcon />}
+                to={getAdminOrganizationRoute('new')}
+                target="_blank"
+              >
+                Create
+              </LinkButton>
+            </div>
+          </Toolbar>
+          {loading && <Loader />}
+          <Error message={error?.message} />
+          {data && (
+            <div style={{ height: 440 }} className={classes.xGridWrapper}>
+              <DataGridPro
+                columns={columns}
+                rows={setIdFromEntityId(data.organizations, 'organizationId')}
+                loading={loading}
+                disableSelectionOnClick
+              />
+            </div>
+          )}
+        </Grid>
       </Grid>
-    </Grid>
+    </Paper>
   )
 }
 
