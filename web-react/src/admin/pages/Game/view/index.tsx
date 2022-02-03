@@ -162,13 +162,13 @@ export const getColumns = (organizationSlug: string): GridColumns => [
   {
     field: 'venue',
     headerName: 'Venue',
-    width: 150,
+    width: 130,
     valueGetter: params => params?.row?.venue?.name,
   },
   {
     field: 'hostTeam',
     headerName: 'Host team',
-    width: 230,
+    width: 170,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(
         (t: GameTeamsRelationship) => t?.host
@@ -183,7 +183,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
             alignItems: 'center',
           }}
         >
-          <span>{team?.name}</span>
+          <span>{team?.nick}</span>
           <Img
             src={team?.logo}
             style={{ width: '4rem', height: '4rem', marginLeft: '1rem' }}
@@ -224,17 +224,19 @@ export const getColumns = (organizationSlug: string): GridColumns => [
               ? `${params?.row?.org?.urlGameLinks}${params?.row?.gameId}`
               : ''
           }
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           <div
             style={{
-              width: '100%',
-              textAlign: 'center',
+              fontSize: '1.8rem',
               fontFamily: 'Digital Numbers Regular',
             }}
           >
-            <div style={{ fontSize: '1.8rem' }}>
-              <span>{goalsHost}</span>:<span>{goalsGuest}</span>
-            </div>
+            <span>{goalsHost}</span>:<span>{goalsGuest}</span>
           </div>
         </Link>
       )
@@ -243,7 +245,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
   {
     field: 'guestTeam',
     headerName: 'Guest team',
-    width: 230,
+    width: 170,
     renderCell: params => {
       const team = params?.row?.teamsConnection?.edges?.find(
         (t: GameTeamsRelationship) => !t?.host
@@ -263,7 +265,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
             style={{ width: '4rem', height: '4rem', marginRight: '1rem' }}
             alt={team?.name}
           />
-          <span>{team?.name}</span>
+          <span>{team?.nick}</span>
         </div>
       )
     },
