@@ -751,6 +751,7 @@ const View: React.FC = () => {
           'guestFaceOffs',
           'goalieGuest',
           'goalieHost',
+          'GameQrPayment',
         ]
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
 
@@ -776,6 +777,7 @@ const View: React.FC = () => {
           'guestSaves',
           'hostFaceOffs',
           'guestFaceOffs',
+          'GameQrPayment',
         ]
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
 
@@ -797,6 +799,7 @@ const View: React.FC = () => {
           'name',
           'gameStatus',
           'foreignId',
+          'GameQrPayment',
         ]
 
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
@@ -848,7 +851,7 @@ const View: React.FC = () => {
   )
   return (
     <XGridPage
-      title="Venues"
+      title="Games"
       loading={loadingGames}
       error={errorGames}
       columns={columns}
