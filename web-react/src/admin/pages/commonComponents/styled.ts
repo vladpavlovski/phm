@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: '4rem',
   },
   toolbarForm: {
+    padding: 0,
     display: 'flex',
     justifyContent: 'space-between',
   },

@@ -10,6 +10,7 @@ import LayoutContext from 'context/layout'
 import OrganizationContext from 'context/organization'
 import { Loader, Error } from 'components'
 import { useStyles } from '../../commonComponents/styled'
+import { ExternalLinks } from './components/ExternalLinks'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations($where: OrganizationWhere) {
@@ -69,7 +70,7 @@ const OrganizationDashboard: React.FC = () => {
   const classes = useStyles(theme)
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       <Error message={queryError?.message} />
       {organizationData?.organizationId && (
@@ -81,10 +82,7 @@ const OrganizationDashboard: React.FC = () => {
               >{`Organization Info: ${organizationData?.name}`}</Paper>
             </Grid>
             <Grid item xs={12} md={4} lg={5}>
-              <Paper className={classes.paper}>{/* <UserCount /> */}</Paper>
-            </Grid>
-            <Grid item xs={12}>
-              <Paper className={classes.paper}></Paper>
+              <ExternalLinks />
             </Grid>
           </Grid>
         </>
