@@ -14,7 +14,7 @@
   "author": "Vlad Pavlovski",
   "license": "MIT",
   "dependencies": {
-    "@apollo/client": "3.3.12",
+    "@apollo/client": "3.5.7",
     "@neo4j/graphql": "2.1.0",
     "apollo-server": "2.21.2",
     "apollo-server-lambda": "2.21.2",
