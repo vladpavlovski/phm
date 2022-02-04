@@ -11,7 +11,13 @@ import Avatar from '@mui/material/Avatar'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { DataGridPro, GridColumns, GridRowModel } from '@mui/x-data-grid-pro'
+import {
+  DataGridPro,
+  GridColumns,
+  GridRowModel,
+  GridSortApi,
+  useGridApiRef,
+} from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
@@ -274,8 +280,26 @@ const XGridTable: React.FC = () => {
     },
   })
 
+  const apiRef = useGridApiRef()
+
+  const getRowIndex = React.useCallback<GridSortApi['getRowIndex']>(
+    id =>
+      apiRef.current ? apiRef.current.getSortedRowIds().indexOf(id) + 1 : 0,
+    [apiRef]
+  )
+
   const columns = React.useMemo<GridColumns>(
     () => [
+      {
+        field: 'index',
+        headerName: '',
+        width: 5,
+        sortable: false,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return <>{getRowIndex(params.row.id)}</>
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',
@@ -439,6 +463,7 @@ const XGridTable: React.FC = () => {
               className={classes.xGridWrapper}
             >
               <DataGridPro
+                apiRef={apiRef}
                 disableSelectionOnClick
                 disableMultipleSelection
                 hideFooter
