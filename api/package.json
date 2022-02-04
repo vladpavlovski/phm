@@ -18,7 +18,7 @@
     "@neo4j/graphql": "2.1.0",
     "apollo-server": "2.21.2",
     "apollo-server-lambda": "2.21.2",
-    "aws-sdk": "2.1028.0",
+    "aws-sdk": "2.1058.0",
     "csv-parse": "4.15.3",
     "dotenv": "8.2.0",
     "express-jwt": "6.0.0",
