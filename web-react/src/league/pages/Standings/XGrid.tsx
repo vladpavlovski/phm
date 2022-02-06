@@ -246,12 +246,14 @@ type TGamesData = {
   groups: TGroup[]
 }
 
-const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
+const useLeagueGroupState = createPersistedState<Group | null>(
+  'HMS-LeagueStandingsGroup'
+)
 
 const XGridTable: React.FC = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams<TStandingsParams>()
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
+  const [selectedGroup, setSelectedGroup] = useLeagueGroupState()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 

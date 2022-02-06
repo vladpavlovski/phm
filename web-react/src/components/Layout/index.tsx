@@ -14,7 +14,7 @@ import { Drawer, AppBar, DrawerHeader } from './styled'
 import { MainListItems } from './listItems'
 // import { UserMenu } from './UserMenu'
 
-const useLayoutSidebarState = createPersistedState('HMS-LayoutSidebar')
+const useLayoutSidebarState = createPersistedState<boolean>('HMS-LayoutSidebar')
 
 const Layout: React.FC = props => {
   const { children } = props

@@ -37,7 +37,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 }))
 
 interface AppBarProps extends MuiAppBarProps {
-  open?: boolean
+  open: boolean
 }
 
 export const AppBar = styled(MuiAppBar, {

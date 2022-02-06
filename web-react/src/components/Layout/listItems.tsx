@@ -34,7 +34,7 @@ import { SubList } from './styled'
 
 import OrganizationContext from '../../context/organization'
 
-const useGeneralMenuState = createPersistedState('HMS-GeneralMenu')
+const useGeneralMenuState = createPersistedState<boolean>('HMS-GeneralMenu')
 
 type TListItemLink = ListItemIconProps &
   ListItemTextProps &

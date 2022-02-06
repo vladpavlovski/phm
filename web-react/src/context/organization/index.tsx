@@ -5,6 +5,13 @@ type ProviderPropsTypes = {
   children: React.ReactChild
 }
 
+type TOrgData = {
+  organizationId: string
+  urlSlug: string
+  name: string
+  nick: string
+}
+
 type ContextTypes = {
   organizationData: {
     organizationId: string
@@ -34,7 +41,9 @@ const initialContextState = {
 }
 const OrganizationContext =
   React.createContext<ContextTypes>(initialContextState)
-const useHMSOrganizationDataState = createPersistedState('HMS-OrganizationData')
+const useHMSOrganizationDataState = createPersistedState<TOrgData>(
+  'HMS-OrganizationData'
+)
 
 const OrganizationProvider: React.FC<ProviderPropsTypes> = props => {
   const [organizationData, setOrganizationData] = useHMSOrganizationDataState(

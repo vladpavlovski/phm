@@ -195,13 +195,13 @@ type TPlayersStatisticsParams = {
   organizationSlug: string
 }
 
-const useLeaguePlayerStatGroup = createPersistedState(
+const useLeaguePlayerStatGroup = createPersistedState<Group | null>(
   'HMS-LeaguePlayerStatGroup'
 )
-const useLeaguePlayerStatPhase = createPersistedState(
+const useLeaguePlayerStatPhase = createPersistedState<Phase | null>(
   'HMS-LeaguePlayerStatPhase'
 )
-const useLeaguePlayerStatCompetition = createPersistedState(
+const useLeaguePlayerStatCompetition = createPersistedState<Competition | null>(
   'HMS-LeaguePlayerStatCompetition'
 )
 
@@ -209,12 +209,10 @@ const XGridTable: React.FC = () => {
   const classes = useStyles()
   const { organizationSlug } = useParams<TPlayersStatisticsParams>()
 
-  const [selectedGroup, setSelectedGroup] =
-    useLeaguePlayerStatGroup<Group | null>(null)
-  const [selectedPhase, setSelectedPhase] =
-    useLeaguePlayerStatPhase<Phase | null>(null)
+  const [selectedGroup, setSelectedGroup] = useLeaguePlayerStatGroup(null)
+  const [selectedPhase, setSelectedPhase] = useLeaguePlayerStatPhase(null)
   const [selectedCompetition, setSelectedCompetition] =
-    useLeaguePlayerStatCompetition<Competition | null>(null)
+    useLeaguePlayerStatCompetition(null)
 
   const [actualSeason, setActualSeason] = React.useState<Season | null>(null)
   const windowSize = useWindowSize()
