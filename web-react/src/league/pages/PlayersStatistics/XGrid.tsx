@@ -145,6 +145,11 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
               edge.teamId === t.teamId && edge.star
           ).length
 
+          const gamesForTeam = p?.gamesConnection?.edges.filter(
+            (edge: { star: boolean | null; teamId: string }) =>
+              edge.teamId === t.teamId
+          ).length
+
           return {
             name: p?.name,
             playerId: p?.playerId,
@@ -152,7 +157,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
             avatar: p?.avatar,
             team: t,
             teamName: t.name,
-            gamesPlayed: p?.gamesConnection?.totalCount,
+            gamesPlayed: gamesForTeam,
             goals: goalsForTeam,
             assists: firstAssistsForTeam + secondAssistsForTeam,
             points: goalsForTeam + firstAssistsForTeam + secondAssistsForTeam,
