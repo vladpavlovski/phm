@@ -1,16 +1,14 @@
 import React from 'react'
-import { Controller, Control } from 'react-hook-form'
+import { Controller, Control, FieldError } from 'react-hook-form'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
 
-type TRHFInputComponent = TextFieldProps & {
+type TRHFInput = TextFieldProps & {
   control: Control
   name: string
-  error: {
-    message: string
-  }
+  error?: FieldError
 }
 
-const RHFInputComponent: React.FC<TRHFInputComponent> = props => {
+const RHFInput: React.FC<TRHFInput> = React.memo(props => {
   const { control, name, defaultValue, error, ...restProps } = props
   return (
     <Controller
@@ -22,7 +20,7 @@ const RHFInputComponent: React.FC<TRHFInputComponent> = props => {
           {...props}
           {...restProps}
           error={!!error}
-          helperText={!!error?.message}
+          helperText={error?.message}
           inputProps={{
             autoComplete: 'off',
           }}
@@ -30,11 +28,9 @@ const RHFInputComponent: React.FC<TRHFInputComponent> = props => {
       )}
     />
   )
-}
+})
 
-const RHFInput = React.memo(RHFInputComponent)
-
-RHFInputComponent.defaultProps = {
+RHFInput.defaultProps = {
   defaultValue: '',
   multiline: false,
   fullWidth: false,
