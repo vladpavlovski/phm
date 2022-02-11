@@ -234,28 +234,28 @@ const Competition: React.FC = () => {
       {(competitionData || competitionId === 'new') && (
         <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
           <Helmet>
-            <title>{competitionData.name || 'Competition'}</title>
+            <title>{competitionData?.name || 'Competition'}</title>
           </Helmet>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4} lg={3}>
               <Paper className={classes.paper}>
                 <Img
                   placeholder={placeholderOrganization}
-                  src={competitionData.logo}
+                  src={competitionData?.logo}
                   className={classes.logo}
-                  alt={competitionData.name}
+                  alt={competitionData?.name}
                 />
 
                 <RHFInput
                   style={{ display: 'none' }}
-                  defaultValue={competitionData.logo}
+                  defaultValue={competitionData?.logo}
                   control={control}
                   name="logo"
                   label="Logo URL"
                   disabled
                   fullWidth
                   variant="standard"
-                  error={errors.logo}
+                  error={errors?.logo}
                 />
 
                 {isValidUuid(competitionId) && (
@@ -303,7 +303,7 @@ const Competition: React.FC = () => {
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors?.name}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -314,7 +314,7 @@ const Competition: React.FC = () => {
                       label="Nick"
                       fullWidth
                       variant="standard"
-                      error={errors.nick}
+                      error={errors?.nick}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -325,7 +325,7 @@ const Competition: React.FC = () => {
                       label="Short"
                       fullWidth
                       variant="standard"
-                      error={errors.short}
+                      error={errors?.short}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
@@ -335,7 +335,7 @@ const Competition: React.FC = () => {
                       name="status"
                       label="Status"
                       defaultValue={competitionData?.status || ''}
-                      error={errors.status}
+                      error={errors?.status}
                     >
                       {timeUnitStatusList.map(s => {
                         return (
@@ -359,7 +359,7 @@ const Competition: React.FC = () => {
                       inputFormat={'DD/MM/YYYY'}
                       views={['year', 'month', 'day']}
                       defaultValue={competitionData?.foundDate}
-                      error={errors.foundDate}
+                      error={errors?.foundDate}
                     />
                   </Grid>
                 </Grid>
