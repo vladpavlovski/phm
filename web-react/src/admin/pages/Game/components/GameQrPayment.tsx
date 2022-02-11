@@ -11,12 +11,13 @@ type TGameQrPayment = {
   currency: string
   vs: string
   message: string
+  price: number
 }
 
 const imgQrStyle = { width: '16rem', height: '16rem' }
 
 const GameQrPayment: React.FC<TGameQrPayment> = React.memo(props => {
-  const { bankAccountNumber, bankCode, currency, vs, message } = props
+  const { bankAccountNumber, bankCode, currency, vs, message, price } = props
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
   const handleClick = React.useCallback(
@@ -52,7 +53,7 @@ const GameQrPayment: React.FC<TGameQrPayment> = React.memo(props => {
           placeholder={hmsLoader}
           src={`${
             config.qrGeneratorServer
-          }/czech/image?size=440&accountNumber=${bankAccountNumber}&bankCode=${bankCode}&amount=3600&currency=${currency.toUpperCase()}&vs=${vs}&message=${encodeURIComponent(
+          }/czech/image?size=440&accountNumber=${bankAccountNumber}&bankCode=${bankCode}&amount=${price}&currency=${currency.toUpperCase()}&vs=${vs}&message=${encodeURIComponent(
             message.trim()
           )}`}
           style={imgQrStyle}

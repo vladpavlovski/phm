@@ -49,6 +49,8 @@ export const GET_GAMES = gql`
       headline
       perex
       body
+      price
+      currency
       flickrAlbum
       venue {
         name
@@ -659,7 +661,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
     align: 'center',
     headerAlign: 'center',
     renderCell: params => {
-      const { foreignId, org, startDate, teamsConnection } = params.row
+      const { foreignId, org, startDate, teamsConnection, price } = params.row
       const { bankAccountCurrency, bankAccountNumber, bankCode } = org
       const hostTeamNick = teamsConnection.edges.find(
         (e: GameTeamsRelationship) => e.host
@@ -674,7 +676,8 @@ export const getColumns = (organizationSlug: string): GridColumns => [
         bankAccountNumber &&
         bankCode &&
         hostTeamNick &&
-        guestTeamNick
+        guestTeamNick &&
+        price
 
       return canBeRendered ? (
         <GameQrPayment
@@ -683,6 +686,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
           currency={bankAccountCurrency}
           vs={foreignId}
           message={`${hostTeamNick} - ${startDate} - ${guestTeamNick}`}
+          price={price}
         />
       ) : (
         <></>

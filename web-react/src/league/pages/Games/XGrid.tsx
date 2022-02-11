@@ -27,6 +27,7 @@ const GET_GAMES = gql`
       startTime
       timekeeper
       referee
+      price
       venue {
         name
       }
