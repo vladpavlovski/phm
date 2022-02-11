@@ -241,22 +241,22 @@ const Organization: React.FC = () => {
       const queryResult = client.readQuery({
         query: GET_ORGANIZATION,
         variables: {
-          where: { organizationId: orgData.organizationId },
+          where: { urlSlug: orgData?.organizationSlug },
         },
       })
 
       client.writeQuery({
         query: GET_ORGANIZATION,
         data: {
-          organization: [
+          organizations: [
             {
-              ...queryResult.organization[0],
+              ...queryResult?.organizations?.[0],
               logo: url,
             },
           ],
         },
         variables: {
-          where: { organizationId: orgData.organizationId },
+          where: { urlSlug: orgData?.organizationSlug },
         },
       })
       handleSubmit(onSubmit)()
