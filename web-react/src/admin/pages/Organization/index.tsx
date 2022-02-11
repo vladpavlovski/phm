@@ -150,7 +150,7 @@ const Organization: React.FC = () => {
     variables: { where: { urlSlug: organizationSlug } },
     skip: organizationSlug === 'new',
     onCompleted: data => {
-      if (data) {
+      if (data?.organizations?.length > 0) {
         const { organizationId, urlSlug, name, nick } = data?.organizations?.[0]
         setOrganizationData({
           organizationId,
@@ -170,7 +170,7 @@ const Organization: React.FC = () => {
   ] = useMutation(CREATE_ORGANIZATION, {
     onCompleted: data => {
       if (organizationSlug === 'new') {
-        const newId = data.mergeOrganization.organizationId
+        const newId = data?.createOrganizations?.organizations?.[0]?.urlSlug
         history.replace(getAdminOrganizationRoute(newId))
       }
       enqueueSnackbar('Organization created!', { variant: 'success' })
@@ -213,7 +213,7 @@ const Organization: React.FC = () => {
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
-        orgData.organizationId
+        orgData?.organizationId
           ? updateOrganization({
               variables: {
                 where: {
@@ -286,24 +286,24 @@ const Organization: React.FC = () => {
               <Paper className={classes.paper}>
                 <Img
                   placeholder={placeholderOrganization}
-                  src={orgData.logo}
+                  src={orgData?.logo}
                   className={classes.logo}
-                  alt={orgData.name}
+                  alt={orgData?.name}
                 />
 
                 <RHFInput
                   style={{ display: 'none' }}
-                  defaultValue={orgData.logo}
+                  defaultValue={orgData?.logo}
                   control={control}
                   name="logo"
                   label="Logo URL"
                   disabled
                   fullWidth
                   variant="standard"
-                  error={errors.logo}
+                  error={errors?.logo}
                 />
 
-                {isValidUuid(orgData.organizationId) && (
+                {isValidUuid(orgData?.organizationId) && (
                   <Uploader
                     buttonText={'Change logo'}
                     onSubmit={updateLogo}
@@ -339,30 +339,30 @@ const Organization: React.FC = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.name}
+                      defaultValue={orgData?.name}
                       control={control}
                       name="name"
                       label="Name"
                       required
                       fullWidth
                       variant="standard"
-                      error={errors.name}
+                      error={errors?.name}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.legalName}
+                      defaultValue={orgData?.legalName}
                       control={control}
                       name="legalName"
                       label="Legal name"
                       fullWidth
                       variant="standard"
-                      error={errors.legalName}
+                      error={errors?.legalName}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFInput
-                      defaultValue={orgData.nick}
+                      defaultValue={orgData?.nick}
                       control={control}
                       name="nick"
                       label="Nick"
@@ -471,7 +471,7 @@ const Organization: React.FC = () => {
               </Paper>
             </Grid>
           </Grid>
-          {isValidUuid(orgData.organizationId) && (
+          {isValidUuid(orgData?.organizationId) && (
             <Relations
               organizationId={orgData.organizationId}
               organization={orgData}
