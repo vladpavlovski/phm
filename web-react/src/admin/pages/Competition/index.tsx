@@ -99,7 +99,7 @@ const Competition: React.FC = () => {
   const { organizationData } = React.useContext(OrganizationContext)
   const {
     loading: queryLoading,
-    data: queryData,
+    data: { competitions: [competitionData] } = { competitions: [] },
     error: queryError,
   } = useQuery(GET_COMPETITION, {
     fetchPolicy: 'network-only',
@@ -138,8 +138,6 @@ const Competition: React.FC = () => {
         enqueueSnackbar('Competition was deleted!')
       },
     })
-
-  const competitionData = queryData?.competitions?.[0] || {}
 
   const { handleSubmit, control, errors, formState, setValue } = useForm({
     resolver: yupResolver(schema),
