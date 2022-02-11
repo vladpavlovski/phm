@@ -66,7 +66,6 @@ export const GET_GAME = gql`
       paymentTimekeeper
       paymentReferee
       price
-      currency
       headline
       perex
       body
@@ -216,7 +215,6 @@ export const UPDATE_GAME = gql`
         paymentTimekeeper
         paymentReferee
         price
-        currency
         headline
         perex
         body
@@ -880,20 +878,6 @@ const Game: React.FC = () => {
                         variant="standard"
                         error={errors?.price}
                       />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3} lg={3}>
-                      <RHFSelect
-                        fullWidth
-                        name="currency"
-                        label="Currency"
-                        id="currency"
-                        control={control}
-                        defaultValue={gameData?.currency ?? ' '}
-                        error={errors.currency}
-                        required={!!gameData.price}
-                      >
-                        <MenuItem value="czk">CZK</MenuItem>
-                      </RHFSelect>
                     </Grid>
                   </Grid>
                 </Paper>

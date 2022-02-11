@@ -27,5 +27,4 @@ export const schema = object().shape({
   paymentTimekeeper: string(),
   paymentReferee: string(),
   price: string().nullable(),
-  currency: string(),
 })

@@ -720,7 +720,6 @@ type Game @auth(rules: [{ allowUnauthenticated: true }]) {
   paymentTimekeeper: String @default(value: "notPaid")
   paymentReferee: String @default(value: "notPaid")
   price: Int
-  currency: String @default(value: "")
   headline: String
   perex: String
   body: String
