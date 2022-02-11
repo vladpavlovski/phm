@@ -65,6 +65,8 @@ export const GET_GAME = gql`
       paymentGuest
       paymentTimekeeper
       paymentReferee
+      price
+      currency
       headline
       perex
       body
@@ -213,6 +215,8 @@ export const UPDATE_GAME = gql`
         paymentGuest
         paymentTimekeeper
         paymentReferee
+        price
+        currency
         headline
         perex
         body
@@ -458,6 +462,7 @@ const Game: React.FC = () => {
   })
 
   React.useEffect(() => {
+    // console.log('run validate gameVenue')
     register('gameVenue', {
       validate: value => {
         return !!value?.venueId
@@ -468,14 +473,22 @@ const Game: React.FC = () => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { startDate, endDate, startTime, endTime, gameVenue, ...rest } =
-          dataToCheck
+        const {
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          gameVenue,
+          price,
+          ...rest
+        } = dataToCheck
         const dataToSubmit = {
           ...rest,
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
           ...decomposeTime(startTime, 'startTime'),
           ...decomposeTime(endTime, 'endTime'),
+          price: price ? parseInt(price) : null,
           org: {
             connect: {
               where: {
@@ -727,7 +740,7 @@ const Game: React.FC = () => {
                         id="combo-box-game-venue"
                         options={gameVenues || venuesData?.venues || []}
                         // value={gameData?.venue}
-                        defaultValue={gameData?.venue}
+                        defaultValue={gameData?.venue ?? ''}
                         renderInput={params => (
                           <TextField
                             variant="standard"
@@ -807,7 +820,7 @@ const Game: React.FC = () => {
                         label="Payment Host"
                         id="paymentHost"
                         control={control}
-                        defaultValue={gameData?.paymentHost || ''}
+                        defaultValue={gameData?.paymentHost ?? ' '}
                         error={errors.paymentHost}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -821,7 +834,7 @@ const Game: React.FC = () => {
                         label="Payment Guest"
                         id="paymentGuest"
                         control={control}
-                        defaultValue={gameData?.paymentGuest || ''}
+                        defaultValue={gameData?.paymentGuest ?? ' '}
                         error={errors.paymentGuest}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -835,7 +848,7 @@ const Game: React.FC = () => {
                         label="Payment Timekeeper"
                         id="paymentTimekeeper"
                         control={control}
-                        defaultValue={gameData?.paymentTimekeeper || ''}
+                        defaultValue={gameData?.paymentTimekeeper ?? ' '}
                         error={errors.paymentTimekeeper}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -849,11 +862,37 @@ const Game: React.FC = () => {
                         label="Payment Referee"
                         id="paymentReferee"
                         control={control}
-                        defaultValue={gameData?.paymentReferee || ''}
+                        defaultValue={gameData?.paymentReferee ?? ' '}
                         error={errors.paymentReferee}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
                         <MenuItem value="notPaid">Not paid</MenuItem>
+                      </RHFSelect>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFInput
+                        defaultValue={gameData?.price}
+                        control={control}
+                        name="price"
+                        label="Price"
+                        type="number"
+                        fullWidth
+                        variant="standard"
+                        error={errors?.price}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3} lg={3}>
+                      <RHFSelect
+                        fullWidth
+                        name="currency"
+                        label="Currency"
+                        id="currency"
+                        control={control}
+                        defaultValue={gameData?.currency ?? ' '}
+                        error={errors.currency}
+                        required={!!gameData.price}
+                      >
+                        <MenuItem value="czk">CZK</MenuItem>
                       </RHFSelect>
                     </Grid>
                   </Grid>
