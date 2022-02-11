@@ -1104,7 +1104,7 @@ type Organization {
   name: String
   nick: String
   short: String
-  status: String
+  status: ActivityStatus
   foundDate: Date
   legalName: String
   logo: String

@@ -12,25 +12,31 @@ import Img from 'react-cool-img'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-
+import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from '../../../components/Uploader'
-import { RHFDatepicker } from '../../../components/RHFDatepicker'
-import { RHFInput } from '../../../components/RHFInput'
-import { decomposeDate, isValidUuid } from '../../../utils'
-import { Title } from '../../../components/Title'
+
+import { decomposeDate, isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
+import { activityStatusList } from 'components/lists'
 
 import {
   ADMIN_ORGANIZATIONS,
   getAdminOrganizationRoute,
   NOT_FOUND,
 } from 'router/routes'
-import { Loader, Error } from 'components'
+import {
+  Loader,
+  Error,
+  Title,
+  RHFInput,
+  RHFSelect,
+  RHFDatepicker,
+  Uploader,
+} from 'components'
 
 import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
@@ -396,15 +402,24 @@ const Organization: React.FC = () => {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} lg={3}>
-                    <RHFInput
-                      defaultValue={orgData?.status}
+                    <RHFSelect
+                      fullWidth
                       control={control}
                       name="status"
                       label="Status"
-                      fullWidth
-                      variant="standard"
-                      error={errors?.status}
-                    />
+                      defaultValue={orgData?.status || ''}
+                      error={errors.status}
+                    >
+                      {activityStatusList
+                        .filter(s => s.value !== 'RETIRED')
+                        .map(s => {
+                          return (
+                            <MenuItem key={s.value} value={s.value}>
+                              {s.name}
+                            </MenuItem>
+                          )
+                        })}
+                    </RHFSelect>
                   </Grid>
 
                   <Grid item xs={12} sm={6} md={3} lg={3}>
