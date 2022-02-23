@@ -30,17 +30,21 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import LoadingButton from '@mui/lab/LoadingButton'
 import MenuItem from '@mui/material/MenuItem'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFDatepicker } from 'components/RHFDatepicker'
-import { RHFInput } from 'components/RHFInput'
-import { RHFSelect } from 'components/RHFSelect'
+import {
+  RHFDatepicker,
+  QuickSearchToolbar,
+  RHFInput,
+  RHFSelect,
+  Error,
+} from 'components'
 
-import { Error } from 'components/Error'
 import { timeUnitStatusList } from 'components/lists'
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId, decomposeDate, formatDate } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
 import { Competition, Phase, Season } from 'utils/types'
 const sortByName = (a: { name: string }, b: { name: string }) => {
   if (a?.name < b?.name) {
@@ -70,10 +74,10 @@ const GET_PHASES = gql`
           name
         }
       }
-    }
-    seasons(where: $whereSeason) {
-      seasonId
-      name
+      seasons(where: $whereSeason) {
+        seasonId
+        name
+      }
     }
   }
 `
@@ -89,6 +93,10 @@ const CREATE_COMPETITION_PHASE = gql`
         status
         startDate
         endDate
+        season {
+          seasonId
+          name
+        }
       }
     }
   }
@@ -108,6 +116,10 @@ const UPDATE_COMPETITION_PHASE = gql`
         status
         startDate
         endDate
+        season {
+          seasonId
+          name
+        }
       }
     }
   }
@@ -314,6 +326,23 @@ const Phases: React.FC<TRelations> = props => {
     []
   )
 
+  const searchIndexes = React.useMemo(
+    () => ['name', 'nick', 'short', 'status', 'startDate', 'endDate'],
+    []
+  )
+
+  const queryData = React.useMemo(
+    (): GridRowsProp[] =>
+      setIdFromEntityId(competition?.phases || [], 'phaseId'),
+
+    [competition]
+  )
+
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: queryData,
+  })
+
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
@@ -346,10 +375,19 @@ const Phases: React.FC<TRelations> = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
                 columns={competitionPhasesColumns}
-                rows={setIdFromEntityId(competition?.phases, 'phaseId')}
+                rows={searchData}
                 loading={queryLoading}
                 components={{
-                  Toolbar: GridToolbar,
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => requestSearch(event.target.value),
+                    clearSearch: () => requestSearch(''),
+                  },
                 }}
                 sortModel={[
                   {
@@ -642,10 +680,9 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                         isOptionEqualToValue={(option, value) =>
                           option?.seasonId === value?.seasonId
                         }
-                        // getOptionSelected={(option, value) =>
-                        //   option.seasonId === value.seasonId
-                        // }
-                        options={[...competition.seasons].sort(sortByName)}
+                        options={[...(competition?.seasons || [])].sort(
+                          sortByName
+                        )}
                         onChange={(_, data) => {
                           handleSeasonChange(data)
                         }}

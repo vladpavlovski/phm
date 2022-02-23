@@ -32,15 +32,17 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import LoadingButton from '@mui/lab/LoadingButton'
 import MenuItem from '@mui/material/MenuItem'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import { RHFSelect } from 'components/RHFSelect'
+import { DataGridPro, GridRowsProp, GridColumns } from '@mui/x-data-grid-pro'
+import { QuickSearchToolbar, RHFInput, RHFSelect, Error } from 'components'
+
 import { timeUnitStatusList } from 'components/lists'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFInput } from 'components/RHFInput'
-import { Error } from 'components/Error'
+
 import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from 'utils'
 import { Competition, Group, Season } from 'utils/types'
+import { useXGridSearch } from 'utils/hooks'
+
 const GET_GROUPS = gql`
   query getCompetition($where: CompetitionWhere) {
     competitions(where: $where) {
@@ -58,10 +60,10 @@ const GET_GROUPS = gql`
           name
         }
       }
-    }
-    seasons {
-      seasonId
-      name
+      seasons {
+        seasonId
+        name
+      }
     }
   }
 `
@@ -306,6 +308,22 @@ const Groups: React.FC<TRelations> = props => {
     []
   )
 
+  const searchIndexes = React.useMemo(
+    () => ['name', 'nick', 'short', 'status', 'limit'],
+    []
+  )
+
+  const queryData = React.useMemo(
+    (): GridRowsProp[] => setIdFromEntityId(competition?.groups, 'groupId'),
+
+    [competition]
+  )
+
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: queryData,
+  })
+
   return (
     <Accordion onChange={openAccordion}>
       <AccordionSummary
@@ -338,10 +356,19 @@ const Groups: React.FC<TRelations> = props => {
             <div style={{ height: 600 }} className={classes.xGridDialog}>
               <DataGridPro
                 columns={competitionGroupsColumns}
-                rows={setIdFromEntityId(competition?.groups, 'groupId')}
+                rows={searchData}
                 loading={queryLoading}
                 components={{
-                  Toolbar: GridToolbar,
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => requestSearch(event.target.value),
+                    clearSearch: () => requestSearch(''),
+                  },
                 }}
                 sortModel={[
                   {
@@ -614,10 +641,9 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                         isOptionEqualToValue={(option, value) =>
                           option?.seasonId === value?.seasonId
                         }
-                        // getOptionSelected={(option, value) =>
-                        //   option.seasonId === value.seasonId
-                        // }
-                        options={[...competition.seasons].sort(sortByName)}
+                        options={[...(competition?.seasons || [])].sort(
+                          sortByName
+                        )}
                         onChange={(_, data) => {
                           handleSeasonChange(data)
                         }}
