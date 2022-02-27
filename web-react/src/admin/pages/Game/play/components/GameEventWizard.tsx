@@ -694,6 +694,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
   }, [])
 
   const handleClose = React.useCallback(() => {
+    setActiveStep(0)
     update(state => ({
       ...state,
       gameEventData: null,

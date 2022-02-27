@@ -104,10 +104,10 @@ const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
               renderInput={params => (
                 <TextField {...params} autoFocus label="Penalty type" />
               )}
-              getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value.name
-              }
+              getOptionLabel={option => option?.name || ''}
+              isOptionEqualToValue={(option, value) => {
+                return option && value && option.name === value.name
+              }}
               onChange={(_, penaltyType) => {
                 update(state => ({
                   ...state,
@@ -127,7 +127,11 @@ const PenaltyForm: React.FC<TEventTypeForm> = React.memo(props => {
               label="Duration"
               name="Duration"
               variant="standard"
-              value={gameEventData?.duration}
+              type="number"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={gameEventData?.duration || ''}
               onChange={e => {
                 update(state => ({
                   ...state,
