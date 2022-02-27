@@ -40,16 +40,27 @@ type TListItemLink = ListItemIconProps &
   ListItemTextProps &
   LinkProps & {
     icon: React.ReactElement
+    title: string
+    open: boolean
   }
+
 const ListItemLink: React.FC<TListItemLink> = props => {
-  const { icon, primary, to, sx } = props
+  const { icon, primary, to, sx, title, open } = props
 
   return (
     <ListItem
       button
       sx={sx}
       component={React.forwardRef<HTMLAnchorElement>((itemProps, ref) => (
-        <RouterLink to={to} ref={ref} {...itemProps} />
+        <Tooltip
+          arrow
+          title={title}
+          placement="right"
+          disableHoverListener={open}
+          TransitionComponent={Zoom}
+        >
+          <RouterLink to={to} ref={ref} {...itemProps} />
+        </Tooltip>
       ))}
     >
       {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
@@ -157,18 +168,10 @@ const MainListItems: React.FC<TMainListItems> = props => {
         <ListSubheader>System</ListSubheader>
         {systemListMenu.map(listItem => (
           <ListItemLink
+            open={open}
+            title={listItem.title}
             key={listItem.title}
-            icon={
-              <Tooltip
-                arrow
-                title={listItem.title}
-                placement="right"
-                disableHoverListener={open}
-                TransitionComponent={Zoom}
-              >
-                {listItem.icon}
-              </Tooltip>
-            }
+            icon={listItem.icon}
             primary={listItem.title}
             to={listItem.to}
           />
@@ -187,17 +190,17 @@ const MainListItems: React.FC<TMainListItems> = props => {
                 setGeneralOpen(!generalOpen)
               }}
             >
-              <ListItemIcon>
-                <Tooltip
-                  arrow
-                  title="General"
-                  placement="right"
-                  disableHoverListener={open}
-                  TransitionComponent={Zoom}
-                >
+              <Tooltip
+                arrow
+                title="General"
+                placement="right"
+                disableHoverListener={open}
+                TransitionComponent={Zoom}
+              >
+                <ListItemIcon>
                   <SportsHockey />
-                </Tooltip>
-              </ListItemIcon>
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="General" />
               {generalOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
@@ -205,19 +208,11 @@ const MainListItems: React.FC<TMainListItems> = props => {
               <SubList disablePadding open={open}>
                 {generalListMenu.map(listItem => (
                   <ListItemLink
-                    sx={{ padding: '2px 16px' }}
+                    open={open}
+                    title={listItem.title}
                     key={listItem.title}
-                    icon={
-                      <Tooltip
-                        arrow
-                        title={listItem.title}
-                        placement="right"
-                        disableHoverListener={open}
-                        TransitionComponent={Zoom}
-                      >
-                        {listItem.icon}
-                      </Tooltip>
-                    }
+                    sx={{ padding: '2px 16px' }}
+                    icon={listItem.icon}
                     primary={listItem.title}
                     to={listItem.to(organizationData?.urlSlug)}
                   />
@@ -227,18 +222,10 @@ const MainListItems: React.FC<TMainListItems> = props => {
             {}
             {organizationListMenu.map(listItem => (
               <ListItemLink
+                open={open}
+                title={listItem.title}
                 key={listItem.title}
-                icon={
-                  <Tooltip
-                    arrow
-                    title={listItem.title}
-                    placement="right"
-                    disableHoverListener={open}
-                    TransitionComponent={Zoom}
-                  >
-                    {listItem.icon}
-                  </Tooltip>
-                }
+                icon={listItem.icon}
                 primary={listItem.title}
                 to={listItem.to(organizationData?.urlSlug)}
               />
