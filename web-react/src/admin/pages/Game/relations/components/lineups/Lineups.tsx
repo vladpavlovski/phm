@@ -157,7 +157,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
   const [playerDialog, setPlayerDialog] = useState(false)
   const { organizationSlug } = useParams<TParams>()
   const classes = useStyles()
-  // const { enqueueSnackbar } = useSnackbar()
 
   const [
     getTeamPlayers,
@@ -192,7 +191,11 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
         p => p.team?.teamId === team?.teamId
       )?.[0]
 
-      const jersey = firstJersey?.number || null
+      const jersey =
+        typeof firstJersey?.number === 'string'
+          ? parseInt(firstJersey.number)
+          : firstJersey?.number || null
+
       // typeof firstJersey?.number === 'object'
       //   ? firstJersey?.number?.low
       //   : firstJersey?.number || null
@@ -229,52 +232,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
   const handleClosePlayerDialog = useCallback(() => {
     setPlayerDialog(false)
   }, [])
-
-  // const [updateGame] = useMutation(UPDATE_GAME, {
-  //   update(cache, { data: { updateGame } }) {
-  //     try {
-  //       const queryResult = cache.readQuery({
-  //         query: GET_GAME,
-  //         variables: {
-  //           where: { gameId },
-  //         },
-  //       })
-  //       const updatedData = updateGame?.games?.find(
-  //         g => g.gameId === gameId
-  //       )?.playersConnection
-
-  //       const updatedResult = {
-  //         games: [
-  //           {
-  //             ...queryResult.games?.find(g => g.gameId === gameId),
-  //             playersConnection: updatedData,
-  //           },
-  //         ],
-  //         venues: queryResult?.venues,
-  //       }
-  //       cache.writeQuery({
-  //         query: GET_GAME,
-  //         data: updatedResult,
-  //         variables: {
-  //           where: { gameId },
-  //         },
-  //       })
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   },
-  //   onCompleted: () => {
-  //     enqueueSnackbar(`Game updated`, {
-  //       variant: 'success',
-  //     })
-  //   },
-  //   onError: error => {
-  //     enqueueSnackbar(`${error}`, {
-  //       variant: 'error',
-  //     })
-  //     console.error(error)
-  //   },
-  // })
 
   const lineupPlayers = useMemo(
     () => setXGridForRelation(players, 'playerId', 'node'),
@@ -683,7 +640,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
                 <ButtonDialog
                   text={'Remove Players'}
                   textLoading={'Removing...'}
-                  // loading={loadingUpdateGameTeam}
                   size="small"
                   startIcon={<RemoveCircleOutlineIcon />}
                   dialogTitle={'Do you want to remove all players from lineup?'}

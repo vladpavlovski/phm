@@ -50,7 +50,6 @@ export const GET_GAMES = gql`
       perex
       body
       price
-      currency
       flickrAlbum
       venue {
         name
@@ -744,7 +743,6 @@ const View: React.FC = () => {
           'perex',
           'body',
           'flickrAlbum',
-          'foreignId',
           'hostGoals',
           'guestGoals',
           'hostPenalties',

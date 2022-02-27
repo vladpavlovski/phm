@@ -818,7 +818,7 @@ const Game: React.FC = () => {
                         label="Payment Host"
                         id="paymentHost"
                         control={control}
-                        defaultValue={gameData?.paymentHost ?? ' '}
+                        defaultValue={gameData?.paymentHost ?? ''}
                         error={errors.paymentHost}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -832,7 +832,7 @@ const Game: React.FC = () => {
                         label="Payment Guest"
                         id="paymentGuest"
                         control={control}
-                        defaultValue={gameData?.paymentGuest ?? ' '}
+                        defaultValue={gameData?.paymentGuest ?? ''}
                         error={errors.paymentGuest}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -846,7 +846,7 @@ const Game: React.FC = () => {
                         label="Payment Timekeeper"
                         id="paymentTimekeeper"
                         control={control}
-                        defaultValue={gameData?.paymentTimekeeper ?? ' '}
+                        defaultValue={gameData?.paymentTimekeeper ?? ''}
                         error={errors.paymentTimekeeper}
                       >
                         <MenuItem value="paid">Paid</MenuItem>
@@ -860,7 +860,7 @@ const Game: React.FC = () => {
                         label="Payment Referee"
                         id="paymentReferee"
                         control={control}
-                        defaultValue={gameData?.paymentReferee ?? ' '}
+                        defaultValue={gameData?.paymentReferee ?? ''}
                         error={errors.paymentReferee}
                       >
                         <MenuItem value="paid">Paid</MenuItem>

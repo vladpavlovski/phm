@@ -1,5 +1,11 @@
 import React from 'react'
-import { FormControl, InputLabel, Select, SelectProps } from '@mui/material'
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  SelectProps,
+  MenuItem,
+} from '@mui/material'
 import { Controller, Control } from 'react-hook-form'
 
 type TRHFSelectComponent = SelectProps & {
@@ -28,6 +34,9 @@ const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
             name={name}
             labelId={labelId}
           >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
             {children}
           </Select>
         )}

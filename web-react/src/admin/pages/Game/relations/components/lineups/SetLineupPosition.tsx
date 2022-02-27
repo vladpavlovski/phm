@@ -67,7 +67,7 @@ const PositionDialog: React.FC<TPositionDialog> = React.memo(props => {
     setLineupPositionDialogOpen,
   } = props
 
-  const [positionValue, setPositionValue] = useState(player?.jersey || '')
+  const [positionValue, setPositionValue] = useState(player?.position || '')
 
   const handleCloseDialog = useCallback(() => {
     setLineupPositionDialogOpen(false)
