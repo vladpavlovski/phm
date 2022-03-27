@@ -1,10 +1,9 @@
 import React from 'react'
+import { IMaskInput } from 'react-imask'
 import Input from '@mui/material/Input'
 import InputLabel from '@mui/material/InputLabel'
-import { IMaskInput } from 'react-imask'
-
-import { GameEventFormContext } from '../../../components/GameEventWizard'
 import { TStep } from '../../../components/gameEvents'
+import { GameEventFormContext } from '../../../components/GameEventWizard'
 
 interface CustomProps {
   onChange: (event: { target: { name: string; value: string } }) => void
@@ -23,6 +22,7 @@ const TextMaskCustom = React.forwardRef<HTMLElement, CustomProps>(
         }}
         // @ts-expect-error check it later
         inputRef={ref}
+        // @ts-expect-error check it later
         onAccept={(value: string) =>
           onChange({ target: { name: props.name, value } })
         }
