@@ -1,42 +1,32 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-  MutationFunction,
-} from '@apollo/client'
-
 import { useSnackbar } from 'notistack'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { formatDate, setIdFromEntityId } from 'utils'
+import { Competition } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery, useMutation } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import AccountBox from '@mui/icons-material/AccountBox'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
+import { Error } from '../../../../../components/Error'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
+import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
-import { formatDate, setIdFromEntityId } from 'utils'
-import { Competition } from 'utils/types'
+
 const GET_SEASONS = gql`
   query getSeasons($where: CompetitionWhere) {
     competitions(where: $where) {

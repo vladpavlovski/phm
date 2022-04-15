@@ -1,32 +1,24 @@
-import React from 'react'
-import { useQuery, gql } from '@apollo/client'
-import { useParams } from 'react-router-dom'
-import createPersistedState from 'use-persisted-state'
-
-import { useTheme } from '@mui/material/styles'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
-import Stack from '@mui/material/Stack'
-import Button from '@mui/material/Button'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import {
-  DataGridPro,
-  GridColumns,
-  GridRowModel,
-  GridRowsProp,
-} from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
-import dayjs from 'dayjs'
-import { useWindowSize, useXGridSearch } from 'utils/hooks'
-
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import dayjs from 'dayjs'
+import React from 'react'
+import { useParams } from 'react-router-dom'
+import createPersistedState from 'use-persisted-state'
 import { getXGridHeight } from 'utils'
+import { useWindowSize, useXGridSearch } from 'utils/hooks'
+import { Competition, Group, Phase, Player, Season, Team } from 'utils/types'
+import { gql, useQuery } from '@apollo/client'
+import Avatar from '@mui/material/Avatar'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Chip from '@mui/material/Chip'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
+import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-
-import { Player, Group, Phase, Competition, Season, Team } from 'utils/types'
+import { DataGridPro, GridColumns, GridRowModel, GridRowsProp } from '@mui/x-data-grid-pro'
 
 const GET_PLAYERS_STATISTICS = gql`
   query getPlayersStatistics(
@@ -374,6 +366,7 @@ const XGridTable: React.FC = () => {
 
   const playersData = React.useMemo((): GridRowsProp[] => {
     const preparedData = countPlayersStatisticsData(data)
+    console.log(preparedData)
     return preparedData as GridRowsProp[]
   }, [data])
 

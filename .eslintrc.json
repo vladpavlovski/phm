@@ -7,9 +7,10 @@
     "jest": true
   },
   "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended",
-    "plugin:prettier/recommended"
+    "prettier"
+    // "eslint:recommended",
+    // "plugin:react/recommended",
+    // "plugin:prettier/recommended"
   ],
   "globals": {
     "Atomics": "readonly",
@@ -28,24 +29,17 @@
     }
   },
   "plugins": ["react", "prettier", "react-hooks", "jest"],
-  "rules": {
-    "prettier/prettier": "error",
-    "react/prop-types": "off",
-    "react/display-name": 0,
-    "no-unused-vars": "off"
-  },
+  "rules": {},
   "overrides": [
     {
       "files": ["**/*.ts", "**/*.tsx"],
       "env": { "browser": true, "es6": true, "node": true, "jest": true },
-      "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:react/recommended",
-        "plugin:prettier/recommended"
-      ],
-      "globals": { "Atomics": "readonly", "SharedArrayBuffer": "readonly" },
+      "extends": ["prettier", "eslint:recommended"],
+      "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly",
+        "JSX": "readonly"
+      },
       "parser": "@typescript-eslint/parser",
       "parserOptions": {
         "ecmaFeatures": {
@@ -66,10 +60,6 @@
         "@typescript-eslint"
       ],
       "rules": {
-        "prettier/prettier": "error",
-        "react/prop-types": "off",
-        "react/display-name": 0,
-        "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": "error"
       }
     }

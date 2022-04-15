@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const initBeforeUnLoad = <T,>(showExitPrompt: T) => {
   window.onbeforeunload = event => {

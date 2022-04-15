@@ -1,31 +1,27 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
+import { Error, LinkButton, Loader } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgSponsorRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { Player } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSponsorRoute } from 'router/routes'
-import { LinkButton, Loader, Error } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Player } from 'utils/types'
 
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
@@ -255,14 +251,14 @@ const Sponsors: React.FC<TSponsors> = props => {
   )
 }
 
-type ToggleNewSponsor = {
+type ToggleNewSponsorType = {
   playerId: string
   sponsorId: string
   player: Player
   updatePlayer: MutationFunction
 }
 
-const ToggleNewSponsor: React.FC<ToggleNewSponsor> = React.memo(props => {
+const ToggleNewSponsor: React.FC<ToggleNewSponsorType> = React.memo(props => {
   const { playerId, sponsorId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.sponsors.find(p => p.sponsorId === sponsorId)

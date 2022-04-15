@@ -1,23 +1,24 @@
-import React from 'react'
-import { MutationFunction } from '@apollo/client'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
+import { Title } from 'components/Title'
 import dayjs from 'dayjs'
+import React from 'react'
+import { Game, GameResult, PeriodStatistic, Team } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
+import CompareIcon from '@mui/icons-material/Compare'
+import SafetyDividerIcon from '@mui/icons-material/SafetyDivider'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Avatar from '@mui/material/Avatar'
+import Chip from '@mui/material/Chip'
+import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Toolbar from '@mui/material/Toolbar'
-import LoadingButton from '@mui/lab/LoadingButton'
-import CompareIcon from '@mui/icons-material/Compare'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
-import Stack from '@mui/material/Stack'
-import Avatar from '@mui/material/Avatar'
-import SafetyDividerIcon from '@mui/icons-material/SafetyDivider'
-
-import { Title } from 'components/Title'
-import { getKeyValue, setKeyValue, getFieldName } from '../play/handlers'
-import { Game, Team, PeriodStatistic, GameResult } from 'utils/types'
+import { getFieldName, getKeyValue, setKeyValue } from '../play/handlers'
 
 type TGameStatus = {
   gameData: Game
@@ -50,11 +51,7 @@ const GameStatus: React.FC<TGameStatus> = props => {
   }, [gameData, hostTeam, guestTeam])
 
   const recomputeGameResult = React.useCallback(() => {
-    const {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      __typename,
-      ...restGameData
-    } = gameData?.gameResult
+    const { __typename, ...restGameData } = gameData?.gameResult
     const gameResultNew: GameResult = {
       ...restGameData,
       periodStatistics: [],

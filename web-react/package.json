@@ -44,7 +44,6 @@
     "react-scripts": "^4.0.3",
     "react-timer-hook": "^3.0.5",
     "source-map-explorer": "^2.5.2",
-    "typescript": "^4.4.4",
     "use-persisted-state": "^0.3.3",
     "webfontloader": "^1.6.28",
     "yup": "^0.32.9"

@@ -1,19 +1,12 @@
-import React, { useState, useCallback } from 'react'
-
+import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
-
+import React, { useCallback, useState } from 'react'
+import Compress from 'react-image-file-resizer'
+import CloseIcon from '@mui/icons-material/Close'
+import { ButtonProps } from '@mui/material'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
-import CloseIcon from '@mui/icons-material/Close'
-
-import {
-  DropzoneDialogBase,
-  DropzoneDialogBaseProps,
-} from '../material-ui-dropzone'
-import dayjs from 'dayjs'
-import Compress from 'react-image-file-resizer'
-
-import { ButtonProps } from '@mui/material'
+import { DropzoneDialogBase, DropzoneDialogBaseProps } from '../material-ui-dropzone'
 
 // const S3_SIGN = gql`
 //   query CustomSignS3($filename: String!, $filetype: String!) {
@@ -49,6 +42,8 @@ type TFileObjects = {
   data: string | ArrayBuffer | null
   name?: string
 }[]
+
+type BlobPart = string | Blob | ArrayBufferView | ArrayBuffer
 
 const Uploader: React.FC<TUploader> = props => {
   const { buttonProps, buttonText, filesLimit, onSubmit, folderName, ...rest } =
