@@ -1,6 +1,5 @@
 import React from 'react'
 import * as R from 'ramda'
-import { v4 as uuidv4 } from 'uuid'
 import dayjs from 'dayjs'
 
 export const capitalize = R.converge(R.concat, [
@@ -27,8 +26,6 @@ export const getDateFromTime = time =>
   time && time !== '00:00:00Z'
     ? dayjs.tz(`2021-01-01 ${time}`, dayjs.tz.guess()).format()
     : null
-
-export const checkId = id => (id === 'new' ? uuidv4() : id)
 
 export const arrayToStringList = (data, keyId, keyValue = 'name') =>
   data && (
@@ -148,3 +145,5 @@ export const sortByStatus = (data, propName = 'activityStatus') => {
 
   return R.sort(byPriority, data)
 }
+
+export { createCtx } from './createCtx'

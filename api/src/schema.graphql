@@ -554,9 +554,6 @@ type MetaHistory {
   competition: Competition @relationship(type: "PARTICIPATE_IN", direction: OUT)
 }
 
-# person types: :TeamManager :Manager :Coach :CoachAssistant :Medic :Supporter :Referee :TimePicker :GameOfficial :LeagueOfficial
-# orgs: [Organization]
-#   @relationship(type: "HAS_ORGANIZATION_STAFF", direction: IN)
 type Person {
   personId: ID! @id
   name: String
@@ -695,6 +692,7 @@ interface TakingPartIn {
   captain: Boolean @default(value: false)
   goalkeeper: Boolean @default(value: false)
   star: Boolean @default(value: false)
+  teamId: ID
 }
 
 interface TeamGame {
@@ -721,6 +719,7 @@ type Game @auth(rules: [{ allowUnauthenticated: true }]) {
   paymentGuest: String @default(value: "notPaid")
   paymentTimekeeper: String @default(value: "notPaid")
   paymentReferee: String @default(value: "notPaid")
+  price: Int
   headline: String
   perex: String
   body: String
@@ -1105,12 +1104,16 @@ type Organization {
   name: String
   nick: String
   short: String
-  status: String
+  status: ActivityStatus
   foundDate: Date
   legalName: String
   logo: String
   urlSlug: String
+  urlGameLinks: String
   ownerId: ID
+  bankAccountNumber: String
+  bankAccountCurrency: String
+  bankCode: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)

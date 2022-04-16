@@ -1,46 +1,4 @@
 {
-  "style": {
-    "node-color": "#ffffff",
-    "border-width": 4,
-    "border-color": "#000000",
-    "radius": 50,
-    "node-padding": 5,
-    "node-margin": 2,
-    "outside-position": "auto",
-    "caption-position": "inside",
-    "caption-max-width": 200,
-    "caption-color": "#000000",
-    "caption-font-size": 50,
-    "caption-font-weight": "normal",
-    "label-position": "inside",
-    "label-color": "#000000",
-    "label-background-color": "#ffffff",
-    "label-border-color": "#000000",
-    "label-border-width": 4,
-    "label-font-size": 40,
-    "label-padding": 5,
-    "label-margin": 4,
-    "directionality": "directed",
-    "detail-position": "inline",
-    "detail-orientation": "parallel",
-    "arrow-width": 5,
-    "arrow-color": "#000000",
-    "margin-start": 5,
-    "margin-end": 5,
-    "margin-peer": 20,
-    "attachment-start": "normal",
-    "attachment-end": "normal",
-    "type-color": "#000000",
-    "type-background-color": "#ffffff",
-    "type-border-color": "#000000",
-    "type-border-width": 0,
-    "type-font-size": 40,
-    "type-padding": 5,
-    "property-position": "outside",
-    "property-color": "#000000",
-    "property-font-size": 40,
-    "property-font-weight": "normal"
-  },
   "nodes": [
     {
       "id": "n1",
@@ -60,7 +18,8 @@
         "legalName": "String"
       },
       "style": {
-        "radius": 240
+        "radius": 240,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -95,7 +54,8 @@
         "time": "Time"
       },
       "style": {
-        "radius": 185
+        "radius": 185,
+        "node-color": "#fcdc00"
       }
     },
     {
@@ -115,7 +75,8 @@
         "endDate": "Date"
       },
       "style": {
-        "radius": 155
+        "radius": 155,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -201,7 +162,8 @@
         "legalName": "String"
       },
       "style": {
-        "radius": 155
+        "radius": 155,
+        "node-color": "#f44e3b"
       }
     },
     {
@@ -243,7 +205,7 @@
       },
       "style": {
         "radius": 225,
-        "node-color": "#009ce0"
+        "node-color": "#fcc400"
       }
     },
     {
@@ -263,7 +225,8 @@
         "status": "String"
       },
       "style": {
-        "radius": 210
+        "radius": 210,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -285,7 +248,10 @@
         "foundDate": "Date",
         "capacity": "Int"
       },
-      "style": {}
+      "style": {
+        "radius": 155,
+        "node-color": "#73d8ff"
+      }
     },
     {
       "id": "n13",
@@ -309,7 +275,9 @@
         "longitude": "Float",
         "addressType": "String"
       },
-      "style": {}
+      "style": {
+        "node-color": "#73d8ff"
+      }
     },
     {
       "id": "n14",
@@ -329,7 +297,8 @@
         "status": "String"
       },
       "style": {
-        "radius": 130
+        "radius": 130,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -348,7 +317,8 @@
         "teamsLimit": "Int"
       },
       "style": {
-        "radius": 120
+        "radius": 120,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -476,7 +446,8 @@
         "foundDate": "Date"
       },
       "style": {
-        "radius": 130
+        "radius": 130,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -707,7 +678,9 @@
         "name": "String",
         "description": "String"
       },
-      "style": {}
+      "style": {
+        "node-color": "#b0bc00"
+      }
     },
     {
       "id": "n36",
@@ -774,63 +747,79 @@
         "createdAt": "DateTime"
       },
       "style": {
-        "radius": 165
+        "radius": 165,
+        "node-color": "#aea1ff"
       }
     },
     {
       "id": "n40",
       "position": {
-        "x": 1025.3937345361355,
+        "x": 1129.077723001008,
         "y": 9277.857838784756
       },
       "caption": ":Period",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n41",
       "position": {
-        "x": 1714.6660252514775,
+        "x": 2109.207145937028,
         "y": 9559.82096466162
       },
       "caption": ":GoalType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n42",
       "position": {
-        "x": 1714.6660252514775,
+        "x": 2109.207145937028,
         "y": 10214.01045388756
       },
       "caption": ":GoalSubType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n43",
       "position": {
-        "x": 2202.9883223574375,
+        "x": 2748.3425171737117,
         "y": 9559.82096466162
       },
       "caption": ":PenaltyType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n44",
       "position": {
-        "x": 2202.9883223574375,
+        "x": 2748.3425171737117,
         "y": 10214.01045388756
       },
       "caption": ":PenaltySubType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n45",
@@ -841,62 +830,80 @@
       "caption": ":PenaltyShotStatus",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n46",
       "position": {
-        "x": 1958.8271738044577,
+        "x": 2438.2006486885402,
         "y": 9559.82096466162
       },
       "caption": ":ShotType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n47",
       "position": {
-        "x": 1493.2733177606024,
+        "x": 1776.8026224707842,
         "y": 9277.857838784756
       },
       "caption": ":ShotTarget",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n48",
       "position": {
-        "x": 1958.8271738044577,
+        "x": 2438.2006486885402,
         "y": 10214.01045388756
       },
       "caption": ":ShotSubType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n49",
       "position": {
-        "x": 1714.6660252514775,
+        "x": 2109.207145937028,
         "y": 9277.857838784756
       },
       "caption": ":ShotStyle",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n50",
       "position": {
-        "x": 1271.8806102697272,
+        "x": 1447.0130179484518,
         "y": 9277.857838784756
       },
       "caption": ":GameEventLocation",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n51",
@@ -909,7 +916,9 @@
       "properties": {
         "mediaId": "ID! @id"
       },
-      "style": {}
+      "style": {
+        "node-color": "#b0bc00"
+      }
     },
     {
       "id": "n52",
@@ -939,7 +948,9 @@
       "properties": {
         "discussionId": "ID! @id"
       },
-      "style": {}
+      "style": {
+        "node-color": "#68bc00"
+      }
     },
     {
       "id": "n54",
@@ -1002,7 +1013,11 @@
       "caption": ":PositionType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "radius": 120,
+        "border-color": "#333333",
+        "node-color": "#aea1ff"
+      }
     },
     {
       "id": "n58",
@@ -1085,7 +1100,9 @@
       "properties": {
         "invitationListId": "ID! @id"
       },
-      "style": {}
+      "style": {
+        "node-color": "#b0bc00"
+      }
     },
     {
       "id": "n63",
@@ -1103,35 +1120,44 @@
     {
       "id": "n64",
       "position": {
-        "x": 1025.3937345361355,
+        "x": 1129.077723001008,
         "y": 9559.82096466162
       },
       "caption": ":InjuryType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n65",
       "position": {
-        "x": 1259.333526148369,
+        "x": 1434.4659338270935,
         "y": 9559.82096466162
       },
       "caption": ":ResultType",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n66",
       "position": {
-        "x": 1493.2733177606024,
+        "x": 1776.8026224707842,
         "y": 9559.82096466162
       },
       "caption": ":ResultPoint",
       "labels": [],
       "properties": {},
-      "style": {}
+      "style": {
+        "node-color": "#aea1ff",
+        "radius": 120
+      }
     },
     {
       "id": "n67",
@@ -1210,7 +1236,8 @@
       "style": {
         "label-background-color": "#ffffff",
         "label-color": "#000000",
-        "radius": 305
+        "radius": 305,
+        "node-color": "#009ce0"
       }
     },
     {
@@ -1256,7 +1283,7 @@
       },
       "style": {
         "radius": 200,
-        "node-color": "#009ce0"
+        "node-color": "#fcc400"
       }
     },
     {
@@ -1266,10 +1293,6 @@
         "y": 1005.9019158203131
       },
       "caption": ":PeriodStatistics",
-      "style": {
-        "node-color": "#009ce0",
-        "radius": 185
-      },
       "labels": [],
       "properties": {
         "periodStatisticsId": "Id",
@@ -1284,7 +1307,12 @@
         "hostSaves": "BigInt",
         "guestSaves": "BigInt",
         "hostFaceOffs": "BigInt",
-        "guestFaceOffs": "BigInt"
+        "guestFaceOffs": "BigInt",
+        "period": "String"
+      },
+      "style": {
+        "node-color": "#fcc400",
+        "radius": 185
       }
     }
   ],
@@ -3105,11 +3133,60 @@
     },
     {
       "id": "n222",
-      "type": "[:HAS_PERIOD_STATISTICS]",
-      "style": {},
-      "properties": {},
       "fromId": "n73",
-      "toId": "n74"
+      "toId": "n74",
+      "type": "[:HAS_PERIOD_STATISTICS]",
+      "properties": {},
+      "style": {}
     }
-  ]
+  ],
+  "style": {
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 40,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 40,
+    "property-font-weight": "normal"
+  }
 }

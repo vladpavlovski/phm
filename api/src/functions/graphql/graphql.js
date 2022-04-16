@@ -48,6 +48,8 @@ const neoSchema = new Neo4jGraphQL({
 const server = new ApolloServer({
   schema: neoSchema.schema,
   context: { driver, neo4jDatabase: NEO4J_DATABASE },
+  introspection: false,
+  playground: false,
 })
 
 exports.handler = server.createHandler()

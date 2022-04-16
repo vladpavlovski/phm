@@ -1,38 +1,21 @@
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://grandstack.io/deploy-starter-netlify) [![Deploy to Vercel](https://vercel.com/button)](https://grandstack.io/deploy-starter-vercel) [![Provision Neo4j](https://grandstack.io/img/provision-neo4j.png)](https://sandbox.neo4j.com/?usecase=blank-sandbox)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/687a8e7b-4dda-4bff-8138-2b979e63e11f/deploy-status)](https://app.netlify.com/sites/hockey-management-system/deploys)
+[![CodeFactor](https://www.codefactor.io/repository/github/vladpavlovski/phm/badge)](https://www.codefactor.io/repository/github/vladpavlovski/phm)
 
 # HMS - Hockey Management System
 
-```
-npx create-grandstack-app myNewApp
-```
+Hockey Management System is an app that facilitates and centralizes all aspects of management in a hockey league.
 
-This project is a starter for building a [GRANDstack](https://grandstack.io) (GraphQL, React, Apollo, Neo4j Database) application. There are two components to the starter, the web frontend application (in React and Angular flavors) and the API app (GraphQL server).
+### Database Model
 
-The starter represents a **business reviews dashboard**. You need to adjust the GraphQL schema, the seed data, database index creation, and the UI components for your use-case.
+Database model shows all entities and their connections between each other.
 
-[![Hands On With The GRANDstack Starter](http://img.youtube.com/vi/rPC71lUhK_I/0.jpg)](http://www.youtube.com/watch?v=1JLs166lPcA 'Hands On With The GRANDstack Starter')
+You can play with this model simply importing [JSON](./api/HMS_db_model.json) to [playground](https://arrows.app/). [Full size image](img/hms_db_data_model.png).
 
-_Hands On With The GRANDstack Starter Video_
+![](img/hms_db_data_model_preview.png)
 
-## Quickstart
+#### Local Development. Desktop App
 
-The easiest way to get started with the GRANDstack Starter is to create a Neo4j Sandbox instance and use the `create-grandstack-app` command line tool.
-
-(If you have a running Neo4j database on localhost via Neo4j Desktop or a Neo4j server installation, change the password in `api/.env`)
-
-### 1. Create A Neo4j Instance
-
-#### Option :one: - Sandbox
-
-[Neo4j Sandbox](https://neo4j.com/sandbox) allows you to create a free hosted Neo4j instance private to you that can be used for development.
-
-After singing in to Neo4j Sandbox, click the `+ New Project` button and select the "Blank Sandbox" option. In the next step we'll use the connection credentials from the "Connection details" tab to connect our GraphQL API to this Neo4j instance.
-
-![Neo4j Sandbox connection details](img/neo4j-sandbox.png)
-
-#### Option :two: - Desktop
-
-If you instead would like to use [Neo4j Desktop](https://neo4j.com/download/). The process will be almost the same with a minor detour. Install Neo4j Desktop for your chosen OS and then make a new blank graph for your project. It will require you to put in a password and username. Remember those.
+You need to install [Neo4j Desktop](https://neo4j.com/download/). Install Neo4j Desktop for your chosen OS and then make a new blank graph for your project. It will require you to put in a password and username. Remember those.
 
 Next you need to go to open the manage screen from the options in the 3 dot stack menu
 
@@ -42,45 +25,35 @@ And install the apoc plugin, green button at the top of the list.
 
 ![Plugins](img/apoc-install.png)
 
-After that you can return to setting up your app with the credentials from the prior steps.
+After that you can return to setting up the app with the credentials from the prior steps.
 
-### 2. Run the `create-grandstack-app` CLI
+### Install all dependencies
 
-```
-npx create-grandstack-app myNewApp
-```
-
-or with Yarn
+Root folder
 
 ```
-yarn create grandstack-app myNewApp
+npm install
 ```
 
-![create grandstack app output](img/create-grandstack-app.png)
-
-This will create a new directory `myNewApp`, download the latest release of the GRANDstack Starter, install dependencies and prompt for your connection credentials for Neo4j to connect to the GraphQL API.
-
-### 3. Seed the database (optional)
-
-Make sure your application is running locally with `npm start` or `yarn start`, open another terminal and run
+Front-end folder
 
 ```
-npm run seedDb
+cd web-react
+npm install
 ```
 
-or with Yarn
+Back-end folder
 
 ```
-yarn run seedDb
+// back to root folder
+cd ..
+cd api
+npm install
 ```
 
-### 4. Open In Browser
+## Overview
 
-![Grandstack app running in browser](img/grandstack-app.png)
-
-## <a name="overview"></a> Overview
-
-The GRANDstack Starter is a monorepo that includes a GraphQL API application and client web applications for React (default) and Angular for a business reviews dashboard.
+HMS is a monorepo that includes a GraphQL API application and client web application for React.
 
 ### `/` - Project Root
 
@@ -89,13 +62,15 @@ The root directory contains some global configuration and scripts:
 - `npm run start` and `npm run build`
 - ESLint (.eslintrc.json) for code linting
 - Prettier (.prettierrc.json) for code formatting
-- Git hooks for applying formatting on commit
+- Git hooks
+- Husky
+- Netlify (netlify.toml)
 
 ### [`/api`](./api)
 
 ![](img/graphql-playground.png)
 
-This directory contains the GraphQL API application using Apollo Server and neo4j-graphql.js.
+This directory contains the GraphQL API application using Apollo Server and @neo4j/graphql.
 
 - Change environment variable settings in `.env`:
 
@@ -107,12 +82,20 @@ This directory contains the GraphQL API application using Apollo Server and neo4
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=letmein
+NEO4J_DATABASE=neo4j
+
+# Ask administrator for private keys
+AUTH_DIRECTIVES_ROLE_KEY
+JWT_SECRET
+PRODUCTION_AWS_S3_BUCKET
+DEV_AWS_S3_BUCKET
+
+AWS_S3_REGION
+AWS_HMS_ACCESS_KEY_ID
+AWS_HMS_SECRET_ACCESS_KEY
 
 # Uncomment this line to enable encrypted driver connection for Neo4j
-#NEO4J_ENCRYPTED=true
-
-# Uncomment this line to specify a specific Neo4j database (v4.x+ only)
-#NEO4J_DATABASE=neo4j
+# NEO4J_ENCRYPTED=true
 
 GRAPHQL_SERVER_HOST=0.0.0.0
 GRAPHQL_SERVER_PORT=4001
@@ -121,8 +104,6 @@ GRAPHQL_SERVER_PATH=/graphql
 ```
 
 ### [`/web-react`](./web-react)
-
-![](img/grandstack-app.png)
 
 The frontend React web application is found in this directory.
 
@@ -133,84 +114,26 @@ It includes:
 - Apollo Client / React Hooks
 - Create React App
 
-### [`/web-angular`](./web-angular)
-
-![](web-angular/img/angular-ui.jpg)
-
-A UI built with [Angular](https://angular.io), [Apollo](https://www.apollographql.com/docs/angular/) and the [Clarity Design System](https://clarity.design) is also available.
-
-_Start the Angular UI server_
+- Change environment variable settings in `.env`:
 
 ```
-cd ./web-angular && npm start
-```
+# Ask administrator for private keys
+REACT_APP_GRAPHQL_URI=/graphql
+PROXY=http://localhost:4001/graphql
+REACT_APP_STAGE=development
+REACT_APP_AUTH0_DOMAIN
+REACT_APP_AUTH0_CLIENT_ID
+REACT_APP_AUTH0_AUDIENCE
+REACT_APP_AUTH0_SCOPE
+REACT_APP_X_GRID_KEY
 
-### [`/mobile_client_flutter`](./mobile_client_flutter)
-
-![](img/grandstack-flutter.png)
-
-A mobile client built with [Flutter](https://flutter.dev) which supports Android, iOS, and web. See the [README](./mobile_client_flutter/README.md) for detailed setup instructions.
-
-```
-cd ./mobile_client_flutter && flutter run
-```
-
-### [`/web-react-ts`](./web-react-ts)
-
-A UI built with [CRA](https://reactjs.org/docs/create-a-new-react-app.html)
-
-_Start the React dev server_
-
-```
-cd ./web-react-ts && npm start
 ```
 
 ## Deployment
 
 ### Netlify
 
-This monorepo can be deployed to Netlify. The frontend application will be served over Netlify's CDN and the GraphQL API will be provisioned as a serverless GraphQL API lambda function deployed to AWS (via Netlify). A netlify.toml file is included with the necessary build configurations. The following environment variables must be set in Netlify (either via the Netlify web UI or via the command line tool)
-
-```
-NEO4J_URI
-NEO4J_USER
-NEO4J_PASSWORD
-```
-
-See the "Hands On With The GRANDStack Starter" video linked at the beginning of this README for a walkthrough of deploying to Netlify.
-
-### Vercel
-
-Vercel can be used with monorepos such as grand-stack-starter. [`vercel.json`](https://github.com/grand-stack/grand-stack-starter/blob/master/vercel.json) defines the configuration for deploying with Vercel.
-
-1. get [vercel cli](https://vercel.com/download)
-2. Set the vercel secrets for your Neo4j instance:
-
-```
-vercel secret add grand_stack_starter_neo4j_uri bolt://<YOUR_NEO4J_INSTANCE_HERE>
-vercel secret add grand_stack_starter_neo4j_user <YOUR_DATABASE_USERNAME_HERE>
-vercel secret add grand_stack_starter_neo4j_password <YOUR_DATABASE_USER_PASSWORD_HERE>
-```
-
-3. Run `vercel`
-
-## Docker Compose
-
-You can quickly start via:
-
-```
-docker-compose up -d
-```
-
-If you want to load the example DB after the services have been started:
-
-```
-docker-compose run api npm run seedDb
-```
-
-See [the project releases](https://github.com/grand-stack/grand-stack-starter/releases) for the changelog.
-
-You can find instructions for other ways to use Neo4j (Neo4j Desktop, Neo4j Aura, and other cloud services) in the [Neo4j directory README.](./neo4j)
+This monorepo deployed to Netlify. The frontend application will be served over Netlify's CDN and the GraphQL API will be provisioned as a serverless GraphQL API lambda function deployed to AWS (via Netlify). A netlify.toml file is included with the necessary build configurations.
 
 This project is licensed under the Apache License v2.
-Copyright (c) 2020 Neo4j, Inc.
+Copyright (c) 2021 HMS
