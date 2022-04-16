@@ -1,23 +1,21 @@
 import React from 'react'
+import { getInitials } from 'utils'
+// import { useUserSetup } from 'utils/hooks'
+import { useAuth0 } from '@auth0/auth0-react'
+import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
+import Fade from '@mui/material/Fade'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-// import Avatar from '@mui/material/Avatar'
-import Fade from '@mui/material/Fade'
-// import { useStyles } from './styled'
-import { useAuth0 } from '@auth0/auth0-react'
-// import { getInitials } from 'utils'
-import { useUserSetup } from 'utils/hooks'
 
-const UserMenuComponent: React.FC = () => {
+const UserMenu: React.FC = React.memo(() => {
   const [anchorEl, setAnchorEl] = React.useState<
     (EventTarget & Element) | null
   >(null)
-  // const classes = useStyles()
   // loginWithRedirect,
   const { logout, user, isAuthenticated } = useAuth0()
-  useUserSetup({ user, isAuthenticated })
-
+  // useUserSetup({ user, isAuthenticated })
+  console.log(user)
   return (
     <>
       {isAuthenticated ? (
@@ -25,18 +23,17 @@ const UserMenuComponent: React.FC = () => {
           aria-controls="user-menu"
           aria-haspopup="true"
           onClick={handleClick}
-          // className={classes.userMenuButton}
           sx={{ color: 'white' }}
         >
-          {isAuthenticated && user?.name}
-          {/* <Avatar
-            mx="auto"
+          {user?.name}
+          <Avatar
+            // mx="auto"
             sx={{ marginLeft: '1.5rem' }}
             alt={user?.name}
             src={user?.picture}
-          > 
-            {isAuthenticated && getInitials(user?.name)}
-          </Avatar>*/}
+          >
+            {getInitials(user?.name)}
+          </Avatar>
         </Button>
       ) : (
         <></>
@@ -78,8 +75,6 @@ const UserMenuComponent: React.FC = () => {
   function handleClose() {
     setAnchorEl(null)
   }
-}
-
-const UserMenu = React.memo(UserMenuComponent)
+})
 
 export { UserMenu }
