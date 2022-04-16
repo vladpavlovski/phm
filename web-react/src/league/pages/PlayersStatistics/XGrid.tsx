@@ -366,7 +366,7 @@ const XGridTable: React.FC = () => {
 
   const playersData = React.useMemo((): GridRowsProp[] => {
     const preparedData = countPlayersStatisticsData(data)
-    console.log(preparedData)
+
     return preparedData as GridRowsProp[]
   }, [data])
 
