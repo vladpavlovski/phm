@@ -322,6 +322,7 @@ export type Organization = {
   persons: Person[]
   occupations: Occupation[]
   sponsors: Sponsor[]
+  teams: Team[]
 }
 
 export type Occupation = {

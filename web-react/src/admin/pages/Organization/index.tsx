@@ -61,6 +61,11 @@ export const GET_ORGANIZATION = gql`
         name
         description
       }
+      teams {
+        teamId
+        logo
+        name
+      }
     }
   }
 `
@@ -102,6 +107,11 @@ const CREATE_ORGANIZATION = gql`
           sponsorId
           name
           description
+        }
+        teams {
+          teamId
+          logo
+          name
         }
       }
     }
@@ -148,6 +158,11 @@ const UPDATE_ORGANIZATION = gql`
           sponsorId
           name
           description
+        }
+        teams {
+          teamId
+          logo
+          name
         }
       }
     }
