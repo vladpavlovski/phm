@@ -24,21 +24,6 @@ import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
 
-const GET_VENUES = gql`
-  query getVenues($where: CompetitionWhere) {
-    competitions(where: $where) {
-      competitionId
-      name
-      venues {
-        venueId
-        name
-        nick
-        capacity
-      }
-    }
-  }
-`
-
 export const GET_ALL_VENUES = gql`
   query getVenues {
     venues {
@@ -56,16 +41,6 @@ type TRelations = {
   updateCompetition: MutationFunction
 }
 
-type TQueryTypeData = {
-  competitions: Competition[]
-}
-
-type TQueryTypeVars = {
-  where: {
-    competitionId: string
-  }
-}
-
 type TParams = { organizationSlug: string }
 
 const Venues: React.FC<TRelations> = props => {
@@ -77,10 +52,6 @@ const Venues: React.FC<TRelations> = props => {
   const handleCloseAddVenue = useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_VENUES)
 
   const [
     getAllVenues,
@@ -90,12 +61,6 @@ const Venues: React.FC<TRelations> = props => {
       data: queryAllVenues,
     },
   ] = useLazyQuery(GET_ALL_VENUES)
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { where: { competitionId } } })
-    }
-  }, [])
 
   const handleOpenAddVenue = useCallback(() => {
     if (!queryAllVenues) {
@@ -219,7 +184,7 @@ const Venues: React.FC<TRelations> = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="venues-content"
@@ -228,43 +193,36 @@ const Venues: React.FC<TRelations> = props => {
         <Typography className={classes.accordionFormTitle}>Venues</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Venue
-                </Button>
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Venue
+            </Button>
 
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminOrgVenueRoute(organizationSlug, 'new')}
-                >
-                  Create
-                </LinkButton>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <DataGridPro
-                columns={competitionVenuesColumns}
-                rows={setIdFromEntityId(competition.venues, 'venueId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+            <LinkButton
+              startIcon={<CreateIcon />}
+              to={getAdminOrgVenueRoute(organizationSlug, 'new')}
+            >
+              Create
+            </LinkButton>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <DataGridPro
+            columns={competitionVenuesColumns}
+            rows={setIdFromEntityId(competition.venues, 'venueId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth

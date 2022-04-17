@@ -1,70 +1,28 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-  MutationFunction,
-} from '@apollo/client'
-import { useSnackbar } from 'notistack'
+import { Error, LinkButton, Loader } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgSponsorRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { Competition } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import AccountBox from '@mui/icons-material/AccountBox'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSponsorRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Competition } from 'utils/types'
-const GET_SPONSORS = gql`
-  query getSponsors($where: CompetitionWhere) {
-    competitions(where: $where) {
-      competitionId
-      name
-      sponsors {
-        sponsorId
-        name
-        description
-      }
-    }
-  }
-`
-
-const UPDATE_SPONSOR = gql`
-  mutation updateSponsor($where: SponsorWhere, $update: SponsorUpdateInput) {
-    updateSponsors(where: $where, update: $update) {
-      sponsors {
-        sponsorId
-        name
-        description
-        competitions {
-          competitionId
-          name
-        }
-      }
-    }
-  }
-`
 
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
@@ -81,38 +39,19 @@ type TRelations = {
   updateCompetition: MutationFunction
 }
 
-type TQueryTypeData = {
-  competitions: Competition[]
-}
-
-type TQueryTypeVars = {
-  where: {
-    competitionId: string
-  }
-}
-
 type TParams = {
   organizationSlug: string
 }
 
 const Sponsors: React.FC<TRelations> = props => {
-  const { competitionId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { competitionId, competition, updateCompetition } = props
   const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
-  const updateStatus = React.useRef<string | null>(null)
-  const setUpdateStatus = useCallback(value => {
-    updateStatus.current = value
-  }, [])
 
   const handleCloseAddSponsor = useCallback(() => {
     setOpenAddSponsor(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery(GET_SPONSORS)
 
   const [
     getAllSponsors,
@@ -122,70 +61,6 @@ const Sponsors: React.FC<TRelations> = props => {
       data: queryAllSponsorsData,
     },
   ] = useLazyQuery(GET_ALL_SPONSORS)
-
-  const [updateSponsor, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_SPONSOR,
-    {
-      update(
-        cache,
-        {
-          data: {
-            updateSponsors: { sponsors },
-          },
-        }
-      ) {
-        try {
-          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_SPONSORS,
-            variables: {
-              where: { competitionId },
-            },
-          })
-
-          const updatedData =
-            updateStatus.current === 'disconnect'
-              ? queryResult?.competitions?.[0]?.sponsors?.filter(
-                  p => p.sponsorId !== sponsors?.[0]?.sponsorId
-                )
-              : [
-                  ...(queryResult?.competitions?.[0]?.sponsors || []),
-                  ...sponsors,
-                ]
-
-          const updatedResult = {
-            competitions: [
-              {
-                ...queryResult?.competitions?.[0],
-                sponsors: updatedData,
-              },
-            ],
-          }
-
-          cache.writeQuery({
-            query: GET_SPONSORS,
-            data: updatedResult,
-            variables: {
-              where: { competitionId },
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: () => {
-        updateStatus.current = null
-        enqueueSnackbar('Sponsor updated!', { variant: 'success' })
-      },
-    }
-  )
-
-  const competition = queryData?.competition?.[0]
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { where: { competitionId } } })
-    }
-  }, [])
 
   const handleOpenAddSponsor = useCallback(() => {
     if (!queryAllSponsorsData) {
@@ -234,7 +109,6 @@ const Sponsors: React.FC<TRelations> = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingUpdate}
               dialogTitle={
                 'Do you really want to detach sponsor from the competition?'
               }
@@ -242,18 +116,17 @@ const Sponsors: React.FC<TRelations> = props => {
               dialogNegativeText={'No, keep sponsor'}
               dialogPositiveText={'Yes, detach sponsor'}
               onDialogClosePositive={() => {
-                updateStatus.current = 'disconnect'
-                updateSponsor({
+                updateCompetition({
                   variables: {
                     where: {
-                      sponsorId: params.row?.sponsorId,
+                      competitionId,
                     },
                     update: {
-                      competitions: {
+                      sponsors: {
                         disconnect: {
                           where: {
                             node: {
-                              competitionId,
+                              sponsorId: params.row?.sponsorId,
                             },
                           },
                         },
@@ -288,15 +161,7 @@ const Sponsors: React.FC<TRelations> = props => {
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
-          return (
-            <ToggleNewSponsor
-              sponsorId={params.value}
-              competitionId={competitionId}
-              competition={competition}
-              update={updateSponsor}
-              setUpdateStatus={setUpdateStatus}
-            />
-          )
+          return <ToggleNew sponsorId={params.value} {...props} />
         },
       },
     ],
@@ -304,7 +169,7 @@ const Sponsors: React.FC<TRelations> = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="sponsors-content"
@@ -313,43 +178,36 @@ const Sponsors: React.FC<TRelations> = props => {
         <Typography className={classes.accordionFormTitle}>Sponsors</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddSponsor}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Sponsor
-                </Button>
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddSponsor}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Sponsor
+            </Button>
 
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminOrgSponsorRoute(organizationSlug, 'new')}
-                >
-                  Create
-                </LinkButton>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <DataGridPro
-                columns={competitionSponsorsColumns}
-                rows={setIdFromEntityId(competition.sponsors, 'sponsorId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+            <LinkButton
+              startIcon={<CreateIcon />}
+              to={getAdminOrgSponsorRoute(organizationSlug, 'new')}
+            >
+              Create
+            </LinkButton>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <DataGridPro
+            columns={competitionSponsorsColumns}
+            rows={setIdFromEntityId(competition.sponsors, 'sponsorId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -404,13 +262,11 @@ type TToggleNew = {
   sponsorId: string
   competitionId: string
   competition: Competition
-  update: MutationFunction
-  setUpdateStatus: (value: string | null) => void
+  updateCompetition: MutationFunction
 }
 
-const ToggleNewSponsor: React.FC<TToggleNew> = React.memo(props => {
-  const { sponsorId, competitionId, competition, update, setUpdateStatus } =
-    props
+const ToggleNew: React.FC<TToggleNew> = React.memo(props => {
+  const { sponsorId, competitionId, competition, updateCompetition } = props
   const [isMember, setIsMember] = useState(
     !!competition.sponsors.find(p => p.sponsorId === sponsorId)
   )
@@ -420,17 +276,17 @@ const ToggleNewSponsor: React.FC<TToggleNew> = React.memo(props => {
       checked={isMember}
       onChange={() => {
         isMember
-          ? update({
+          ? updateCompetition({
               variables: {
                 where: {
-                  sponsorId,
+                  competitionId,
                 },
                 update: {
-                  competitions: {
+                  sponsors: {
                     disconnect: {
                       where: {
                         node: {
-                          competitionId,
+                          sponsorId,
                         },
                       },
                     },
@@ -438,23 +294,22 @@ const ToggleNewSponsor: React.FC<TToggleNew> = React.memo(props => {
                 },
               },
             })
-          : update({
+          : updateCompetition({
               variables: {
                 where: {
-                  sponsorId,
+                  competitionId,
                 },
                 update: {
-                  competitions: {
+                  sponsors: {
                     connect: {
                       where: {
-                        competitionId,
+                        node: { sponsorId },
                       },
                     },
                   },
                 },
               },
             })
-        setUpdateStatus(isMember ? 'disconnect' : null)
         setIsMember(!isMember)
       }}
       name="sponsorMember"

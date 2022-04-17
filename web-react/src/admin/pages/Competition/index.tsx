@@ -48,6 +48,10 @@ const GET_COMPETITION = gql`
         venueId
         name
       }
+      sponsors {
+        sponsorId
+        name
+      }
     }
   }
 `
@@ -70,6 +74,10 @@ const CREATE_COMPETITION = gql`
         }
         venues {
           venueId
+          name
+        }
+        sponsors {
+          sponsorId
           name
         }
       }
@@ -98,6 +106,10 @@ const UPDATE_COMPETITION = gql`
         }
         venues {
           venueId
+          name
+        }
+        sponsors {
+          sponsorId
           name
         }
       }
