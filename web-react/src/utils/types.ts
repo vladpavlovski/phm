@@ -320,7 +320,10 @@ export type Organization = {
   bankCode: string
   competitions: Competition[]
   persons: Person[]
-  occupations: Occupation
+  occupations: Occupation[]
+  sponsors: Sponsor[]
+  teams: Team[]
+  rulePacks: RulePack[]
 }
 
 export type Occupation = {

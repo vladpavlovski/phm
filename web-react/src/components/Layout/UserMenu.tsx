@@ -15,7 +15,7 @@ const UserMenu: React.FC = React.memo(() => {
   // loginWithRedirect,
   const { logout, user, isAuthenticated } = useAuth0()
   // useUserSetup({ user, isAuthenticated })
-  console.log(user)
+
   return (
     <>
       {isAuthenticated ? (
@@ -27,7 +27,6 @@ const UserMenu: React.FC = React.memo(() => {
         >
           {user?.name}
           <Avatar
-            // mx="auto"
             sx={{ marginLeft: '1.5rem' }}
             alt={user?.name}
             src={user?.picture}

@@ -1,71 +1,28 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-  MutationFunction,
-} from '@apollo/client'
-import { useSnackbar } from 'notistack'
+import { Error, LinkButton, Loader } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgVenueRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { Competition } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import AccountBox from '@mui/icons-material/AccountBox'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgVenueRoute } from '../../../../../router/routes'
-import { LinkButton } from '../../../../../components/LinkButton'
-import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from '../../../../../utils'
-import { Competition } from 'utils/types'
-const GET_VENUES = gql`
-  query getVenues($where: CompetitionWhere) {
-    competitions(where: $where) {
-      competitionId
-      name
-      venues {
-        venueId
-        name
-        nick
-        capacity
-      }
-    }
-  }
-`
-
-const UPDATE_VENUE = gql`
-  mutation updateVenue($where: VenueWhere, $update: VenueUpdateInput) {
-    updateVenues(where: $where, update: $update) {
-      venues {
-        venueId
-        name
-        nick
-        capacity
-        competitions {
-          competitionId
-          name
-        }
-      }
-    }
-  }
-`
 
 export const GET_ALL_VENUES = gql`
   query getVenues {
@@ -84,106 +41,29 @@ type TRelations = {
   updateCompetition: MutationFunction
 }
 
-type TQueryTypeData = {
-  competitions: Competition[]
-}
-
-type TQueryTypeVars = {
-  where: {
-    competitionId: string
-  }
-}
-
 type TParams = { organizationSlug: string }
 
 const Venues: React.FC<TRelations> = props => {
-  const { competitionId } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { competitionId, competition, updateCompetition } = props
   const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddVenue, setOpenAddVenue] = useState(false)
-  const updateStatus = React.useRef<string | null>(null)
 
-  const setUpdateStatus = useCallback(value => {
-    updateStatus.current = value
-  }, [])
   const handleCloseAddVenue = useCallback(() => {
     setOpenAddVenue(false)
   }, [])
-  const [
-    getData,
-    { loading: queryLoading, error: queryError, data: queryData },
-  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_VENUES)
 
   const [
     getAllVenues,
     {
       loading: queryAllVenuesLoading,
       error: queryAllVenuesError,
-      data: { competitions: [competition] } = { competitions: [] },
+      data: queryAllVenues,
     },
   ] = useLazyQuery(GET_ALL_VENUES)
 
-  const [updateVenue, { loading: mutationLoadingUpdate }] = useMutation(
-    UPDATE_VENUE,
-    {
-      update(
-        cache,
-        {
-          data: {
-            updateVenues: { venues },
-          },
-        }
-      ) {
-        try {
-          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_VENUES,
-            variables: {
-              where: { competitionId },
-            },
-          })
-
-          const updatedData =
-            updateStatus.current === 'disconnect'
-              ? queryResult?.competitions?.[0]?.venues?.filter(
-                  p => p.venueId !== venues?.[0]?.venueId
-                )
-              : [...(queryResult?.competitions?.[0]?.venues || []), ...venues]
-
-          const updatedResult = {
-            competitions: [
-              {
-                ...queryResult?.competitions?.[0],
-                venues: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_VENUES,
-            data: updatedResult,
-            variables: {
-              where: { competitionId },
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: () => {
-        updateStatus.current = null
-        enqueueSnackbar('Season updated!', { variant: 'success' })
-      },
-    }
-  )
-
-  const openAccordion = useCallback(() => {
-    if (!queryData) {
-      getData({ variables: { where: { competitionId } } })
-    }
-  }, [])
-
   const handleOpenAddVenue = useCallback(() => {
-    if (!competition) {
+    if (!queryAllVenues) {
       getAllVenues()
     }
     setOpenAddVenue(true)
@@ -236,7 +116,6 @@ const Venues: React.FC<TRelations> = props => {
             <ButtonDialog
               text={'Detach'}
               textLoading={'Detaching...'}
-              loading={mutationLoadingUpdate}
               dialogTitle={
                 'Do you really want to detach competition from venue?'
               }
@@ -244,18 +123,17 @@ const Venues: React.FC<TRelations> = props => {
               dialogNegativeText={'No, keep in venue'}
               dialogPositiveText={'Yes, detach venue'}
               onDialogClosePositive={() => {
-                updateStatus.current = 'disconnect'
-                updateVenue({
+                updateCompetition({
                   variables: {
                     where: {
-                      venueId: params.row?.venueId,
+                      competitionId,
                     },
                     update: {
-                      competitions: {
+                      venues: {
                         disconnect: {
                           where: {
                             node: {
-                              competitionId,
+                              venueId: params.row.venueId,
                             },
                           },
                         },
@@ -298,15 +176,7 @@ const Venues: React.FC<TRelations> = props => {
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
-          return (
-            <ToggleNewVenue
-              venueId={params.value}
-              competitionId={competitionId}
-              competition={competition}
-              update={updateVenue}
-              setUpdateStatus={setUpdateStatus}
-            />
-          )
+          return <ToggleNew {...props} venueId={params.value} />
         },
       },
     ],
@@ -314,7 +184,7 @@ const Venues: React.FC<TRelations> = props => {
   )
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="venues-content"
@@ -323,43 +193,36 @@ const Venues: React.FC<TRelations> = props => {
         <Typography className={classes.accordionFormTitle}>Venues</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {queryLoading && !queryError && <Loader />}
-        {queryError && !queryLoading && <Error message={queryError.message} />}
-        {queryData && (
-          <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
-              <div />
-              <div>
-                <Button
-                  onClick={handleOpenAddVenue}
-                  variant={'outlined'}
-                  size="small"
-                  className={classes.submit}
-                  startIcon={<AddIcon />}
-                >
-                  Add Venue
-                </Button>
+        <Toolbar disableGutters className={classes.toolbarForm}>
+          <div />
+          <div>
+            <Button
+              onClick={handleOpenAddVenue}
+              variant={'outlined'}
+              size="small"
+              className={classes.submit}
+              startIcon={<AddIcon />}
+            >
+              Add Venue
+            </Button>
 
-                <LinkButton
-                  startIcon={<CreateIcon />}
-                  to={getAdminOrgVenueRoute(organizationSlug, 'new')}
-                >
-                  Create
-                </LinkButton>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
-              <DataGridPro
-                columns={competitionVenuesColumns}
-                rows={setIdFromEntityId(competition.venues, 'venueId')}
-                loading={queryLoading}
-                components={{
-                  Toolbar: GridToolbar,
-                }}
-              />
-            </div>
-          </>
-        )}
+            <LinkButton
+              startIcon={<CreateIcon />}
+              to={getAdminOrgVenueRoute(organizationSlug, 'new')}
+            >
+              Create
+            </LinkButton>
+          </div>
+        </Toolbar>
+        <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <DataGridPro
+            columns={competitionVenuesColumns}
+            rows={setIdFromEntityId(competition.venues, 'venueId')}
+            components={{
+              Toolbar: GridToolbar,
+            }}
+          />
+        </div>
       </AccordionDetails>
       <Dialog
         fullWidth
@@ -378,7 +241,7 @@ const Venues: React.FC<TRelations> = props => {
               <div style={{ height: 600 }} className={classes.xGridDialog}>
                 <DataGridPro
                   columns={allVenuesColumns}
-                  rows={setIdFromEntityId(competition.venues, 'venueId')}
+                  rows={setIdFromEntityId(queryAllVenues?.venues, 'venueId')}
                   disableSelectionOnClick
                   loading={queryAllVenuesLoading}
                   components={{
@@ -407,12 +270,12 @@ type TToggleNew = {
   venueId: string
   competitionId: string
   competition: Competition
-  update: MutationFunction
-  setUpdateStatus: (value: string | null) => void
+  updateCompetition: MutationFunction
 }
 
-const ToggleNewVenue: React.FC<TToggleNew> = React.memo(props => {
-  const { venueId, competitionId, competition, update, setUpdateStatus } = props
+const ToggleNew: React.FC<TToggleNew> = React.memo(props => {
+  const { venueId, competitionId, competition, updateCompetition } = props
+
   const [isMember, setIsMember] = useState(
     !!competition.venues.find(p => p.venueId === venueId)
   )
@@ -422,17 +285,17 @@ const ToggleNewVenue: React.FC<TToggleNew> = React.memo(props => {
       checked={isMember}
       onChange={() => {
         isMember
-          ? update({
+          ? updateCompetition({
               variables: {
                 where: {
-                  venueId,
+                  competitionId,
                 },
                 update: {
-                  competitions: {
+                  venues: {
                     disconnect: {
                       where: {
                         node: {
-                          competitionId,
+                          venueId,
                         },
                       },
                     },
@@ -440,23 +303,22 @@ const ToggleNewVenue: React.FC<TToggleNew> = React.memo(props => {
                 },
               },
             })
-          : update({
+          : updateCompetition({
               variables: {
                 where: {
-                  venueId,
+                  competitionId,
                 },
                 update: {
-                  competitions: {
+                  venues: {
                     connect: {
                       where: {
-                        node: { competitionId },
+                        node: { venueId },
                       },
                     },
                   },
                 },
               },
             })
-        setUpdateStatus(isMember ? 'disconnect' : null)
 
         setIsMember(!isMember)
       }}

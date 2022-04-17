@@ -3,12 +3,12 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgSponsorRoute } from 'router/routes'
 import { setIdFromEntityId } from 'utils'
-import { Competition } from 'utils/types'
+import { Organization } from 'utils/types'
 import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-import CreateIcon from '@mui/icons-material/Create'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LinkOffIcon from '@mui/icons-material/LinkOff'
 import Accordion from '@mui/material/Accordion'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -33,43 +33,46 @@ export const GET_ALL_SPONSORS = gql`
   }
 `
 
-type TRelations = {
-  competitionId: string
-  competition: Competition
-  updateCompetition: MutationFunction
+type TSponsors = {
+  organizationId: string
+  updateOrganization: MutationFunction
+  organization: Organization
 }
 
-type TParams = {
+type TSponsorsParams = {
   organizationSlug: string
 }
 
-const Sponsors: React.FC<TRelations> = props => {
-  const { competitionId, competition, updateCompetition } = props
-  const classes = useStyles()
-  const { organizationSlug } = useParams<TParams>()
-  const [openAddSponsor, setOpenAddSponsor] = useState(false)
+const Sponsors: React.FC<TSponsors> = props => {
+  const { organizationId, organization, updateOrganization } = props
 
-  const handleCloseAddSponsor = useCallback(() => {
-    setOpenAddSponsor(false)
+  const classes = useStyles()
+  const { organizationSlug } = useParams<TSponsorsParams>()
+  const [openAddOrganization, setOpenAddOrganization] = useState(false)
+
+  const handleCloseAddOrganization = useCallback(() => {
+    setOpenAddOrganization(false)
   }, [])
 
   const [
     getAllSponsors,
     {
-      loading: queryAllSponsorsLoading,
-      error: queryAllSponsorsError,
-      data: queryAllSponsorsData,
+      loading: queryAllOrganizationsLoading,
+      error: queryAllOrganizationsError,
+      data: queryAllOrganizationsData,
     },
-  ] = useLazyQuery(GET_ALL_SPONSORS)
+  ] = useLazyQuery(GET_ALL_SPONSORS, {
+    fetchPolicy: 'cache-and-network',
+  })
 
-  const handleOpenAddSponsor = useCallback(() => {
-    if (!queryAllSponsorsData) {
+  const handleOpenAddOrganization = useCallback(() => {
+    if (!queryAllOrganizationsData) {
       getAllSponsors()
     }
-    setOpenAddSponsor(true)
+    setOpenAddOrganization(true)
   }, [])
 
-  const competitionSponsorsColumns = useMemo<GridColumns>(
+  const organizationSponsorsColumns = useMemo<GridColumns>(
     () => [
       {
         field: 'name',
@@ -78,14 +81,8 @@ const Sponsors: React.FC<TRelations> = props => {
       },
 
       {
-        field: 'description',
-        headerName: 'Description',
-        width: 200,
-      },
-
-      {
         field: 'sponsorId',
-        headerName: 'Profile',
+        headerName: 'Edit',
         width: 120,
         disableColumnMenu: true,
         renderCell: params => {
@@ -107,26 +104,30 @@ const Sponsors: React.FC<TRelations> = props => {
         renderCell: params => {
           return (
             <ButtonDialog
-              text={'Detach'}
-              textLoading={'Detaching...'}
+              text={'Remove'}
+              textLoading={'Removing...'}
+              size="small"
+              startIcon={<LinkOffIcon />}
               dialogTitle={
-                'Do you really want to detach sponsor from the competition?'
+                'Do you really want to detach sponsor from organization?'
               }
-              dialogDescription={'You can add it later.'}
+              dialogDescription={
+                'Sponsor will remain in the database. You can add him to any organization later.'
+              }
               dialogNegativeText={'No, keep sponsor'}
               dialogPositiveText={'Yes, detach sponsor'}
               onDialogClosePositive={() => {
-                updateCompetition({
+                updateOrganization({
                   variables: {
                     where: {
-                      competitionId,
+                      organizationId,
                     },
                     update: {
                       sponsors: {
                         disconnect: {
                           where: {
                             node: {
-                              sponsorId: params.row?.sponsorId,
+                              sponsorId: params.row.sponsorId,
                             },
                           },
                         },
@@ -148,24 +149,27 @@ const Sponsors: React.FC<TRelations> = props => {
       {
         field: 'name',
         headerName: 'Name',
-        width: 200,
+        width: 150,
       },
-      {
-        field: 'description',
-        headerName: 'Description',
-        width: 200,
-      },
+
       {
         field: 'sponsorId',
-        headerName: 'Member',
+        headerName: 'Sponsorship',
         width: 150,
         disableColumnMenu: true,
         renderCell: params => {
-          return <ToggleNew sponsorId={params.value} {...props} />
+          return (
+            <ToggleNewSponsor
+              sponsorId={params.value}
+              organizationId={organizationId}
+              organization={organization}
+              updateOrganization={updateOrganization}
+            />
+          )
         },
       },
     ],
-    [competition]
+    [organization]
   )
 
   return (
@@ -182,7 +186,7 @@ const Sponsors: React.FC<TRelations> = props => {
           <div />
           <div>
             <Button
-              onClick={handleOpenAddSponsor}
+              onClick={handleOpenAddOrganization}
               variant={'outlined'}
               size="small"
               className={classes.submit}
@@ -190,19 +194,13 @@ const Sponsors: React.FC<TRelations> = props => {
             >
               Add Sponsor
             </Button>
-
-            <LinkButton
-              startIcon={<CreateIcon />}
-              to={getAdminOrgSponsorRoute(organizationSlug, 'new')}
-            >
-              Create
-            </LinkButton>
           </div>
         </Toolbar>
         <div style={{ height: 600 }} className={classes.xGridDialog}>
           <DataGridPro
-            columns={competitionSponsorsColumns}
-            rows={setIdFromEntityId(competition.sponsors, 'sponsorId')}
+            columns={organizationSponsorsColumns}
+            rows={setIdFromEntityId(organization.sponsors, 'sponsorId')}
+            loading={queryAllOrganizationsLoading}
             components={{
               Toolbar: GridToolbar,
             }}
@@ -212,42 +210,40 @@ const Sponsors: React.FC<TRelations> = props => {
       <Dialog
         fullWidth
         maxWidth="md"
-        open={openAddSponsor}
-        onClose={handleCloseAddSponsor}
+        open={openAddOrganization}
+        onClose={handleCloseAddOrganization}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        {queryAllSponsorsLoading && !queryAllSponsorsError && <Loader />}
-        {queryAllSponsorsError && !queryAllSponsorsLoading && (
-          <Error message={queryAllSponsorsError.message} />
+        {queryAllOrganizationsLoading && <Loader />}
+
+        <Error message={queryAllOrganizationsError?.message} />
+
+        {queryAllOrganizationsData && (
+          <>
+            <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new sponsor`}</DialogTitle>
+            <DialogContent>
+              <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <DataGridPro
+                  columns={allSponsorsColumns}
+                  rows={setIdFromEntityId(
+                    queryAllOrganizationsData.sponsors,
+                    'sponsorId'
+                  )}
+                  disableSelectionOnClick
+                  loading={queryAllOrganizationsLoading}
+                  components={{
+                    Toolbar: GridToolbar,
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </>
         )}
-        {queryAllSponsorsData &&
-          !queryAllSponsorsLoading &&
-          !queryAllSponsorsError && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${competition?.name}`}</DialogTitle>
-              <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
-                  <DataGridPro
-                    columns={allSponsorsColumns}
-                    rows={setIdFromEntityId(
-                      queryAllSponsorsData.sponsors,
-                      'sponsorId'
-                    )}
-                    disableSelectionOnClick
-                    loading={queryAllSponsorsLoading}
-                    components={{
-                      Toolbar: GridToolbar,
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
         <DialogActions>
           <Button
             onClick={() => {
-              handleCloseAddSponsor()
+              handleCloseAddOrganization()
             }}
           >
             {'Done'}
@@ -258,58 +254,53 @@ const Sponsors: React.FC<TRelations> = props => {
   )
 }
 
-type TToggleNew = {
+type TToggleNewSponsor = {
+  organization: Organization
+  organizationId: string
   sponsorId: string
-  competitionId: string
-  competition: Competition
-  updateCompetition: MutationFunction
+  updateOrganization: MutationFunction
 }
 
-const ToggleNew: React.FC<TToggleNew> = React.memo(props => {
-  const { sponsorId, competitionId, competition, updateCompetition } = props
+const ToggleNewSponsor: React.FC<TToggleNewSponsor> = React.memo(props => {
+  const { organizationId, sponsorId, organization, updateOrganization } = props
   const [isMember, setIsMember] = useState(
-    !!competition.sponsors.find(p => p.sponsorId === sponsorId)
+    !!organization.sponsors.find(p => p.sponsorId === sponsorId)
   )
 
   return (
     <Switch
       checked={isMember}
       onChange={() => {
-        isMember
-          ? updateCompetition({
-              variables: {
-                where: {
-                  competitionId,
-                },
-                update: {
-                  sponsors: {
-                    disconnect: {
-                      where: {
-                        node: {
-                          sponsorId,
+        updateOrganization({
+          variables: {
+            where: {
+              organizationId,
+            },
+            update: {
+              sponsors: {
+                ...(!isMember
+                  ? {
+                      connect: {
+                        where: {
+                          node: {
+                            sponsorId,
+                          },
                         },
                       },
-                    },
-                  },
-                },
-              },
-            })
-          : updateCompetition({
-              variables: {
-                where: {
-                  competitionId,
-                },
-                update: {
-                  sponsors: {
-                    connect: {
-                      where: {
-                        node: { sponsorId },
+                    }
+                  : {
+                      disconnect: {
+                        where: {
+                          node: {
+                            sponsorId,
+                          },
+                        },
                       },
-                    },
-                  },
-                },
+                    }),
               },
-            })
+            },
+          },
+        })
         setIsMember(!isMember)
       }}
       name="sponsorMember"

@@ -1,46 +1,28 @@
-import React, { useCallback, useContext } from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-import { useAuth0 } from '@auth0/auth0-react'
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet-async'
+import { Error, Loader, RHFDatepicker, RHFInput, RHFSelect, Title, Uploader } from 'components'
+import { activityStatusList } from 'components/lists'
+import OrganizationContext from 'context/organization'
+import placeholderOrganization from 'img/placeholderOrganization.png'
 import { useSnackbar } from 'notistack'
-
-import { yupResolver } from '@hookform/resolvers/yup'
+import React, { useCallback, useContext } from 'react'
 import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { ADMIN_ORGANIZATIONS, getAdminOrganizationRoute, NOT_FOUND } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { useAuth0 } from '@auth0/auth0-react'
+import { yupResolver } from '@hookform/resolvers/yup'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
 import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
-import { decomposeDate, isValidUuid } from 'utils'
+import { ButtonSave } from '../commonComponents/ButtonSave'
 import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-import { activityStatusList } from 'components/lists'
-
-import {
-  ADMIN_ORGANIZATIONS,
-  getAdminOrganizationRoute,
-  NOT_FOUND,
-} from 'router/routes'
-import {
-  Loader,
-  Error,
-  Title,
-  RHFInput,
-  RHFSelect,
-  RHFDatepicker,
-  Uploader,
-} from 'components'
-
-import placeholderOrganization from 'img/placeholderOrganization.png'
 import { Relations } from './relations'
-import OrganizationContext from 'context/organization'
+import { schema } from './schema'
 
 export const GET_ORGANIZATION = gql`
   query getOrganization($where: OrganizationWhere) {
@@ -74,6 +56,24 @@ export const GET_ORGANIZATION = gql`
         occupationId
         name
       }
+      sponsors {
+        sponsorId
+        name
+        description
+      }
+      teams {
+        teamId
+        logo
+        name
+      }
+      competitions {
+        competitionId
+        name
+      }
+      rulePacks {
+        rulePackId
+        name
+      }
     }
   }
 `
@@ -96,6 +96,39 @@ const CREATE_ORGANIZATION = gql`
         bankAccountNumber
         bankAccountCurrency
         bankCode
+        persons {
+          personId
+          firstName
+          lastName
+          name
+          avatar
+          occupations {
+            occupationId
+            name
+          }
+        }
+        occupations {
+          occupationId
+          name
+        }
+        sponsors {
+          sponsorId
+          name
+          description
+        }
+        teams {
+          teamId
+          logo
+          name
+        }
+        competitions {
+          competitionId
+          name
+        }
+        rulePacks {
+          rulePackId
+          name
+        }
       }
     }
   }
@@ -105,8 +138,9 @@ const UPDATE_ORGANIZATION = gql`
   mutation updateOrganization(
     $where: OrganizationWhere
     $update: OrganizationUpdateInput
+    $create: OrganizationRelationInput
   ) {
-    updateOrganizations(where: $where, update: $update) {
+    updateOrganizations(where: $where, update: $update, create: $create) {
       organizations {
         organizationId
         name
@@ -122,6 +156,39 @@ const UPDATE_ORGANIZATION = gql`
         bankAccountNumber
         bankAccountCurrency
         bankCode
+        persons {
+          personId
+          firstName
+          lastName
+          name
+          avatar
+          occupations {
+            occupationId
+            name
+          }
+        }
+        occupations {
+          occupationId
+          name
+        }
+        sponsors {
+          sponsorId
+          name
+          description
+        }
+        teams {
+          teamId
+          logo
+          name
+        }
+        competitions {
+          competitionId
+          name
+        }
+        rulePacks {
+          rulePackId
+          name
+        }
       }
     }
   }
@@ -186,6 +253,19 @@ const Organization: React.FC = () => {
   const [updateOrganization, { loading: mutationLoadingUpdate }] = useMutation(
     UPDATE_ORGANIZATION,
     {
+      update(cache, { data }) {
+        try {
+          cache.writeQuery({
+            query: GET_ORGANIZATION,
+            data: {
+              organizations: data?.updateOrganizations?.organizations,
+            },
+            variables: { where: { urlSlug: organizationSlug } },
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      },
       onCompleted: () => {
         enqueueSnackbar('Organization updated!', { variant: 'success' })
       },
@@ -490,6 +570,7 @@ const Organization: React.FC = () => {
             <Relations
               organizationId={orgData.organizationId}
               organization={orgData}
+              updateOrganization={updateOrganization}
             />
           )}
         </form>

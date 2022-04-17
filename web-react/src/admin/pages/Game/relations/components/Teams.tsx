@@ -1,38 +1,28 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-
-import { useSnackbar } from 'notistack'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { Error, Loader, QuickSearchToolbar, Title } from 'components'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import Img from 'react-cool-img'
-
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
+import { useParams } from 'react-router-dom'
+import { setIdFromEntityId, sortByStatus } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { Team } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
+import RemoveIcon from '@mui/icons-material/Remove'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
-
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
-import { Title, Loader, Error, QuickSearchToolbar } from 'components'
-
-import { setIdFromEntityId, sortByStatus } from 'utils'
-import { useXGridSearch } from 'utils/hooks'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
-import { Team } from 'utils/types'
-import {
-  GET_GAME,
-  UPDATE_GAME,
-  TQueryTypeData,
-  TQueryTypeVars,
-} from '../../index'
 
-export const GET_ALL_TEAMS = gql`
-  query getTeams {
-    teams {
+export const GET_ALL_TEAMS_BY_ORG = gql`
+  query getTeamsByOrg($where: TeamWhere) {
+    teams(where: $where) {
       teamId
       name
       logo
@@ -47,11 +37,16 @@ type TTeams = {
     host: boolean
     node: Team
   }[]
+  updateGame: MutationFunction
+}
+
+type TParams = {
+  organizationSlug: string
 }
 
 const Teams: React.FC<TTeams> = props => {
-  const { gameId, teams } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { gameId, teams, updateGame } = props
+  const { organizationSlug } = useParams<TParams>()
   const classes = useStyles()
   const [teamDialog, setTeamDialog] = useState(false)
   const isHost = useRef(true)
@@ -69,55 +64,13 @@ const Teams: React.FC<TTeams> = props => {
       error: queryAllTeamsError,
       data: queryAllTeamsData,
     },
-  ] = useLazyQuery(GET_ALL_TEAMS, {
-    fetchPolicy: 'cache-and-network',
+  ] = useLazyQuery(GET_ALL_TEAMS_BY_ORG, {
+    variables: {
+      orgs: {
+        urlSlug: organizationSlug,
+      },
+    },
   })
-
-  const [updateGame, { loading: loadingMergeGameTeam }] = useMutation(
-    UPDATE_GAME,
-    {
-      update(cache, { data: { updateGame } }) {
-        try {
-          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_GAME,
-            variables: {
-              where: { gameId },
-            },
-          })
-          const updatedData = updateGame?.games?.[0]?.teamsConnection
-
-          const updatedResult = {
-            games: [
-              {
-                ...queryResult?.games?.[0],
-                teamsConnection: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GAME,
-            data: updatedResult,
-            variables: {
-              where: { gameId },
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: () => {
-        enqueueSnackbar(`Game updated`, {
-          variant: 'success',
-        })
-      },
-      onError: error => {
-        enqueueSnackbar(`${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
 
   const openTeamDialog = useCallback(({ asHost }) => {
     if (!queryAllTeamsData) {
@@ -129,6 +82,7 @@ const Teams: React.FC<TTeams> = props => {
 
   const handleCloseTeamDialog = useCallback(() => {
     setTeamDialog(false)
+    requestSearch('')
   }, [])
 
   const allTeamsColumns = useMemo<GridColumns>(
@@ -198,9 +152,7 @@ const Teams: React.FC<TTeams> = props => {
                 handleCloseTeamDialog()
               }}
             >
-              {loadingMergeGameTeam
-                ? 'Adding...'
-                : `Add ${isHost.current ? 'Host' : 'Guest'} Team`}
+              {`Add ${isHost.current ? 'Host' : 'Guest'} Team`}
             </Button>
           )
         },
@@ -233,6 +185,7 @@ const Teams: React.FC<TTeams> = props => {
             team={teamHost}
             openTeamDialog={openTeamDialog}
             gameId={gameId}
+            updateGame={updateGame}
           />
         </Grid>
 
@@ -242,6 +195,7 @@ const Teams: React.FC<TTeams> = props => {
             team={teamGuest}
             openTeamDialog={openTeamDialog}
             gameId={gameId}
+            updateGame={updateGame}
           />
         </Grid>
       </Grid>
@@ -301,58 +255,12 @@ type TTeamCard = {
   host: boolean
   openTeamDialog: ({ asHost }: { asHost: boolean }) => void
   gameId: string
+  updateGame: MutationFunction
 }
 
 const TeamCard: React.FC<TTeamCard> = React.memo(props => {
-  const { team, host = false, openTeamDialog, gameId } = props
+  const { team, host = false, openTeamDialog, gameId, updateGame } = props
   const classes = useStyles()
-  const { enqueueSnackbar } = useSnackbar()
-
-  const [updateGame, { loading: loadingRemoveGameTeam }] = useMutation(
-    UPDATE_GAME,
-    {
-      update(cache, { data: { updateGame } }) {
-        try {
-          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_GAME,
-            variables: {
-              where: { gameId },
-            },
-          })
-          const updatedData = updateGame?.games?.[0]?.teamsConnection
-
-          const updatedResult = {
-            games: [
-              {
-                ...queryResult?.games?.[0],
-                teamsConnection: updatedData,
-              },
-            ],
-          }
-          cache.writeQuery({
-            query: GET_GAME,
-            data: updatedResult,
-            variables: {
-              where: { gameId },
-            },
-          })
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      onCompleted: () => {
-        enqueueSnackbar(`Game updated`, {
-          variant: 'success',
-        })
-      },
-      onError: error => {
-        enqueueSnackbar(`${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    }
-  )
 
   return (
     <Paper
@@ -384,7 +292,6 @@ const TeamCard: React.FC<TTeamCard> = React.memo(props => {
               text={'Remove Team'}
               textLoading={'Removing...'}
               type="button"
-              loading={loadingRemoveGameTeam}
               size="small"
               startIcon={<RemoveIcon />}
               dialogTitle={'Do you really want to remove team from game?'}

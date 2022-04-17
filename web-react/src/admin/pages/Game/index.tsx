@@ -1,51 +1,42 @@
-import React, { useCallback, useContext } from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-import { useSnackbar } from 'notistack'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet-async'
-
-import { yupResolver } from '@hookform/resolvers/yup'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
-
-import Toolbar from '@mui/material/Toolbar'
-import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import Autocomplete from '@mui/material/Autocomplete'
-import TextField from '@mui/material/TextField'
-import MenuItem from '@mui/material/MenuItem'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { useStyles } from '../commonComponents/styled'
-
 import {
+  Error,
   LinkButton,
+  Loader,
   RHFDatepicker,
-  RHFTimepicker,
   RHFInput,
   RHFSelect,
+  RHFTimepicker,
   Title,
-  Loader,
-  Error,
 } from 'components'
-
-import { GameStatus, GameReport, GameInvitation } from './components'
-
-import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
-import { schema } from './schema'
-
-import {
-  getAdminOrgGamesRoute,
-  getAdminOrgGameRoute,
-  getAdminOrgGamePlayRoute,
-} from 'router/routes'
-
-import { Relations } from './relations'
 import OrganizationContext from 'context/organization'
+import { useSnackbar } from 'notistack'
+import React, { useCallback, useContext } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import {
+  getAdminOrgGamePlayRoute,
+  getAdminOrgGameRoute,
+  getAdminOrgGamesRoute,
+} from 'router/routes'
+import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
 import { Game as GameType, Venue } from 'utils/types'
+import { gql, useMutation, useQuery } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import Autocomplete from '@mui/material/Autocomplete'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import TextField from '@mui/material/TextField'
+import Toolbar from '@mui/material/Toolbar'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { GameInvitation, GameReport, GameStatus } from './components'
+import { Relations } from './relations'
+import { schema } from './schema'
 
 export const GET_GAME = gql`
   query getGame($where: GameWhere) {
@@ -357,7 +348,7 @@ const Game: React.FC = () => {
     loading: queryLoading,
     data: { games: [gameData], venues: gameVenues } = {
       games: [],
-      venues: [],
+      venues: null,
     },
     error: queryError,
   } = useQuery(GET_GAME, {
@@ -737,8 +728,7 @@ const Game: React.FC = () => {
                       <Autocomplete
                         id="combo-box-game-venue"
                         options={gameVenues || venuesData?.venues || []}
-                        // value={gameData?.venue}
-                        defaultValue={gameData?.venue ?? ''}
+                        defaultValue={gameData?.venue ?? null}
                         renderInput={params => (
                           <TextField
                             variant="standard"
