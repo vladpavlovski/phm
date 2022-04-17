@@ -66,6 +66,10 @@ export const GET_ORGANIZATION = gql`
         logo
         name
       }
+      competitions {
+        competitionId
+        name
+      }
     }
   }
 `
@@ -111,6 +115,10 @@ const CREATE_ORGANIZATION = gql`
         teams {
           teamId
           logo
+          name
+        }
+        competitions {
+          competitionId
           name
         }
       }
@@ -162,6 +170,10 @@ const UPDATE_ORGANIZATION = gql`
         teams {
           teamId
           logo
+          name
+        }
+        competitions {
+          competitionId
           name
         }
       }
