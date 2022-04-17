@@ -1,52 +1,25 @@
+import { LinkButton } from 'components'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 import React, { useMemo } from 'react'
-import { gql, useMutation } from '@apollo/client'
-import { useSnackbar } from 'notistack'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgPersonRoute } from 'router/routes'
+import { createCtx, getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { Organization, Person } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import Toolbar from '@mui/material/Toolbar'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
-import { getAdminOrgPersonRoute } from 'router/routes'
-import { LinkButton } from 'components'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import { setIdFromEntityId, getXGridValueFromArray, createCtx } from 'utils'
 import { AddPerson } from './AddPerson'
-import {
-  SetPersonOccupation,
-  PersonOccupationDialog,
-} from './SetPersonOccupation'
-// import { OrganizationPersonsProvider } from './context/Provider'
-import placeholderPerson from 'img/placeholderPerson.jpg'
-
-// import { GET_ORGANIZATION } from '../../../index'
-
-import { Organization, Person } from 'utils/types'
-
-const REMOVE_ORGANIZATION_PERSON = gql`
-  mutation removeOrganizationPerson($organizationId: ID!, $personId: ID!) {
-    organizationPerson: RemoveOrganizationPersons(
-      from: { organizationId: $organizationId }
-      to: { personId: $personId }
-    ) {
-      to {
-        personId
-        firstName
-        lastName
-        name
-      }
-    }
-  }
-`
+import { PersonOccupationDialog, SetPersonOccupation } from './SetPersonOccupation'
 
 type TOrganizationPersons = {
   personOccupationDialogOpen: boolean
@@ -66,61 +39,13 @@ type TParams = {
 type TRelations = {
   organizationId: string
   organization: Organization
+  updateOrganization: MutationFunction
 }
 
 const Persons: React.FC<TRelations> = props => {
-  const { organizationId, organization } = props
-  const { enqueueSnackbar } = useSnackbar()
+  const { organizationId, organization, updateOrganization } = props
   const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
-  const [removeOrganizationPerson, { loading: mutationLoadingRemove }] =
-    useMutation(REMOVE_ORGANIZATION_PERSON, {
-      // update(cache, { data: { organizationPerson } }) {
-      //   try {
-      //     const queryResult = cache.readQuery({
-      //       query: GET_ORGANIZATION,
-      //       variables: {
-      //         organizationId,
-      //       },
-      //     })
-      //     const updatedPersons = queryResult.organization[0].persons.filter(
-      //       p => p.personId !== organizationPerson.to.personId
-      //     )
-
-      //     const updatedResult = {
-      //       organization: [
-      //         {
-      //           ...queryResult.organization[0],
-      //           persons: updatedPersons,
-      //         },
-      //       ],
-      //     }
-      //     cache.writeQuery({
-      //       query: GET_ORGANIZATION,
-      //       data: updatedResult,
-      //       variables: {
-      //         organizationId,
-      //       },
-      //     })
-      //   } catch (error) {
-      //     console.error(error)
-      //   }
-      // },
-      onCompleted: data => {
-        enqueueSnackbar(
-          `${data.organizationPerson.to.name} removed from ${organization.name}!`,
-          {
-            variant: 'info',
-          }
-        )
-      },
-      onError: error => {
-        enqueueSnackbar(`Error happened :( ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    })
 
   const organizationPersonsColumns = useMemo<GridColumns>(
     () => [
@@ -190,7 +115,6 @@ const Persons: React.FC<TRelations> = props => {
             <ButtonDialog
               text={'Remove'}
               textLoading={'Removing...'}
-              loading={mutationLoadingRemove}
               dialogTitle={
                 'Do you really want to remove person from the organization?'
               }
@@ -198,10 +122,22 @@ const Persons: React.FC<TRelations> = props => {
               dialogNegativeText={'No, keep the person'}
               dialogPositiveText={'Yes, remove person'}
               onDialogClosePositive={() => {
-                removeOrganizationPerson({
+                updateOrganization({
                   variables: {
-                    organizationId,
-                    personId: params.row.personId,
+                    where: {
+                      organizationId,
+                    },
+                    update: {
+                      persons: {
+                        disconnect: {
+                          where: {
+                            node: {
+                              personId: params.row.personId,
+                            },
+                          },
+                        },
+                      },
+                    },
                   },
                 })
               }}
@@ -231,11 +167,7 @@ const Persons: React.FC<TRelations> = props => {
               <Toolbar disableGutters className={classes.toolbarForm}>
                 <div />
                 <div>
-                  <AddPerson
-                    organization={organization}
-                    organizationId={organizationId}
-                    removeOrganizationPerson={removeOrganizationPerson}
-                  />
+                  <AddPerson {...props} />
 
                   <LinkButton
                     startIcon={<CreateIcon />}
