@@ -138,8 +138,9 @@ const UPDATE_ORGANIZATION = gql`
   mutation updateOrganization(
     $where: OrganizationWhere
     $update: OrganizationUpdateInput
+    $create: OrganizationRelationInput
   ) {
-    updateOrganizations(where: $where, update: $update) {
+    updateOrganizations(where: $where, update: $update, create: $create) {
       organizations {
         organizationId
         name
