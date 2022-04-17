@@ -70,6 +70,10 @@ export const GET_ORGANIZATION = gql`
         competitionId
         name
       }
+      rulePacks {
+        rulePackId
+        name
+      }
     }
   }
 `
@@ -119,6 +123,10 @@ const CREATE_ORGANIZATION = gql`
         }
         competitions {
           competitionId
+          name
+        }
+        rulePacks {
+          rulePackId
           name
         }
       }
@@ -174,6 +182,10 @@ const UPDATE_ORGANIZATION = gql`
         }
         competitions {
           competitionId
+          name
+        }
+        rulePacks {
+          rulePackId
           name
         }
       }
