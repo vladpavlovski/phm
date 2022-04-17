@@ -56,6 +56,11 @@ export const GET_ORGANIZATION = gql`
         occupationId
         name
       }
+      sponsors {
+        sponsorId
+        name
+        description
+      }
     }
   }
 `
@@ -92,6 +97,11 @@ const CREATE_ORGANIZATION = gql`
         occupations {
           occupationId
           name
+        }
+        sponsors {
+          sponsorId
+          name
+          description
         }
       }
     }
@@ -133,6 +143,11 @@ const UPDATE_ORGANIZATION = gql`
         occupations {
           occupationId
           name
+        }
+        sponsors {
+          sponsorId
+          name
+          description
         }
       }
     }
