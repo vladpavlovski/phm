@@ -1,55 +1,42 @@
-import React, { useCallback, useState, useMemo } from 'react'
+import { Error, LinkButton, Loader, QuickSearchToolbar, Title } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
-import ButtonGroup from '@mui/material/ButtonGroup'
+import { getAdminOrgPlayerRoute } from 'router/routes'
+import { getXGridValueFromArray, setIdFromEntityId, setXGridForRelation, sortByStatus } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { Jersey, Player, Position, Team } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
+import AddIcon from '@mui/icons-material/Add'
+import AddReactionIcon from '@mui/icons-material/AddReaction'
+import BalconyIcon from '@mui/icons-material/Balcony'
+import HowToRegIcon from '@mui/icons-material/HowToReg'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import StarIcon from '@mui/icons-material/Star'
+import StarOutlineIcon from '@mui/icons-material/StarOutline'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
 import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Toolbar from '@mui/material/Toolbar'
-
-import Switch from '@mui/material/Switch'
-import AddIcon from '@mui/icons-material/Add'
-import AccountBox from '@mui/icons-material/AccountBox'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import HowToRegIcon from '@mui/icons-material/HowToReg'
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import AddReactionIcon from '@mui/icons-material/AddReaction'
-import BalconyIcon from '@mui/icons-material/Balcony'
-import IconButton from '@mui/material/IconButton'
-import StarOutlineIcon from '@mui/icons-material/StarOutline'
-import StarIcon from '@mui/icons-material/Star'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import { LinkButton } from 'components/LinkButton'
-import { Title } from 'components/Title'
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
-import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { getAdminOrgPlayerRoute } from 'router/routes'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-  setXGridForRelation,
-  sortByStatus,
-} from 'utils'
-import { useXGridSearch } from 'utils/hooks'
+import Paper from '@mui/material/Paper'
+import Switch from '@mui/material/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
+import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
-import { SetLineupPosition } from './SetLineupPosition'
 import { SetLineupJersey } from './SetLineupJersey'
-
-import { Team, Player, Position, Jersey } from 'utils/types'
+import { SetLineupPosition } from './SetLineupPosition'
 
 const GET_TEAM_PLAYERS = gql`
   query getTeamPlayers($where: TeamWhere) {
@@ -169,7 +156,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
     variables: {
       where: { teamId: team?.teamId },
     },
-    fetchPolicy: 'cache-and-network',
   })
 
   const openPlayerDialog = useCallback(() => {
