@@ -1,37 +1,35 @@
-import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import { useParams } from 'react-router-dom'
-import Img from 'react-cool-img'
-import dayjs from 'dayjs'
-import createPersistedState from 'use-persisted-state'
-
-import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
-import Stack from '@mui/material/Stack'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import Link from '@mui/material/Link'
-import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
-import StarIcon from '@mui/icons-material/Star'
-import BalconyIcon from '@mui/icons-material/Balcony'
-import { GridColumns } from '@mui/x-data-grid-pro'
-import { getAdminOrgGameRoute } from 'router/routes'
-import { GameQrPayment } from '../components'
 import { LinkButton, XGridPage } from 'components'
-import { setIdFromEntityId, formatDate, formatTime } from 'utils'
-import {
-  GameTeamsRelationship,
-  GamePlayersRelationship,
-  GameEventSimple,
-  Game,
-} from 'utils/types'
+import dayjs from 'dayjs'
+import React from 'react'
+import Img from 'react-cool-img'
+import { useParams } from 'react-router-dom'
+import { getAdminOrgGameRoute } from 'router/routes'
+import createPersistedState from 'use-persisted-state'
+import { formatDate, formatTime, setIdFromEntityId } from 'utils'
+import { Game, GameEventSimple, GamePlayersRelationship, GameTeamsRelationship } from 'utils/types'
+import { gql, useLazyQuery } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
+import BalconyIcon from '@mui/icons-material/Balcony'
+import EditIcon from '@mui/icons-material/Edit'
+import StarIcon from '@mui/icons-material/Star'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Chip from '@mui/material/Chip'
+import Link from '@mui/material/Link'
+import Stack from '@mui/material/Stack'
+import { GridColumns } from '@mui/x-data-grid-pro'
+import { GameQrPayment } from '../components'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
 const useGamesColumnsTypeState = createPersistedState('HMS-GamesColumnsType')
 
 export const GET_GAMES = gql`
-  query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
-    games(where: $where) {
+  query getGames(
+    $where: GameWhere
+    $whereGameEvents: GameEventSimpleWhere
+    $options: GameOptions
+  ) {
+    games(where: $where, options: $options) {
       gameId
       name
       type
@@ -725,6 +723,11 @@ const View: React.FC = () => {
       },
       whereGameEvents: {
         eventTypeCode: 'goal',
+      },
+      options: {
+        sort: {
+          startDate: 'ASC',
+        },
       },
     }
     getGames({ variables })

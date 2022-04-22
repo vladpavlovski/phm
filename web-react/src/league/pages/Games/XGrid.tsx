@@ -1,20 +1,18 @@
-import React from 'react'
-import { useQuery, gql } from '@apollo/client'
-import { useParams } from 'react-router-dom'
-
-import { Container, Grid } from '@mui/material'
-import { DataGridPro, GridRowsProp, GridColumns } from '@mui/x-data-grid-pro'
 import { useStyles } from 'admin/pages/commonComponents/styled'
+import { getColumns } from 'admin/pages/Game/view'
 import { Error } from 'components/Error'
-import { useXGridSearch } from 'utils/hooks'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import React from 'react'
+import { useParams } from 'react-router-dom'
 import { setIdFromEntityId } from 'utils'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { getColumns } from 'admin/pages/Game/view'
-import { useTheme } from '@mui/material/styles'
-
+import { useXGridSearch } from 'utils/hooks'
 import { Game } from 'utils/types'
+import { gql, useQuery } from '@apollo/client'
+import { Container, Grid } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 const GET_GAMES = gql`
   query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
@@ -111,6 +109,11 @@ const XGridTable: React.FC = () => {
       },
       whereGameEvents: {
         eventTypeCode: 'goal',
+      },
+      options: {
+        sort: {
+          startDate: 'ASC',
+        },
       },
     },
   })
