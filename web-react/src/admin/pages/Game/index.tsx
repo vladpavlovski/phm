@@ -448,10 +448,32 @@ const Game: React.FC = () => {
 
   const { handleSubmit, control, errors, register, setValue } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      gameVenue: gameData?.venue || null,
+      name: gameData?.name,
+      foreignId: gameData?.foreignId,
+      type: gameData?.type,
+      startDate: gameData?.startDate,
+      startTime: gameData?.startTime,
+      endDate: gameData?.endDate,
+      endTime: gameData?.endTime,
+      timekeeper: gameData?.timekeeper,
+      referee: gameData?.referee,
+      description: gameData?.description,
+      info: gameData?.info,
+      flickrAlbum: gameData?.flickrAlbum,
+      headline: gameData?.headline,
+      perex: gameData?.perex,
+      body: gameData?.body,
+      paymentHost: gameData?.paymentHost ?? '',
+      paymentGuest: gameData?.paymentGuest ?? '',
+      paymentTimekeeper: gameData?.paymentTimekeeper ?? '',
+      paymentReferee: gameData?.paymentReferee ?? '',
+      price: gameData?.price,
+    },
   })
 
   React.useEffect(() => {
-    // console.log('run validate gameVenue')
     register('gameVenue', {
       validate: value => {
         return !!value?.venueId
@@ -492,7 +514,7 @@ const Game: React.FC = () => {
               },
             },
           }),
-          ...(gameVenue && {
+          ...(gameVenue?.venueId && {
             venue: {
               ...(gameId !== 'new' && {
                 disconnect: {
@@ -501,11 +523,13 @@ const Game: React.FC = () => {
                   },
                 },
               }),
-              connect: {
-                where: {
-                  node: { venueId: gameVenue?.venueId },
+              ...(gameVenue?.venueId && {
+                connect: {
+                  where: {
+                    node: { venueId: gameVenue?.venueId },
+                  },
                 },
-              },
+              }),
             },
           }),
         }
@@ -728,7 +752,7 @@ const Game: React.FC = () => {
                       <Autocomplete
                         id="combo-box-game-venue"
                         options={gameVenues || venuesData?.venues || []}
-                        defaultValue={gameData?.venue ?? null}
+                        defaultValue={gameData?.venue || null}
                         renderInput={params => (
                           <TextField
                             variant="standard"
