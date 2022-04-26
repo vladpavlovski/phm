@@ -1,44 +1,41 @@
-import React from 'react'
+import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
+import React from 'react'
+import { createCtx } from 'utils'
+import {
+  Game,
+  GamePlayersRelationship,
+  GoalSubType,
+  GoalType,
+  InjuryType,
+  PenaltySubType,
+  PenaltyType,
+  RulePack,
+  ShotSubType,
+  ShotType,
+  Team,
+} from 'utils/types'
 import { gql, useMutation } from '@apollo/client'
-
-import ButtonGroup from '@mui/material/ButtonGroup'
-import Button from '@mui/material/Button'
-import Zoom from '@mui/material/Zoom'
-import Tooltip from '@mui/material/Tooltip'
 import AddTaskIcon from '@mui/icons-material/AddTask'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Box from '@mui/material/Box'
-import Stepper from '@mui/material/Stepper'
+import Divider from '@mui/material/Divider'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
+import Stepper from '@mui/material/Stepper'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import dayjs from 'dayjs'
-
-import { GameEventTypes } from './GameEventTypes'
-import { getEventSettings, TEventType } from './gameEvents'
-import { EventTypeForm } from './eventTypeForms'
-import { createCtx } from 'utils'
+import Zoom from '@mui/material/Zoom'
 import { prepareGameResultUpdate } from '../handlers'
 import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
-
-import {
-  Team,
-  RulePack,
-  Game,
-  GamePlayersRelationship,
-  GoalType,
-  GoalSubType,
-  ShotType,
-  ShotSubType,
-  PenaltyType,
-  PenaltySubType,
-  InjuryType,
-} from 'utils/types'
+import { EventTypeForm } from './eventTypeForms'
+import { getEventSettings, TEventType } from './gameEvents'
+import { GameEventTypes } from './GameEventTypes'
 
 const CREATE_GES = gql`
   mutation createGameEventSimples(
@@ -824,7 +821,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
         : openGameEventDialog === 'guest') && (
         <Dialog
           fullWidth
-          disableEscapeKeyDown
+          disableEscapeKeyDown={!!gameEventSettings?.steps}
           maxWidth="lg"
           open={
             host
@@ -890,47 +887,49 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
             )}
           </DialogContent>
 
-          {gameEventSettings?.steps && (
-            <DialogActions>
-              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                  color="inherit"
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                  sx={{ mr: 1 }}
-                >
-                  Back
-                </Button>
-                <Box sx={{ flex: '1 1 auto' }} />
-                {isStepOptional(activeStep) && (
-                  <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                    Skip
-                  </Button>
-                )}
-                {activeStep === gameEventSettings.steps.length ? (
-                  <Button onClick={handleReset}>Reset</Button>
-                ) : (
-                  <Button onClick={handleNext} disabled={nextButtonDisabled}>
-                    {activeStep === gameEventSettings.steps.length - 1
-                      ? 'Finish'
-                      : 'Next'}
-                  </Button>
-                )}
-                {activeStep === gameEventSettings.steps.length && (
+          <DialogActions>
+            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+              {gameEventSettings?.steps && (
+                <>
                   <Button
-                    onClick={() => {
-                      handleSave()
-                    }}
+                    color="inherit"
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mr: 1 }}
                   >
-                    Save
+                    Back
                   </Button>
-                )}
-                <Button color="secondary" onClick={handleClose}>
-                  Cancel
-                </Button>
-              </Box>
-            </DialogActions>
-          )}
+                  <Box sx={{ flex: '1 1 auto' }} />
+                  {isStepOptional(activeStep) && (
+                    <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
+                      Skip
+                    </Button>
+                  )}
+                  {activeStep === gameEventSettings.steps.length ? (
+                    <Button onClick={handleReset}>Reset</Button>
+                  ) : (
+                    <Button onClick={handleNext} disabled={nextButtonDisabled}>
+                      {activeStep === gameEventSettings.steps.length - 1
+                        ? 'Finish'
+                        : 'Next'}
+                    </Button>
+                  )}
+                  {activeStep === gameEventSettings.steps.length && (
+                    <Button
+                      onClick={() => {
+                        handleSave()
+                      }}
+                    >
+                      Save
+                    </Button>
+                  )}
+                </>
+              )}
+              <Button color="secondary" onClick={handleClose}>
+                Cancel
+              </Button>
+            </Box>
+          </DialogActions>
         </Dialog>
       )}
     </>
