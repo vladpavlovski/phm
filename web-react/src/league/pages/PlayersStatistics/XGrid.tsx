@@ -18,7 +18,14 @@ import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { DataGridPro, GridColumns, GridRowModel, GridRowsProp } from '@mui/x-data-grid-pro'
+import {
+  DataGridPro,
+  GridColumns,
+  GridRowModel,
+  GridRowsProp,
+  GridSortApi,
+  useGridApiRef,
+} from '@mui/x-data-grid-pro'
 
 const GET_PLAYERS_STATISTICS = gql`
   query getPlayersStatistics(
@@ -270,8 +277,26 @@ const XGridTable: React.FC = () => {
     data?.seasons && setActualSeason(data?.seasons?.[0] || null)
   }, [data])
 
+  const apiRef = useGridApiRef()
+
+  const getRowIndex = React.useCallback<GridSortApi['getRowIndex']>(
+    id =>
+      apiRef.current ? apiRef.current.getSortedRowIds().indexOf(id) + 1 : 0,
+    [apiRef]
+  )
+
   const columns = React.useMemo<GridColumns>(
     () => [
+      {
+        field: 'index',
+        headerName: '',
+        width: 5,
+        sortable: false,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return <>{getRowIndex(params.row.id)}</>
+        },
+      },
       {
         field: 'name',
         headerName: 'Name',
@@ -382,127 +407,124 @@ const XGridTable: React.FC = () => {
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Error message={error?.message} />
-
-          <>
-            <Stack>
-              <ButtonGroup
-                size={upSm ? 'medium' : 'small'}
-                aria-label="outlined button group"
-                variant="outlined"
-              >
-                {actualSeason?.competitions?.map(g => {
-                  return (
-                    <Button
-                      key={g.competitionId}
-                      type="button"
-                      color="primary"
-                      variant={
-                        selectedCompetition?.competitionId === g?.competitionId
-                          ? 'contained'
-                          : 'outlined'
-                      }
-                      onClick={() => {
-                        setSelectedCompetition(
-                          g?.competitionId ===
-                            selectedCompetition?.competitionId
-                            ? null
-                            : g
-                        )
-                      }}
-                    >
-                      {g?.name}
-                    </Button>
-                  )
-                })}
-              </ButtonGroup>
-              <ButtonGroup
-                size={upSm ? 'medium' : 'small'}
-                aria-label="outlined button group"
-                variant="outlined"
-              >
-                {actualSeason?.groups?.map(g => {
-                  return (
-                    <Button
-                      key={g.groupId}
-                      type="button"
-                      color="primary"
-                      variant={
-                        selectedGroup?.groupId === g?.groupId
-                          ? 'contained'
-                          : 'outlined'
-                      }
-                      onClick={() => {
-                        setSelectedGroup(
-                          g?.groupId === selectedGroup?.groupId ? null : g
-                        )
-                      }}
-                    >
-                      {g?.name}
-                    </Button>
-                  )
-                })}
-              </ButtonGroup>
-              <ButtonGroup
-                size={upSm ? 'medium' : 'small'}
-                aria-label="outlined button group"
-                variant="outlined"
-              >
-                {actualSeason?.phases?.map(g => {
-                  return (
-                    <Button
-                      key={g.phaseId}
-                      type="button"
-                      color="primary"
-                      variant={
-                        selectedPhase?.phaseId === g?.phaseId
-                          ? 'contained'
-                          : 'outlined'
-                      }
-                      onClick={() => {
-                        setSelectedPhase(
-                          g?.phaseId === selectedPhase?.phaseId ? null : g
-                        )
-                      }}
-                    >
-                      {g?.name}
-                    </Button>
-                  )
-                })}
-              </ButtonGroup>
-            </Stack>
-
-            <div
-              style={{
-                height: getXGridHeight(toolbarRef.current, windowSize),
-              }}
-              className={classes.xGridWrapper}
+          <Stack>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
             >
-              <DataGridPro
-                disableSelectionOnClick
-                disableMultipleSelection
-                density="compact"
-                columns={columns}
-                rows={searchData}
-                loading={loading}
-                components={{
-                  Toolbar: QuickSearchToolbar,
-                }}
-                componentsProps={{
-                  toolbar: {
-                    value: searchText,
-                    onChange: (
-                      event: React.ChangeEvent<HTMLInputElement>
-                    ): void => {
-                      requestSearch(event.target.value)
-                    },
-                    clearSearch: () => {
-                      requestSearch('')
-                    },
+              {actualSeason?.competitions?.map(g => {
+                return (
+                  <Button
+                    key={g.competitionId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedCompetition?.competitionId === g?.competitionId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedCompetition(
+                        g?.competitionId === selectedCompetition?.competitionId
+                          ? null
+                          : g
+                      )
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {actualSeason?.groups?.map(g => {
+                return (
+                  <Button
+                    key={g.groupId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedGroup?.groupId === g?.groupId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedGroup(
+                        g?.groupId === selectedGroup?.groupId ? null : g
+                      )
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {actualSeason?.phases?.map(g => {
+                return (
+                  <Button
+                    key={g.phaseId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedPhase?.phaseId === g?.phaseId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedPhase(
+                        g?.phaseId === selectedPhase?.phaseId ? null : g
+                      )
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+          </Stack>
+
+          <div
+            style={{
+              height: getXGridHeight(toolbarRef.current, windowSize),
+            }}
+            className={classes.xGridWrapper}
+          >
+            <DataGridPro
+              apiRef={apiRef}
+              disableSelectionOnClick
+              disableMultipleSelection
+              density="compact"
+              columns={columns}
+              rows={searchData}
+              loading={loading}
+              components={{
+                Toolbar: QuickSearchToolbar,
+              }}
+              componentsProps={{
+                toolbar: {
+                  value: searchText,
+                  onChange: (
+                    event: React.ChangeEvent<HTMLInputElement>
+                  ): void => {
+                    requestSearch(event.target.value)
                   },
-                }}
-              />
-            </div>
-          </>
+                  clearSearch: () => {
+                    requestSearch('')
+                  },
+                },
+              }}
+            />
+          </div>
         </Grid>
       </Grid>
     </Container>
