@@ -1,10 +1,7 @@
-import React from 'react'
-import { GridRowsProp } from '@mui/x-data-grid-pro'
 import * as JsSearch from 'js-search'
+import React from 'react'
 import { useDebounce } from 'utils/hooks'
-
-const searchDataEngine = new JsSearch.Search('id')
-searchDataEngine.indexStrategy = new JsSearch.AllSubstringsIndexStrategy()
+import { GridRowsProp } from '@mui/x-data-grid-pro'
 
 type TUseXGridSearch = {
   searchIndexes: (string | string[])[]
@@ -15,6 +12,18 @@ const useXGridSearch = (
   props: TUseXGridSearch
 ): [string, GridRowsProp[], React.Dispatch<React.SetStateAction<string>>] => {
   const { searchIndexes, data } = props
+  const [searchDataEngine] = React.useState<JsSearch.Search>(
+    new JsSearch.Search('id')
+  )
+  const [isInitialization, setIsInitialization] = React.useState(true)
+
+  React.useEffect(() => {
+    if (isInitialization) {
+      searchDataEngine.indexStrategy = new JsSearch.AllSubstringsIndexStrategy()
+
+      setIsInitialization(false)
+    }
+  }, [])
 
   React.useEffect(() => {
     searchIndexes?.forEach(si => {
