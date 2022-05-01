@@ -1,42 +1,37 @@
-import React, { useCallback, useEffect, useContext } from 'react'
-import { useParams, useHistory } from 'react-router-dom'
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet-async'
-import { useSnackbar } from 'notistack'
-import { yupResolver } from '@hookform/resolvers/yup'
-import Img from 'react-cool-img'
-
-import Toolbar from '@mui/material/Toolbar'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
-import MenuItem from '@mui/material/MenuItem'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
 import {
+  Error,
+  Loader,
   RHFAutocomplete,
   RHFDatepicker,
-  RHFSelect,
   RHFInput,
-  Uploader,
+  RHFSelect,
   Title,
-  Loader,
-  Error,
+  Uploader,
 } from 'components'
-
-import { countriesNames } from 'utils/constants/countries'
-import { decomposeDate, isValidUuid } from 'utils'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
 import { activityStatusList } from 'components/lists'
-import { Relations } from './relations'
-
-import { getAdminOrgPersonsRoute, getAdminOrgPersonRoute } from 'router/routes'
-import placeholderAvatar from 'img/placeholderPerson.jpg'
 import OrganizationContext from 'context/organization'
+import placeholderAvatar from 'img/placeholderPerson.jpg'
+import { useSnackbar } from 'notistack'
+import React, { useCallback, useContext } from 'react'
+import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgPersonRoute, getAdminOrgPersonsRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { countriesNames } from 'utils/constants/countries'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_PERSON = gql`
   query getPerson($where: PersonWhere) {
@@ -117,7 +112,6 @@ const Person: React.FC = () => {
     data: { people: [personData] } = { people: [] },
     error: queryError,
   } = useQuery(GET_PERSON, {
-    fetchPolicy: 'network-only',
     variables: { where: { personId } },
   })
 
@@ -127,7 +121,7 @@ const Person: React.FC = () => {
   ] = useMutation(CREATE_PERSON, {
     onCompleted: data => {
       if (personId === 'new') {
-        const newId = data?.createPersons?.persons?.[0]?.personId
+        const newId = data?.createPeople?.people?.[0]?.personId
         newId &&
           history.replace(getAdminOrgPersonRoute(organizationSlug, newId))
       }
@@ -144,7 +138,7 @@ const Person: React.FC = () => {
         cache.writeQuery({
           query: GET_PERSON,
           data: {
-            persons: data?.updatePersons?.people,
+            persons: data?.updatePeople?.people,
           },
           variables: { where: { personId } },
         })
@@ -168,25 +162,36 @@ const Person: React.FC = () => {
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      country: personData?.country || '',
+      avatar: personData?.avatar,
+      firstName: personData?.firstName,
+      lastName: personData?.lastName,
+      externalId: personData?.externalId,
+      phone: personData?.phone,
+      email: personData?.email,
+      birthday: personData?.birthday,
+      activityStatus: personData?.activityStatus,
+      city: personData?.city,
+      gender: personData?.gender?.toLowerCase() || '',
+    },
   })
-
-  useEffect(() => {
-    if (personData) {
-      setValue('country', personData.country)
-    }
-  }, [personData])
 
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { country, birthday, ...rest } = dataToCheck
-
+        const { birthday, ...rest } = dataToCheck
         const dataToSubmit = {
           ...rest,
           ...decomposeDate(birthday, 'birthday'),
-          country: country || '',
+          orgs: {
+            connect: {
+              where: {
+                node: { organizationId: organizationData?.organizationId },
+              },
+            },
+          },
         }
-
         personId === 'new'
           ? createPerson({
               variables: {
@@ -255,21 +260,21 @@ const Person: React.FC = () => {
         <>
           <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <Helmet>
-              <title>{personData.name || 'Person'}</title>
+              <title>{personData?.name || 'Person'}</title>
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
                 <Paper className={classes.paper}>
                   <Img
                     placeholder={placeholderAvatar}
-                    src={personData.avatar}
+                    src={personData?.avatar}
                     className={classes.logo}
-                    alt={personData.name}
+                    alt={personData?.name}
                   />
 
                   <RHFInput
                     style={{ display: 'none' }}
-                    defaultValue={personData.avatar}
+                    defaultValue={personData?.avatar}
                     control={control}
                     name="avatar"
                     label="Avatar URL"
@@ -328,7 +333,7 @@ const Person: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFInput
-                        defaultValue={personData.lastName}
+                        defaultValue={personData?.lastName}
                         control={control}
                         name="lastName"
                         label="Last name"
@@ -394,7 +399,7 @@ const Person: React.FC = () => {
                         control={control}
                         name="activityStatus"
                         label="Activity Status"
-                        defaultValue={personData?.activityStatus || ''}
+                        defaultValue={personData?.activityStatus || 'UNKNOWN'}
                         error={errors?.activityStatus}
                       >
                         {activityStatusList.map(s => {
@@ -411,7 +416,7 @@ const Person: React.FC = () => {
                       <RHFAutocomplete
                         fullWidth
                         options={countriesNames}
-                        defaultValue={personData.country}
+                        defaultValue={personData?.country}
                         // getOptionLabel={option => {
                         //   console.log(option)
                         //   return option
