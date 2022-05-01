@@ -1,38 +1,36 @@
 import React from 'react'
 import { Link as RouterLink, LinkProps } from 'react-router-dom'
-import * as ROUTES from '../../router/routes'
 import createPersistedState from 'use-persisted-state'
-
-import Zoom from '@mui/material/Zoom'
-import List from '@mui/material/List'
+import { getInitials } from 'utils'
+import ApartmentIcon from '@mui/icons-material/Apartment'
+import DashboardIcon from '@mui/icons-material/Dashboard'
+import DateRangeIcon from '@mui/icons-material/DateRange'
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
+import EventIcon from '@mui/icons-material/Event'
+import ExpandLess from '@mui/icons-material/ExpandLess'
+import ExpandMore from '@mui/icons-material/ExpandMore'
+import GavelIcon from '@mui/icons-material/Gavel'
+import GroupIcon from '@mui/icons-material/Group'
+import GroupsIcon from '@mui/icons-material/Groups'
+import GroupWorkIcon from '@mui/icons-material/GroupWork'
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
+import MoodIcon from '@mui/icons-material/Mood'
+import PeopleAlt from '@mui/icons-material/PeopleAlt'
+import SettingsIcon from '@mui/icons-material/Settings'
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports'
+import SportsHockey from '@mui/icons-material/SportsHockey'
+import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
+import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemIcon, { ListItemIconProps } from '@mui/material/ListItemIcon'
 import ListItemText, { ListItemTextProps } from '@mui/material/ListItemText'
-import Tooltip from '@mui/material/Tooltip'
 import ListSubheader from '@mui/material/ListSubheader'
-import Collapse from '@mui/material/Collapse'
-import ExpandLess from '@mui/icons-material/ExpandLess'
-import ExpandMore from '@mui/icons-material/ExpandMore'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import MoodIcon from '@mui/icons-material/Mood'
-import GroupIcon from '@mui/icons-material/Group'
-import GroupsIcon from '@mui/icons-material/Groups'
-import SportsHockey from '@mui/icons-material/SportsHockey'
-import GavelIcon from '@mui/icons-material/Gavel'
-import SettingsIcon from '@mui/icons-material/Settings'
-import PeopleAlt from '@mui/icons-material/PeopleAlt'
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
-import DateRangeIcon from '@mui/icons-material/DateRange'
-import ApartmentIcon from '@mui/icons-material/Apartment'
-import GroupWorkIcon from '@mui/icons-material/GroupWork'
-import EventIcon from '@mui/icons-material/Event'
-import SportsEsportsIcon from '@mui/icons-material/SportsEsports'
-
-import { SubList } from './styled'
-
+import Tooltip from '@mui/material/Tooltip'
+import Zoom from '@mui/material/Zoom'
 import OrganizationContext from '../../context/organization'
+import * as ROUTES from '../../router/routes'
+import { SubList } from './styled'
 
 const useGeneralMenuState = createPersistedState<boolean>('HMS-GeneralMenu')
 
@@ -181,9 +179,11 @@ const MainListItems: React.FC<TMainListItems> = props => {
         <>
           <Divider />
           <List>
-            <ListSubheader>{`${
-              organizationData?.name || 'Organization'
-            }`}</ListSubheader>
+            <ListSubheader>
+              {open
+                ? `${organizationData?.name || ''}`
+                : getInitials(organizationData?.name)}
+            </ListSubheader>
             <ListItem
               button
               onClick={() => {

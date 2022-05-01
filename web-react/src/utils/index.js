@@ -110,7 +110,7 @@ export const phoneRegExp =
 export const getInitials = value => {
   let initials = value.replace(/[^a-zA-Z- ]/g, '').match(/\b\w/g)
 
-  return initials.join('')
+  return initials.join('').toUpperCase()
 }
 
 export const escapeRegExp = value => {
