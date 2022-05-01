@@ -273,7 +273,7 @@ const Competition: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       <Error
         message={

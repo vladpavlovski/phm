@@ -1,35 +1,29 @@
-import React from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { useForm } from 'react-hook-form'
+import { Error } from 'components/Error'
+import { timeUnitStatusList } from 'components/lists'
+import { Loader } from 'components/Loader'
+import { RHFDatepicker } from 'components/RHFDatepicker'
+import { RHFInput } from 'components/RHFInput'
+import { RHFSelect } from 'components/RHFSelect'
+import { Title } from 'components/Title'
 import { useSnackbar } from 'notistack'
+import React from 'react'
 import { Helmet } from 'react-helmet-async'
-
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgSeasonRoute, getAdminOrgSeasonsRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
 import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
-
-import { RHFSelect } from 'components/RHFSelect'
-import { RHFDatepicker } from 'components/RHFDatepicker'
-import { RHFInput } from 'components/RHFInput'
-import { isValidUuid, decomposeDate } from 'utils'
-import { Title } from 'components/Title'
+import { ButtonSave } from '../commonComponents/ButtonSave'
 import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-
-import { getAdminOrgSeasonsRoute, getAdminOrgSeasonRoute } from 'router/routes'
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
-import { timeUnitStatusList } from 'components/lists'
 import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_SEASON = gql`
   query getSeason($where: SeasonWhere) {
@@ -261,7 +255,7 @@ const Season: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       {queryLoading && <Loader />}
       <Error
         message={

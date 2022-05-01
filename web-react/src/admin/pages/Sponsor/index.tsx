@@ -1,32 +1,23 @@
-import React from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { useSnackbar } from 'notistack'
-import { Helmet } from 'react-helmet-async'
-
-import { yupResolver } from '@hookform/resolvers/yup'
-
-import { Container, Grid, Paper } from '@mui/material'
-import Img from 'react-cool-img'
-import Toolbar from '@mui/material/Toolbar'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader, RHFInput, Loader, Error, Title } from 'components'
-import { isValidUuid } from 'utils'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-
-import {
-  getAdminOrgSponsorsRoute,
-  getAdminOrgSponsorRoute,
-} from 'router/routes'
-
-import placeholderOrganization from 'img/placeholderOrganization.png'
-import { Relations } from './relations'
+import { Error, Loader, RHFInput, Title, Uploader } from 'components'
 import OrganizationContext from 'context/organization'
+import placeholderOrganization from 'img/placeholderOrganization.png'
+import { useSnackbar } from 'notistack'
+import React from 'react'
+import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgSponsorRoute, getAdminOrgSponsorsRoute } from 'router/routes'
+import { isValidUuid } from 'utils'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { Container, Grid, Paper } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_SPONSOR = gql`
   query getSponsor($where: SponsorWhere) {
@@ -315,7 +306,7 @@ const Sponsor: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       {queryLoading && <Loader />}
       <Error
         message={

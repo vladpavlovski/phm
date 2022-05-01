@@ -1,38 +1,26 @@
-import React, { useCallback, useContext } from 'react'
-import { useAuth0 } from '@auth0/auth0-react'
-import { useParams, useHistory } from 'react-router-dom'
+import { Error, Loader, RHFDatepicker, RHFInput, RHFTimepicker, Title, Uploader } from 'components'
+import placeholderEvent from 'img/placeholderEvent.png'
 import { useSnackbar } from 'notistack'
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet-async'
+import React, { useCallback, useContext } from 'react'
 import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgEventRoute, getAdminOrgEventsRoute } from 'router/routes'
+import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { useAuth0 } from '@auth0/auth0-react'
 import { yupResolver } from '@hookform/resolvers/yup'
-
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { decomposeDate, decomposeTime, isValidUuid } from 'utils'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-
-import { getAdminOrgEventsRoute, getAdminOrgEventRoute } from 'router/routes'
-import {
-  Loader,
-  Error,
-  Title,
-  RHFInput,
-  RHFTimepicker,
-  RHFDatepicker,
-  Uploader,
-} from 'components'
-
-import placeholderEvent from 'img/placeholderEvent.png'
 // import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { schema } from './schema'
 
 const GET_EVENT = gql`
   query getEvent($where: EventWhere) {
@@ -234,7 +222,7 @@ const Event: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       <Error
         message={

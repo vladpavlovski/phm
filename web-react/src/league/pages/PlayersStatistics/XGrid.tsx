@@ -403,7 +403,7 @@ const XGridTable: React.FC = () => {
   })
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Error message={error?.message} />

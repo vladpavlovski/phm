@@ -83,11 +83,11 @@ const Layout: React.FC = props => {
           </Drawer>
         </>
       )}
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        {isAdminPage && <DrawerHeader />}
+      <Box component="main" sx={{ flexGrow: 1, p: '3 0' }}>
+        {isAdminPage && <DrawerHeader sx={{ marginBottom: 3 }} />}
         {children}
         {isAdminPage && (
-          <Box pt={0}>
+          <Box pt={1}>
             <Copyright />
           </Box>
         )}

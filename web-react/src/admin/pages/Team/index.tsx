@@ -1,37 +1,32 @@
-import React, { useCallback } from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { useSnackbar } from 'notistack'
-import { Helmet } from 'react-helmet-async'
-import Img from 'react-cool-img'
-import { yupResolver } from '@hookform/resolvers/yup'
-
-import { Container, Grid, Paper } from '@mui/material'
-import MenuItem from '@mui/material/MenuItem'
-import Toolbar from '@mui/material/Toolbar'
-import { RHFSelect } from 'components/RHFSelect'
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { Uploader } from 'components/Uploader'
+import { Error } from 'components/Error'
+import { activityStatusList } from 'components/lists'
+import { Loader } from 'components/Loader'
 import { RHFColorpicker } from 'components/RHFColorpicker'
 import { RHFDatepicker } from 'components/RHFDatepicker'
 import { RHFInput } from 'components/RHFInput'
-import { decomposeDate, isValidUuid } from 'utils'
+import { RHFSelect } from 'components/RHFSelect'
 import { Title } from 'components/Title'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-import { activityStatusList } from 'components/lists'
-
-import { getAdminOrgTeamsRoute, getAdminOrgTeamRoute } from 'router/routes'
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
+import { Uploader } from 'components/Uploader'
 import placeholderOrganization from 'img/placeholderOrganization.png'
-import { Relations } from './relations'
-
+import { useSnackbar } from 'notistack'
+import React, { useCallback } from 'react'
+import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgTeamRoute, getAdminOrgTeamsRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
 import { Team as TeamType } from 'utils/types'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { Container, Grid, Paper } from '@mui/material'
+import MenuItem from '@mui/material/MenuItem'
+import Toolbar from '@mui/material/Toolbar'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { Relations } from './relations'
+import { schema } from './schema'
 
 export type TGetTeam = {
   teams: TeamType[]
@@ -328,7 +323,7 @@ const Team: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       {queryError && <Error message={queryError?.message} />}
       {errorDelete && <Error message={errorDelete?.message} />}

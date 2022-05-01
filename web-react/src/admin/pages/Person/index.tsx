@@ -244,7 +244,7 @@ const Person: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       {queryLoading && <Loader />}
 
       <Error
