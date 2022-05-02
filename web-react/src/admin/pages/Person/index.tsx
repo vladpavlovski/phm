@@ -220,22 +220,22 @@ const Person: React.FC = () => {
       const queryResult = client.readQuery({
         query: GET_PERSON,
         variables: {
-          personId,
+          where: { personId },
         },
       })
 
       client.writeQuery({
         query: GET_PERSON,
         data: {
-          person: [
+          people: [
             {
-              ...queryResult.person[0],
+              ...queryResult?.people?.[0],
               avatar: url,
             },
           ],
         },
         variables: {
-          personId,
+          where: { personId },
         },
       })
       handleSubmit(onSubmit)()
