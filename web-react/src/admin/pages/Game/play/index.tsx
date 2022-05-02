@@ -457,8 +457,8 @@ const Play: React.FC = () => {
       <Helmet>
         <title>{`Game Live ${gameData?.name || ''}`}</title>
       </Helmet>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
+      {queryLoading && <Loader />}
+      <Error message={queryError?.message} />
       {gameData && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -591,6 +591,8 @@ const Play: React.FC = () => {
                   <Finalization
                     gameData={gameData}
                     updateGameResult={updateGameResult}
+                    teamHost={teamHost}
+                    teamGuest={teamGuest}
                   />
                 </Grid>
               </Grid>

@@ -4,6 +4,7 @@ import React from 'react'
 import { createCtx } from 'utils'
 import {
   Game,
+  GameEventSimple,
   GamePlayersRelationship,
   GoalSubType,
   GoalType,
@@ -445,6 +446,15 @@ type TGameEventWizard = {
   gameData: Game
 }
 
+const getCountOfEventTypes = (
+  data: GameEventSimple[],
+  eventType: string,
+  teamId: string
+): number =>
+  data.filter(
+    event => event.eventTypeCode === eventType && event.team.teamId === teamId
+  )?.length
+
 const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
   const {
     host,
@@ -739,26 +749,24 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
                   gameEventSettings: data,
                   host,
                 })
-                setTimeout(() => {
-                  const input = getInputVarsForGES({
-                    gameEventData,
-                    team,
-                    gameData,
-                    gameEventSettings: data,
-                  })
-                  createGameEventSimple({
-                    variables: {
-                      input: {
-                        ...input,
-                        timestamp: dayjs().format(),
-                        remainingTime: tempRemainingTime,
-                      },
-                      gameResultWhere: where,
-                      gameResultUpdateInput: update,
+                const input = getInputVarsForGES({
+                  gameEventData,
+                  team,
+                  gameData,
+                  gameEventSettings: data,
+                })
+                createGameEventSimple({
+                  variables: {
+                    input: {
+                      ...input,
+                      timestamp: dayjs().format(),
+                      remainingTime: tempRemainingTime,
                     },
-                  })
-                  handleClose()
-                }, 1000)
+                    gameResultWhere: where,
+                    gameResultUpdateInput: update,
+                  },
+                })
+                handleClose()
               }
             }}
           >
@@ -776,27 +784,25 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
                   gameEventSettings: data,
                   host,
                 })
-                setTimeout(() => {
-                  const input = getInputVarsForGES({
-                    gameEventData,
-                    team,
-                    gameData,
-                    gameEventSettings: data,
-                  })
-                  createGameEventSimple({
-                    variables: {
-                      input: {
-                        ...input,
-                        timestamp: dayjs().format(),
-                        remainingTime: tempRemainingTime,
-                      },
-                      gameResultWhere: where,
-                      gameResultUpdateInput: update,
+                const input = getInputVarsForGES({
+                  gameEventData,
+                  team,
+                  gameData,
+                  gameEventSettings: data,
+                })
+                createGameEventSimple({
+                  variables: {
+                    input: {
+                      ...input,
+                      timestamp: dayjs().format(),
+                      remainingTime: tempRemainingTime,
                     },
-                  })
+                    gameResultWhere: where,
+                    gameResultUpdateInput: update,
+                  },
+                })
 
-                  handleClose()
-                }, 1000)
+                handleClose()
               }
             }}
           >
@@ -806,15 +812,23 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
       </Tooltip>
       <Divider sx={{ margin: '1rem 0' }} />
       <Typography variant="subtitle2" gutterBottom component="div">
-        {`Saves: ${gameData?.gameResult?.[host ? 'hostSaves' : 'guestSaves']}`}
+        {`Saves: ${getCountOfEventTypes(
+          gameData?.gameEventsSimple,
+          'save',
+          team?.teamId
+        )}`}
         &nbsp;|&nbsp;
-        {`FaceOffs: ${
-          gameData?.gameResult?.[host ? 'hostFaceOffs' : 'guestFaceOffs']
-        }`}
+        {`FaceOffs: ${getCountOfEventTypes(
+          gameData?.gameEventsSimple,
+          'faceOff',
+          team?.teamId
+        )}`}
         &nbsp;|&nbsp;
-        {`Penalties: ${
-          gameData?.gameResult?.[host ? 'hostPenalties' : 'guestPenalties']
-        }`}
+        {`Penalties: ${getCountOfEventTypes(
+          gameData?.gameEventsSimple,
+          'penalty',
+          team?.teamId
+        )}`}
       </Typography>
       {(host
         ? openGameEventDialog === 'host'
