@@ -1,40 +1,36 @@
-import React, { useCallback, useEffect } from 'react'
-import { useParams, useHistory } from 'react-router-dom'
-
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
-import { Helmet } from 'react-helmet-async'
-import { useSnackbar } from 'notistack'
-import { yupResolver } from '@hookform/resolvers/yup'
-import Img from 'react-cool-img'
-
-import Toolbar from '@mui/material/Toolbar'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
-import MenuItem from '@mui/material/MenuItem'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { countriesNames } from 'utils/constants/countries'
-import { decomposeDate, isValidUuid } from 'utils'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-import { activityStatusList } from 'components/lists'
-import { Relations } from './relations'
-
-import { getAdminOrgPlayersRoute, getAdminOrgPlayerRoute } from 'router/routes'
 import {
-  Loader,
   Error,
+  Loader,
   RHFAutocomplete,
   RHFDatepicker,
-  RHFSelect,
   RHFInput,
-  Uploader,
+  RHFSelect,
   Title,
+  Uploader,
 } from 'components'
+import { activityStatusList } from 'components/lists'
 import placeholderAvatar from 'img/placeholderPerson.jpg'
+import { useSnackbar } from 'notistack'
+import React, { useCallback, useEffect } from 'react'
+import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgPlayerRoute, getAdminOrgPlayersRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { countriesNames } from 'utils/constants/countries'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
+import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_PLAYER = gql`
   query getPlayer($where: PlayerWhere) {
@@ -340,7 +336,7 @@ const Player: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       {queryLoading && <Loader />}
       <Error
         message={

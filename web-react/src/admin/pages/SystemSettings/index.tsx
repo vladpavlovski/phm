@@ -1,21 +1,18 @@
-import React, { useCallback, useMemo } from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { useForm } from 'react-hook-form'
+import { Error, Loader, RHFInput, Title } from 'components'
 import { useSnackbar } from 'notistack'
+import React, { useCallback, useMemo } from 'react'
 import { Helmet } from 'react-helmet-async'
-
+import { useForm } from 'react-hook-form'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-
 import { ButtonSave } from '../commonComponents/ButtonSave'
 import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-import { RHFInput, Error, Loader, Title } from 'components'
-
 import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_SYSTEM_SETTINGS = gql`
   query getSystemSettings($where: SystemSettingsWhere) {
@@ -112,7 +109,7 @@ const SystemSettings: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       <Error message={queryError?.message || mutationErrorMerge?.message} />
 

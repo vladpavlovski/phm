@@ -1,29 +1,23 @@
+// import { Relations } from './relations'
+// import { getAdminUserRoute } from 'router/routes'
+import { Error, Loader, RHFInput, Title, Uploader } from 'components'
+import placeholderAvatar from 'img/placeholderPerson.jpg'
 import React, { useCallback } from 'react'
-import { useParams } from 'react-router-dom'
-import { gql, useQuery, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
+import Img from 'react-cool-img'
 import { Helmet } from 'react-helmet-async'
+import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
+import { isValidUuid } from 'utils'
+import { gql, useApolloClient, useQuery } from '@apollo/client'
 // import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
-import Img from 'react-cool-img'
-
-import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-
+import Toolbar from '@mui/material/Toolbar'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-
-import { isValidUuid } from 'utils'
 import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
-
-// import { Relations } from './relations'
-
-// import { getAdminUserRoute } from 'router/routes'
-import { Loader, Error, Uploader, RHFInput, Title } from 'components'
-
-import placeholderAvatar from 'img/placeholderPerson.jpg'
 
 const GET_USER = gql`
   query getUser($where: UserWhere) {
@@ -142,7 +136,7 @@ const User: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
 
       <Error message={queryError?.message} />

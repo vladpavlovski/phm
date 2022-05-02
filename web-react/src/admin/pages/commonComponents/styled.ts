@@ -2,10 +2,6 @@ import { makeStyles } from '@mui/styles'
 import { Theme } from '@mui/system'
 
 const useStyles = makeStyles((theme: Theme) => ({
-  container: {
-    // paddingTop: theme.spacing(4),
-    // paddingBottom: theme.spacing(4),
-  },
   paper: {
     padding: theme.spacing(2),
   },
@@ -22,7 +18,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     justifyContent: 'space-between',
   },
   accordionWrapper: {
-    paddingTop: theme.spacing(4),
+    paddingTop: theme.spacing(3),
   },
   accordionFormTitle: {
     width: '24%',
@@ -31,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   accordionFormDescription: { color: theme.palette.grey[500] },
   xGridWrapper: {
     width: '100%',
-    marginTop: theme.spacing(4),
+    marginTop: theme.spacing(3),
     background: theme.palette.background.paper,
     '& .hms-iframe--header': {
       padding: '0 !important',

@@ -211,7 +211,7 @@ const GameStatus: React.FC<TGameStatus> = props => {
               recomputeGameResult()
             }}
           >
-            {loading ? 'Computing...' : 'Recompute'}
+            {loading ? 'Calculating...' : 'Recalculate'}
           </LoadingButton>
         </div>
       </Toolbar>

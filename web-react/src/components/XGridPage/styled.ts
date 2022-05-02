@@ -4,7 +4,7 @@ import { Theme } from '@mui/system'
 const useStyles = makeStyles((theme: Theme) => ({
   xGridWrapper: {
     width: '100%',
-    marginTop: theme.spacing(4),
+    marginTop: theme.spacing(3),
     background: theme.palette.background.paper,
     '& .hms-iframe--header': {
       padding: '0 !important',

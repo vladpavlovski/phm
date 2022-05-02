@@ -1,27 +1,20 @@
-import React from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { useForm } from 'react-hook-form'
+import { Error, Loader, RHFDatepicker, RHFInput, Title } from 'components'
 import { useSnackbar } from 'notistack'
+import React from 'react'
 import { Helmet } from 'react-helmet-async'
-
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgAwardRoute, getAdminOrgAwardsRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
-
 import { Container, Grid, Paper, Toolbar } from '@mui/material'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import { useStyles } from '../commonComponents/styled'
-import { RHFDatepicker, RHFInput, Title, Loader, Error } from 'components'
-import { schema } from './schema'
-
-import { getAdminOrgAwardsRoute, getAdminOrgAwardRoute } from 'router/routes'
 import OrganizationContext from '../../../context/organization'
-import { isValidUuid, decomposeDate } from 'utils'
-
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_AWARD = gql`
   query getAward($where: AwardWhere) {
@@ -301,7 +294,7 @@ const Award: React.FC = () => {
   )
 
   return (
-    <Container maxWidth="lg" className={classes.container}>
+    <Container maxWidth="lg">
       {queryLoading && <Loader />}
       <Error
         message={

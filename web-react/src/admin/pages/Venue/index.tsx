@@ -1,38 +1,24 @@
-import React from 'react'
-
-import { useParams, useHistory } from 'react-router-dom'
-import Img from 'react-cool-img'
-import { gql, useQuery, useMutation, useApolloClient } from '@apollo/client'
-import { useForm } from 'react-hook-form'
+import { Error, Loader, RHFDatepicker, RHFInput, Title, Uploader } from 'components'
 import { useSnackbar } from 'notistack'
+import React from 'react'
+import Img from 'react-cool-img'
 import { Helmet } from 'react-helmet-async'
-
+import { useForm } from 'react-hook-form'
+import { useHistory, useParams } from 'react-router-dom'
+import { getAdminOrgVenueRoute, getAdminOrgVenuesRoute } from 'router/routes'
+import { decomposeDate, isValidUuid } from 'utils'
+import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
-
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-
-import { ButtonSave } from '../commonComponents/ButtonSave'
-import { ButtonDelete } from '../commonComponents/ButtonDelete'
-import {
-  Uploader,
-  RHFDatepicker,
-  RHFInput,
-  Title,
-  Loader,
-  Error,
-} from 'components'
-
-import { decomposeDate, isValidUuid } from 'utils'
-import { useStyles } from '../commonComponents/styled'
-import { schema } from './schema'
-
-import { getAdminOrgVenuesRoute, getAdminOrgVenueRoute } from 'router/routes'
-
 import placeholderOrganization from '../../../img/placeholderOrganization.png'
+import { ButtonDelete } from '../commonComponents/ButtonDelete'
+import { ButtonSave } from '../commonComponents/ButtonSave'
+import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
+import { schema } from './schema'
 
 const GET_VENUE = gql`
   query getVenue($where: VenueWhere) {
@@ -270,7 +256,7 @@ const Venue: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       {queryLoading && <Loader />}
 
       <Error

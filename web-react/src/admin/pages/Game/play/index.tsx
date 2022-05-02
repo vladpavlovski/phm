@@ -1,37 +1,29 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import { gql, useQuery, useMutation } from '@apollo/client'
-import { Helmet } from 'react-helmet-async'
-import { useSnackbar } from 'notistack'
+import { Error, Loader, Title } from 'components'
 import { LinkButton } from 'components/LinkButton'
-import Container from '@mui/material/Container'
-import Paper from '@mui/material/Paper'
-import { Grid } from '@mui/material'
-import Typography from '@mui/material/Typography'
-import Toolbar from '@mui/material/Toolbar'
-import Img from 'react-cool-img'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { useStyles } from '../../commonComponents/styled'
-import { Title, Loader, Error } from 'components'
-import { getAdminOrgGameRoute } from 'router/routes'
-import { useExitPrompt } from 'utils/hooks'
 import placeholderPerson from 'img/placeholderPerson.jpg'
-
+import { useSnackbar } from 'notistack'
+import React from 'react'
+import Img from 'react-cool-img'
+import { Helmet } from 'react-helmet-async'
+import { useParams } from 'react-router-dom'
+import { getAdminOrgGameRoute } from 'router/routes'
 import { formatDate, formatTime } from 'utils'
-
-import {
-  Periods,
-  GameEventWizard,
-  EventsTable,
-  Finalization,
-} from './components'
-
+import { useExitPrompt } from 'utils/hooks'
 import {
   Game as GameType,
-  SystemSettings as SystemSettingsType,
-  GameTeamsRelationship,
   GamePlayersRelationship,
+  GameTeamsRelationship,
+  SystemSettings as SystemSettingsType,
 } from 'utils/types'
+import { gql, useMutation, useQuery } from '@apollo/client'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { Grid } from '@mui/material'
+import Container from '@mui/material/Container'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { useStyles } from '../../commonComponents/styled'
+import { EventsTable, Finalization, GameEventWizard, Periods } from './components'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
@@ -461,12 +453,12 @@ const Play: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false} className={classes.container}>
+    <Container maxWidth={false}>
       <Helmet>
         <title>{`Game Live ${gameData?.name || ''}`}</title>
       </Helmet>
-      {queryLoading && !queryError && <Loader />}
-      {queryError && !queryLoading && <Error message={queryError.message} />}
+      {queryLoading && <Loader />}
+      <Error message={queryError?.message} />
       {gameData && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -599,6 +591,8 @@ const Play: React.FC = () => {
                   <Finalization
                     gameData={gameData}
                     updateGameResult={updateGameResult}
+                    teamHost={teamHost}
+                    teamGuest={teamGuest}
                   />
                 </Grid>
               </Grid>

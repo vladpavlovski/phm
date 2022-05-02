@@ -1,14 +1,8 @@
 import React from 'react'
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  SelectProps,
-  MenuItem,
-} from '@mui/material'
-import { Controller, Control } from 'react-hook-form'
+import { Control, Controller } from 'react-hook-form'
+import { FormControl, InputLabel, MenuItem, Select, SelectProps } from '@mui/material'
 
-type TRHFSelectComponent = SelectProps & {
+type TRHFSelect = SelectProps & {
   control: Control
   name: string
   error: {
@@ -16,16 +10,15 @@ type TRHFSelectComponent = SelectProps & {
   }
 }
 
-const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
+const RHFSelect: React.FC<TRHFSelect> = React.memo(props => {
   const { name, label, control, defaultValue, children, variant } = props
   const labelId = React.useMemo(() => `${name}-label`, [])
   return (
-    <FormControl fullWidth>
+    <FormControl variant={variant} fullWidth>
       <InputLabel id={labelId}>{label}</InputLabel>
       <Controller
         render={({ onChange, onBlur, value, name, ref }) => (
           <Select
-            variant={variant}
             label={label}
             ref={ref}
             onChange={onChange}
@@ -46,12 +39,10 @@ const RHFSelectComponent: React.FC<TRHFSelectComponent> = props => {
       />
     </FormControl>
   )
-}
+})
 
-RHFSelectComponent.defaultProps = {
+RHFSelect.defaultProps = {
   variant: 'standard',
 }
-
-const RHFSelect = React.memo(RHFSelectComponent)
 
 export { RHFSelect }
