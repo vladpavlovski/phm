@@ -1,16 +1,23 @@
+import { useStyles } from 'admin/pages/commonComponents/styled'
+import { Error } from 'components/Error'
+import { Loader } from 'components/Loader'
+import dayjs from 'dayjs'
 import React from 'react'
-import { useQuery, gql } from '@apollo/client'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
-
-import { useTheme } from '@mui/material/styles'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Chip from '@mui/material/Chip'
+import { setIdFromEntityId } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { Game, Group, ResultPoint, SystemSettings, Team } from 'utils/types'
+import { gql, useQuery } from '@apollo/client'
 import Avatar from '@mui/material/Avatar'
-import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
+import Chip from '@mui/material/Chip'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
+import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   DataGridPro,
   GridColumns,
@@ -18,16 +25,6 @@ import {
   GridSortApi,
   useGridApiRef,
 } from '@mui/x-data-grid-pro'
-import { useStyles } from 'admin/pages/commonComponents/styled'
-import { Error } from 'components/Error'
-import { Loader } from 'components/Loader'
-
-import { useXGridSearch } from 'utils/hooks'
-import { setIdFromEntityId } from 'utils'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import dayjs from 'dayjs'
-
-import { Group, SystemSettings, ResultPoint, Game, Team } from 'utils/types'
 
 type TStandings = {
   gamesTotal: number
@@ -263,6 +260,9 @@ const XGridTable: React.FC = () => {
         startDate_LT: dayjs().format('YYYY-MM-DD'),
         org: {
           urlSlug: organizationSlug,
+        },
+        phase: {
+          name: 'Základní část 21-22',
         },
         ...(selectedGroup && {
           group: {
