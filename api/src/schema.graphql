@@ -1388,7 +1388,7 @@ type File {
   fileId: ID! @id
   name: String
   description: String
-  type: String #isLogo, isCover, isProfilePicture, isGameCoveredge
+  type: String
   url: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])

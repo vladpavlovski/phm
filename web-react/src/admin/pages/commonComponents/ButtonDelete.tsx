@@ -1,15 +1,13 @@
-import React, { useState, useCallback } from 'react'
 import clsx from 'clsx'
-
-import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
+import React, { useCallback, useState } from 'react'
 import DeleteForever from '@mui/icons-material/DeleteForever'
+import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
 import Button from '@mui/material/Button'
 import Dialog, { DialogProps } from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-
 import { useStyles } from './styled'
 
 type TButtonDelete = LoadingButtonProps &
@@ -18,7 +16,7 @@ type TButtonDelete = LoadingButtonProps &
   }
 
 const ButtonDelete: React.FC<TButtonDelete> = props => {
-  const { onClick, className, loading } = props
+  const { onClick, className, loading, color, size, variant } = props
   const classes = useStyles()
 
   const [openDialog, setOpenDialog] = useState(false)
@@ -29,9 +27,10 @@ const ButtonDelete: React.FC<TButtonDelete> = props => {
   return (
     <>
       <LoadingButton
+        size={size}
         type="button"
-        variant="outlined"
-        color="secondary"
+        variant={variant}
+        color={color}
         onClick={() => {
           setOpenDialog(true)
         }}
@@ -42,32 +41,34 @@ const ButtonDelete: React.FC<TButtonDelete> = props => {
       >
         {loading ? 'Deleting...' : 'Delete'}
       </LoadingButton>
-      <Dialog
-        open={openDialog}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {'Do you really want to delete it?'}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            This action will permanently delete this entity. Are you sure?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>No, leave it</Button>
-          <Button
-            onClick={() => {
-              handleClose()
-              onClick && onClick()
-            }}
-          >
-            Sure, delete it!
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDialog && (
+        <Dialog
+          open={openDialog}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {'Do you really want to delete it?'}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This action will permanently delete this entity. Are you sure?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>No, leave it</Button>
+            <Button
+              onClick={() => {
+                handleClose()
+                onClick && onClick()
+              }}
+            >
+              Sure, delete it!
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   )
 }
@@ -75,6 +76,9 @@ const ButtonDelete: React.FC<TButtonDelete> = props => {
 ButtonDelete.defaultProps = {
   loading: false,
   className: '',
+  color: 'secondary',
+  size: 'medium',
+  variant: 'outlined',
 }
 
 export { ButtonDelete }

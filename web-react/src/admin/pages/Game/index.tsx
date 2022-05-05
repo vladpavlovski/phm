@@ -159,6 +159,9 @@ export const GET_GAME = gql`
           guestFaceOffs
         }
       }
+      media {
+        mediaId
+      }
     }
     venues {
       venueId
@@ -307,6 +310,9 @@ export const UPDATE_GAME = gql`
             hostFaceOffs
             guestFaceOffs
           }
+        }
+        media {
+          mediaId
         }
       }
     }

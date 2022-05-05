@@ -8,15 +8,6 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import { DropzoneDialogBase, DropzoneDialogBaseProps } from '../material-ui-dropzone'
 
-// const S3_SIGN = gql`
-//   query CustomSignS3($filename: String!, $filetype: String!) {
-//     data: CustomSignS3(filename: $filename, filetype: $filetype) {
-//       url
-//       signedRequest
-//     }
-//   }
-// `
-
 const formatFileName = (filename = '', folderName = 'common') => {
   const date = dayjs().format('YYYY-MM-DD')
   const randomString = Math.random().toString(36).substring(2, 7)
@@ -26,11 +17,11 @@ const formatFileName = (filename = '', folderName = 'common') => {
     .toLowerCase()
     .substr(0, filename.lastIndexOf('.'))
   const newFilename = `${folderName}/${date}-${randomString}-${cleanFileName}.${fileExtension}`
-  return newFilename.substring(0, 60)
+  return newFilename
 }
 
 type TUploader = Omit<DropzoneDialogBaseProps, 'fileObjects'> & {
-  onSubmit: (url: string) => void
+  onSubmit: (url: string, fileName: string) => void
   filesLimit?: number
   buttonProps?: ButtonProps
   buttonText: string
@@ -53,12 +44,6 @@ const Uploader: React.FC<TUploader> = props => {
 
   const { enqueueSnackbar } = useSnackbar()
 
-  // const [s3Sign] = useLazyQuery(S3_SIGN, {
-  //   onCompleted: signedResponse => {
-  //     const { signedRequest, url } = signedResponse?.data
-  //   },
-  // })
-
   const onSave = useCallback(async () => {
     const fileToUpload: { file: { name: string; type: string } } =
       fileObjects?.[0]
@@ -79,7 +64,7 @@ const Uploader: React.FC<TUploader> = props => {
     })
       .then(response => {
         if (response?.status === 200) {
-          onSubmit(url)
+          onSubmit(url, fileToUpload?.file?.name?.split('.')?.[0] || '')
           onClose()
           enqueueSnackbar('🎉 File successfully upload!', {
             variant: 'success',
@@ -90,13 +75,6 @@ const Uploader: React.FC<TUploader> = props => {
         console.error(e)
         enqueueSnackbar(e, { variant: 'error' })
       })
-
-    // s3Sign({
-    //   variables: {
-    //     filename: formatFileName(fileToUpload?.file?.name, folderName),
-    //     filetype: fileToUpload?.file?.type,
-    //   },
-    // })
   }, [fileObjects, folderName])
 
   const onClose = useCallback(() => {

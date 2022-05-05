@@ -145,6 +145,22 @@ export type Game = {
   playersConnection: GamePlayersConnection
   gameResult: GameResult
   gameEventsSimple: GameEventSimple[]
+  media: Media
+}
+
+export type Media = {
+  mediaId: string
+  game: Game
+  files: File[]
+}
+
+export type File = {
+  fileId: string
+  name: string
+  description: string
+  type: string
+  url: string
+  media: Media
 }
 
 type GameTeamsConnection = {
