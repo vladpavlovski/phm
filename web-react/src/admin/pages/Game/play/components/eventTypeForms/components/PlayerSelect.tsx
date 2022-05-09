@@ -1,14 +1,15 @@
 import React from 'react'
-import Button from '@mui/material/Button'
 import { GamePlayersRelationship } from 'utils/types'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 
-type TPlayerSelect = {
+type Props = {
   players: GamePlayersRelationship[]
   onClick: (p: GamePlayersRelationship) => void
   selected: GamePlayersRelationship | null
 }
 
-const PlayerSelect: React.FC<TPlayerSelect> = React.memo(props => {
+const PlayerSelect: React.FC<Props> = React.memo(props => {
   const { players, onClick, selected } = props
   return (
     <div
@@ -20,8 +21,9 @@ const PlayerSelect: React.FC<TPlayerSelect> = React.memo(props => {
         justifyContent: 'space-evenly',
       }}
     >
-      {players.map(p => {
-        return (
+      {players
+        .sort((a, b) => (a.jersey && b.jersey ? a.jersey - b.jersey : 0))
+        .map(p => (
           <Button
             type="button"
             size="large"
@@ -33,10 +35,14 @@ const PlayerSelect: React.FC<TPlayerSelect> = React.memo(props => {
               onClick(p)
             }}
           >
-            {`${p.jersey || ''} - ${p.node?.lastName}`}
+            <Typography variant="h5" component="div" sx={{ marginRight: 1 }}>
+              {p.jersey || ''}
+            </Typography>
+            <Typography variant="body1" component="div">
+              {p.node?.lastName}
+            </Typography>
           </Button>
-        )
-      })}
+        ))}
     </div>
   )
 })
