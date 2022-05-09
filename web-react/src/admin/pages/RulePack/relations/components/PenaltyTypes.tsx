@@ -1,42 +1,31 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-  MutationFunction,
-} from '@apollo/client'
-
+import { Error, Loader, RHFInput } from 'components'
 import { useSnackbar } from 'notistack'
-
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { getXGridValueFromArray, setIdFromEntityId, showTimeAsHms } from 'utils'
+import { PenaltySubType, PenaltyType } from 'utils/types'
+import { number, object, string } from 'yup'
+import { gql, MutationFunction, useLazyQuery, useMutation } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, number } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
-
+import EditIcon from '@mui/icons-material/Edit'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Grid from '@mui/material/Grid'
-import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
-import { RHFInput, Error, Loader } from 'components'
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, showTimeAsHms, getXGridValueFromArray } from 'utils'
-import { PenaltyType, PenaltySubType } from 'utils/types'
+
 const GET_PENALTY_TYPES = gql`
   query getRulePack($where: PenaltyTypeWhere) {
     penaltyTypes(where: $where) {
@@ -262,7 +251,7 @@ const PenaltyTypes: React.FC<TRelations> = props => {
         renderCell: params => {
           return (
             <Button
-              onClick={() => handleOpenDialog(params.value)}
+              onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
               className={classes.submit}
@@ -324,7 +313,9 @@ const PenaltyTypes: React.FC<TRelations> = props => {
               <div />
               <div>
                 <Button
-                  onClick={handleOpenDialog}
+                  onClick={() => {
+                    handleOpenDialog(null)
+                  }}
                   variant={'outlined'}
                   size="small"
                   className={classes.submit}
