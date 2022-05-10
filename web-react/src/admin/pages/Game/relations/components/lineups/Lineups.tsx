@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute } from 'router/routes'
 import { getXGridValueFromArray, setIdFromEntityId, setXGridForRelation, sortByStatus } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Jersey, Player, Position, Team } from 'utils/types'
+import { Game, GameEventSimple, Jersey, Player, Position, Team } from 'utils/types'
 import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
@@ -70,7 +70,7 @@ const GET_TEAM_PLAYERS = gql`
   }
 `
 
-type TRelations = {
+type Props = {
   gameId: string
   teams: {
     host: boolean
@@ -81,27 +81,67 @@ type TRelations = {
     host: boolean
   }[]
   updateGame: MutationFunction
+  gameData: Game
 }
-const Lineups: React.FC<TRelations> = React.memo(props => {
-  const { gameId, teams, players, updateGame } = props
 
-  const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
-  const teamGuest = useMemo(
-    () => teams.find(t => !t.host)?.node || null,
-    [teams]
-  )
-  const playersHost = useMemo(
-    () => players.filter(p => p.host) || null,
-    [players]
-  )
-  const playersGuest = useMemo(
-    () => players.filter(p => !p.host) || null,
-    [players]
-  )
+const countPlayerStatistics = (
+  player: { node: Player; host: boolean },
+  events: GameEventSimple[]
+) => {
+  const playerId = player.node.playerId
+  let ts = {
+    scoredByCount: 0,
+    assistsCount: 0,
+    points: 0,
+    penaltyMinutesCount: 0,
+  }
+
+  events
+    .filter(e => e.eventTypeCode === 'goal' || e.eventTypeCode === 'penalty')
+    .forEach(event => {
+      if (event.eventTypeCode === 'goal') {
+        if (event.scoredBy?.player?.playerId === playerId) {
+          ts.scoredByCount++
+          ts.points++
+        }
+
+        if (event.firstAssist?.player?.playerId === playerId) {
+          ts.assistsCount++
+          ts.points++
+        }
+        if (event.secondAssist?.player?.playerId === playerId) {
+          ts.assistsCount++
+          ts.points++
+        }
+      }
+      if (event.eventTypeCode === 'penalty') {
+        if (event.penalized?.player?.playerId === playerId) {
+          ts.penaltyMinutesCount += parseFloat(event.duration)
+        }
+      }
+    })
+
+  return { ...player, ...ts }
+}
+
+const Lineups: React.FC<Props> = React.memo(props => {
+  const { gameId, teams, players, updateGame, gameData } = props
+
+  const teamHost = teams.find(t => t.host)?.node || null
+  const teamGuest = teams.find(t => !t.host)?.node || null
+
+  const playersHost =
+    players
+      .filter(p => p.host)
+      .map(p => countPlayerStatistics(p, gameData.gameEventsSimple)) || null
+  const playersGuest =
+    players
+      .filter(p => !p.host)
+      .map(p => countPlayerStatistics(p, gameData.gameEventsSimple)) || null
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} md={6} lg={6}>
+      <Grid item xs={12}>
         <LineupList
           host
           team={teamHost}
@@ -111,7 +151,7 @@ const Lineups: React.FC<TRelations> = React.memo(props => {
         />
       </Grid>
 
-      <Grid item xs={12} md={6} lg={6}>
+      <Grid item xs={12}>
         <LineupList
           host={false}
           team={teamGuest}
@@ -131,6 +171,10 @@ type TLineupList = {
   players: {
     node: Player
     host: boolean
+    scoredByCount: number
+    assistsCount: number
+    points: number
+    penaltyMinutesCount: number
   }[]
   updateGame: MutationFunction
 }
@@ -379,6 +423,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
         field: 'actions',
         headerName: 'Actions',
         width: 200,
+        sortable: false,
         disableColumnMenu: true,
         renderCell: params => {
           const isCaptain = !!params?.row?.captain
@@ -470,6 +515,26 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
                   </Tooltip>
                 </IconButton>
               )}
+              <IconButton
+                onClick={() => {
+                  setStar({
+                    playerId: params.row.playerId,
+                    star: !isStar,
+                  })
+                }}
+              >
+                <Tooltip
+                  arrow
+                  title={isStar ? 'Remove Star' : 'Set Star'}
+                  placement="top"
+                >
+                  {isStar ? (
+                    <StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />
+                  ) : (
+                    <StarOutlineIcon />
+                  )}
+                </Tooltip>
+              </IconButton>
               {!teamHasGoalkeeper && (
                 <IconButton
                   onClick={() => {
@@ -498,27 +563,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
                   </Tooltip>
                 </IconButton>
               )}
-
-              <IconButton
-                onClick={() => {
-                  setStar({
-                    playerId: params.row.playerId,
-                    star: !isStar,
-                  })
-                }}
-              >
-                <Tooltip
-                  arrow
-                  title={isStar ? 'Remove Star' : 'Set Star'}
-                  placement="top"
-                >
-                  {isStar ? (
-                    <StarIcon sx={{ color: 'rgb(250, 175, 0)' }} />
-                  ) : (
-                    <StarOutlineIcon />
-                  )}
-                </Tooltip>
-              </IconButton>
             </>
           )
         },
@@ -527,6 +571,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
         field: 'avatar',
         headerName: 'Photo',
         width: 80,
+        sortable: false,
         disableColumnMenu: true,
         renderCell: params => {
           return (
@@ -577,6 +622,83 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
           )
         },
       },
+      {
+        field: 'scoredByCount',
+        headerName: 'G',
+        width: 20,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'assistsCount',
+        headerName: 'A',
+        width: 20,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'points',
+        headerName: 'PTS',
+        width: 60,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'penaltyMinutesCount',
+        headerName: 'PIM',
+        width: 60,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'info',
+        headerName: 'Info',
+        width: 120,
+        disableColumnMenu: true,
+        sortable: false,
+        headerAlign: 'center',
+        align: 'center',
+        renderCell: params => {
+          const isHattrick = params.row?.scoredByCount >= 3
+          const is3Points = params.row?.points >= 3
+          return (
+            <>
+              {isHattrick && (
+                <Typography
+                  sx={{
+                    textTransform: 'uppercase',
+                    backgroundColor: '#0faf00',
+                    color: '#fff',
+                    padding: 1,
+                  }}
+                  variant="button"
+                  display="block"
+                >
+                  Hattrick!
+                </Typography>
+              )}
+              {!isHattrick && is3Points && (
+                <Typography
+                  sx={{
+                    textTransform: 'uppercase',
+                    backgroundColor: '#0672b1',
+                    color: '#fff',
+                    padding: 1,
+                  }}
+                  variant="button"
+                  display="block"
+                >
+                  3+ Points!
+                </Typography>
+              )}
+            </>
+          )
+        },
+      },
     ],
     [gameId, lineupPlayers]
   )
@@ -602,7 +724,9 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
       <Paper className={classes.paper}>
         <Toolbar disableGutters className={classes.toolbarForm}>
           <div>
-            <Title>{`Lineup${team ? `: ${team?.name}` : ''}`}</Title>
+            <Title>{`${host ? 'Host' : 'Guest'} lineup${
+              team ? `: ${team?.name}` : ''
+            }`}</Title>
           </div>
           <div>
             <ButtonGroup

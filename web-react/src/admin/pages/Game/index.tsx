@@ -121,6 +121,31 @@ export const GET_GAME = gql`
           nick
           logo
         }
+        scoredBy {
+          player {
+            playerId
+          }
+        }
+        allowedBy {
+          player {
+            playerId
+          }
+        }
+        firstAssist {
+          player {
+            playerId
+          }
+        }
+        secondAssist {
+          player {
+            playerId
+          }
+        }
+        penalized {
+          player {
+            playerId
+          }
+        }
       }
       gameResult {
         gameResultId
@@ -272,6 +297,26 @@ export const UPDATE_GAME = gql`
             teamId
             nick
             logo
+          }
+          scoredBy {
+            player {
+              playerId
+            }
+          }
+          firstAssist {
+            player {
+              playerId
+            }
+          }
+          secondAssist {
+            player {
+              playerId
+            }
+          }
+          penalized {
+            player {
+              playerId
+            }
           }
         }
         gameResult {

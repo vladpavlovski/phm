@@ -103,6 +103,7 @@ export type Season = {
 
 export type Meta = {
   metaPlayerId: string
+  player: Player
 }
 
 export type MetaConnection = {

@@ -1,35 +1,32 @@
-import React from 'react'
-
-import { useParams } from 'react-router-dom'
-import { gql, useQuery } from '@apollo/client'
-import Container from '@mui/material/Container'
-import Paper from '@mui/material/Paper'
-import Grid from '@mui/material/Grid'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableRow from '@mui/material/TableRow'
-import Tooltip from '@mui/material/Tooltip'
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import BalconyIcon from '@mui/icons-material/Balcony'
-import StarIcon from '@mui/icons-material/Star'
-
-import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { useTheme } from '@mui/material/styles'
-import Img from 'react-cool-img'
-import dayjs from 'dayjs'
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { XGridLogo } from 'admin/pages/commonComponents/XGridLogo'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
+import dayjs from 'dayjs'
 import placeholderPerson from 'img/placeholderPerson.jpg'
+import React from 'react'
+import Img from 'react-cool-img'
+import { useParams } from 'react-router-dom'
 import { setIdFromEntityId } from 'utils'
-
-import { Game, Player } from 'utils/types'
+import { Game, GameEventSimple, Player } from 'utils/types'
+import { gql, useQuery } from '@apollo/client'
+import BalconyIcon from '@mui/icons-material/Balcony'
+import StarIcon from '@mui/icons-material/Star'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import Container from '@mui/material/Container'
+import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import { useTheme } from '@mui/material/styles'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableRow from '@mui/material/TableRow'
+import Toolbar from '@mui/material/Toolbar'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 
 const GET_GAME_PLAY = gql`
   query getGame($whereGame: GameWhere) {
@@ -111,15 +108,27 @@ const GET_GAME_PLAY = gql`
         }
         scoredBy {
           metaPlayerId
+          player {
+            playerId
+          }
         }
         firstAssist {
           metaPlayerId
+          player {
+            playerId
+          }
         }
         secondAssist {
           metaPlayerId
+          player {
+            playerId
+          }
         }
         penalized {
           metaPlayerId
+          player {
+            playerId
+          }
         }
       }
       gameResult {
@@ -138,6 +147,43 @@ const GET_GAME_PLAY = gql`
     }
   }
 `
+
+const countPlayerStatistics = (player: Player, events: GameEventSimple[]) => {
+  const playerId = player.playerId
+  let ts = {
+    scoredByCount: 0,
+    assistsCount: 0,
+    points: 0,
+    penaltyMinutesCount: 0,
+  }
+
+  events
+    .filter(e => e.eventTypeCode === 'goal' || e.eventTypeCode === 'penalty')
+    .forEach(event => {
+      if (event.eventTypeCode === 'goal') {
+        if (event.scoredBy?.player?.playerId === playerId) {
+          ts.scoredByCount++
+          ts.points++
+        }
+
+        if (event.firstAssist?.player?.playerId === playerId) {
+          ts.assistsCount++
+          ts.points++
+        }
+        if (event.secondAssist?.player?.playerId === playerId) {
+          ts.assistsCount++
+          ts.points++
+        }
+      }
+      if (event.eventTypeCode === 'penalty') {
+        if (event.penalized?.player?.playerId === playerId) {
+          ts.penaltyMinutesCount += parseFloat(event.duration)
+        }
+      }
+    })
+
+  return { ...player, ...ts }
+}
 
 type TGameReportParams = {
   gameId: string
@@ -159,15 +205,9 @@ const GameReport: React.FC = () => {
 
   const gameData: Game = queryData?.games?.[0] || null
 
-  const teamHost = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
-    [gameData]
-  )
+  const teamHost = gameData?.teamsConnection?.edges?.find(t => t.host)?.node
 
-  const teamGuest = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => !t.host)?.node,
-    [gameData]
-  )
+  const teamGuest = gameData?.teamsConnection?.edges?.find(t => !t.host)?.node
 
   const getPlayerByMetaId = React.useCallback(
     id =>
@@ -348,7 +388,10 @@ const GameReport: React.FC = () => {
         .map(p => {
           const { node, ...rest } = p
           return { ...rest, ...node }
-        }) || [],
+        })
+        .map(p => countPlayerStatistics(p, gameData.gameEventsSimple)) ||
+      null ||
+      [],
     [gameData]
   )
 
@@ -359,14 +402,17 @@ const GameReport: React.FC = () => {
         .map(p => {
           const { node, ...rest } = p
           return { ...rest, ...node }
-        }) || [],
+        })
+        .map(p => countPlayerStatistics(p, gameData.gameEventsSimple)) ||
+      null ||
+      [],
     [gameData]
   )
 
   return (
     <Container maxWidth={false} disableGutters={!upMd}>
       {queryLoading && <Loader />}
-      {queryError && <Error message={queryError.message} />}
+      <Error message={queryError?.message} />
       {gameData && (
         <>
           <Grid container spacing={2}>
@@ -739,6 +785,83 @@ const GameLineup = (props: { players: Player[] }) => {
         disableColumnMenu: true,
         resizable: true,
         sortable: false,
+      },
+      {
+        field: 'scoredByCount',
+        headerName: 'G',
+        width: 20,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'assistsCount',
+        headerName: 'A',
+        width: 20,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'points',
+        headerName: 'PTS',
+        width: 60,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'penaltyMinutesCount',
+        headerName: 'PIM',
+        width: 60,
+        disableColumnMenu: true,
+        headerAlign: 'center',
+        align: 'center',
+      },
+      {
+        field: 'info',
+        headerName: 'Info',
+        width: 120,
+        disableColumnMenu: true,
+        sortable: false,
+        headerAlign: 'center',
+        align: 'center',
+        renderCell: params => {
+          const isHattrick = params.row?.scoredByCount >= 3
+          const is3Points = params.row?.points >= 3
+          return (
+            <>
+              {isHattrick && (
+                <Typography
+                  sx={{
+                    textTransform: 'uppercase',
+                    backgroundColor: '#0faf00',
+                    color: '#fff',
+                    padding: 1,
+                  }}
+                  variant="button"
+                  display="block"
+                >
+                  Hattrick!
+                </Typography>
+              )}
+              {!isHattrick && is3Points && (
+                <Typography
+                  sx={{
+                    textTransform: 'uppercase',
+                    backgroundColor: '#0672b1',
+                    color: '#fff',
+                    padding: 1,
+                  }}
+                  variant="button"
+                  display="block"
+                >
+                  3+ Points!
+                </Typography>
+              )}
+            </>
+          )
+        },
       },
     ],
     []
