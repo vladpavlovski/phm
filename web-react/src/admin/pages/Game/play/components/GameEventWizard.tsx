@@ -455,7 +455,7 @@ const getCountOfEventTypes = (
     event => event.eventTypeCode === eventType && event.team.teamId === teamId
   )?.length
 
-const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
+const GameEventWizard: React.FC<TGameEventWizard> = props => {
   const {
     host,
     team,
@@ -948,7 +948,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = React.memo(props => {
       )}
     </>
   )
-})
+}
 
 const getInputVarsForGES = ({
   gameEventData,

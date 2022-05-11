@@ -1,20 +1,18 @@
-import React from 'react'
 import dayjs from 'dayjs'
-
+import React from 'react'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-
-import { PlayerSelect, RemainingTime } from './components'
+import Typography from '@mui/material/Typography'
 import { GameEventFormContext } from '../../components/GameEventWizard'
+import { PlayerSelect, RemainingTime } from './components'
 import { TEventTypeForm } from './index'
 
-const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
+const SaveForm: React.FC<TEventTypeForm> = props => {
   const { gameEventSettings, activeStep, players, handleNextStep } = props
 
   const {
@@ -115,6 +113,6 @@ const SaveForm: React.FC<TEventTypeForm> = React.memo(props => {
       )}
     </Grid>
   ) : null
-})
+}
 
 export { SaveForm }

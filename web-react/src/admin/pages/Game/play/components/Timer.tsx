@@ -1,14 +1,14 @@
-import React from 'react'
 import dayjs from 'dayjs'
-import { MutationFunction } from '@apollo/client'
-import { useTimer, useTime } from 'react-timer-hook'
-import Button from '@mui/material/Button'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import ButtonGroup from '@mui/material/ButtonGroup'
+import React from 'react'
 import { Prompt } from 'react-router-dom'
+import { useTime, useTimer } from 'react-timer-hook'
 // import { GameEventFormContext } from './GameEventWizard'
 import { Game } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Typography from '@mui/material/Typography'
 
 type TTimer = {
   timeInMinutes: number
@@ -16,7 +16,7 @@ type TTimer = {
   updateGameResult: MutationFunction
 }
 
-const Timer: React.FC<TTimer> = React.memo(props => {
+const Timer: React.FC<TTimer> = props => {
   const { timeInMinutes, gameData, updateGameResult } = props
   // TODO: think about new way of setting time to context
   // const { update } = React.useContext(GameEventFormContext)
@@ -113,7 +113,7 @@ const Timer: React.FC<TTimer> = React.memo(props => {
       )}
     </div>
   )
-})
+}
 
 const getTimerColor = (min: number, sec: number): string => {
   if (min === 0 && sec < 30) return 'red'

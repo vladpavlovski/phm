@@ -1,34 +1,29 @@
-import React from 'react'
-
-import { gql, useMutation } from '@apollo/client'
 import dayjs from 'dayjs'
-import Img from 'react-cool-img'
 import { useSnackbar } from 'notistack'
-
-import EditIcon from '@mui/icons-material/Edit'
+import React from 'react'
+import Img from 'react-cool-img'
+import { setIdFromEntityId } from 'utils'
+import { Game, GameEventSimple, Player, RulePack, Team } from 'utils/types'
+import { gql, useMutation } from '@apollo/client'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import Tooltip from '@mui/material/Tooltip'
+import EditIcon from '@mui/icons-material/Edit'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
-import Typography from '@mui/material/Typography'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-
+import IconButton from '@mui/material/IconButton'
+import Paper from '@mui/material/Paper'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
-
 import { useStyles } from '../../../commonComponents/styled'
-import { getEventSettings, TEventType } from './gameEvents'
-import { setIdFromEntityId } from 'utils'
-
-import { GameEventFormContext, TWizardGameEventSimple } from './GameEventWizard'
-import { prepareGameResultUpdate, ensure } from '../handlers'
+import { ensure, prepareGameResultUpdate } from '../handlers'
 import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
-import { Game, Player, Team, GameEventSimple, RulePack } from 'utils/types'
+import { getEventSettings, TEventType } from './gameEvents'
+import { GameEventFormContext, TWizardGameEventSimple } from './GameEventWizard'
 
 const DELETE_GAME_EVENT_SIMPLE = gql`
   mutation deleteGameEventSimple(
@@ -83,7 +78,7 @@ type TPlayerNameFormat = {
   jersey: number | null
 }
 
-const PlayerNameFormat: React.FC<TPlayerNameFormat> = React.memo(props => {
+const PlayerNameFormat: React.FC<TPlayerNameFormat> = props => {
   const { name, jersey } = props
 
   return (
@@ -92,7 +87,7 @@ const PlayerNameFormat: React.FC<TPlayerNameFormat> = React.memo(props => {
       <span>{name}</span>
     </>
   )
-})
+}
 
 type TEventsTable = {
   gameData: Game

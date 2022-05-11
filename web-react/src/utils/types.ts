@@ -1,3 +1,5 @@
+import { GoalTypes } from 'admin/pages/RulePack/relations/components/GoalTypes'
+
 export type Player = {
   playerId: string
   name: string
@@ -512,3 +514,5 @@ export type GameEventLocation = {
   priority: number
   rulePack: RulePack
 }
+
+export type UniversalType = GoalType | PenaltyType | undefined

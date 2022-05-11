@@ -1,23 +1,20 @@
-import React from 'react'
+import { GridButtonSelect } from 'admin/pages/Game/play/components/eventTypeForms/components/GridButtonSelect'
 import dayjs from 'dayjs'
-
-import TextField from '@mui/material/TextField'
-import Autocomplete from '@mui/material/Autocomplete'
+import React from 'react'
+import { sortByPriority } from 'utils'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-
-import { PlayerSelect, RemainingTime } from './components'
+import Typography from '@mui/material/Typography'
 import { GameEventFormContext } from '../../components/GameEventWizard'
-import { sortByPriority } from 'utils'
+import { PlayerSelect, RemainingTime } from './components'
 import { TEventTypeForm } from './index'
 
-const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
+const GoalForm: React.FC<TEventTypeForm> = props => {
   const {
     gameEventSettings,
     activeStep,
@@ -31,11 +28,8 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
     state: { gameEventData, tempRemainingTime },
     update,
   } = React.useContext(GameEventFormContext)
+  const activeStepData = gameEventSettings.steps[activeStep]
 
-  const activeStepData = React.useMemo(
-    () => gameEventSettings.steps[activeStep],
-    [gameEventSettings, activeStep]
-  )
   React.useEffect(() => {
     if (!gameEventData) {
       // get goalkeeper from another team to set allowed goal
@@ -149,24 +143,12 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
       )}
       {activeStep === 4 && (
         <>
-          <Grid item xs={6}>
-            <Autocomplete
-              disableClearable
-              id="combo-box-goal-type"
-              options={
-                gameSettings?.goalTypes
-                  ? [...gameSettings?.goalTypes].sort(sortByPriority)
-                  : []
-              }
-              value={gameEventData?.goalType}
-              renderInput={params => (
-                <TextField {...params} autoFocus label="Goal type" />
-              )}
-              getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value.name
-              }
-              onChange={(_, goalType) => {
+          <Grid item xs={12}>
+            <GridButtonSelect
+              title="Goal type"
+              data={[...gameSettings?.goalTypes].sort(sortByPriority)}
+              selected={gameEventData?.goalType}
+              onClick={goalType => {
                 update(state => ({
                   ...state,
                   gameEventData: {
@@ -180,22 +162,14 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
 
           {gameEventData?.goalType?.subTypes &&
             gameEventData?.goalType?.subTypes?.length > 0 && (
-              <Grid item xs={6}>
-                <Autocomplete
-                  disableClearable
-                  id="combo-box-goal-sub-type"
-                  options={[...gameEventData.goalType.subTypes].sort(
+              <Grid item xs={12}>
+                <GridButtonSelect
+                  title="Goal Sub type"
+                  data={[...gameEventData?.goalType.subTypes].sort(
                     sortByPriority
                   )}
-                  value={gameEventData?.goalSubType}
-                  renderInput={params => (
-                    <TextField {...params} label="Goal Sub type" />
-                  )}
-                  getOptionLabel={option => option.name}
-                  isOptionEqualToValue={(option, value) =>
-                    option.name === value.name
-                  }
-                  onChange={(_, goalSubType) => {
+                  selected={gameEventData?.goalSubType}
+                  onClick={goalSubType => {
                     update(state => ({
                       ...state,
                       gameEventData: {
@@ -211,20 +185,12 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
       )}
       {activeStep === 5 && (
         <>
-          <Grid item xs={6}>
-            <Autocomplete
-              disableClearable
-              id="combo-box-shot-type"
-              options={[...gameSettings?.shotTypes].sort(sortByPriority)}
-              value={gameEventData?.shotType}
-              renderInput={params => (
-                <TextField {...params} autoFocus label="Shot type" />
-              )}
-              getOptionLabel={option => option.name}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value.name
-              }
-              onChange={(_, shotType) => {
+          <Grid item xs={12}>
+            <GridButtonSelect
+              title="Shot type"
+              data={[...gameSettings?.shotTypes].sort(sortByPriority)}
+              selected={gameEventData?.shotType}
+              onClick={shotType => {
                 update(state => ({
                   ...state,
                   gameEventData: {
@@ -238,26 +204,14 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
 
           {gameEventData?.shotType?.subTypes &&
             gameEventData?.shotType?.subTypes.length > 0 && (
-              <Grid item xs={6}>
-                <Autocomplete
-                  disableClearable
-                  id="combo-box-shot-sub-type"
-                  options={
-                    gameEventData?.shotType?.subTypes
-                      ? [...gameEventData?.shotType?.subTypes].sort(
-                          sortByPriority
-                        )
-                      : []
-                  }
-                  value={gameEventData?.shotSubType}
-                  renderInput={params => (
-                    <TextField {...params} label="Shot Sub type" />
+              <Grid item xs={12}>
+                <GridButtonSelect
+                  title="Shot Sub type"
+                  data={[...gameEventData?.shotType?.subTypes].sort(
+                    sortByPriority
                   )}
-                  getOptionLabel={option => option.name}
-                  isOptionEqualToValue={(option, value) =>
-                    option.name === value.name
-                  }
-                  onChange={(_, shotSubType) => {
+                  selected={gameEventData?.shotSubType}
+                  onClick={shotSubType => {
                     update(state => ({
                       ...state,
                       gameEventData: {
@@ -333,6 +287,6 @@ const GoalForm: React.FC<TEventTypeForm> = React.memo(props => {
       )}
     </Grid>
   ) : null
-})
+}
 
 export { GoalForm }

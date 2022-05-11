@@ -9,7 +9,7 @@ type Props = {
   selected: GamePlayersRelationship | null
 }
 
-const PlayerSelect: React.FC<Props> = React.memo(props => {
+const PlayerSelect: React.FC<Props> = props => {
   const { players, onClick, selected } = props
   return (
     <div
@@ -45,6 +45,6 @@ const PlayerSelect: React.FC<Props> = React.memo(props => {
         ))}
     </div>
   )
-})
+}
 
 export { PlayerSelect }

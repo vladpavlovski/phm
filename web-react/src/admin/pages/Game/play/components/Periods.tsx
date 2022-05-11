@@ -1,10 +1,10 @@
 import React from 'react'
+import { Game, RulePack } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { Timer } from './Timer'
 import { GameEventFormContext } from './GameEventWizard'
-import { MutationFunction } from '@apollo/client'
-import { RulePack, Game } from 'utils/types'
+import { Timer } from './Timer'
 
 type TPeriods = {
   gameSettings: RulePack
@@ -12,7 +12,7 @@ type TPeriods = {
   updateGameResult: MutationFunction
 }
 
-const Periods: React.FC<TPeriods> = React.memo(props => {
+const Periods: React.FC<TPeriods> = props => {
   const { gameSettings, gameData, updateGameResult } = props
 
   const { update } = React.useContext(GameEventFormContext)
@@ -73,6 +73,6 @@ const Periods: React.FC<TPeriods> = React.memo(props => {
       />
     </>
   )
-})
+}
 
 export { Periods }

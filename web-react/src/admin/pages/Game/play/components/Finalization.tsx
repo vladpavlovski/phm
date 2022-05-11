@@ -14,7 +14,7 @@ type TFinalization = {
   teamGuest: Team
 }
 
-const Finalization: React.FC<TFinalization> = React.memo(props => {
+const Finalization: React.FC<TFinalization> = props => {
   const { gameData, updateGameResult, teamHost } = props
 
   const prepareGameFinalization = React.useCallback(() => {
@@ -158,6 +158,6 @@ const Finalization: React.FC<TFinalization> = React.memo(props => {
       End Game
     </Button>
   ) : null
-})
+}
 
 export { Finalization }
