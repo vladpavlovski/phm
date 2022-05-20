@@ -1,22 +1,22 @@
+import { useStyles } from 'admin/pages/commonComponents/styled'
+import dayjs from 'dayjs'
 import React from 'react'
-
-import Container from '@mui/material/Container'
-import Paper from '@mui/material/Paper'
-import Grid from '@mui/material/Grid'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
+import Img from 'react-cool-img'
+import { getTeamByHost } from 'utils'
+import { Game } from 'utils/types'
+import AccountBoxIcon from '@mui/icons-material/AccountBox'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import dayjs from 'dayjs'
-import Img from 'react-cool-img'
-
-import { useStyles } from 'admin/pages/commonComponents/styled'
-import { Game } from 'utils/types'
+import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
 
 type TGameInvitation = {
   gameData: Game
@@ -57,15 +57,8 @@ type TFormDialog = {
 const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const { openDialog, setOpenDialog, gameData } = props
   const classes = useStyles()
-  const teamHost = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => t.host)?.node,
-    [gameData]
-  )
-
-  const teamGuest = React.useMemo(
-    () => gameData?.teamsConnection?.edges?.find(t => !t.host)?.node,
-    [gameData]
-  )
+  const teamHost = getTeamByHost(true, gameData?.teamsConnection?.edges)
+  const teamGuest = getTeamByHost(false, gameData?.teamsConnection?.edges)
 
   return (
     <Dialog
@@ -134,7 +127,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                     <div
                       style={{
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         flexDirection: 'column',
                       }}
                     >
@@ -142,6 +135,12 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                         src={teamHost?.logo}
                         className={classes.gamePlayTeamLogo}
                         alt={teamHost?.name}
+                      />
+                      <AccountBoxIcon
+                        sx={{
+                          color: teamHost.connection.color,
+                          fontSize: '6em',
+                        }}
                       />
                     </div>
                   </Grid>
@@ -161,7 +160,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                     <div
                       style={{
                         display: 'flex',
-                        alignItems: 'flex-end',
+                        alignItems: 'center',
                         flexDirection: 'column',
                       }}
                     >
@@ -169,6 +168,12 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                         src={teamGuest?.logo}
                         className={classes.gamePlayTeamLogo}
                         alt={teamGuest?.name}
+                      />
+                      <AccountBoxIcon
+                        sx={{
+                          color: teamGuest.connection.color,
+                          fontSize: '6em',
+                        }}
                       />
                     </div>
                   </Grid>

@@ -147,3 +147,10 @@ export const sortByStatus = (data, propName = 'activityStatus') => {
 }
 
 export { createCtx } from './createCtx'
+
+export const getTeamByHost = (host, teams) => {
+  const team = teams.find(team => team.host === host)
+  if (!team) return null
+  const { node, ...rest } = team
+  return { ...node, connection: rest }
+}

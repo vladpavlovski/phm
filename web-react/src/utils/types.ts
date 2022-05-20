@@ -1,5 +1,3 @@
-import { GoalTypes } from 'admin/pages/RulePack/relations/components/GoalTypes'
-
 export type Player = {
   playerId: string
   name: string
@@ -20,6 +18,9 @@ export type Team = {
   nick: string
   logo: string
   status: string
+  primaryColor: string
+  secondaryColor: string
+  tertiaryColor: string
   groups: Group[]
   phases: Phase[]
   orgs: Organization[]

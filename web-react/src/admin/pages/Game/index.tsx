@@ -63,11 +63,15 @@ export const GET_GAME = gql`
       teamsConnection {
         edges {
           host
+          color
           node {
             teamId
             name
             nick
             logo
+            primaryColor
+            secondaryColor
+            tertiaryColor
           }
         }
       }
@@ -240,11 +244,15 @@ export const UPDATE_GAME = gql`
         teamsConnection {
           edges {
             host
+            color
             node {
               teamId
               name
               nick
               logo
+              primaryColor
+              secondaryColor
+              tertiaryColor
             }
           }
         }
@@ -299,6 +307,11 @@ export const UPDATE_GAME = gql`
             logo
           }
           scoredBy {
+            player {
+              playerId
+            }
+          }
+          allowedBy {
             player {
               playerId
             }

@@ -1,21 +1,31 @@
 import { Error, Loader, QuickSearchToolbar, Title } from 'components'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
-import Img from 'react-cool-img'
+// import Img from 'react-cool-img'
 import { useParams } from 'react-router-dom'
 import { setIdFromEntityId, sortByStatus } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
 import { Team } from 'utils/types'
 import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBoxIcon from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import CardMedia from '@mui/material/CardMedia'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
+import Select from '@mui/material/Select'
 import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
+import { Theme } from '@mui/system'
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 import { useStyles } from '../../../commonComponents/styled'
@@ -27,6 +37,9 @@ export const GET_ALL_TEAMS_BY_ORG = gql`
       name
       logo
       status
+      primaryColor
+      secondaryColor
+      tertiaryColor
     }
   }
 `
@@ -36,6 +49,7 @@ type TTeams = {
   teams: {
     host: boolean
     node: Team
+    color: string
   }[]
   updateGame: MutationFunction
 }
@@ -51,12 +65,8 @@ const Teams: React.FC<TTeams> = props => {
   const [teamDialog, setTeamDialog] = useState(false)
   const isHost = useRef(true)
 
-  const teamHost = useMemo(() => teams.find(t => t.host)?.node || null, [teams])
-  const teamGuest = useMemo(
-    () => teams.find(t => !t.host)?.node || null,
-    [teams]
-  )
-
+  const teamHost = useMemo(() => teams.find(t => t.host)?.node, [teams])
+  const teamGuest = useMemo(() => teams.find(t => !t.host)?.node, [teams])
   const [
     getAllTeams,
     {
@@ -182,6 +192,7 @@ const Teams: React.FC<TTeams> = props => {
         <Grid item xs={12} md={6} lg={6}>
           <TeamCard
             host
+            color={teams.find(t => t.host)?.color}
             team={teamHost}
             openTeamDialog={openTeamDialog}
             gameId={gameId}
@@ -192,6 +203,7 @@ const Teams: React.FC<TTeams> = props => {
         <Grid item xs={12} md={6} lg={6}>
           <TeamCard
             host={false}
+            color={teams.find(t => !t.host)?.color}
             team={teamGuest}
             openTeamDialog={openTeamDialog}
             gameId={gameId}
@@ -251,7 +263,8 @@ const Teams: React.FC<TTeams> = props => {
 }
 
 type TTeamCard = {
-  team: Team | null
+  team?: Team
+  color?: string
   host: boolean
   openTeamDialog: ({ asHost }: { asHost: boolean }) => void
   gameId: string
@@ -259,7 +272,14 @@ type TTeamCard = {
 }
 
 const TeamCard: React.FC<TTeamCard> = React.memo(props => {
-  const { team, host = false, openTeamDialog, gameId, updateGame } = props
+  const {
+    team,
+    host = false,
+    openTeamDialog,
+    gameId,
+    updateGame,
+    color,
+  } = props
   const classes = useStyles()
 
   return (
@@ -328,18 +348,139 @@ const TeamCard: React.FC<TTeamCard> = React.memo(props => {
       {team && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <div className={classes.gameTeamLogoWrapper}>
-              <Img
-                src={team.logo}
-                className={classes.gameTeamLogo}
-                alt={team.name}
-              />
-            </div>
+            <CardInfo
+              gameId={gameId}
+              team={team}
+              color={color}
+              updateGame={updateGame}
+            />
           </Grid>
         </Grid>
       )}
     </Paper>
   )
 })
+const useStylesCard = makeStyles(({ breakpoints, spacing }: Theme) => ({
+  cardWrapper: {
+    margin: 'auto',
+    borderRadius: spacing(2), // 16px
+    transition: '0.3s',
+    boxShadow: '0px 14px 80px rgba(34, 35, 58, 0.2)',
+    position: 'relative',
+    maxWidth: 500,
+    overflow: 'initial',
+    background: '#ffffff',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: ' flex-start',
+    paddingBottom: spacing(2),
+    [breakpoints.up('md')]: {
+      flexDirection: 'row',
+      paddingTop: spacing(2),
+    },
+  },
+  cardMedia: {
+    width: '50%',
+    marginTop: spacing(-3),
+    height: 0,
+    paddingBottom: '48%',
+    borderRadius: '50%',
+    backgroundColor: '#fff',
+    position: 'relative',
+    alignSelf: 'center',
+    [breakpoints.up('md')]: {
+      width: '50%',
+      marginTop: 0,
+      transform: 'translateX(-16px)',
+    },
+    // '&:after': {
+    //   content: '" "',
+    //   position: 'absolute',
+    //   top: 0,
+    //   left: 0,
+    //   width: '100%',
+    //   height: '100%',
+    //   backgroundImage: 'linear-gradient(147deg, #fe8a39 0%, #fd3838 74%)',
+    //   borderRadius: '50%',
+    //   opacity: 0.5,
+    // },
+  },
+}))
+
+type CardInfoProps = {
+  team: Team
+  updateGame: MutationFunction
+  color?: string
+  gameId: string
+}
+
+const CardInfo = ({ team, color, updateGame, gameId }: CardInfoProps) => {
+  const classes = useStylesCard()
+  const [teamColor, setTeamColor] = useState(color || '')
+  return (
+    <Card className={classes.cardWrapper}>
+      <CardMedia className={classes.cardMedia} image={team.logo} />
+      <CardContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          m: 0,
+          marginLeft: 0,
+          marginRight: 0,
+        }}
+      >
+        <Typography variant="h5" component="h2">
+          {team.name}
+        </Typography>
+        <Typography variant="body1" component="p">
+          {'test'}
+        </Typography>
+        <Box>
+          <Select
+            sx={{ width: '100%' }}
+            placeholder={'Jersey color'}
+            variant="standard"
+            onChange={event => {
+              setTeamColor(event.target.value)
+              updateGame({
+                variables: {
+                  where: {
+                    gameId,
+                  },
+                  update: {
+                    teams: {
+                      where: {
+                        node: {
+                          teamId: team.teamId,
+                        },
+                      },
+                      update: {
+                        edge: {
+                          color: event.target.value,
+                        },
+                      },
+                    },
+                  },
+                },
+              })
+            }}
+            value={teamColor}
+          >
+            {team?.primaryColor && (
+              <MenuItem value={team.primaryColor}>Primary</MenuItem>
+            )}
+            {team?.secondaryColor && (
+              <MenuItem value={team.secondaryColor}>Secondary</MenuItem>
+            )}
+            {team?.tertiaryColor && (
+              <MenuItem value={team.tertiaryColor}>Tertiary</MenuItem>
+            )}
+          </Select>
+        </Box>
+        <AccountBoxIcon sx={{ color: teamColor, fontSize: '8em' }} />
+      </CardContent>
+    </Card>
+  )
+}
 
 export { Teams }

@@ -697,6 +697,7 @@ interface TakingPartIn {
 
 interface TeamGame {
   host: Boolean
+  color: String
 }
 
 type Game @auth(rules: [{ allowUnauthenticated: true }]) {

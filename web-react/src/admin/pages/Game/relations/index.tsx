@@ -11,6 +11,7 @@ type TRelations = {
   gameId: string
   teams: {
     host: boolean
+    color: string
     node: Team
   }[]
   players: {
