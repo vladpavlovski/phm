@@ -9,13 +9,15 @@
     "build": "babel src --out-dir build && shx cp .env build 2>/dev/null || : && shx cp src/schema.graphql build",
     "now-build": "babel src --out-dir build && shx cp src/schema.graphql build",
     "start": "npm run build && node build/index.js",
-    "seedDb": "./node_modules/.bin/babel-node src/seed/seed-db.js"
+    "seedDb": "./node_modules/.bin/babel-node src/seed/seed-db.js",
+    "generate-schema": "./node_modules/.bin/babel-node src/generate-types.js"
   },
   "author": "Vlad Pavlovski",
   "license": "MIT",
   "dependencies": {
     "@apollo/client": "3.3.12",
     "@neo4j/graphql": "2.1.0",
+    "@neo4j/graphql-ogm": "^3.2.3",
     "apollo-server": "2.21.2",
     "apollo-server-lambda": "2.21.2",
     "aws-sdk": "2.1028.0",

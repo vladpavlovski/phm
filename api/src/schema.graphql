@@ -63,16 +63,16 @@ type Player {
 
   user: User @relationship(type: "ACCOUNT_FOR", direction: IN)
   meta: MetaPlayer @relationship(type: "META_FOR", direction: IN)
-  teams: [Team] @relationship(type: "PLAY_IN", direction: OUT)
-  positions: [Position] @relationship(type: "HAS_POSITION", direction: OUT)
-  jerseys: [Jersey] @relationship(type: "HAS_JERSEY", direction: OUT)
-  achievements: [Achievement]
+  teams: [Team!]! @relationship(type: "PLAY_IN", direction: OUT)
+  positions: [Position!]! @relationship(type: "HAS_POSITION", direction: OUT)
+  jerseys: [Jersey!]! @relationship(type: "HAS_JERSEY", direction: OUT)
+  achievements: [Achievement!]!
     @relationship(type: "HAS_ACHIEVEMENT", direction: OUT)
-  awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
-  events: [Event] @relationship(type: "ORGANIZE_AN", direction: OUT)
+  awards: [Award!]! @relationship(type: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
+  events: [Event!]! @relationship(type: "ORGANIZE_AN", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  metaHistories: [MetaHistory] @relationship(type: "META_FOR", direction: IN)
+  metaHistories: [MetaHistory!]! @relationship(type: "META_FOR", direction: IN)
   games: [Game!]!
     @relationship(
       type: "TAKING_PART_IN"
@@ -90,7 +90,7 @@ type Player {
 # Saves
 
 type Mutation {
-  CreateJerseys(teamId: ID!, nameBase: String!): [Jersey!]
+  CreateJerseys(teamId: ID!, nameBase: String!): [Jersey!]!
     @cypher(
       statement: """
       MATCH (t:Team {teamId: $teamId})
@@ -106,7 +106,7 @@ type Mutation {
       """
     )
 
-  CreateTeamDefaultPositions(teamId: ID!, systemSettingsId: ID!): [Position!]
+  CreateTeamDefaultPositions(teamId: ID!, systemSettingsId: ID!): [Position!]!
     @cypher(
       statement: """
       MATCH (team: Team {teamId: $teamId})
@@ -485,50 +485,52 @@ type MetaPlayer {
   player: Player @relationship(type: "META_FOR", direction: OUT)
   availabilityStatus: AvailabilityStatus
     @relationship(type: "GAME_READY_FOR", direction: IN)
-  transfers: [Transfer]
+  transfers: [Transfer!]!
     @relationship(type: "TRANSFER_FOR_PLAYER", direction: IN)
-  stars: [Star] @relationship(type: "IS_STAR", direction: IN)
-  collectedPasses: [Pass] @relationship(type: "COLLECT_BY", direction: IN)
-  sentPasses: [Pass] @relationship(type: "SENT_BY", direction: IN)
-  offsides: [Offside] @relationship(type: "CAUSED_BY", direction: IN)
-  scoredGoals: [Goal] @relationship(type: "SCORED_BY", direction: IN)
-  allowedGoals: [Goal] @relationship(type: "ALLOWED_BY", direction: IN)
-  firedShots: [Shot] @relationship(type: "FIRED_BY", direction: IN)
-  blockedShots: [Shot] @relationship(type: "BLOCKED_BY", direction: IN)
-  facedShots: [Shot] @relationship(type: "FACED_TO", direction: IN)
-  executedPenaltyShots: [PenaltyShot]
+  stars: [Star!]! @relationship(type: "IS_STAR", direction: IN)
+  collectedPasses: [Pass!]! @relationship(type: "COLLECT_BY", direction: IN)
+  sentPasses: [Pass!]! @relationship(type: "SENT_BY", direction: IN)
+  offsides: [Offside!]! @relationship(type: "CAUSED_BY", direction: IN)
+  scoredGoals: [Goal!]! @relationship(type: "SCORED_BY", direction: IN)
+  allowedGoals: [Goal!]! @relationship(type: "ALLOWED_BY", direction: IN)
+  firedShots: [Shot!]! @relationship(type: "FIRED_BY", direction: IN)
+  blockedShots: [Shot!]! @relationship(type: "BLOCKED_BY", direction: IN)
+  facedShots: [Shot!]! @relationship(type: "FACED_TO", direction: IN)
+  executedPenaltyShots: [PenaltyShot!]!
     @relationship(type: "EXECUTED_BY", direction: IN)
-  facedPenaltyShots: [PenaltyShot]
+  facedPenaltyShots: [PenaltyShot!]!
     @relationship(type: "FACED_AGAINST", direction: IN)
-  penalties: [Penalty] @relationship(type: "PENALIZED", direction: IN)
-  intervalOnIce: [BigIntervalOnIce]
+  penalties: [Penalty!]! @relationship(type: "PENALIZED", direction: IN)
+  intervalOnIce: [BigIntervalOnIce!]!
     @relationship(type: "SPENT_BY", direction: IN)
-  fights: [Fight] @relationship(type: "PARTICIPATE_IN", direction: IN)
-  lostFaceOffs: [FaceOff] @relationship(type: "LOST_BY", direction: IN)
-  wonFaceOffs: [FaceOff] @relationship(type: "WON_BY", direction: IN)
-  icings: [Icing] @relationship(type: "CAUSED_BY", direction: IN)
-  lostTakeOvers: [TakeOver] @relationship(type: "LOST_BY", direction: IN)
-  richedTakeOvers: [TakeOver] @relationship(type: "RICHED_BY", direction: IN)
-  hits: [Hit] @relationship(type: "GIVE_BY", direction: IN)
+  fights: [Fight!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
+  lostFaceOffs: [FaceOff!]! @relationship(type: "LOST_BY", direction: IN)
+  wonFaceOffs: [FaceOff!]! @relationship(type: "WON_BY", direction: IN)
+  icings: [Icing!]! @relationship(type: "CAUSED_BY", direction: IN)
+  lostTakeOvers: [TakeOver!]! @relationship(type: "LOST_BY", direction: IN)
+  richedTakeOvers: [TakeOver!]! @relationship(type: "RICHED_BY", direction: IN)
+  hits: [Hit!]! @relationship(type: "GIVE_BY", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  eventsGoal: [GameEventSimple] @relationship(type: "SCORED_BY", direction: IN)
-  eventsAllowedGoal: [GameEventSimple]
+  eventsGoal: [GameEventSimple!]!
+    @relationship(type: "SCORED_BY", direction: IN)
+  eventsAllowedGoal: [GameEventSimple!]!
     @relationship(type: "ALLOWED_BY", direction: IN)
-  eventsFirstAssist: [GameEventSimple]
+  eventsFirstAssist: [GameEventSimple!]!
     @relationship(type: "FIRST_ASSIST_BY", direction: IN)
-  eventsSecondAssist: [GameEventSimple]
+  eventsSecondAssist: [GameEventSimple!]!
     @relationship(type: "SECOND_ASSIST_BY", direction: IN)
-  eventsLostBy: [GameEventSimple] @relationship(type: "LOST_BY", direction: IN)
-  eventsWonBy: [GameEventSimple] @relationship(type: "WON_BY", direction: IN)
-  eventsPenalties: [GameEventSimple]
+  eventsLostBy: [GameEventSimple!]!
+    @relationship(type: "LOST_BY", direction: IN)
+  eventsWonBy: [GameEventSimple!]! @relationship(type: "WON_BY", direction: IN)
+  eventsPenalties: [GameEventSimple!]!
     @relationship(type: "PENALIZED", direction: IN)
-  eventsExecutedPenaltyShots: [GameEventSimple]
+  eventsExecutedPenaltyShots: [GameEventSimple!]!
     @relationship(type: "EXECUTED_BY", direction: IN)
-  eventsFacedPenaltyShots: [GameEventSimple]
+  eventsFacedPenaltyShots: [GameEventSimple!]!
     @relationship(type: "FACED_AGAINST", direction: IN)
-  eventsInjuries: [GameEventSimple]
+  eventsInjuries: [GameEventSimple!]!
     @relationship(type: "SUFFERED", direction: IN)
-  eventsSavedBy: [GameEventSimple]
+  eventsSavedBy: [GameEventSimple!]!
     @relationship(type: "SAVED_BY", direction: IN)
 }
 
@@ -576,18 +578,18 @@ type Person {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   user: User @relationship(type: "ACCOUNT_FOR", direction: IN)
-  managers: [Person] @relationship(type: "HAS_MANAGER", direction: OUT)
-  teams: [Team] @relationship(type: "HAS_TEAM_STAFF", direction: IN)
-  games: [Game] @relationship(type: "HAS_GAME_STAFF", direction: IN)
-  competitions: [Competition]
+  managers: [Person!]! @relationship(type: "HAS_MANAGER", direction: OUT)
+  teams: [Team!]! @relationship(type: "HAS_TEAM_STAFF", direction: IN)
+  games: [Game!]! @relationship(type: "HAS_GAME_STAFF", direction: IN)
+  competitions: [Competition!]!
     @relationship(type: "HAS_COMPETITION_STAFF", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  payments: [Payment] @relationship(type: "INITIATES_PAYMENT", direction: OUT)
-  orgs: [Organization] @relationship(type: "ENGAGED_IN", direction: OUT)
-  awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
-  achievements: [Achievement]
+  payments: [Payment!]! @relationship(type: "INITIATES_PAYMENT", direction: OUT)
+  orgs: [Organization!]! @relationship(type: "ENGAGED_IN", direction: OUT)
+  awards: [Award!]! @relationship(type: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
+  achievements: [Achievement!]!
     @relationship(type: "HAS_ACHIEVEMENT", direction: OUT)
   invitations: [Invitation!]!
     @relationship(
@@ -596,7 +598,7 @@ type Person {
       direction: OUT
     )
   venueManager: Venue @relationship(type: "HAS_MANAGER", direction: IN)
-  occupations: [Occupation]
+  occupations: [Occupation!]!
     @relationship(type: "USE_OCCUPATION", direction: OUT)
 }
 
@@ -606,7 +608,7 @@ type Occupation {
   description: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  person: [Person] @relationship(type: "TYPE_OF", direction: IN)
+  person: [Person!]! @relationship(type: "TYPE_OF", direction: IN)
   team: Team @relationship(type: "USE_OCCUPATION", direction: IN)
   org: Organization @relationship(type: "USE_OCCUPATION", direction: IN)
 }
@@ -626,9 +628,9 @@ type User {
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   player: Player @relationship(type: "ACCOUNT_FOR", direction: OUT)
   person: Person @relationship(type: "ACCOUNT_FOR", direction: OUT)
-  comments: [Comment] @relationship(type: "WRITE_A_COMMENT", direction: OUT)
-  sentInvitations: [Invitation] @relationship(type: "SENT_BY", direction: IN)
-  events: [Event] @relationship(type: "ORGANIZE_AN", direction: OUT)
+  comments: [Comment!]! @relationship(type: "WRITE_A_COMMENT", direction: OUT)
+  sentInvitations: [Invitation!]! @relationship(type: "SENT_BY", direction: IN)
+  events: [Event!]! @relationship(type: "ORGANIZE_AN", direction: OUT)
   settings: UserSettings @relationship(type: "HAS_SETTINGS", direction: OUT)
 }
 
@@ -657,31 +659,31 @@ type Team {
   createdAt: DateTime @timestamp(operations: [CREATE])
   updatedAt: DateTime @timestamp(operations: [UPDATE])
 
-  players: [Player] @relationship(type: "PLAY_IN", direction: IN)
-  persons: [Person] @relationship(type: "HAS_TEAM_STAFF", direction: OUT)
+  players: [Player!]! @relationship(type: "PLAY_IN", direction: IN)
+  persons: [Person!]! @relationship(type: "HAS_TEAM_STAFF", direction: OUT)
   games: [Game!]!
     @relationship(type: "PLAYS", properties: "TeamGame", direction: OUT)
-  awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
-  gameEvents: [GameEvent] @relationship(type: "CREATED_BY", direction: IN)
-  gameEventsSimple: [GameEventSimple]
+  awards: [Award!]! @relationship(type: "WIN_AN_AWARD", direction: OUT)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
+  gameEvents: [GameEvent!]! @relationship(type: "CREATED_BY", direction: IN)
+  gameEventsSimple: [GameEventSimple!]!
     @relationship(type: "CREATED_BY", direction: IN)
-  transfersFrom: [Transfer] @relationship(type: "FROM_TEAM", direction: OUT)
-  transfersTo: [Transfer] @relationship(type: "TO_TEAM", direction: IN)
-  competitions: [Competition]
+  transfersFrom: [Transfer!]! @relationship(type: "FROM_TEAM", direction: OUT)
+  transfersTo: [Transfer!]! @relationship(type: "TO_TEAM", direction: IN)
+  competitions: [Competition!]!
     @relationship(type: "PARTICIPATE_IN", direction: OUT)
-  positions: [Position] @relationship(type: "USE_POSITION", direction: OUT)
-  orgs: [Organization] @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  positions: [Position!]! @relationship(type: "USE_POSITION", direction: OUT)
+  orgs: [Organization!]! @relationship(type: "PARTICIPATE_IN", direction: OUT)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  jerseys: [Jersey] @relationship(type: "USE_JERSEY", direction: OUT)
+  jerseys: [Jersey!]! @relationship(type: "USE_JERSEY", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  achievements: [Achievement]
+  achievements: [Achievement!]!
     @relationship(type: "HAS_ACHIEVEMENT", direction: OUT)
   wear: Wear @relationship(type: "HAS_WEAR", direction: OUT)
-  groups: [Group] @relationship(type: "PARTICIPATE_IN", direction: OUT)
-  phases: [Phase] @relationship(type: "PARTICIPATE_IN", direction: OUT)
-  seasons: [Season] @relationship(type: "PARTICIPATE_IN", direction: OUT)
-  occupations: [Occupation]
+  groups: [Group!]! @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  phases: [Phase!]! @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  seasons: [Season!]! @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  occupations: [Occupation!]!
     @relationship(type: "USE_OCCUPATION", direction: OUT)
 }
 
@@ -734,12 +736,12 @@ type Game @auth(rules: [{ allowUnauthenticated: true }]) {
       properties: "TakingPartIn"
       direction: IN
     )
-  gameEvents: [GameEvent] @relationship(type: "INITIATES", direction: OUT)
-  gameEventsSimple: [GameEventSimple]
+  gameEvents: [GameEvent!]! @relationship(type: "INITIATES", direction: OUT)
+  gameEventsSimple: [GameEventSimple!]!
     @relationship(type: "INITIATES_SIMPLE", direction: OUT)
-  awards: [Award] @relationship(type: "WIN_AN_AWARD", direction: OUT)
+  awards: [Award!]! @relationship(type: "WIN_AN_AWARD", direction: OUT)
   # lineup: Lineup @relationship(type: "GENERATES", direction: IN)
-  persons: [Person] @relationship(type: "HAS_GAME_STAFF", direction: OUT)
+  persons: [Person!]! @relationship(type: "HAS_GAME_STAFF", direction: OUT)
   phase: Phase @relationship(type: "COMPLETE_IN", direction: OUT)
   group: Group @relationship(type: "PARTICIPATE_IN", direction: OUT)
   venue: Venue @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
@@ -760,26 +762,26 @@ type GameEvent {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   game: Game @relationship(type: "INITIATES", direction: IN)
-  goals: [Goal] @relationship(type: "CREATE_GOAL", direction: OUT)
-  penalties: [Penalty] @relationship(type: "CREATE_PENALTY", direction: OUT)
-  faceOffs: [FaceOff] @relationship(type: "CREATE_FACEOFF", direction: OUT)
-  passes: [Pass] @relationship(type: "CREATE_PASS", direction: OUT)
-  hits: [Hit] @relationship(type: "CREATE_HIT", direction: OUT)
-  penaltyShots: [PenaltyShot]
+  goals: [Goal!]! @relationship(type: "CREATE_GOAL", direction: OUT)
+  penalties: [Penalty!]! @relationship(type: "CREATE_PENALTY", direction: OUT)
+  faceOffs: [FaceOff!]! @relationship(type: "CREATE_FACEOFF", direction: OUT)
+  passes: [Pass!]! @relationship(type: "CREATE_PASS", direction: OUT)
+  hits: [Hit!]! @relationship(type: "CREATE_HIT", direction: OUT)
+  penaltyShots: [PenaltyShot!]!
     @relationship(type: "CREATE_PENALTY_SHOT", direction: OUT)
-  shots: [Shot] @relationship(type: "CREATE_SHOT", direction: OUT)
-  revisions: [Revision] @relationship(type: "CREATE_REVISION", direction: OUT)
-  fights: [Fight] @relationship(type: "CREATE_FIGHT", direction: OUT)
-  intervalsOnIce: [BigIntervalOnIce]
+  shots: [Shot!]! @relationship(type: "CREATE_SHOT", direction: OUT)
+  revisions: [Revision!]! @relationship(type: "CREATE_REVISION", direction: OUT)
+  fights: [Fight!]! @relationship(type: "CREATE_FIGHT", direction: OUT)
+  intervalsOnIce: [BigIntervalOnIce!]!
     @relationship(type: "CREATE_INTERVAL_ON_ICE", direction: OUT)
-  icings: [Icing] @relationship(type: "CREATE_ICING", direction: OUT)
-  timeouts: [Timeout] @relationship(type: "CREATE_TIMEOUT", direction: OUT)
-  offsides: [Offside] @relationship(type: "CREATE_OFFSIDE", direction: OUT)
-  stars: [Star] @relationship(type: "CREATE_STAR", direction: OUT)
-  takeOvers: [TakeOver] @relationship(type: "CREATE_TAKEOVER", direction: OUT)
-  injuries: [Injury] @relationship(type: "CREATE_INJURY", direction: OUT)
+  icings: [Icing!]! @relationship(type: "CREATE_ICING", direction: OUT)
+  timeouts: [Timeout!]! @relationship(type: "CREATE_TIMEOUT", direction: OUT)
+  offsides: [Offside!]! @relationship(type: "CREATE_OFFSIDE", direction: OUT)
+  stars: [Star!]! @relationship(type: "CREATE_STAR", direction: OUT)
+  takeOvers: [TakeOver!]! @relationship(type: "CREATE_TAKEOVER", direction: OUT)
+  injuries: [Injury!]! @relationship(type: "CREATE_INJURY", direction: OUT)
   team: Team @relationship(type: "CREATED_BY", direction: OUT)
-  saves: [Save] @relationship(type: "CREATE_SAVE", direction: OUT)
+  saves: [Save!]! @relationship(type: "CREATE_SAVE", direction: OUT)
   previousGameEvent: GameEvent
     @relationship(type: "PREVIOUS_GAME_EVENT", direction: OUT)
   nextGameEvent: GameEvent
@@ -934,9 +936,9 @@ type Revision {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   gameEvent: GameEvent @relationship(type: "CREATE_REVISION", direction: IN)
-  canceled: [CanceledRevisions]
+  canceled: [CanceledRevisions!]!
     @relationship(type: "CANCELED_BY", direction: IN)
-  checked: [CheckedRevisions] @relationship(type: "CHECKED_BY", direction: IN)
+  checked: [CheckedRevisions!]! @relationship(type: "CHECKED_BY", direction: IN)
 }
 
 type Timeout {
@@ -977,7 +979,7 @@ type Fight {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   gameEvent: GameEvent @relationship(type: "CREATE_FIGHT", direction: IN)
-  players: [Player] @relationship(type: "PARTICIPATE_IN", direction: OUT)
+  players: [Player!]! @relationship(type: "PARTICIPATE_IN", direction: OUT)
 }
 
 type FaceOff {
@@ -1070,7 +1072,7 @@ type Discussion {
   discussionId: ID! @id
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  comments: [Comment] @relationship(type: "CONTAINS", direction: OUT)
+  comments: [Comment!]! @relationship(type: "CONTAINS", direction: OUT)
   game: Game @relationship(type: "HAS_DISCUSSION", direction: IN)
   competition: Competition @relationship(type: "HAS_DISCUSSION", direction: IN)
   person: Person @relationship(type: "HAS_DISCUSSION", direction: IN)
@@ -1094,7 +1096,7 @@ type Comment {
     @relationship(type: "PREVIOUS_COMMENT", direction: OUT)
   nextComment: Comment @relationship(type: "PREVIOUS_COMMENT", direction: IN)
   replyTo: Comment @relationship(type: "REPLY_TO", direction: OUT)
-  repliedTo: [Comment] @relationship(type: "REPLY_TO", direction: IN)
+  repliedTo: [Comment!]! @relationship(type: "REPLY_TO", direction: IN)
   discussion: Discussion @relationship(type: "CONTAINS", direction: IN)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
   author: User @relationship(type: "WRITE_A_COMMENT", direction: IN)
@@ -1117,24 +1119,24 @@ type Organization {
   bankCode: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  persons: [Person]
+  persons: [Person!]!
     @relationship(type: "HAS_ORGANIZATION_STAFF", direction: OUT)
-  payments: [Payment] @relationship(type: "RECEIVES_PAYMENT", direction: IN)
-  competitions: [Competition] @relationship(type: "OWNED_BY", direction: IN)
+  payments: [Payment!]! @relationship(type: "RECEIVES_PAYMENT", direction: IN)
+  competitions: [Competition!]! @relationship(type: "OWNED_BY", direction: IN)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  rulePacks: [RulePack] @relationship(type: "GUIDED_BY", direction: OUT)
-  teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
-  occupations: [Occupation]
+  rulePacks: [RulePack!]! @relationship(type: "GUIDED_BY", direction: OUT)
+  teams: [Team!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
+  occupations: [Occupation!]!
     @relationship(type: "USE_OCCUPATION", direction: OUT)
-  seasons: [Season] @relationship(type: "BELONGS_TO", direction: IN)
-  orgPersons: [Person] @relationship(type: "ENGAGED_IN", direction: IN)
-  orgSponsors: [Sponsor] @relationship(type: "ENGAGED_IN", direction: IN)
-  orgAwards: [Award] @relationship(type: "PROVIDED_BY", direction: IN)
-  orgRulePacks: [RulePack] @relationship(type: "PROVIDED_BY", direction: IN)
-  orgEvents: [Event] @relationship(type: "CREATE_IN", direction: IN)
-  orgGames: [Game] @relationship(type: "PROVIDED_BY", direction: IN)
+  seasons: [Season!]! @relationship(type: "BELONGS_TO", direction: IN)
+  orgPersons: [Person!]! @relationship(type: "ENGAGED_IN", direction: IN)
+  orgSponsors: [Sponsor!]! @relationship(type: "ENGAGED_IN", direction: IN)
+  orgAwards: [Award!]! @relationship(type: "PROVIDED_BY", direction: IN)
+  orgRulePacks: [RulePack!]! @relationship(type: "PROVIDED_BY", direction: IN)
+  orgEvents: [Event!]! @relationship(type: "CREATE_IN", direction: IN)
+  orgGames: [Game!]! @relationship(type: "PROVIDED_BY", direction: IN)
 }
 
 type Sponsor {
@@ -1149,16 +1151,17 @@ type Sponsor {
   logo: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  players: [Player] @relationship(type: "SPONSORED_BY", direction: IN)
-  teams: [Team] @relationship(type: "SPONSORED_BY", direction: IN)
-  person: [Person] @relationship(type: "SPONSORED_BY", direction: IN)
-  awards: [Award] @relationship(type: "SPONSORED_BY", direction: IN)
-  competitions: [Competition] @relationship(type: "SPONSORED_BY", direction: IN)
+  players: [Player!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  teams: [Team!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  person: [Person!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  awards: [Award!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  competitions: [Competition!]!
+    @relationship(type: "SPONSORED_BY", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  phases: [Phase] @relationship(type: "SPONSORED_BY", direction: IN)
-  groups: [Group] @relationship(type: "SPONSORED_BY", direction: IN)
-  orgs: [Organization] @relationship(type: "ENGAGED_IN", direction: OUT)
+  phases: [Phase!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  groups: [Group!]! @relationship(type: "SPONSORED_BY", direction: IN)
+  orgs: [Organization!]! @relationship(type: "ENGAGED_IN", direction: OUT)
 }
 
 type Venue {
@@ -1174,16 +1177,16 @@ type Venue {
   logo: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  competitions: [Competition]
+  competitions: [Competition!]!
     @relationship(type: "TAKES_PLAYS_ON", direction: IN)
-  games: [Game] @relationship(type: "TAKES_PLAYS_ON", direction: IN)
+  games: [Game!]! @relationship(type: "TAKES_PLAYS_ON", direction: IN)
   address: Address @relationship(type: "LOCATED_AT", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  managers: [Person] @relationship(type: "HAS_MANAGER", direction: OUT)
-  seasons: [Season] @relationship(type: "TAKES_PLAYS_ON", direction: IN)
-  phases: [Phase] @relationship(type: "TAKES_PLAYS_ON", direction: IN)
-  groups: [Group] @relationship(type: "TAKES_PLAYS_ON", direction: IN)
-  awards: [Award] @relationship(type: "HAS_AN_AWARD", direction: OUT)
+  managers: [Person!]! @relationship(type: "HAS_MANAGER", direction: OUT)
+  seasons: [Season!]! @relationship(type: "TAKES_PLAYS_ON", direction: IN)
+  phases: [Phase!]! @relationship(type: "TAKES_PLAYS_ON", direction: IN)
+  groups: [Group!]! @relationship(type: "TAKES_PLAYS_ON", direction: IN)
+  awards: [Award!]! @relationship(type: "HAS_AN_AWARD", direction: OUT)
 }
 
 type Address {
@@ -1202,7 +1205,7 @@ type Address {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   venue: Venue @relationship(type: "LOCATED_AT", direction: IN)
-  events: [Event] @relationship(type: "TAKES_PLACE_AT", direction: IN)
+  events: [Event!]! @relationship(type: "TAKES_PLACE_AT", direction: IN)
 }
 
 type Competition {
@@ -1217,19 +1220,20 @@ type Competition {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   org: Organization @relationship(type: "OWNED_BY", direction: OUT)
-  rulePacks: [RulePack] @relationship(type: "GUIDED_BY", direction: OUT)
-  events: [Event] @relationship(type: "ORGANIZE_AN", direction: OUT)
-  venues: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
-  phases: [Phase] @relationship(type: "DIVIDED", direction: OUT)
-  groups: [Group] @relationship(type: "DIVIDED", direction: OUT)
-  seasons: [Season] @relationship(type: "BELONGS_TO", direction: OUT)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
-  awards: [Award] @relationship(type: "BELONGS_TO", direction: IN)
+  rulePacks: [RulePack!]! @relationship(type: "GUIDED_BY", direction: OUT)
+  events: [Event!]! @relationship(type: "ORGANIZE_AN", direction: OUT)
+  venues: [Venue!]! @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
+  phases: [Phase!]! @relationship(type: "DIVIDED", direction: OUT)
+  groups: [Group!]! @relationship(type: "DIVIDED", direction: OUT)
+  seasons: [Season!]! @relationship(type: "BELONGS_TO", direction: OUT)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
+  awards: [Award!]! @relationship(type: "BELONGS_TO", direction: IN)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  persons: [Person] @relationship(type: "HAS_COMPETITION_STAFF", direction: OUT)
-  teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
+  persons: [Person!]!
+    @relationship(type: "HAS_COMPETITION_STAFF", direction: OUT)
+  teams: [Team!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  metaHistories: [MetaHistory]
+  metaHistories: [MetaHistory!]!
     @relationship(type: "PARTICIPATE_IN", direction: IN)
 }
 
@@ -1269,14 +1273,14 @@ type Season {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   org: Organization @relationship(type: "BELONGS_TO", direction: OUT)
-  competitions: [Competition] @relationship(type: "BELONGS_TO", direction: IN)
-  teamWears: [Wear] @relationship(type: "WEAR_FOR", direction: IN)
-  venues: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
-  phases: [Phase] @relationship(type: "BELONGS_TO", direction: IN)
-  groups: [Group] @relationship(type: "BELONGS_TO", direction: IN)
-  awards: [Award] @relationship(type: "HAS_AN_AWARD", direction: OUT)
-  teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
-  metaHistories: [MetaHistory]
+  competitions: [Competition!]! @relationship(type: "BELONGS_TO", direction: IN)
+  teamWears: [Wear!]! @relationship(type: "WEAR_FOR", direction: IN)
+  venues: [Venue!]! @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
+  phases: [Phase!]! @relationship(type: "BELONGS_TO", direction: IN)
+  groups: [Group!]! @relationship(type: "BELONGS_TO", direction: IN)
+  awards: [Award!]! @relationship(type: "HAS_AN_AWARD", direction: OUT)
+  teams: [Team!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
+  metaHistories: [MetaHistory!]!
     @relationship(type: "PARTICIPATE_IN", direction: IN)
 }
 
@@ -1292,14 +1296,14 @@ type Group {
   competition: Competition @relationship(type: "DIVIDED", direction: IN)
   rulePack: RulePack @relationship(type: "GUIDED_BY", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  games: [Game] @relationship(type: "PARTICIPATE_IN", direction: IN)
+  games: [Game!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  awards: [Award] @relationship(type: "BELONGS_TO", direction: IN)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
+  awards: [Award!]! @relationship(type: "BELONGS_TO", direction: IN)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
   season: Season @relationship(type: "BELONGS_TO", direction: OUT)
-  venue: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
+  venue: [Venue!]! @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
   phase: Phase @relationship(type: "BELONGS_TO", direction: OUT)
-  teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
+  teams: [Team!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
 }
 
 type Phase {
@@ -1315,14 +1319,14 @@ type Phase {
   competition: Competition @relationship(type: "DIVIDED", direction: IN)
   rulePack: RulePack @relationship(type: "GUIDED_BY", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  games: [Game] @relationship(type: "COMPLETE_IN", direction: IN)
+  games: [Game!]! @relationship(type: "COMPLETE_IN", direction: IN)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
-  awards: [Award] @relationship(type: "BELONGS_TO", direction: IN)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
+  awards: [Award!]! @relationship(type: "BELONGS_TO", direction: IN)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
   season: Season @relationship(type: "BELONGS_TO", direction: OUT)
-  venues: [Venue] @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
-  groups: [Group] @relationship(type: "BELONGS_TO", direction: IN)
-  teams: [Team] @relationship(type: "PARTICIPATE_IN", direction: IN)
+  venues: [Venue!]! @relationship(type: "TAKES_PLAYS_ON", direction: OUT)
+  groups: [Group!]! @relationship(type: "BELONGS_TO", direction: IN)
+  teams: [Team!]! @relationship(type: "PARTICIPATE_IN", direction: IN)
 }
 
 type Payment {
@@ -1347,20 +1351,21 @@ type Award {
   foundDate: Date
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  seasons: [Season] @relationship(type: "HAS_AN_AWARD", direction: IN)
-  competitions: [Competition] @relationship(type: "BELONGS_TO", direction: OUT)
-  phases: [Phase] @relationship(type: "BELONGS_TO", direction: OUT)
-  groups: [Group] @relationship(type: "BELONGS_TO", direction: OUT)
-  teams: [Team] @relationship(type: "WIN_AN_AWARD", direction: IN)
-  games: [Game] @relationship(type: "HAS_AN_AWARD", direction: IN)
-  players: [Player] @relationship(type: "WIN_AN_AWARD", direction: IN)
-  persons: [Person] @relationship(type: "WIN_AN_AWARD", direction: IN)
-  venues: [Venue] @relationship(type: "HAS_AN_AWARD", direction: IN)
-  stars: [Star] @relationship(type: "WIN_AN_AWARD", direction: IN)
-  sponsors: [Sponsor] @relationship(type: "SPONSORED_BY", direction: OUT)
+  seasons: [Season!]! @relationship(type: "HAS_AN_AWARD", direction: IN)
+  competitions: [Competition!]!
+    @relationship(type: "BELONGS_TO", direction: OUT)
+  phases: [Phase!]! @relationship(type: "BELONGS_TO", direction: OUT)
+  groups: [Group!]! @relationship(type: "BELONGS_TO", direction: OUT)
+  teams: [Team!]! @relationship(type: "WIN_AN_AWARD", direction: IN)
+  games: [Game!]! @relationship(type: "HAS_AN_AWARD", direction: IN)
+  players: [Player!]! @relationship(type: "WIN_AN_AWARD", direction: IN)
+  persons: [Person!]! @relationship(type: "WIN_AN_AWARD", direction: IN)
+  venues: [Venue!]! @relationship(type: "HAS_AN_AWARD", direction: IN)
+  stars: [Star!]! @relationship(type: "WIN_AN_AWARD", direction: IN)
+  sponsors: [Sponsor!]! @relationship(type: "SPONSORED_BY", direction: OUT)
   discussion: Discussion @relationship(type: "HAS_DISCUSSION", direction: OUT)
   media: Media @relationship(type: "HAS_MEDIA", direction: OUT)
-  orgs: [Organization] @relationship(type: "PROVIDED_BY", direction: OUT)
+  orgs: [Organization!]! @relationship(type: "PROVIDED_BY", direction: OUT)
 }
 
 type Media {
@@ -1382,7 +1387,7 @@ type Media {
   wear: WearItem @relationship(type: "HAS_MEDIA", direction: IN)
   venue: Venue @relationship(type: "HAS_MEDIA", direction: IN)
   invitation: Invitation @relationship(type: "HAS_MEDIA", direction: IN)
-  files: [File] @relationship(type: "HAS_FILE", direction: OUT)
+  files: [File!]! @relationship(type: "HAS_FILE", direction: OUT)
 }
 
 type File {
@@ -1434,9 +1439,9 @@ type Achievement {
   rule: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  players: [Player] @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
-  person: [Person] @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
-  teams: [Team] @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
+  players: [Player!]! @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
+  person: [Person!]! @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
+  teams: [Team!]! @relationship(type: "HAS_ACHIEVEMENT", direction: IN)
 }
 
 type RulePack {
@@ -1444,28 +1449,28 @@ type RulePack {
   name: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  orgs: [Organization] @relationship(type: "GUIDED_BY", direction: IN)
-  phases: [Phase] @relationship(type: "GUIDED_BY", direction: IN)
-  groups: [Group] @relationship(type: "GUIDED_BY", direction: IN)
-  games: [Game] @relationship(type: "GUIDED_BY", direction: IN)
-  competitions: [Competition] @relationship(type: "GUIDED_BY", direction: IN)
-  penaltyShotStatuses: [PenaltyShotStatus]
+  orgs: [Organization!]! @relationship(type: "GUIDED_BY", direction: IN)
+  phases: [Phase!]! @relationship(type: "GUIDED_BY", direction: IN)
+  groups: [Group!]! @relationship(type: "GUIDED_BY", direction: IN)
+  games: [Game!]! @relationship(type: "GUIDED_BY", direction: IN)
+  competitions: [Competition!]! @relationship(type: "GUIDED_BY", direction: IN)
+  penaltyShotStatuses: [PenaltyShotStatus!]!
     @relationship(type: "SET_UP", direction: OUT)
-  periods: [Period] @relationship(type: "SET_UP", direction: OUT)
-  shotTargets: [ShotTarget] @relationship(type: "SET_UP", direction: OUT)
-  shotStyles: [ShotStyle] @relationship(type: "SET_UP", direction: OUT)
-  shotTypes: [ShotType] @relationship(type: "SET_UP", direction: OUT)
-  goalTypes: [GoalType] @relationship(type: "SET_UP", direction: OUT)
-  penaltyTypes: [PenaltyType] @relationship(type: "SET_UP", direction: OUT)
-  gameEventLocations: [GameEventLocation]
+  periods: [Period!]! @relationship(type: "SET_UP", direction: OUT)
+  shotTargets: [ShotTarget!]! @relationship(type: "SET_UP", direction: OUT)
+  shotStyles: [ShotStyle!]! @relationship(type: "SET_UP", direction: OUT)
+  shotTypes: [ShotType!]! @relationship(type: "SET_UP", direction: OUT)
+  goalTypes: [GoalType!]! @relationship(type: "SET_UP", direction: OUT)
+  penaltyTypes: [PenaltyType!]! @relationship(type: "SET_UP", direction: OUT)
+  gameEventLocations: [GameEventLocation!]!
     @relationship(type: "SET_UP", direction: OUT)
-  positionTypes: [PositionType] @relationship(type: "SET_UP", direction: OUT)
-  injuryTypes: [InjuryType] @relationship(type: "SET_UP", direction: OUT)
-  resultTypes: [ResultType] @relationship(type: "SET_UP", direction: OUT)
-  resultPoints: [ResultPoint] @relationship(type: "SET_UP", direction: OUT)
+  positionTypes: [PositionType!]! @relationship(type: "SET_UP", direction: OUT)
+  injuryTypes: [InjuryType!]! @relationship(type: "SET_UP", direction: OUT)
+  resultTypes: [ResultType!]! @relationship(type: "SET_UP", direction: OUT)
+  resultPoints: [ResultPoint!]! @relationship(type: "SET_UP", direction: OUT)
   systemSettings: SystemSettings
     @relationship(type: "GUIDED_DEFAULT_BY", direction: IN)
-  # orgs: [Organization] @relationship(type: "PROVIDED_BY", direction: OUT)
+  # orgs: [Organization!]! @relationship(type: "PROVIDED_BY", direction: OUT)
 }
 
 type PenaltyShotStatus {
@@ -1517,7 +1522,7 @@ type ShotType {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
-  subTypes: [ShotSubType] @relationship(type: "SET_UP", direction: OUT)
+  subTypes: [ShotSubType!]! @relationship(type: "SET_UP", direction: OUT)
 }
 
 type ShotSubType {
@@ -1527,7 +1532,7 @@ type ShotSubType {
   priority: BigInt
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  shotType: [ShotType] @relationship(type: "SET_UP", direction: IN)
+  shotType: [ShotType!]! @relationship(type: "SET_UP", direction: IN)
 }
 
 type GoalType {
@@ -1536,7 +1541,7 @@ type GoalType {
   code: String!
   priority: BigInt
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
-  subTypes: [GoalSubType] @relationship(type: "SET_UP", direction: OUT)
+  subTypes: [GoalSubType!]! @relationship(type: "SET_UP", direction: OUT)
 }
 
 type GoalSubType {
@@ -1558,7 +1563,7 @@ type PenaltyType {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
-  subTypes: [PenaltySubType] @relationship(type: "SET_UP", direction: OUT)
+  subTypes: [PenaltySubType!]! @relationship(type: "SET_UP", direction: OUT)
 }
 
 type PenaltySubType {
@@ -1599,9 +1604,9 @@ type Wear {
   description: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  items: [WearItem] @relationship(type: "HAS_WEAR_ITEM", direction: OUT)
+  items: [WearItem!]! @relationship(type: "HAS_WEAR_ITEM", direction: OUT)
   team: Team @relationship(type: "HAS_WEAR", direction: IN)
-  seasons: [Season] @relationship(type: "WEAR_FOR", direction: OUT)
+  seasons: [Season!]! @relationship(type: "WEAR_FOR", direction: OUT)
 }
 
 # A pozor jsou týmy které mohou mít 3 série dresů - a samozřejmě vyvíjí se v čase, tedy nabízí se nám spíše to že Jersey (nebo ještě lépe vyrobíme entitu Wear (merch nebo prostě oblečení) ta bude mít vztah na Tým, Asociaci, Competition apd.. a jeden z proprieties bude Wear: Jersey a to bude mít vztah na Media) tím zajistíme že jich můžeme mít "nekonečně mnoho" dresů pro tým a ke každému Wear ještě dodáme vztah na "season" abychom označili v jaké sezoně jaké dresy (a jiné klubové oblečení) ten tým má / toto trochu bude pomáhat do budoucna i s e-shopem prodejem týmového oblečení (ale to do budoucna)  - viz příloha screenshot (existuje prostě 10k dresů za historii týmu)
@@ -1624,7 +1629,7 @@ type Position {
   description: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  players: [Player] @relationship(type: "HAS_POSITION", direction: IN)
+  players: [Player!]! @relationship(type: "HAS_POSITION", direction: IN)
   team: Team @relationship(type: "USE_POSITION", direction: IN)
 }
 
@@ -1659,7 +1664,7 @@ type GameResult {
   hostWin: Boolean @default(value: false)
   guestWin: Boolean @default(value: false)
   draw: Boolean @default(value: false)
-  periodStatistics: [PeriodStatistic]
+  periodStatistics: [PeriodStatistic!]!
     @relationship(type: "HAS_PERIOD_STATISTICS", direction: OUT)
   game: Game @relationship(type: "COMPOSE_RESULT", direction: IN)
   createdAt: DateTime! @timestamp(operations: [CREATE])
