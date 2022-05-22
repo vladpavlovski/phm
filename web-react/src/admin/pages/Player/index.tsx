@@ -11,7 +11,7 @@ import {
 import { activityStatusList } from 'components/lists'
 import placeholderAvatar from 'img/placeholderPerson.jpg'
 import { useSnackbar } from 'notistack'
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import Img from 'react-cool-img'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
@@ -19,6 +19,7 @@ import { useHistory, useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute, getAdminOrgPlayersRoute } from 'router/routes'
 import { decomposeDate, isValidUuid } from 'utils'
 import { countriesNames } from 'utils/constants/countries'
+import { levelsIcon } from 'utils/constants/levelIcons'
 import { gql, useApolloClient, useMutation, useQuery } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Container from '@mui/material/Container'
@@ -50,6 +51,8 @@ const GET_PLAYER = gql`
       avatar
       phone
       email
+      publicProfileUrl
+      levelCode
       teams {
         teamId
         name
@@ -83,6 +86,16 @@ const GET_PLAYER = gql`
         name
       }
     }
+    systemSettings(where: { systemSettingsId: "system-settings" }) {
+      rulePack {
+        playerLevelTypes {
+          playerLevelTypeId
+          name
+          code
+          icon
+        }
+      }
+    }
   }
 `
 
@@ -105,6 +118,8 @@ const CREATE_PLAYER = gql`
         avatar
         phone
         email
+        publicProfileUrl
+        levelCode
       }
     }
   }
@@ -129,6 +144,8 @@ const UPDATE_PLAYER = gql`
         avatar
         phone
         email
+        publicProfileUrl
+        levelCode
         teams {
           teamId
           name
@@ -191,7 +208,6 @@ const Player: React.FC = () => {
     error: queryError,
   } = useQuery(GET_PLAYER, {
     variables: { where: { playerId } },
-    fetchPolicy: 'network-only',
   })
 
   const [
@@ -223,6 +239,7 @@ const Player: React.FC = () => {
           query: GET_PLAYER,
           data: {
             players: data?.updatePlayers?.players,
+            systemSettings: queryData?.systemSettings,
           },
           variables: { where: { playerId } },
         })
@@ -241,6 +258,8 @@ const Player: React.FC = () => {
   })
 
   const playerData = queryData?.players?.[0]
+  const playerLevelTypes =
+    queryData?.systemSettings?.[0]?.rulePack?.playerLevelTypes
 
   const [deletePlayer, { loading: loadingDelete, error: errorDelete }] =
     useMutation(DELETE_PLAYER, {
@@ -255,26 +274,37 @@ const Player: React.FC = () => {
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
-    // defaultValues: {
-    //   country: '',
-    //   avatar: '',
-    // },
+    defaultValues: {
+      country: playerData?.country,
+      avatar: playerData?.avatar,
+      firstName: playerData?.firstName,
+      lastName: playerData?.lastName,
+      birthday: playerData?.birthday,
+      externalId: playerData?.externalId,
+      activityStatus: playerData?.activityStatus,
+      city: playerData?.city,
+      stick: playerData?.stick,
+      height: playerData?.height,
+      weight: playerData?.weight,
+      gender: playerData?.gender,
+      levelCode: playerData?.levelCode,
+      phone: playerData?.phone,
+      email: playerData?.email,
+      publicProfileUrl: playerData?.publicProfileUrl,
+    },
   })
-
-  useEffect(() => {
-    if (playerData) {
-      setValue('country', playerData.country)
-    }
-  }, [playerData])
 
   const onSubmit = useCallback(
     async dataToCheck => {
       try {
-        const { country, birthday, ...rest } = dataToCheck
+        const { levelCode, country, activityStatus, birthday, ...rest } =
+          dataToCheck
         const dataToSubmit = {
           ...rest,
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
+          levelCode,
+          activityStatus,
         }
 
         playerId !== 'new'
@@ -587,6 +617,37 @@ const Player: React.FC = () => {
                           fullWidth
                           variant="standard"
                           error={errors?.weight}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={3} md={3} lg={3}>
+                        <RHFSelect
+                          control={control}
+                          defaultValue={playerData?.levelCode || ''}
+                          name="levelCode"
+                          label="Level Code"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.levelCode}
+                        >
+                          {playerLevelTypes.map((l: any) => {
+                            const Icon = levelsIcon[l.icon].icon
+                            return (
+                              <MenuItem key={l.code} value={l.code}>
+                                {l.name} <Icon />
+                              </MenuItem>
+                            )
+                          })}
+                        </RHFSelect>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6} lg={6}>
+                        <RHFInput
+                          defaultValue={playerData?.publicProfileUrl}
+                          control={control}
+                          name="publicProfileUrl"
+                          label="Public Profile Url"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.publicProfileUrl}
                         />
                       </Grid>
                     </Grid>

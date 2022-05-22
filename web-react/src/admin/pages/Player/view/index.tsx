@@ -1,14 +1,15 @@
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
+import { LinkButton, XGridPage } from 'components'
 import React from 'react'
-import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
-import EditIcon from '@mui/icons-material/Edit'
+import { getAdminOrgPlayerRoute } from 'router/routes'
+import { getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { gql, useLazyQuery, useQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
-import { getAdminOrgPlayerRoute } from 'router/routes'
-import { LinkButton, XGridPage } from 'components'
-import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
 
 export const GET_ASSIGNED_PLAYERS = gql`
   query getPlayers($where: PlayerWhere) {
@@ -16,6 +17,8 @@ export const GET_ASSIGNED_PLAYERS = gql`
       playerId
       firstName
       lastName
+      name
+      levelCode
       positions {
         positionId
         name
@@ -32,8 +35,10 @@ export const GET_UNASSIGNED_PLAYERS = gql`
   query getPlayers($where: PlayerWhere) {
     players(where: $where) {
       playerId
+      name
       firstName
       lastName
+      levelCode
       positions {
         positionId
         name
@@ -102,14 +107,17 @@ const View: React.FC = () => {
         },
       },
       {
-        field: 'firstName',
-        headerName: 'First Name',
-        width: 150,
+        field: 'name',
+        headerName: 'Name',
+        width: 200,
       },
       {
-        field: 'lastName',
-        headerName: 'Last name',
+        field: 'levelCode',
+        headerName: 'Level',
         width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
+        },
       },
       {
         field: 'teams',
@@ -131,19 +139,14 @@ const View: React.FC = () => {
     []
   )
 
-  const queryData = React.useMemo(
-    (): GridRowsProp[] =>
-      setIdFromEntityId(
-        playersView === 'assignedPlayers'
-          ? data?.players || []
-          : data2?.players || [],
-        'playerId'
-      ),
-
-    [data]
+  const queryData: GridRowsProp[] = setIdFromEntityId(
+    playersView === 'assignedPlayers'
+      ? data?.players || []
+      : data2?.players || [],
+    'playerId'
   )
 
-  const searchIndexes = React.useMemo(() => ['firstName', 'lastName'], [])
+  const searchIndexes = ['name', 'leveleCode']
 
   return (
     <XGridPage

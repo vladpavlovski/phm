@@ -516,4 +516,14 @@ export type GameEventLocation = {
   rulePack: RulePack
 }
 
+export type PlayerLevelType = {
+  playerLevelTypeId: string
+  name: string
+  code: string
+  priority: number
+  rulePack: RulePack
+  description: string
+  icon: string
+}
+
 export type UniversalType = GoalType | PenaltyType | undefined

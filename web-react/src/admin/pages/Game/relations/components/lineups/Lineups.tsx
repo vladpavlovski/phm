@@ -1,3 +1,4 @@
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error, LinkButton, Loader, QuickSearchToolbar, Title } from 'components'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -49,6 +50,7 @@ const GET_TEAM_PLAYERS = gql`
         name
         firstName
         lastName
+        levelCode
         activityStatus
         jerseys {
           jerseyId
@@ -263,10 +265,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
     setPlayerDialog(false)
   }, [])
 
-  const lineupPlayers = useMemo(
-    () => setXGridForRelation(players, 'playerId', 'node'),
-    [players]
-  )
+  const lineupPlayers = setXGridForRelation(players, 'playerId', 'node')
 
   const teamPlayersColumns = useMemo<GridColumns>(
     () => [
@@ -307,13 +306,21 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
       {
         field: 'jerseys',
         headerName: 'Jerseys',
-        width: 200,
+        width: 100,
         valueGetter: params => {
           const jerseys: Jersey[] =
             params.row?.jerseys?.filter(
               (p: Jersey) => p.team?.teamId === team?.teamId
             ) || []
-          return getXGridValueFromArray(jerseys, 'name')
+          return getXGridValueFromArray(jerseys, 'number')
+        },
+      },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
         },
       },
       {
@@ -620,6 +627,14 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
               <span style={{ marginRight: '4px' }}>{params.value}</span>
             </>
           )
+        },
+      },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.row.levelCode} />
         },
       },
       {

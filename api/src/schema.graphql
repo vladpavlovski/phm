@@ -58,6 +58,8 @@ type Player {
   country: String
   city: String
   avatar: String
+  publicProfileUrl: String @default(value: "")
+  levelCode: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
 
@@ -80,14 +82,6 @@ type Player {
       direction: OUT
     )
 }
-
-# FaceOff
-# Goal + Assistance/Pass
-# GoalShots
-# Penalty
-# Penalty shots
-# Injuries
-# Saves
 
 type Mutation {
   CreateJerseys(teamId: ID!, nameBase: String!): [Jersey!]
@@ -1463,6 +1457,8 @@ type RulePack {
   injuryTypes: [InjuryType] @relationship(type: "SET_UP", direction: OUT)
   resultTypes: [ResultType] @relationship(type: "SET_UP", direction: OUT)
   resultPoints: [ResultPoint] @relationship(type: "SET_UP", direction: OUT)
+  playerLevelTypes: [PlayerLevelType]
+    @relationship(type: "SET_UP", direction: OUT)
   systemSettings: SystemSettings
     @relationship(type: "GUIDED_DEFAULT_BY", direction: IN)
   # orgs: [Organization] @relationship(type: "PROVIDED_BY", direction: OUT)
@@ -1709,6 +1705,18 @@ type ResultPoint {
   name: String!
   code: String!
   points: Int!
+  createdAt: DateTime! @timestamp(operations: [CREATE])
+  updatedAt: DateTime! @timestamp(operations: [UPDATE])
+  rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
+}
+
+type PlayerLevelType {
+  playerLevelTypeId: ID! @id
+  name: String!
+  code: String!
+  description: String
+  icon: String
+  priority: Int @default(value: 0)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)

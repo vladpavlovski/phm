@@ -64,6 +64,7 @@ export const GET_TEAM = gql`
         name
         avatar
         activityStatus
+        levelCode
         positions {
           positionId
           name
@@ -143,13 +144,18 @@ const UPDATE_TEAM = gql`
           playerId
           firstName
           lastName
-          jerseys {
-            jerseyId
-            name
-          }
+          name
+          avatar
+          activityStatus
+          levelCode
           positions {
             positionId
             name
+          }
+          jerseys {
+            jerseyId
+            name
+            number
           }
         }
         positions {

@@ -1,4 +1,5 @@
 import { useStyles } from 'admin/pages/commonComponents/styled'
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
 import dayjs from 'dayjs'
@@ -38,6 +39,7 @@ const GET_PLAYERS_STATISTICS = gql`
       firstName
       lastName
       avatar
+      levelCode
       gamesConnection(where: { node: $whereGames }) {
         totalCount
         edges {
@@ -154,6 +156,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
             playerId: p?.playerId,
             id: p?.playerId + t.teamId,
             avatar: p?.avatar,
+            levelCode: p?.levelCode,
             team: t,
             teamName: t.name,
             gamesPlayed: gamesForTeam,
@@ -170,6 +173,7 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
             playerId: p?.playerId,
             id: p?.playerId,
             avatar: p?.avatar,
+            levelCode: p?.levelCode,
             team: p?.teams?.[0],
             teamName: p?.teams?.[0]?.name,
             gamesPlayed: p?.gamesConnection?.totalCount,
@@ -333,6 +337,14 @@ const XGridTable: React.FC = () => {
               />
             </Stack>
           )
+        },
+      },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
         },
       },
       {

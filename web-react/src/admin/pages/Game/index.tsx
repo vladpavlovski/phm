@@ -90,6 +90,7 @@ export const GET_GAME = gql`
             name
             firstName
             lastName
+            levelCode
           }
         }
       }
@@ -271,6 +272,7 @@ export const UPDATE_GAME = gql`
               name
               firstName
               lastName
+              levelCode
             }
           }
         }

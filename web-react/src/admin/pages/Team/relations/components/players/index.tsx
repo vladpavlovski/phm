@@ -1,34 +1,29 @@
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
+import { LinkButton } from 'components/LinkButton'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 import React from 'react'
 import { useParams } from 'react-router-dom'
+import { getAdminOrgPlayerRoute } from 'router/routes'
+import { createCtx, getXGridValueFromArray, setIdFromEntityId, sortByStatus } from 'utils'
+import { Player, Team } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPlayerRoute } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
 import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import {
-  setIdFromEntityId,
-  getXGridValueFromArray,
-  sortByStatus,
-  createCtx,
-} from 'utils'
 import { AddPlayer } from './AddPlayer'
-import { SetPlayerPosition, PlayerPositionDialog } from './SetPlayerPosition'
-import { SetPlayerJersey, PlayerJerseyDialog } from './SetPlayerJersey'
-import placeholderPerson from 'img/placeholderPerson.jpg'
-import { Team, Player } from 'utils/types'
+import { PlayerJerseyDialog, SetPlayerJersey } from './SetPlayerJersey'
+import { PlayerPositionDialog, SetPlayerPosition } from './SetPlayerPosition'
 
 type TTeamPlayer = {
   playerPositionDialogOpen: boolean
@@ -135,6 +130,14 @@ const Players: React.FC<TPlayers> = React.memo(props => {
         field: 'name',
         headerName: 'Name',
         width: 200,
+      },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
+        },
       },
       {
         field: 'activityStatus',
