@@ -4,6 +4,7 @@ import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import dayjs from 'dayjs'
 import placeholderPerson from 'img/placeholderPerson.jpg'
+import { FlickrGallery } from 'league/pages/GameReport/Flickr'
 import React from 'react'
 import Img from 'react-cool-img'
 import { useParams } from 'react-router-dom'
@@ -40,6 +41,7 @@ const GET_GAME_PLAY = gql`
       body
       foreignId
       description
+      flickrAlbum
       teamsConnection {
         edges {
           host
@@ -700,6 +702,7 @@ const GameReport: React.FC = () => {
               <GameLineup players={playersGuest} />
             </Grid>
           </Grid>
+          <FlickrGallery albumId={gameData?.flickrAlbum} />
         </>
       )}
     </Container>
