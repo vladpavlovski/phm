@@ -2,6 +2,7 @@ import { useStyles } from 'admin/pages/commonComponents/styled'
 import dayjs from 'dayjs'
 import React from 'react'
 import Img from 'react-cool-img'
+import { EmailIcon, EmailShareButton } from 'react-share'
 import { getTeamByHost } from 'utils'
 import { Game } from 'utils/types'
 import AccountBoxIcon from '@mui/icons-material/AccountBox'
@@ -22,7 +23,7 @@ type TGameInvitation = {
   gameData: Game
 }
 
-const GameInvitation: React.FC<TGameInvitation> = React.memo(props => {
+const GameInvitation: React.FC<TGameInvitation> = props => {
   const { gameData } = props
   const [openDialog, setOpenDialog] = React.useState(false)
   return (
@@ -46,7 +47,7 @@ const GameInvitation: React.FC<TGameInvitation> = React.memo(props => {
       )}
     </Stack>
   )
-})
+}
 
 type TFormDialog = {
   openDialog: boolean
@@ -54,7 +55,7 @@ type TFormDialog = {
   gameData: Game
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { openDialog, setOpenDialog, gameData } = props
   const classes = useStyles()
   const teamHost = getTeamByHost(true, gameData?.teamsConnection?.edges)
@@ -208,6 +209,28 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
               </Paper>
             </Grid>
           </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Paper className={classes.paper}>
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  sx={{ textAlign: 'center' }}
+                  component="div"
+                >
+                  Share invitation
+                </Typography>
+                <Divider />
+                <EmailShareButton
+                  url={'https://www.google.com'}
+                  subject={'Game Invitation'}
+                  body="body"
+                >
+                  <EmailIcon size={32} round />
+                </EmailShareButton>
+              </Paper>
+            </Grid>
+          </Grid>
         </Container>
       </DialogContent>
 
@@ -223,6 +246,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </DialogActions>
     </Dialog>
   )
-})
+}
 
 export { GameInvitation }
