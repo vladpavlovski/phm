@@ -29,7 +29,7 @@ if (!config.dev) {
 
 const history = createBrowserHistory()
 
-const onRedirectCallback = (appState?: AppState): void => {
+const onRedirectCallback = (appState: AppState): void => {
   // Use the router's history module to replace the url
   history.replace(appState?.returnTo || window.location.pathname)
 }
