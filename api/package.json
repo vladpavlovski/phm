@@ -16,8 +16,8 @@
   "dependencies": {
     "@apollo/client": "3.3.12",
     "@neo4j/graphql": "2.1.0",
-    "apollo-server": "2.21.2",
-    "apollo-server-lambda": "2.21.2",
+    "apollo-server": "3.0.0",
+    "apollo-server-lambda": "3.0.0",
     "aws-sdk": "2.1028.0",
     "csv-parse": "4.15.3",
     "dotenv": "8.2.0",
