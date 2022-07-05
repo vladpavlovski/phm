@@ -1,5 +1,6 @@
 import { useStyles } from 'admin/pages/commonComponents/styled'
 import { XGridLogo } from 'admin/pages/commonComponents/XGridLogo'
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import dayjs from 'dayjs'
@@ -67,6 +68,7 @@ const GET_GAME_PLAY = gql`
             firstName
             lastName
             name
+            levelCode
             meta {
               metaPlayerId
             }
@@ -785,6 +787,17 @@ const GameLineup = (props: { players: Player[] }) => {
         field: 'position',
         headerName: 'Position',
         width: 100,
+        disableColumnMenu: true,
+        resizable: true,
+        sortable: false,
+      },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
+        },
         disableColumnMenu: true,
         resizable: true,
         sortable: false,

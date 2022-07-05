@@ -1,5 +1,7 @@
 import React from 'react'
-import { GiInterleavedClaws, GiSupersonicBullet, GiWinterHat } from 'react-icons/gi'
+import HdrAutoIcon from '@mui/icons-material/HdrAuto'
+import PowerIcon from '@mui/icons-material/Power'
+import SportsHockeyIcon from '@mui/icons-material/SportsHockey'
 
 type LevelsIconType = {
   [key: string]: {
@@ -10,17 +12,17 @@ type LevelsIconType = {
 }
 export const levelsIcon: LevelsIconType = {
   professional: {
-    icon: GiSupersonicBullet,
+    icon: PowerIcon,
     name: 'Professional',
     code: 'professional',
   },
   intermediate: {
-    icon: GiInterleavedClaws,
+    icon: SportsHockeyIcon,
     name: 'Intermediate',
     code: 'intermediate',
   },
   amateur: {
-    icon: GiWinterHat,
+    icon: HdrAutoIcon,
     name: 'Amateur',
     code: 'amateur',
   },

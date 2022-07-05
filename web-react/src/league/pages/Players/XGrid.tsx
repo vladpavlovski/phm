@@ -1,4 +1,5 @@
 import { useStyles } from 'admin/pages/commonComponents/styled'
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
@@ -35,6 +36,7 @@ const GET_PLAYERS = gql`
       stick
       avatar
       activityStatus
+      levelCode
       positions {
         positionId
         name
@@ -147,6 +149,16 @@ const XGridTable: React.FC = () => {
         width: 150,
         hide: !upSm,
       },
+      {
+        field: 'levelCode',
+        headerName: 'Level',
+        width: 150,
+        hide: !upSm,
+        renderCell: params => {
+          return <PlayerLevel code={params.value} />
+        },
+      },
+
       {
         field: 'activityStatus',
         headerName: 'Activity Status',

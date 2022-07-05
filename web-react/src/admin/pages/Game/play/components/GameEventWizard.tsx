@@ -836,7 +836,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
         <Dialog
           fullWidth
           disableEscapeKeyDown={!!gameEventSettings?.steps}
-          maxWidth="lg"
+          maxWidth={false}
           open={
             host
               ? openGameEventDialog === 'host'
