@@ -15,9 +15,6 @@ const {
   DEV_NEO4J_URI,
   DEV_NEO4J_USER,
   DEV_NEO4J_PASSWORD,
-  PRODUCTION_NEO4J_URI,
-  PRODUCTION_NEO4J_USER,
-  PRODUCTION_NEO4J_PASSWORD,
   NEO4J_DATABASE,
   GRAPHQL_SERVER_PORT,
   GRAPHQL_SERVER_PATH,
@@ -26,25 +23,11 @@ const {
   AUTH_DIRECTIVES_ROLE_KEY,
 } = process.env
 
-const NEO4J_URI = NETLIFY_DEV ? DEV_NEO4J_URI : PRODUCTION_NEO4J_URI
-const NEO4J_USER = NETLIFY_DEV ? DEV_NEO4J_USER : PRODUCTION_NEO4J_USER
-const NEO4J_PASSWORD = NETLIFY_DEV
-  ? DEV_NEO4J_PASSWORD
-  : PRODUCTION_NEO4J_PASSWORD
-
 const app = express()
 
-// app.use(
-//   jwt({
-//     secret: JWT_SECRET.replace(/\\n/gm, '\n'),
-//     algorithms: ['RS256'],
-//     credentialsRequired: false,
-//   })
-// )
-
 const driver = neo4j.driver(
-  NEO4J_URI || 'bolt://localhost:7687',
-  neo4j.auth.basic(NEO4J_USER || 'neo4j', NEO4J_PASSWORD || 'neo4j')
+  DEV_NEO4J_URI || 'bolt://localhost:7687',
+  neo4j.auth.basic(DEV_NEO4J_USER || 'neo4j', DEV_NEO4J_PASSWORD || 'neo4j')
 )
 
 const neo4jGraphQL = new Neo4jGraphQL({
