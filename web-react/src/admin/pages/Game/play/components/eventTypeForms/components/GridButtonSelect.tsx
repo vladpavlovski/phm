@@ -1,6 +1,6 @@
+import { TitleDivider } from 'admin/pages/Game/play/components/eventTypeForms/components'
 import React from 'react'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 
 type Props = {
@@ -14,11 +14,7 @@ const GridButtonSelect: React.FC<Props> = props => {
   const { data, onClick, selected, title } = props
   return (
     <div style={{ width: '100%' }}>
-      {!!title && (
-        <div>
-          <Divider>{title.toUpperCase()}</Divider>
-        </div>
-      )}
+      <TitleDivider title={title} />
       <div
         style={{
           display: 'flex',

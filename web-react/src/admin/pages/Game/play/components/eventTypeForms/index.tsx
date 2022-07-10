@@ -1,25 +1,23 @@
 import React from 'react'
+import { GamePlayersRelationship, RulePack, Team } from 'utils/types'
 import { TEventType } from '../gameEvents'
-import { GoalForm } from './GoalForm'
 import { FaceOffForm } from './FaceOffForm'
+import { GoalForm } from './GoalForm'
+import { InjuryForm } from './InjuryForm'
 import { PenaltyForm } from './PenaltyForm'
 import { PenaltyShotForm } from './PenaltyShotForm'
-import { InjuryForm } from './InjuryForm'
 import { SaveForm } from './SaveForm'
-import { Team, GamePlayersRelationship, RulePack } from 'utils/types'
 
 export type TEventTypeForm = {
   gameEventSettings: TEventType
-  activeStep: number
   team: Team
   teamRival: Team
   players: GamePlayersRelationship[]
   playersRival: GamePlayersRelationship[]
   gameSettings: RulePack
-  handleNextStep: () => void
 }
 
-export const EventTypeForm: React.FC<TEventTypeForm> = React.memo(props => {
+export const EventTypeForm: React.FC<TEventTypeForm> = props => {
   return (
     <>
       {(() => {
@@ -42,4 +40,4 @@ export const EventTypeForm: React.FC<TEventTypeForm> = React.memo(props => {
       })()}
     </>
   )
-})
+}

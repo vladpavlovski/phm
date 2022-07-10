@@ -18,7 +18,6 @@ import {
 } from 'utils/types'
 import { gql, useMutation } from '@apollo/client'
 import AddTaskIcon from '@mui/icons-material/AddTask'
-import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
@@ -26,9 +25,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
-import Step from '@mui/material/Step'
-import StepLabel from '@mui/material/StepLabel'
-import Stepper from '@mui/material/Stepper'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Zoom from '@mui/material/Zoom'
@@ -414,7 +410,6 @@ export type TWizardGameEventSimple = {
 }
 
 type TGameEventForm = {
-  nextButtonDisabled: boolean
   period: string
   time: string
   eventsTableUpdate: number
@@ -424,7 +419,6 @@ type TGameEventForm = {
   tempRemainingTime: string
 }
 const [ctx, GameEventFormProvider] = createCtx<TGameEventForm>({
-  nextButtonDisabled: false,
   period: '',
   time: '00:00',
   eventsTableUpdate: 0,
@@ -455,21 +449,19 @@ const getCountOfEventTypes = (
     event => event.eventTypeCode === eventType && event.team.teamId === teamId
   )?.length
 
-const GameEventWizard: React.FC<TGameEventWizard> = props => {
-  const {
-    host,
-    team,
-    teamRival,
-    players,
-    playersRival,
-    gameSettings,
-    gameData,
-  } = props
+const GameEventWizard: React.FC<TGameEventWizard> = ({
+  host,
+  team,
+  teamRival,
+  players,
+  playersRival,
+  gameSettings,
+  gameData,
+}) => {
   const { enqueueSnackbar } = useSnackbar()
 
   const {
     state: {
-      nextButtonDisabled,
       openGameEventDialog,
       gameEventSettings,
       gameEventData,
@@ -478,9 +470,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
     update,
   } = React.useContext(GameEventFormContext)
   const previousGameEventSimpleId = React.useRef()
-
-  const [activeStep, setActiveStep] = React.useState(0)
-  const [skipped, setSkipped] = React.useState(new Set())
 
   const [createGameEventSimple] = useMutation(CREATE_GES, {
     update(cache, { data }) {
@@ -612,7 +601,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
     },
   })
 
-  const handleSave = React.useCallback(() => {
+  const handleSave = () => {
     if (gameEventSettings) {
       const { gameEventSimpleId, ...input } = getInputVarsForGES({
         gameEventData,
@@ -648,68 +637,16 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
           })
       handleClose()
     }
-  }, [team, host, gameEventData, gameData, gameEventSettings])
+  }
 
-  const isStepOptional = React.useCallback(
-    step => {
-      return gameEventSettings?.steps?.[step]?.optional
-    },
-    [gameEventSettings]
-  )
-
-  const isStepSkipped = React.useCallback(step => {
-    return skipped.has(step)
-  }, [])
-
-  const handleNext = React.useCallback(() => {
-    let newSkipped = skipped
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values())
-      newSkipped.delete(activeStep)
-    }
-
-    setActiveStep(prevActiveStep => prevActiveStep + 1)
-    setSkipped(newSkipped)
-  }, [activeStep])
-
-  const handleBack = React.useCallback(() => {
-    setActiveStep(prevActiveStep => prevActiveStep - 1)
-  }, [])
-
-  const handleSkip = React.useCallback(() => {
-    if (!isStepOptional(activeStep)) {
-      throw new Error("You can't skip a step that isn't optional.")
-    }
-
-    setActiveStep(prevActiveStep => prevActiveStep + 1)
-    setSkipped(prevSkipped => {
-      const newSkipped = new Set(prevSkipped.values())
-      newSkipped.add(activeStep)
-      return newSkipped
-    })
-  }, [activeStep])
-
-  const handleReset = React.useCallback(() => {
-    setActiveStep(0)
-
+  const handleClose = () => {
     update(state => ({
       ...state,
       gameEventData: null,
       gameEventSettings: null,
-      nextButtonDisabled: false,
-    }))
-  }, [])
-
-  const handleClose = React.useCallback(() => {
-    setActiveStep(0)
-    update(state => ({
-      ...state,
-      gameEventData: null,
-      gameEventSettings: null,
-      nextButtonDisabled: false,
       openGameEventDialog: '',
     }))
-  }, [])
+  }
   return (
     <>
       <Tooltip
@@ -835,7 +772,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
         : openGameEventDialog === 'guest') && (
         <Dialog
           fullWidth
-          disableEscapeKeyDown={!!gameEventSettings?.steps}
           maxWidth={false}
           open={
             host
@@ -866,83 +802,36 @@ const GameEventWizard: React.FC<TGameEventWizard> = props => {
               />
             )}
             {gameEventSettings && (
-              <Box sx={{ width: '100%' }}>
-                <Stepper activeStep={activeStep}>
-                  {gameEventSettings?.steps.map(step => {
-                    return (
-                      <Step key={step.name} completed={!step.optional}>
-                        <StepLabel
-                          optional={
-                            step.optional && (
-                              <Typography variant="caption">
-                                Optional
-                              </Typography>
-                            )
-                          }
-                        >
-                          {step.name}
-                        </StepLabel>
-                      </Step>
-                    )
-                  })}
-                </Stepper>
-                <br />
-                <EventTypeForm
-                  gameEventSettings={gameEventSettings}
-                  activeStep={activeStep}
-                  team={team}
-                  teamRival={teamRival}
-                  players={players}
-                  playersRival={playersRival}
-                  gameSettings={gameSettings}
-                  handleNextStep={handleNext}
-                />
-              </Box>
+              <EventTypeForm
+                gameEventSettings={gameEventSettings}
+                team={team}
+                teamRival={teamRival}
+                players={players}
+                playersRival={playersRival}
+                gameSettings={gameSettings}
+              />
             )}
           </DialogContent>
 
           <DialogActions>
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-              {gameEventSettings?.steps && (
-                <>
-                  <Button
-                    color="inherit"
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    sx={{ mr: 1 }}
-                  >
-                    Back
-                  </Button>
-                  <Box sx={{ flex: '1 1 auto' }} />
-                  {isStepOptional(activeStep) && (
-                    <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                      Skip
-                    </Button>
-                  )}
-                  {activeStep === gameEventSettings.steps.length ? (
-                    <Button onClick={handleReset}>Reset</Button>
-                  ) : (
-                    <Button onClick={handleNext} disabled={nextButtonDisabled}>
-                      {activeStep === gameEventSettings.steps.length - 1
-                        ? 'Finish'
-                        : 'Next'}
-                    </Button>
-                  )}
-                  {activeStep === gameEventSettings.steps.length && (
-                    <Button
-                      onClick={() => {
-                        handleSave()
-                      }}
-                    >
-                      Save
-                    </Button>
-                  )}
-                </>
-              )}
-              <Button color="secondary" onClick={handleClose}>
-                Cancel
-              </Button>
-            </Box>
+            <Button
+              sx={{ height: '10rem', width: '50%', fontSize: '4rem' }}
+              variant="outlined"
+              onClick={handleClose}
+              color="error"
+            >
+              Cancel
+            </Button>
+            <Button
+              sx={{ height: '10rem', width: '50%', fontSize: '4rem' }}
+              variant="contained"
+              color="success"
+              onClick={() => {
+                handleSave()
+              }}
+            >
+              Save
+            </Button>
           </DialogActions>
         </Dialog>
       )}

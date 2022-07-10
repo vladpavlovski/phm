@@ -1,3 +1,4 @@
+import { TitleDivider } from 'admin/pages/Game/play/components/eventTypeForms/components'
 import React from 'react'
 import { GamePlayersRelationship } from 'utils/types'
 import Button from '@mui/material/Button'
@@ -6,45 +7,74 @@ import Typography from '@mui/material/Typography'
 type Props = {
   players: GamePlayersRelationship[]
   onClick: (p: GamePlayersRelationship) => void
-  selected: GamePlayersRelationship | null
+  selected?: GamePlayersRelationship
+  title?: string
+  disabled?: GamePlayersRelationship
 }
 
-const PlayerSelect: React.FC<Props> = props => {
-  const { players, onClick, selected } = props
+const PlayerSelect: React.FC<Props> = ({
+  players,
+  onClick,
+  selected,
+  title,
+  disabled,
+}) => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        minWidth: 300,
-        width: '100%',
-        justifyContent: 'space-evenly',
-      }}
-    >
-      {players
-        .sort((a, b) => (a.jersey && b.jersey ? a.jersey - b.jersey : 0))
-        .map(p => (
-          <Button
-            type="button"
-            size="large"
-            style={{ width: '15%', marginBottom: '2rem' }}
-            key={p.node.playerId}
-            variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
-            color="primary"
-            onClick={() => {
-              onClick(p)
-            }}
-          >
-            <Typography variant="h5" component="div" sx={{ marginRight: 1 }}>
-              {p.jersey || ''}
-            </Typography>
-            <Typography variant="body1" component="div">
-              {p.node?.lastName}
-            </Typography>
-          </Button>
-        ))}
+    <div>
+      <TitleDivider title={title} />
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          minWidth: 300,
+          width: '100%',
+          justifyContent: 'space-evenly',
+        }}
+      >
+        {players
+          .sort((a, b) => (a.jersey && b.jersey ? a.jersey - b.jersey : 0))
+          .map(p => (
+            <Button
+              type="button"
+              size="large"
+              style={{ width: '15%' }}
+              key={p.node.playerId}
+              variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
+              color="primary"
+              onClick={() => {
+                onClick(p)
+              }}
+              disabled={disabled?.node?.playerId === p.node.playerId}
+            >
+              <Typography variant="h5" component="div" sx={{ marginRight: 1 }}>
+                {p.jersey || ''}
+              </Typography>
+              <Typography variant="body1" component="div">
+                {p.node?.lastName}
+              </Typography>
+            </Button>
+          ))}
+      </div>
     </div>
   )
 }
 
-export { PlayerSelect }
+const getPlayerObject = ({
+  player,
+  playerTitle,
+  playerToCheck,
+}: {
+  player?: GamePlayersRelationship
+  playerTitle: string
+  playerToCheck?: GamePlayersRelationship
+}) => {
+  return {
+    [playerTitle]: player
+      ? player.node?.playerId === playerToCheck?.node.playerId
+        ? undefined
+        : player
+      : undefined,
+  }
+}
+
+export { PlayerSelect, getPlayerObject }

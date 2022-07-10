@@ -1,8 +1,8 @@
+import { TitleDivider } from 'admin/pages/Game/play/components/eventTypeForms/components'
 import React from 'react'
 import { IMaskInput } from 'react-imask'
 import Input from '@mui/material/Input'
 import InputLabel from '@mui/material/InputLabel'
-import { TStep } from '../../../components/gameEvents'
 import { GameEventFormContext } from '../../../components/GameEventWizard'
 
 interface CustomProps {
@@ -32,12 +32,7 @@ const TextMaskCustom = React.forwardRef<HTMLElement, CustomProps>(
   }
 )
 
-type TRemainingTime = {
-  activeStepData: TStep
-}
-
-const RemainingTime: React.FC<TRemainingTime> = props => {
-  const { activeStepData } = props
+const RemainingTime = () => {
   const {
     state: { gameEventData },
     update,
@@ -46,7 +41,7 @@ const RemainingTime: React.FC<TRemainingTime> = props => {
 
   return (
     <>
-      {/* <FormControl variant="standard"> */}
+      <TitleDivider title={'Remaining time'} />
       <InputLabel htmlFor="formatted-text-mask-input">
         Remaining time
       </InputLabel>
@@ -74,7 +69,6 @@ const RemainingTime: React.FC<TRemainingTime> = props => {
         name="Remaining time"
         // @ts-expect-error check it later
         inputComponent={TextMaskCustom}
-        required={!activeStepData?.optional}
         inputProps={{
           autoComplete: 'off',
         }}
