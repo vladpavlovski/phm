@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import { sortByPriority } from 'utils'
 import Grid from '@mui/material/Grid'
@@ -21,22 +20,11 @@ import { TEventTypeForm } from './index'
 
 const PenaltyForm: React.FC<TEventTypeForm> = ({ players, gameSettings }) => {
   const {
-    state: { gameEventData, tempRemainingTime },
+    state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
 
-  React.useEffect(() => {
-    if (!gameEventData)
-      update(state => ({
-        ...state,
-        gameEventData: {
-          timestamp: dayjs().format(),
-          remainingTime: tempRemainingTime,
-        },
-      }))
-  }, [])
-
-  return gameEventData ? (
+  return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <RemainingTime />
@@ -108,33 +96,6 @@ const PenaltyForm: React.FC<TEventTypeForm> = ({ players, gameSettings }) => {
               }}
             />
           )}
-        {/* {gameEventData?.penaltyType?.subTypes &&
-            gameEventData?.penaltyType?.subTypes?.length > 0 && (
-              <Autocomplete
-                disableClearable
-                id="combo-box-penalty-sub-type"
-                options={[...gameEventData?.penaltyType?.subTypes].sort(
-                  sortByPriority
-                )}
-                value={gameEventData?.penaltySubType}
-                renderInput={params => (
-                  <TextField {...params} label="Penalty Sub type" />
-                )}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) =>
-                  option.name === value.name
-                }
-                onChange={(_, penaltySubType) => {
-                  update(state => ({
-                    ...state,
-                    gameEventData: {
-                      ...state.gameEventData,
-                      penaltySubType,
-                    },
-                  }))
-                }}
-              />
-            )} */}
       </Grid>
       <Grid item xs={12}>
         <TitleDivider title="Duration" />
@@ -206,7 +167,7 @@ const PenaltyForm: React.FC<TEventTypeForm> = ({ players, gameSettings }) => {
         </TableContainer>
       </Grid>
     </Grid>
-  ) : null
+  )
 }
 
 export { PenaltyForm }

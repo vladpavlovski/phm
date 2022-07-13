@@ -1,3 +1,5 @@
+import { GameEventFormContext } from 'admin/pages/Game/play/components/GameEventWizard'
+import dayjs from 'dayjs'
 import React from 'react'
 import { GamePlayersRelationship, RulePack, Team } from 'utils/types'
 import { TEventType } from '../gameEvents'
@@ -18,6 +20,21 @@ export type TEventTypeForm = {
 }
 
 export const EventTypeForm: React.FC<TEventTypeForm> = props => {
+  const {
+    state: { gameEventData },
+    update,
+  } = React.useContext(GameEventFormContext)
+
+  React.useEffect(() => {
+    if (!gameEventData)
+      update(state => ({
+        ...state,
+        gameEventData: {
+          timestamp: dayjs().format(),
+        },
+      }))
+  }, [])
+
   return (
     <>
       {(() => {

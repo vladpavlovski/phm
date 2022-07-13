@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import Grid from '@mui/material/Grid'
 import Table from '@mui/material/Table'
@@ -20,20 +19,9 @@ import { TEventTypeForm } from './index'
 
 const InjuryForm: React.FC<TEventTypeForm> = ({ players, gameSettings }) => {
   const {
-    state: { gameEventData, tempRemainingTime },
+    state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
-
-  React.useEffect(() => {
-    if (!gameEventData)
-      update(state => ({
-        ...state,
-        gameEventData: {
-          timestamp: dayjs().format(),
-          remainingTime: tempRemainingTime,
-        },
-      }))
-  }, [])
 
   return gameEventData ? (
     <Grid container spacing={2}>

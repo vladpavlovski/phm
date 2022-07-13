@@ -6,17 +6,17 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import { GameEventFormContext } from './GameEventWizard'
 import { Timer } from './Timer'
 
-type TPeriods = {
+type Props = {
   gameSettings: RulePack
   gameData: Game
   updateGameResult: MutationFunction
 }
 
-const Periods: React.FC<TPeriods> = props => {
+const Periods = (props: Props) => {
   const { gameSettings, gameData, updateGameResult } = props
 
   const { update } = React.useContext(GameEventFormContext)
-
+  // TODO: add warning if change period during active timer
   return (
     <>
       <ButtonGroup
@@ -31,26 +31,25 @@ const Periods: React.FC<TPeriods> = props => {
             return (
               <Button
                 key={periodObject?.periodId}
+                disabled={
+                  periodObject?.name === gameData?.gameResult?.periodActive
+                }
                 onClick={() => {
-                  if (
-                    periodObject?.name !== gameData?.gameResult?.periodActive
-                  ) {
-                    update(state => ({
-                      ...state,
-                      period: periodObject?.name,
-                    }))
+                  update(state => ({
+                    ...state,
+                    period: periodObject?.name,
+                  }))
 
-                    updateGameResult({
-                      variables: {
-                        where: {
-                          gameResultId: gameData?.gameResult?.gameResultId,
-                        },
-                        update: {
-                          periodActive: periodObject?.name,
-                        },
+                  updateGameResult({
+                    variables: {
+                      where: {
+                        gameResultId: gameData?.gameResult?.gameResultId,
                       },
-                    })
-                  }
+                      update: {
+                        periodActive: periodObject?.name,
+                      },
+                    },
+                  })
                 }}
                 variant={
                   gameData?.gameResult?.periodActive === periodObject?.name

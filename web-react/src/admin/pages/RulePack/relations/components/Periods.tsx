@@ -1,35 +1,31 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { Error, Loader, RHFInput } from 'components'
 import { useSnackbar } from 'notistack'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { setIdFromEntityId, showTimeAsMinutes } from 'utils'
+import { Period } from 'utils/types'
+import { number, object, string } from 'yup'
+import { gql, useLazyQuery, useMutation } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, number } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
-import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { RHFInput, Error, Loader } from 'components'
-
 import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, showTimeAsMinutes } from 'utils'
-import { Period } from 'utils/types'
 
 const GET_PERIODS = gql`
   query getRulePack($where: PeriodWhere) {
@@ -412,7 +408,6 @@ const FormDialog: React.FC<TFormDialog> = props => {
     dataToCheck => {
       try {
         const { name, duration, code, priority } = dataToCheck
-
         data?.periodId
           ? updatePeriod({
               variables: {
@@ -422,8 +417,8 @@ const FormDialog: React.FC<TFormDialog> = props => {
                 update: {
                   name,
                   code,
-                  duration: `${duration}` || null,
-                  priority: `${priority}` || null,
+                  duration: duration || null,
+                  priority: priority || null,
                 },
               },
             })
@@ -432,8 +427,8 @@ const FormDialog: React.FC<TFormDialog> = props => {
                 input: {
                   name,
                   code,
-                  duration: `${duration}` || null,
-                  priority: `${priority}` || null,
+                  duration: duration || null,
+                  priority: priority || null,
                   rulePack: {
                     connect: {
                       where: {

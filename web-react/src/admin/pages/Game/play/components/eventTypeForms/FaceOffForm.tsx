@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import Grid from '@mui/material/Grid'
 import Table from '@mui/material/Table'
@@ -13,22 +12,11 @@ import { TEventTypeForm } from './index'
 
 const FaceOffForm: React.FC<TEventTypeForm> = ({ players, playersRival }) => {
   const {
-    state: { gameEventData, tempRemainingTime },
+    state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
 
-  React.useEffect(() => {
-    if (!gameEventData)
-      update(state => ({
-        ...state,
-        gameEventData: {
-          timestamp: dayjs().format(),
-          remainingTime: tempRemainingTime,
-        },
-      }))
-  }, [])
-
-  return gameEventData ? (
+  return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <RemainingTime />
@@ -111,7 +99,7 @@ const FaceOffForm: React.FC<TEventTypeForm> = ({ players, playersRival }) => {
         </TableContainer>
       </Grid>
     </Grid>
-  ) : null
+  )
 }
 
 export { FaceOffForm }

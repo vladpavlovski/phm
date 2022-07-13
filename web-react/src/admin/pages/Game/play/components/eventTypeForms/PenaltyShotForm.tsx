@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import Grid from '@mui/material/Grid'
 import Table from '@mui/material/Table'
@@ -15,22 +14,11 @@ const PenaltyShotForm: React.FC<TEventTypeForm> = props => {
   const { players, playersRival } = props
 
   const {
-    state: { gameEventData, tempRemainingTime },
+    state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
 
-  React.useEffect(() => {
-    if (!gameEventData)
-      update(state => ({
-        ...state,
-        gameEventData: {
-          timestamp: dayjs().format(),
-          remainingTime: tempRemainingTime,
-        },
-      }))
-  }, [])
-
-  return gameEventData ? (
+  return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <RemainingTime />
@@ -118,7 +106,7 @@ const PenaltyShotForm: React.FC<TEventTypeForm> = props => {
         </TableContainer>
       </Grid>
     </Grid>
-  ) : null
+  )
 }
 
 export { PenaltyShotForm }

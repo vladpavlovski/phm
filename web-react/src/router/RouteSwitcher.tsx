@@ -1,12 +1,11 @@
+import { GameTimerProvider } from 'admin/pages/Game/play/components/Timer'
 import React from 'react'
-import { Switch, Route } from 'react-router-dom'
-
-import * as ROUTES from './routes'
-import { PrivateRoute } from '../components/PrivateRoute'
-
+import { Route, Switch } from 'react-router-dom'
 import { Dashboard } from '../admin/pages/Dashboard/Dashboard'
-
 import { GameEventFormProvider } from '../admin/pages/Game/play/components/GameEventWizard'
+import { PrivateRoute } from '../components/PrivateRoute'
+import * as ROUTES from './routes'
+
 const NotFound = React.lazy(() => import('../pages/NotFound'))
 const NetworkError = React.lazy(() => import('../pages/NetworkError'))
 
@@ -221,11 +220,13 @@ const RouteSwitcher: React.FC = () => {
       />
       <PrivateRoute path={ROUTES.ADMIN_ORG_GAME} exact component={AdminGame} />
       <GameEventFormProvider>
-        <PrivateRoute
-          path={ROUTES.ADMIN_ORG_GAME_PLAY}
-          exact
-          component={AdminGamePlay}
-        />
+        <GameTimerProvider>
+          <PrivateRoute
+            path={ROUTES.ADMIN_ORG_GAME_PLAY}
+            exact
+            component={AdminGamePlay}
+          />
+        </GameTimerProvider>
       </GameEventFormProvider>
 
       {/* {NEW ROUTES ADD BEFORE THIS ROW} */}

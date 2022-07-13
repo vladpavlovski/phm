@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import { sortByPriority } from 'utils'
 import Grid from '@mui/material/Grid'
@@ -24,7 +23,7 @@ const GoalForm: React.FC<TEventTypeForm> = ({
   gameSettings,
 }) => {
   const {
-    state: { gameEventData, tempRemainingTime },
+    state: { gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
 
@@ -36,15 +35,13 @@ const GoalForm: React.FC<TEventTypeForm> = ({
       update(state => ({
         ...state,
         gameEventData: {
-          timestamp: dayjs().format(),
-          remainingTime: tempRemainingTime,
           ...(goalkeeperTeamRival && { allowedBy: goalkeeperTeamRival }),
         },
       }))
     }
   }, [])
 
-  return gameEventData ? (
+  return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <RemainingTime />
@@ -265,7 +262,7 @@ const GoalForm: React.FC<TEventTypeForm> = ({
         </TableContainer>
       </Grid>
     </Grid>
-  ) : null
+  )
 }
 
 export { GoalForm }

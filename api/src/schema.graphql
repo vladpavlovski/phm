@@ -495,8 +495,7 @@ type MetaPlayer {
   facedPenaltyShots: [PenaltyShot]
     @relationship(type: "FACED_AGAINST", direction: IN)
   penalties: [Penalty] @relationship(type: "PENALIZED", direction: IN)
-  intervalOnIce: [BigIntervalOnIce]
-    @relationship(type: "SPENT_BY", direction: IN)
+  intervalOnIce: [IntervalOnIce] @relationship(type: "SPENT_BY", direction: IN)
   fights: [Fight] @relationship(type: "PARTICIPATE_IN", direction: IN)
   lostFaceOffs: [FaceOff] @relationship(type: "LOST_BY", direction: IN)
   wonFaceOffs: [FaceOff] @relationship(type: "WON_BY", direction: IN)
@@ -530,16 +529,16 @@ type MetaHistory {
   metaHistoryId: ID! @id
   name: String
   rating: Float
-  lineups: BigInt
-  scoredGoals: BigInt
-  assists: BigInt
-  points: BigInt
-  penalties: BigInt
-  stars: BigInt
-  allowedGoals: BigInt
+  lineups: Int
+  scoredGoals: Int
+  assists: Int
+  points: Int
+  penalties: Int
+  stars: Int
+  allowedGoals: Int
   percentage: Float
-  facedShots: BigInt
-  shutOuts: BigInt
+  facedShots: Int
+  shutOuts: Int
   average: Float
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
@@ -764,7 +763,7 @@ type GameEvent {
   shots: [Shot] @relationship(type: "CREATE_SHOT", direction: OUT)
   revisions: [Revision] @relationship(type: "CREATE_REVISION", direction: OUT)
   fights: [Fight] @relationship(type: "CREATE_FIGHT", direction: OUT)
-  intervalsOnIce: [BigIntervalOnIce]
+  intervalsOnIce: [IntervalOnIce]
     @relationship(type: "CREATE_INTERVAL_ON_ICE", direction: OUT)
   icings: [Icing] @relationship(type: "CREATE_ICING", direction: OUT)
   timeouts: [Timeout] @relationship(type: "CREATE_TIMEOUT", direction: OUT)
@@ -955,7 +954,7 @@ type Penalty {
     @relationship(type: "CREATE_SUSPENSION", direction: OUT)
 }
 
-type BigIntervalOnIce {
+type IntervalOnIce {
   intervalOnIceId: ID! @id
   endTime: DateTime
   duration: Float
@@ -1164,7 +1163,7 @@ type Venue {
   description: String
   location: String
   foundDate: Date
-  capacity: BigInt
+  capacity: Int
   logo: String
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
@@ -1279,7 +1278,7 @@ type Group {
   name: String!
   nick: String
   short: String
-  teamsLimit: BigInt
+  teamsLimit: Int
   status: TimeUnitStatus
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
@@ -1468,7 +1467,7 @@ type PenaltyShotStatus {
   penaltyShotStatusId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1479,7 +1478,7 @@ type Period {
   name: String!
   code: String
   duration: Float!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1489,7 +1488,7 @@ type ShotTarget {
   shotTargetId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1499,7 +1498,7 @@ type ShotStyle {
   shotStyleId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1509,7 +1508,7 @@ type ShotType {
   shotTypeId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1520,7 +1519,7 @@ type ShotSubType {
   shotSubTypeId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   shotType: [ShotType] @relationship(type: "SET_UP", direction: IN)
@@ -1530,7 +1529,7 @@ type GoalType {
   goalTypeId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
   subTypes: [GoalSubType] @relationship(type: "SET_UP", direction: OUT)
 }
@@ -1539,7 +1538,7 @@ type GoalSubType {
   goalSubTypeId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   goalType: GoalType @relationship(type: "SET_UP", direction: IN)
@@ -1550,7 +1549,7 @@ type PenaltyType {
   name: String!
   code: String!
   duration: Float!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1561,7 +1560,7 @@ type PenaltySubType {
   penaltySubTypeId: ID! @id
   name: String!
   code: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   penaltyType: PenaltyType @relationship(type: "SET_UP", direction: IN)
@@ -1572,7 +1571,7 @@ type GameEventLocation {
   name: String!
   fieldX: String!
   fieldY: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1583,7 +1582,7 @@ type PositionType {
   name: String!
   short: String
   description: String
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
@@ -1627,7 +1626,7 @@ type Position {
 type Jersey {
   jerseyId: ID! @id
   name: String!
-  number: BigInt!
+  number: Int!
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   player: Player @relationship(type: "HAS_JERSEY", direction: IN)
@@ -1686,7 +1685,7 @@ type PeriodStatistic {
 type InjuryType {
   injuryTypeId: ID! @id
   name: String!
-  priority: BigInt
+  priority: Int
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   rulePack: RulePack @relationship(type: "SET_UP", direction: IN)

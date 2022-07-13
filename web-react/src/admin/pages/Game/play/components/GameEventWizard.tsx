@@ -383,6 +383,7 @@ export type TWizardGameEventSimple = {
   location?: string
   period?: string
   remainingTime?: string
+  gameTime?: string
   eventType?: string
   eventTypeCode?: string
   team?: Team
@@ -417,6 +418,7 @@ type TGameEventForm = {
   gameEventSettings: TEventType | null
   gameEventData: TWizardGameEventSimple | null
   tempRemainingTime: string
+  tempGameTime: string
 }
 const [ctx, GameEventFormProvider] = createCtx<TGameEventForm>({
   period: '',
@@ -426,6 +428,7 @@ const [ctx, GameEventFormProvider] = createCtx<TGameEventForm>({
   gameEventSettings: null,
   gameEventData: null,
   tempRemainingTime: '00:00',
+  tempGameTime: '00:00',
 })
 
 export const GameEventFormContext = ctx
