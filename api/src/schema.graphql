@@ -785,6 +785,7 @@ type GameEventSimple {
   location: String
   period: String
   remainingTime: String
+  gameTime: String
   eventType: String
   eventTypeCode: String
   createdAt: DateTime! @timestamp(operations: [CREATE])

@@ -1,11 +1,11 @@
+import { GameEventFormContext } from 'admin/pages/Game/play/components/GameEventWizard'
+import { GameTimerContext } from 'admin/pages/Game/play/components/Timer'
 import React from 'react'
-
-import { experimentalStyled as styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
+import { experimentalStyled as styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-
-import { eventTypes } from './gameEvents'
+import { eventTypes, getEventSettings } from './gameEvents'
 
 const ImageButton = styled(ButtonBase)(({ theme }) => ({
   position: 'relative',
@@ -71,13 +71,11 @@ const ImageMarked = styled('span')(({ theme }) => ({
   transition: theme.transitions.create('opacity'),
 }))
 
-type TGameEventTypes = {
-  onClick: (type: string) => void
-}
-
-const GameEventTypes: React.FC<TGameEventTypes> = props => {
-  const { onClick } = props
-
+const GameEventTypes = () => {
+  const { update } = React.useContext(GameEventFormContext)
+  const {
+    state: { tempGameTime, tempRemainingTime },
+  } = React.useContext(GameTimerContext)
   return (
     <Box
       sx={{ display: 'flex', flexWrap: 'wrap', minWidth: 300, width: '100%' }}
@@ -86,7 +84,16 @@ const GameEventTypes: React.FC<TGameEventTypes> = props => {
         <ImageButton
           focusRipple
           onClick={() => {
-            onClick(eventType.type)
+            const data = getEventSettings(eventType.type)
+            update(state => ({
+              ...state,
+              gameEventSettings: data,
+              gameEventData: {
+                ...state.gameEventData,
+                remainingTime: tempRemainingTime,
+                gameTime: tempGameTime,
+              },
+            }))
           }}
           key={eventType.name}
           style={{

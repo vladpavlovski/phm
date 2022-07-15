@@ -1,4 +1,4 @@
 export { PlayerSelect, getPlayerObject } from './PlayerSelect'
-export { RemainingTime } from './RemainingTime'
+export { TimeInfo } from './TimeInfo'
 export { GridButtonSelect } from './GridButtonSelect'
 export { TitleDivider } from './TitleDivider'

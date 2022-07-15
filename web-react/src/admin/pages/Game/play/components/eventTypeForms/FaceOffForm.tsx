@@ -7,7 +7,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { GameEventFormContext } from '../../components/GameEventWizard'
-import { getPlayerObject, PlayerSelect, RemainingTime, TitleDivider } from './components'
+import { getPlayerObject, PlayerSelect, TimeInfo, TitleDivider } from './components'
 import { TEventTypeForm } from './index'
 
 const FaceOffForm: React.FC<TEventTypeForm> = ({ players, playersRival }) => {
@@ -19,7 +19,7 @@ const FaceOffForm: React.FC<TEventTypeForm> = ({ players, playersRival }) => {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <RemainingTime />
+        <TimeInfo />
       </Grid>
 
       <Grid item xs={12}>

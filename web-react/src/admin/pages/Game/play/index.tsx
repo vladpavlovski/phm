@@ -80,6 +80,7 @@ export const GET_GAME_PLAY = gql`
         timestamp
         period
         remainingTime
+        gameTime
         eventType
         eventTypeCode
         goalType

@@ -46,6 +46,7 @@ const CREATE_GES = gql`
         timestamp
         period
         remainingTime
+        gameTime
         eventType
         eventTypeCode
         goalType
@@ -218,6 +219,7 @@ export const UPDATE_GES = gql`
         timestamp
         period
         remainingTime
+        gameTime
         eventType
         eventTypeCode
         goalType
@@ -413,25 +415,19 @@ export type TWizardGameEventSimple = {
 type TGameEventForm = {
   period: string
   time: string
-  eventsTableUpdate: number
   openGameEventDialog: string
   gameEventSettings: TEventType | null
   gameEventData: TWizardGameEventSimple | null
-  tempRemainingTime: string
-  tempGameTime: string
 }
-const [ctx, GameEventFormProvider] = createCtx<TGameEventForm>({
-  period: '',
-  time: '00:00',
-  eventsTableUpdate: 0,
-  openGameEventDialog: '',
-  gameEventSettings: null,
-  gameEventData: null,
-  tempRemainingTime: '00:00',
-  tempGameTime: '00:00',
-})
-
-export const GameEventFormContext = ctx
+const [GameEventFormContext, GameEventFormProvider] = createCtx<TGameEventForm>(
+  {
+    period: '',
+    time: '00:00',
+    openGameEventDialog: '',
+    gameEventSettings: null,
+    gameEventData: null,
+  }
+)
 
 type TGameEventWizard = {
   host: boolean
@@ -464,14 +460,10 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
   const { enqueueSnackbar } = useSnackbar()
 
   const {
-    state: {
-      openGameEventDialog,
-      gameEventSettings,
-      gameEventData,
-      tempRemainingTime,
-    },
+    state: { openGameEventDialog, gameEventSettings, gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
+
   const previousGameEventSimpleId = React.useRef()
 
   const [createGameEventSimple] = useMutation(CREATE_GES, {
@@ -524,7 +516,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
       update(state => ({
         ...state,
         gameEventData: null,
-        eventsTableUpdate: state.eventsTableUpdate + 1,
       }))
     },
     onError: error => {
@@ -593,7 +584,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
       update(state => ({
         ...state,
         gameEventData: null,
-        eventsTableUpdate: state.eventsTableUpdate + 1,
       }))
     },
     onError: error => {
@@ -612,7 +602,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
         gameData,
         gameEventSettings,
       })
-
       const { where, update } = prepareGameResultUpdate({
         gameData,
         gameEventSettings,
@@ -700,7 +689,8 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
                     input: {
                       ...input,
                       timestamp: dayjs().format(),
-                      remainingTime: tempRemainingTime,
+                      // remainingTime: tempRemainingTime,
+                      // gameTime: tempGameTime,
                     },
                     gameResultWhere: where,
                     gameResultUpdateInput: update,
@@ -735,7 +725,8 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
                     input: {
                       ...input,
                       timestamp: dayjs().format(),
-                      remainingTime: tempRemainingTime,
+                      // remainingTime: tempRemainingTime,
+                      // tempGameTime: tempGameTime,
                     },
                     gameResultWhere: where,
                     gameResultUpdateInput: update,
@@ -793,17 +784,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
             {`Game event. ${team?.name}`}
           </DialogTitle>
           <DialogContent>
-            {!gameEventSettings && (
-              <GameEventTypes
-                onClick={(type: string) => {
-                  const data = getEventSettings(type)
-                  update(state => ({
-                    ...state,
-                    gameEventSettings: data,
-                  }))
-                }}
-              />
-            )}
+            {!gameEventSettings && <GameEventTypes />}
             {gameEventSettings && (
               <EventTypeForm
                 gameEventSettings={gameEventSettings}
@@ -1109,6 +1090,7 @@ const getInputVarsForGES = ({
     timestamp: gameEventData?.timestamp || '',
     period: gameData?.gameResult?.periodActive || '',
     remainingTime: gameEventData?.remainingTime || '',
+    gameTime: gameEventData?.gameTime || '',
     goalType: gameEventData?.goalType?.name || '',
     goalSubType: gameEventData?.goalSubType?.name || '',
     shotType: gameEventData?.shotType?.name || '',
@@ -1121,4 +1103,4 @@ const getInputVarsForGES = ({
   }
 }
 
-export { GameEventWizard, GameEventFormProvider }
+export { GameEventWizard, GameEventFormProvider, GameEventFormContext }

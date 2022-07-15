@@ -12,7 +12,7 @@ import {
   getPlayerObject,
   GridButtonSelect,
   PlayerSelect,
-  RemainingTime,
+  TimeInfo,
   TitleDivider,
 } from './components'
 import { TEventTypeForm } from './index'
@@ -26,7 +26,7 @@ const InjuryForm: React.FC<TEventTypeForm> = ({ players, gameSettings }) => {
   return gameEventData ? (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <RemainingTime />
+        <TimeInfo />
       </Grid>
 
       <Grid item xs={12}>

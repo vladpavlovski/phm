@@ -12,7 +12,7 @@ import {
   getPlayerObject,
   GridButtonSelect,
   PlayerSelect,
-  RemainingTime,
+  TimeInfo,
   TitleDivider,
 } from './components'
 import { TEventTypeForm } from './index'
@@ -44,7 +44,7 @@ const GoalForm: React.FC<TEventTypeForm> = ({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <RemainingTime />
+        <TimeInfo />
       </Grid>
 
       <Grid item xs={12}>
