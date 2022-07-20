@@ -4,7 +4,7 @@ import { gql, useQuery } from '@apollo/client'
 import { Circle } from '@mui/icons-material'
 import Chip from '@mui/material/Chip'
 
-const GET_PLAYER_LEVELS = gql`
+export const GET_PLAYER_LEVELS = gql`
   query getPlayerLevels {
     systemSettings(where: { systemSettingsId: "system-settings" }) {
       rulePack {

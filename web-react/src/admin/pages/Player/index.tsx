@@ -1,3 +1,4 @@
+import { GET_PLAYER_LEVELS } from 'admin/pages/Player/components/PlayerLevel'
 import {
   Error,
   Loader,
@@ -195,12 +196,15 @@ type TPlayerParams = {
   organizationSlug: string
 }
 
-const Player: React.FC = () => {
+const Player = () => {
   const history = useHistory()
   const classes = useStyles()
   const { playerId, organizationSlug } = useParams<TPlayerParams>()
   const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
+  const { data: playerLevels } = useQuery(GET_PLAYER_LEVELS, {
+    skip: playerId !== 'new',
+  })
 
   const {
     loading: queryLoading,
@@ -259,7 +263,9 @@ const Player: React.FC = () => {
 
   const playerData = queryData?.players?.[0]
   const playerLevelTypes =
-    queryData?.systemSettings?.[0]?.rulePack?.playerLevelTypes
+    queryData?.systemSettings?.[0]?.rulePack?.playerLevelTypes ||
+    playerLevels?.systemSettings?.[0]?.rulePack?.playerLevelTypes ||
+    []
 
   const [deletePlayer, { loading: loadingDelete, error: errorDelete }] =
     useMutation(DELETE_PLAYER, {
