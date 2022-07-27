@@ -1,3 +1,7 @@
+import {
+  goalLocations,
+  locations,
+} from 'admin/pages/Game/play/components/eventTypeForms/components/Location'
 import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
 import React from 'react'
@@ -439,6 +443,34 @@ const EventsTable: React.FC<TEventsTable> = props => {
       disableColumnMenu: true,
       resizable: false,
       sortable: false,
+    },
+    {
+      field: 'eventLocation',
+      headerName: 'Location',
+      width: 200,
+      disableColumnMenu: true,
+      resizable: false,
+      sortable: false,
+      renderCell: params => {
+        const eventLocationName =
+          locations.find(l => l.value === params.row.eventLocation)?.name ||
+          null
+        return eventLocationName
+      },
+    },
+    {
+      field: 'goalLocation',
+      headerName: 'Goal Location',
+      width: 200,
+      disableColumnMenu: true,
+      resizable: false,
+      sortable: false,
+      renderCell: params => {
+        const goalLocationName =
+          goalLocations.find(l => l.value === params.row.goalLocation)?.name ||
+          null
+        return goalLocationName
+      },
     },
     {
       field: 'penalized',

@@ -1,3 +1,7 @@
+import {
+  GoalLocationType,
+  LocationType,
+} from 'admin/pages/Game/play/components/eventTypeForms/components/Location'
 import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
 import React from 'react'
@@ -57,6 +61,8 @@ const CREATE_GES = gql`
         penaltySubType
         duration
         injuryType
+        eventLocation
+        goalLocation
         team {
           teamId
           nick
@@ -382,7 +388,6 @@ export const UPDATE_GES = gql`
 export type TWizardGameEventSimple = {
   gameEventSimpleId?: string
   timestamp?: string
-  location?: string
   period?: string
   remainingTime?: string
   gameTime?: string
@@ -410,6 +415,8 @@ export type TWizardGameEventSimple = {
   injuryType?: InjuryType
   suffered?: GamePlayersRelationship
   savedBy?: GamePlayersRelationship
+  eventLocation?: LocationType
+  goalLocation?: GoalLocationType
 }
 
 type TGameEventForm = {
@@ -1100,6 +1107,8 @@ const getInputVarsForGES = ({
     duration: gameEventData?.duration ? `${gameEventData?.duration}` : '',
     description: gameEventData?.description || '',
     injuryType: gameEventData?.injuryType?.name || '',
+    eventLocation: gameEventData?.eventLocation?.name || '',
+    goalLocation: gameEventData?.goalLocation?.name || '',
   }
 }
 

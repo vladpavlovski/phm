@@ -91,6 +91,8 @@ export const GET_GAME_PLAY = gql`
         penaltySubType
         duration
         injuryType
+        eventLocation
+        goalLocation
         team {
           teamId
           nick

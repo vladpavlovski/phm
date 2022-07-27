@@ -1,6 +1,7 @@
 import React from 'react'
 import { sortByPriority } from 'utils'
 import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -9,7 +10,9 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { GameEventFormContext } from '../../components/GameEventWizard'
 import {
+  EventLocation,
   getPlayerObject,
+  GoalLocation,
   GridButtonSelect,
   PlayerSelect,
   TimeInfo,
@@ -206,6 +209,47 @@ const GoalForm: React.FC<TEventTypeForm> = ({
               />
             </Grid>
           )}
+        <Grid item xs={12}>
+          <TitleDivider title={'Location'} />
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="space-around"
+            alignItems="center"
+          >
+            <EventLocation
+              selected={gameEventData?.eventLocation}
+              onClick={eventLocation => {
+                update(state => ({
+                  ...state,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    eventLocation:
+                      eventLocation.value ===
+                      gameEventData?.eventLocation?.value
+                        ? undefined
+                        : eventLocation,
+                  },
+                }))
+              }}
+            />
+            <GoalLocation
+              selected={gameEventData?.goalLocation}
+              onClick={goalLocation => {
+                update(state => ({
+                  ...state,
+                  gameEventData: {
+                    ...state.gameEventData,
+                    goalLocation:
+                      goalLocation.value === gameEventData?.goalLocation?.value
+                        ? undefined
+                        : goalLocation,
+                  },
+                }))
+              }}
+            />
+          </Stack>
+        </Grid>
       </>
 
       <Grid item xs={12}>
@@ -223,6 +267,8 @@ const GoalForm: React.FC<TEventTypeForm> = ({
                 <TableCell align="right">Goal SubType</TableCell>
                 <TableCell align="right">Shot Type</TableCell>
                 <TableCell align="right">Shot SubType</TableCell>
+                <TableCell align="right">Event Location</TableCell>
+                <TableCell align="right">Goal Location</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -255,6 +301,12 @@ const GoalForm: React.FC<TEventTypeForm> = ({
                 </TableCell>
                 <TableCell align="right">
                   {gameEventData?.shotSubType?.name}
+                </TableCell>
+                <TableCell align="right">
+                  {gameEventData?.eventLocation?.name}
+                </TableCell>
+                <TableCell align="right">
+                  {gameEventData?.goalLocation?.name}
                 </TableCell>
               </TableRow>
             </TableBody>

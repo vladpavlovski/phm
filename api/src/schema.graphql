@@ -782,7 +782,6 @@ type GameEvent {
 type GameEventSimple {
   gameEventSimpleId: ID! @id
   timestamp: String
-  location: String
   period: String
   remainingTime: String
   gameTime: String
@@ -809,6 +808,8 @@ type GameEventSimple {
   goalSubType: String
   shotType: String
   shotSubType: String
+  eventLocation: String
+  goalLocation: String
 
   # faceOff
   lostBy: MetaPlayer @relationship(type: "LOST_BY", direction: OUT)
