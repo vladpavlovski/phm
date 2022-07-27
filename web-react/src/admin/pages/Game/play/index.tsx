@@ -6,24 +6,26 @@ import React from 'react'
 import Img from 'react-cool-img'
 import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
+import { useTime } from 'react-timer-hook'
 import { getAdminOrgGameRoute } from 'router/routes'
-import { formatDate, formatTime } from 'utils'
+import { formatDate, formatTime, formatTimeValue } from 'utils'
 import { useExitPrompt } from 'utils/hooks'
 import {
   Game as GameType,
   GamePlayersRelationship,
   GameTeamsRelationship,
+  Period,
   SystemSettings as SystemSettingsType,
 } from 'utils/types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { Grid } from '@mui/material'
+import { Grid, Stack } from '@mui/material'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { useStyles } from '../../commonComponents/styled'
-import { EventsTable, Finalization, GameEventWizard, Periods } from './components'
+import { EventsTable, Finalization, GameEventWizard, Periods, Timer } from './components'
 
 export const GET_GAME_PLAY = gql`
   query getGame(
@@ -425,56 +427,33 @@ const Play: React.FC = () => {
     },
   })
 
-  const teamHost = React.useMemo(
-    () =>
-      gameData?.teamsConnection?.edges?.find(
-        (t: GameTeamsRelationship) => t.host
-      )?.node,
-    [gameData]
-  )
+  const teamHost = gameData?.teamsConnection?.edges?.find(
+    (t: GameTeamsRelationship) => t.host
+  )?.node
 
-  const teamGuest = React.useMemo(
-    () =>
-      gameData?.teamsConnection?.edges?.find(
-        (t: GameTeamsRelationship) => !t.host
-      )?.node,
-    [gameData]
+  const teamGuest = gameData?.teamsConnection?.edges?.find(
+    (t: GameTeamsRelationship) => !t.host
+  )?.node
+  const playersHost = gameData?.playersConnection?.edges?.filter(
+    (t: GamePlayersRelationship) => t.host
   )
-  const playersHost = React.useMemo(
-    () =>
-      gameData?.playersConnection?.edges?.filter(
-        (t: GamePlayersRelationship) => t.host
-      ),
-    [gameData]
-  )
-  const playersGuest = React.useMemo(
-    () =>
-      gameData?.playersConnection?.edges?.filter(
-        (t: GamePlayersRelationship) => !t.host
-      ),
-    [gameData]
+  const playersGuest = gameData?.playersConnection?.edges?.filter(
+    (t: GamePlayersRelationship) => !t.host
   )
 
   return (
     <Container maxWidth={false}>
       <Helmet>
-        <title>{`Game Live ${gameData?.name || ''}`}</title>
+        <title>{`${gameData?.name || ''}`}</title>
       </Helmet>
       {queryLoading && <Loader />}
       <Error message={queryError?.message} />
       {gameData && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Paper className={classes.paper}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  flexShrink: 3,
-                }}
-              >
-                <Typography variant="h6" component="div">
+            <Paper sx={{ p: 2 }}>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="h6">
                   <LinkButton
                     startIcon={<ArrowBackIcon />}
                     to={getAdminOrgGameRoute(organizationSlug, gameId)}
@@ -482,123 +461,100 @@ const Play: React.FC = () => {
                     {gameData?.name}
                   </LinkButton>
                 </Typography>
-                <Typography variant="h6" component="div">
-                  {gameData?.type}
-                </Typography>
-                <Typography variant="h6" component="div">
-                  {formatTime(gameData?.startTime)} -{' '}
-                  {formatTime(gameData?.endTime)}
-                  {', '}
-                  {formatDate(gameData?.startDate)}
-                </Typography>
-              </div>
+                <Typography variant="h6">{gameData?.type}</Typography>
+                <Stack direction="row">
+                  <Time />
+                  &nbsp;
+                  <Typography variant="h6">
+                    {formatTime(gameData?.startTime)} -{' '}
+                    {formatTime(gameData?.endTime)}
+                    {', '}
+                    {formatDate(gameData?.startDate)}
+                  </Typography>
+                </Stack>
+              </Stack>
             </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Periods
+              gameSettings={gameSettings}
+              gameData={gameData}
+              updateGameResult={updateGameResult}
+            />
           </Grid>
           <Grid item xs={12} lg={8}>
             <Paper className={classes.paper}>
               <Toolbar disableGutters className={classes.toolbarForm}>
-                <div>
-                  <Title>{teamHost?.name ?? 'Host team'}</Title>
-                </div>
-                <div>
-                  <Title>{teamGuest?.name ?? 'Guest team'}</Title>
-                </div>
+                <Title>{teamHost?.name ?? 'Host team'}</Title>
+                <Title>{teamGuest?.name ?? 'Guest team'}</Title>
               </Toolbar>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div>
-                  <Img
-                    placeholder={placeholderPerson}
-                    src={teamHost?.logo}
-                    className={classes.gamePlayTeamLogo}
-                    alt={teamHost?.name}
-                  />
-                </div>
-                <div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      fontFamily: 'Digital Numbers Regular',
-                    }}
-                  >
-                    <div style={{ fontSize: '100px' }}>
-                      <span>{gameData?.gameResult?.hostGoals}</span>:
-                      <span>{gameData?.gameResult?.guestGoals}</span>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <Img
-                    placeholder={placeholderPerson}
-                    src={teamGuest?.logo}
-                    className={classes.gamePlayTeamLogo}
-                    alt={teamGuest?.name}
-                  />
-                </div>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div style={{ display: 'grid' }}>
-                  <GameEventWizard
-                    host={true}
-                    team={teamHost}
-                    players={playersHost}
-                    teamRival={teamGuest}
-                    playersRival={playersGuest}
-                    gameSettings={gameSettings}
-                    gameData={gameData}
-                  />
-                </div>
-                <div></div>
-                <div style={{ display: 'grid' }}>
-                  <GameEventWizard
-                    host={false}
-                    team={teamGuest}
-                    players={playersGuest}
-                    teamRival={teamHost}
-                    playersRival={playersHost}
-                    gameSettings={gameSettings}
-                    gameData={gameData}
-                  />
-                </div>
-              </div>
+              <Stack direction="row" justifyContent="space-between">
+                <Img
+                  placeholder={placeholderPerson}
+                  src={teamHost?.logo}
+                  className={classes.gamePlayTeamLogo}
+                  alt={teamHost?.name}
+                />
+
+                <Typography
+                  sx={{
+                    fontSize: '100px',
+                    textAlign: 'center',
+                    fontFamily: 'Digital Numbers Regular',
+                  }}
+                >
+                  {gameData?.gameResult?.hostGoals}:
+                  {gameData?.gameResult?.guestGoals}
+                </Typography>
+
+                <Img
+                  placeholder={placeholderPerson}
+                  src={teamGuest?.logo}
+                  className={classes.gamePlayTeamLogo}
+                  alt={teamGuest?.name}
+                />
+              </Stack>
+              <Stack direction="row" justifyContent="space-between">
+                <GameEventWizard
+                  host={true}
+                  team={teamHost}
+                  players={playersHost}
+                  teamRival={teamGuest}
+                  playersRival={playersGuest}
+                  gameSettings={gameSettings}
+                  gameData={gameData}
+                />
+                <GameEventWizard
+                  host={false}
+                  team={teamGuest}
+                  players={playersGuest}
+                  teamRival={teamHost}
+                  playersRival={playersHost}
+                  gameSettings={gameSettings}
+                  gameData={gameData}
+                />
+              </Stack>
             </Paper>
           </Grid>
           <Grid item xs={12} lg={4}>
-            <Paper className={classes.paper}>
-              <Toolbar disableGutters className={classes.toolbarForm}>
-                <div>
-                  <Title>{'Live game'}</Title>
-                </div>
-                <div></div>
-              </Toolbar>
-              <Grid container>
-                <Grid item xs={12}>
-                  <Periods
-                    gameSettings={gameSettings}
-                    gameData={gameData}
-                    updateGameResult={updateGameResult}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Finalization
-                    gameData={gameData}
-                    updateGameResult={updateGameResult}
-                    teamHost={teamHost}
-                    teamGuest={teamGuest}
-                  />
-                </Grid>
-              </Grid>
+            <Paper>
+              <Timer
+                gameSettings={gameSettings}
+                gameData={gameData}
+                updateGameResult={updateGameResult}
+                timeInMinutes={
+                  gameSettings?.periods?.find(
+                    (p: Period) => p.name === gameData?.gameResult?.periodActive
+                  )?.duration || 20
+                }
+              />
+
+              <Finalization
+                gameData={gameData}
+                updateGameResult={updateGameResult}
+                teamHost={teamHost}
+                teamGuest={teamGuest}
+              />
             </Paper>
           </Grid>
           <Grid item xs={12}>
@@ -612,6 +568,22 @@ const Play: React.FC = () => {
         </Grid>
       )}
     </Container>
+  )
+}
+
+const Time = () => {
+  const {
+    seconds: timeSeconds,
+    minutes: timeMinutes,
+    hours: timeHours,
+  } = useTime({ format: undefined })
+
+  return (
+    <Typography variant="h6">
+      {`${formatTimeValue(timeHours)}:${formatTimeValue(
+        timeMinutes
+      )}:${formatTimeValue(timeSeconds)}`}
+    </Typography>
   )
 }
 

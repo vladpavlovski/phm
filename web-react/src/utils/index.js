@@ -154,3 +154,5 @@ export const getTeamByHost = (host, teams) => {
   const { node, ...rest } = team
   return { ...node, connection: rest }
 }
+
+export const formatTimeValue = time => (time < 10 ? `0${time}` : `${time}`)

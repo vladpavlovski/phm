@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import { Prompt } from 'react-router-dom'
-import { useTime, useTimer } from 'react-timer-hook'
-import { createCtx } from 'utils'
+import { useTimer } from 'react-timer-hook'
+import { createCtx, formatTimeValue } from 'utils'
 import { Game, RulePack } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
 import Box from '@mui/material/Box'
@@ -105,7 +105,6 @@ const Timer = (props: Props) => {
             <span>{formatTimeValue(minutes)}</span>:
             <span>{formatTimeValue(seconds)}</span>
           </div>
-          <Time />
           <ButtonGroup
             fullWidth
             variant="outlined"
@@ -206,25 +205,6 @@ const getGameTime = ({
 const getTimerColor = (min: number, sec: number): string => {
   if (min === 0 && sec < 30) return 'red'
   return 'inherit'
-}
-
-const formatTimeValue = (time: number): string =>
-  time < 10 ? `0${time}` : `${time}`
-
-const Time: React.FC = () => {
-  const {
-    seconds: timeSeconds,
-    minutes: timeMinutes,
-    hours: timeHours,
-  } = useTime({ format: undefined })
-
-  return (
-    <div style={{ fontSize: '1.8rem' }}>
-      <span>{formatTimeValue(timeHours)}</span>:
-      <span>{formatTimeValue(timeMinutes)}</span>:
-      <span>{formatTimeValue(timeSeconds)}</span>
-    </div>
-  )
 }
 
 export { Timer, GameTimerProvider, GameTimerContext }

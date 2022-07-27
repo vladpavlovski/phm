@@ -29,6 +29,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
+import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Zoom from '@mui/material/Zoom'
@@ -647,7 +648,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
     }))
   }
   return (
-    <>
+    <Stack>
       <Tooltip
         arrow
         title="Select period to unblock game events"
@@ -826,7 +827,7 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
           </DialogActions>
         </Dialog>
       )}
-    </>
+    </Stack>
   )
 }
 

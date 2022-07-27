@@ -4,7 +4,6 @@ import { MutationFunction } from '@apollo/client'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import { GameEventFormContext } from './GameEventWizard'
-import { Timer } from './Timer'
 
 type Props = {
   gameSettings: RulePack
@@ -18,23 +17,21 @@ const Periods = (props: Props) => {
   const { update } = React.useContext(GameEventFormContext)
   // TODO: add warning if change period during active timer
   return (
-    <>
-      <ButtonGroup
-        fullWidth
-        variant="outlined"
-        aria-label="outlined primary button group"
-      >
-        {gameSettings?.periods
-          ?.slice()
-          ?.sort((a, b) => (a.priority > b.priority ? 1 : -1))
-          ?.map(periodObject => {
-            return (
-              <Button
-                key={periodObject?.periodId}
-                disabled={
-                  periodObject?.name === gameData?.gameResult?.periodActive
-                }
-                onClick={() => {
+    <ButtonGroup
+      fullWidth
+      color="success"
+      variant="outlined"
+      aria-label="outlined primary button group"
+    >
+      {gameSettings?.periods
+        ?.slice()
+        ?.sort((a, b) => (a.priority > b.priority ? 1 : -1))
+        ?.map(periodObject => {
+          return (
+            <Button
+              key={periodObject?.periodId}
+              onClick={() => {
+                if (gameData?.gameResult?.periodActive !== periodObject?.name) {
                   update(state => ({
                     ...state,
                     period: periodObject?.name,
@@ -50,27 +47,19 @@ const Periods = (props: Props) => {
                       },
                     },
                   })
-                }}
-                variant={
-                  gameData?.gameResult?.periodActive === periodObject?.name
-                    ? 'contained'
-                    : 'outlined'
                 }
-              >
-                {periodObject?.name}
-              </Button>
-            )
-          })}
-      </ButtonGroup>
-      <Timer
-        {...props}
-        timeInMinutes={
-          gameSettings?.periods?.find(
-            p => p.name === gameData?.gameResult?.periodActive
-          )?.duration || 20
-        }
-      />
-    </>
+              }}
+              variant={
+                gameData?.gameResult?.periodActive === periodObject?.name
+                  ? 'contained'
+                  : 'outlined'
+              }
+            >
+              {periodObject?.name}
+            </Button>
+          )
+        })}
+    </ButtonGroup>
   )
 }
 
