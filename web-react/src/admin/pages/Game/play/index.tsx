@@ -9,7 +9,6 @@ import { useParams } from 'react-router-dom'
 import { useTime } from 'react-timer-hook'
 import { getAdminOrgGameRoute } from 'router/routes'
 import { formatDate, formatTime, formatTimeValue } from 'utils'
-import { useExitPrompt } from 'utils/hooks'
 import {
   Game as GameType,
   GamePlayersRelationship,
@@ -356,14 +355,6 @@ const Play: React.FC = () => {
   const classes = useStyles()
   const { gameId, organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
-
-  const [showExitPrompt, setShowExitPrompt] = useExitPrompt(true)
-
-  React.useEffect(() => {
-    return () => {
-      setShowExitPrompt(!showExitPrompt)
-    }
-  }, [])
 
   const {
     loading: queryLoading,
