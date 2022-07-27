@@ -1,6 +1,5 @@
 import React from 'react'
 import { useStyles } from '../../commonComponents/styled'
-import { GameEventLocations } from './components/GameEventLocations'
 import { GoalTypes } from './components/GoalTypes'
 import { InjuryTypes } from './components/InjuryTypes'
 import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
@@ -33,7 +32,6 @@ const Relations: React.FC<TRelations> = props => {
       <InjuryTypes {...props} />
       <ResultTypes {...props} />
       <ResultPoints {...props} />
-      <GameEventLocations {...props} />
       <PlayerLevelTypes {...props} />
     </div>
   )

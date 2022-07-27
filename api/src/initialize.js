@@ -58,7 +58,6 @@ export const initializeDatabase = driver => {
     GoalSubType: ["goalSubTypeId"],
     PenaltySubType: ["penaltySubTypeId"],
     PenaltyType: ["PenaltyTypeId"],
-    GameEventLocation: ["gameEventLocationId"],
     PositionType: ["positionTypeId"],
     Wear: ["wearId"],
     WearItem: ["wearItemId"],

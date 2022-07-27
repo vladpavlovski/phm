@@ -507,15 +507,6 @@ export type ResultPoint = {
   rulePack: RulePack
 }
 
-export type GameEventLocation = {
-  gameEventLocationId: string
-  name: string
-  fieldX: string
-  fieldY: string
-  priority: number
-  rulePack: RulePack
-}
-
 export type PlayerLevelType = {
   playerLevelTypeId: string
   name: string

@@ -1452,8 +1452,6 @@ type RulePack {
   shotTypes: [ShotType] @relationship(type: "SET_UP", direction: OUT)
   goalTypes: [GoalType] @relationship(type: "SET_UP", direction: OUT)
   penaltyTypes: [PenaltyType] @relationship(type: "SET_UP", direction: OUT)
-  gameEventLocations: [GameEventLocation]
-    @relationship(type: "SET_UP", direction: OUT)
   positionTypes: [PositionType] @relationship(type: "SET_UP", direction: OUT)
   injuryTypes: [InjuryType] @relationship(type: "SET_UP", direction: OUT)
   resultTypes: [ResultType] @relationship(type: "SET_UP", direction: OUT)
@@ -1566,17 +1564,6 @@ type PenaltySubType {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [UPDATE])
   penaltyType: PenaltyType @relationship(type: "SET_UP", direction: IN)
-}
-
-type GameEventLocation {
-  gameEventLocationId: ID! @id
-  name: String!
-  fieldX: String!
-  fieldY: String!
-  priority: Int
-  createdAt: DateTime! @timestamp(operations: [CREATE])
-  updatedAt: DateTime! @timestamp(operations: [UPDATE])
-  rulePack: RulePack @relationship(type: "SET_UP", direction: IN)
 }
 
 type PositionType {
