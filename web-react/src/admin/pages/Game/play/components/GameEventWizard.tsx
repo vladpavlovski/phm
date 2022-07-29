@@ -456,22 +456,12 @@ const getCountOfEventTypes = (
     event => event.eventTypeCode === eventType && event.team.teamId === teamId
   )?.length
 
-const GameEventWizard: React.FC<TGameEventWizard> = ({
-  host,
-  team,
-  teamRival,
-  players,
-  playersRival,
-  gameSettings,
-  gameData,
-}) => {
-  const { enqueueSnackbar } = useSnackbar()
-
+export const useGameEventMutations = (gameData: Game) => {
   const {
-    state: { openGameEventDialog, gameEventSettings, gameEventData },
+    // state: { openGameEventDialog, gameEventSettings, gameEventData },
     update,
   } = React.useContext(GameEventFormContext)
-
+  const { enqueueSnackbar } = useSnackbar()
   const previousGameEventSimpleId = React.useRef()
 
   const [createGameEventSimple] = useMutation(CREATE_GES, {
@@ -601,6 +591,26 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
       console.error(error)
     },
   })
+
+  return { createGameEventSimple, updateGameEventSimple }
+}
+
+const GameEventWizard: React.FC<TGameEventWizard> = ({
+  host,
+  team,
+  teamRival,
+  players,
+  playersRival,
+  gameSettings,
+  gameData,
+}) => {
+  const {
+    state: { openGameEventDialog, gameEventSettings, gameEventData },
+    update,
+  } = React.useContext(GameEventFormContext)
+
+  const { createGameEventSimple, updateGameEventSimple } =
+    useGameEventMutations(gameData)
 
   const handleSave = () => {
     if (gameEventSettings) {
@@ -1113,4 +1123,9 @@ const getInputVarsForGES = ({
   }
 }
 
-export { GameEventWizard, GameEventFormProvider, GameEventFormContext }
+export {
+  GameEventWizard,
+  GameEventFormProvider,
+  GameEventFormContext,
+  getInputVarsForGES,
+}

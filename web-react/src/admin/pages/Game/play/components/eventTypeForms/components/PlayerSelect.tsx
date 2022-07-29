@@ -37,7 +37,7 @@ const PlayerSelect: React.FC<Props> = ({
             <Button
               type="button"
               size="large"
-              style={{ width: '15%' }}
+              sx={{ width: '15%', m: 1 }}
               key={p.node.playerId}
               variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
               color="primary"

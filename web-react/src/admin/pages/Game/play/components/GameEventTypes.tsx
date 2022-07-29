@@ -7,13 +7,12 @@ import { experimentalStyled as styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import { eventTypes, getEventSettings } from './gameEvents'
 
-const ImageButton = styled(ButtonBase)(({ theme }) => ({
+const ImageButton = styled(ButtonBase)(() => ({
   position: 'relative',
-  height: 120,
-  [theme.breakpoints.down('sm')]: {
-    width: '100% !important', // Overrides inline-style
-    height: 100,
-  },
+  margin: '0 1% 2% 1%',
+  height: 80,
+  width: '48%',
+  borderRadius: '4px',
   '&:hover, &.Mui-focusVisible': {
     zIndex: 1,
     '& .MuiImageBackdrop-root': {
@@ -23,7 +22,8 @@ const ImageButton = styled(ButtonBase)(({ theme }) => ({
       opacity: 0,
     },
     '& .MuiTypography-root': {
-      border: '4px solid currentColor',
+      border: '2px solid currentColor',
+      borderRadius: '4px',
     },
   },
 }))
@@ -36,6 +36,7 @@ const ImageSrc = styled('span')({
   bottom: 0,
   backgroundSize: 'cover',
   backgroundPosition: 'center 40%',
+  borderRadius: '4px',
 })
 
 const Image = styled('span')(({ theme }) => ({
@@ -48,6 +49,7 @@ const Image = styled('span')(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   color: theme.palette.common.white,
+  borderRadius: '4px',
 }))
 
 const ImageBackdrop = styled('span')(({ theme }) => ({
@@ -56,29 +58,35 @@ const ImageBackdrop = styled('span')(({ theme }) => ({
   right: 0,
   top: 0,
   bottom: 0,
+  borderRadius: '4px',
   backgroundColor: theme.palette.common.black,
   opacity: 0.4,
   transition: theme.transitions.create('opacity'),
 }))
 
 const ImageMarked = styled('span')(({ theme }) => ({
-  height: 3,
-  width: 18,
+  height: 2,
+  width: 20,
   backgroundColor: theme.palette.common.white,
   position: 'absolute',
   bottom: -2,
   left: 'calc(50% - 9px)',
   transition: theme.transitions.create('opacity'),
+  borderRadius: '4px',
 }))
 
-const GameEventTypes = () => {
+const GameEventTypes = ({ host = true }: { host?: boolean }) => {
   const { update } = React.useContext(GameEventFormContext)
   const {
     state: { tempGameTime, tempRemainingTime },
   } = React.useContext(GameTimerContext)
   return (
     <Box
-      sx={{ display: 'flex', flexWrap: 'wrap', minWidth: 300, width: '100%' }}
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+      }}
     >
       {eventTypes.map(eventType => (
         <ImageButton
@@ -87,6 +95,7 @@ const GameEventTypes = () => {
             const data = getEventSettings(eventType.type)
             update(state => ({
               ...state,
+              openGameEventDialog: host ? 'host' : 'guest',
               gameEventSettings: data,
               gameEventData: {
                 ...state.gameEventData,
@@ -96,9 +105,6 @@ const GameEventTypes = () => {
             }))
           }}
           key={eventType.name}
-          style={{
-            width: '25%',
-          }}
         >
           <ImageSrc style={{ backgroundColor: eventType.color }} />
           <ImageBackdrop className="MuiImageBackdrop-root" />
@@ -109,9 +115,9 @@ const GameEventTypes = () => {
               color="inherit"
               sx={{
                 position: 'relative',
-                p: 4,
-                pt: 2,
-                pb: theme => `calc(${theme.spacing(1)} + 6px)`,
+                p: 1,
+                fontSize: '24px',
+                textTransform: 'uppercase',
               }}
             >
               {eventType.name}

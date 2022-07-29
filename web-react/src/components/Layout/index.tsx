@@ -6,25 +6,21 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import MenuIcon from '@mui/icons-material/Menu'
 import { Box, Divider, IconButton, Toolbar, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-// import LayoutContext from '../../context/layout'
 import { Copyright } from '../Copyright'
 import { MainListItems } from './listItems'
 import { AppBar, Drawer, DrawerHeader } from './styled'
 import { UserMenu } from './UserMenu'
 
-const useLayoutSidebarState = createPersistedState<boolean>('HMS-LayoutSidebar')
+export const useLayoutSidebarState =
+  createPersistedState<boolean>('HMS-LayoutSidebar')
 
-const Layout: React.FC = props => {
+const Layout = (props: { children: React.ReactElement }) => {
   const { children } = props
   const theme = useTheme()
   const [open, setOpen] = useLayoutSidebarState(true)
-  // const { barTitle } = React.useContext(LayoutContext)
 
   const location = useLocation()
-  const isAdminPage = React.useMemo(() => {
-    if (location.pathname.includes('web/league')) return false
-    return true
-  }, [location])
+  const isAdminPage = location.pathname.includes('web/league') ? false : true
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -54,9 +50,6 @@ const Layout: React.FC = props => {
               ) : (
                 <div />
               )}
-              {/* <Typography component="div" variant="h6" color="inherit" noWrap>
-                {barTitle}
-              </Typography> */}
 
               <UserMenu />
             </Toolbar>

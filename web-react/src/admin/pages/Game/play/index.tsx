@@ -1,3 +1,4 @@
+import { FastEventsMenu } from 'admin/pages/Game/play/components/FastEventsMenu'
 import { Error, Loader, Title } from 'components'
 import { LinkButton } from 'components/LinkButton'
 import placeholderPerson from 'img/placeholderPerson.jpg'
@@ -433,132 +434,142 @@ const Play: React.FC = () => {
   )
 
   return (
-    <Container maxWidth={false}>
-      <Helmet>
-        <title>{`${gameData?.name || ''}`}</title>
-      </Helmet>
-      {queryLoading && <Loader />}
-      <Error message={queryError?.message} />
-      {gameData && (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="h6">
-                  <LinkButton
-                    startIcon={<ArrowBackIcon />}
-                    to={getAdminOrgGameRoute(organizationSlug, gameId)}
-                  >
-                    {gameData?.name}
-                  </LinkButton>
-                </Typography>
-                <Typography variant="h6">{gameData?.type}</Typography>
-                <Stack direction="row">
-                  <Time />
-                  &nbsp;
+    <>
+      <Container maxWidth={false}>
+        <Helmet>
+          <title>{`${gameData?.name || ''}`}</title>
+        </Helmet>
+        {queryLoading && <Loader />}
+        <Error message={queryError?.message} />
+        {gameData && (
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2 }}>
+                <Stack direction="row" justifyContent="space-between">
                   <Typography variant="h6">
-                    {formatTime(gameData?.startTime)} -{' '}
-                    {formatTime(gameData?.endTime)}
-                    {', '}
-                    {formatDate(gameData?.startDate)}
+                    <LinkButton
+                      startIcon={<ArrowBackIcon />}
+                      to={getAdminOrgGameRoute(organizationSlug, gameId)}
+                    >
+                      {gameData?.name}
+                    </LinkButton>
                   </Typography>
+                  <Typography variant="h6">{gameData?.type}</Typography>
+                  <Stack direction="row">
+                    <Time />
+                    &nbsp;
+                    <Typography variant="h6">
+                      {formatTime(gameData?.startTime)} -{' '}
+                      {formatTime(gameData?.endTime)}
+                      {', '}
+                      {formatDate(gameData?.startDate)}
+                    </Typography>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <Periods
-              gameSettings={gameSettings}
-              gameData={gameData}
-              updateGameResult={updateGameResult}
-            />
-          </Grid>
-          <Grid item xs={12} lg={8}>
-            <Paper className={classes.paper}>
-              <Toolbar disableGutters className={classes.toolbarForm}>
-                <Title>{teamHost?.name ?? 'Host team'}</Title>
-                <Title>{teamGuest?.name ?? 'Guest team'}</Title>
-              </Toolbar>
-              <Stack direction="row" justifyContent="space-between">
-                <Img
-                  placeholder={placeholderPerson}
-                  src={teamHost?.logo}
-                  className={classes.gamePlayTeamLogo}
-                  alt={teamHost?.name}
-                />
-
-                <Typography
-                  sx={{
-                    fontSize: '100px',
-                    textAlign: 'center',
-                    fontFamily: 'Digital Numbers Regular',
-                  }}
-                >
-                  {gameData?.gameResult?.hostGoals}:
-                  {gameData?.gameResult?.guestGoals}
-                </Typography>
-
-                <Img
-                  placeholder={placeholderPerson}
-                  src={teamGuest?.logo}
-                  className={classes.gamePlayTeamLogo}
-                  alt={teamGuest?.name}
-                />
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <GameEventWizard
-                  host={true}
-                  team={teamHost}
-                  players={playersHost}
-                  teamRival={teamGuest}
-                  playersRival={playersGuest}
-                  gameSettings={gameSettings}
-                  gameData={gameData}
-                />
-                <GameEventWizard
-                  host={false}
-                  team={teamGuest}
-                  players={playersGuest}
-                  teamRival={teamHost}
-                  playersRival={playersHost}
-                  gameSettings={gameSettings}
-                  gameData={gameData}
-                />
-              </Stack>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} lg={4}>
-            <Paper>
-              <Timer
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Periods
                 gameSettings={gameSettings}
                 gameData={gameData}
                 updateGameResult={updateGameResult}
-                timeInMinutes={
-                  gameSettings?.periods?.find(
-                    (p: Period) => p.name === gameData?.gameResult?.periodActive
-                  )?.duration || 20
-                }
               />
+            </Grid>
+            <Grid item xs={12} lg={8}>
+              <Paper className={classes.paper}>
+                <Toolbar disableGutters className={classes.toolbarForm}>
+                  <Title>{teamHost?.name ?? 'Host team'}</Title>
+                  <Title>{teamGuest?.name ?? 'Guest team'}</Title>
+                </Toolbar>
+                <Stack direction="row" justifyContent="space-between">
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamHost?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamHost?.name}
+                  />
 
-              <Finalization
+                  <Typography
+                    sx={{
+                      fontSize: '100px',
+                      textAlign: 'center',
+                      fontFamily: 'Digital Numbers Regular',
+                    }}
+                  >
+                    {gameData?.gameResult?.hostGoals}:
+                    {gameData?.gameResult?.guestGoals}
+                  </Typography>
+
+                  <Img
+                    placeholder={placeholderPerson}
+                    src={teamGuest?.logo}
+                    className={classes.gamePlayTeamLogo}
+                    alt={teamGuest?.name}
+                  />
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <GameEventWizard
+                    host={true}
+                    team={teamHost}
+                    players={playersHost}
+                    teamRival={teamGuest}
+                    playersRival={playersGuest}
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
+                  <GameEventWizard
+                    host={false}
+                    team={teamGuest}
+                    players={playersGuest}
+                    teamRival={teamHost}
+                    playersRival={playersHost}
+                    gameSettings={gameSettings}
+                    gameData={gameData}
+                  />
+                </Stack>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <Paper>
+                <Timer
+                  gameSettings={gameSettings}
+                  gameData={gameData}
+                  updateGameResult={updateGameResult}
+                  timeInMinutes={
+                    gameSettings?.periods?.find(
+                      (p: Period) =>
+                        p.name === gameData?.gameResult?.periodActive
+                    )?.duration || 20
+                  }
+                />
+
+                <Finalization
+                  gameData={gameData}
+                  updateGameResult={updateGameResult}
+                  teamHost={teamHost}
+                  teamGuest={teamGuest}
+                />
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <EventsTable
+                teams={gameData?.teamsConnection?.edges}
+                players={gameData?.playersConnection?.edges}
                 gameData={gameData}
-                updateGameResult={updateGameResult}
-                teamHost={teamHost}
-                teamGuest={teamGuest}
+                gameSettings={gameSettings}
               />
-            </Paper>
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <EventsTable
-              teams={gameData?.teamsConnection?.edges}
-              players={gameData?.playersConnection?.edges}
-              gameData={gameData}
-              gameSettings={gameSettings}
-            />
-          </Grid>
-        </Grid>
-      )}
-    </Container>
+        )}
+      </Container>
+      <FastEventsMenu
+        teamHost={teamHost}
+        teamGuest={teamGuest}
+        playersHost={playersHost}
+        playersGuest={playersGuest}
+        gameData={gameData}
+      />
+    </>
   )
 }
 
