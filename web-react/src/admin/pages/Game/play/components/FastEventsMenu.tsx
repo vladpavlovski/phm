@@ -37,6 +37,13 @@ type Props = {
   playersGuest: GamePlayersRelationship[]
 }
 
+const spaceKeyBlock = (e: KeyboardEvent) => {
+  if (e.code === 'Space') {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+}
+
 export const FastEventsMenu = ({
   gameData,
   teamHost,
@@ -50,11 +57,10 @@ export const FastEventsMenu = ({
   const spacePress = useKeyPress('Space')
 
   React.useEffect(() => {
-    window.addEventListener('keydown', e => {
-      if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault()
-      }
-    })
+    window.addEventListener('keydown', spaceKeyBlock)
+    return () => {
+      window.removeEventListener('keydown', spaceKeyBlock)
+    }
   }, [])
 
   React.useEffect(() => {
@@ -140,7 +146,7 @@ const useFastSaveClick = ({
     state: { tempGameTime, tempRemainingTime },
   } = React.useContext(GameTimerContext)
 
-  return (player: GamePlayersRelationship) => {
+  return (player?: GamePlayersRelationship) => {
     const data = getEventSettings(eventType)
     if (data) {
       const { where, update } = prepareGameResultUpdate({
@@ -202,6 +208,7 @@ const TeamFastEvents = ({
     eventType: 'faceOff',
     eventRelationType: 'wonBy' as keyof TWizardGameEventSimple,
   })
+
   return (
     <Box sx={{ height: '50%', overflow: 'auto' }}>
       <Stack
@@ -231,7 +238,17 @@ const TeamFastEvents = ({
       <Grid container spacing={0} sx={{ overflow: 'scroll', mt: 6 }}>
         <Grid item xs={4}>
           <Title sx={{ textAlign: 'center' }}>Saves</Title>
-          <PlayersButtonsByJersey players={players} onClick={saveClick} />
+          <Button
+            onClick={() => {
+              const goalkeeper = players.find(p => p.goalkeeper)
+              saveClick(goalkeeper)
+            }}
+            type="button"
+            variant={'contained'}
+            sx={{ mb: 1, width: '100%', fontSize: 28 }}
+          >
+            Save
+          </Button>
         </Grid>
         <Grid item xs={4}>
           <Title sx={{ textAlign: 'center' }}>Events</Title>

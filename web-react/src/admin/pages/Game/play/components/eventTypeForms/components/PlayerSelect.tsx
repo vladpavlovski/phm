@@ -68,13 +68,15 @@ const getPlayerObject = ({
   playerTitle: string
   playerToCheck?: GamePlayersRelationship
 }) => {
-  return {
-    [playerTitle]: player
-      ? player.node?.playerId === playerToCheck?.node.playerId
-        ? undefined
-        : player
-      : undefined,
-  }
+  return player
+    ? {
+        [playerTitle]: player
+          ? player.node?.playerId === playerToCheck?.node.playerId
+            ? undefined
+            : player
+          : undefined,
+      }
+    : {}
 }
 
 export { PlayerSelect, getPlayerObject }
