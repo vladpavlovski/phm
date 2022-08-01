@@ -2,7 +2,6 @@ import {
   GoalLocationType,
   LocationType,
 } from 'admin/pages/Game/play/components/eventTypeForms/components/Location'
-import dayjs from 'dayjs'
 import { useSnackbar } from 'notistack'
 import React from 'react'
 import { createCtx } from 'utils'
@@ -21,22 +20,18 @@ import {
   Team,
 } from 'utils/types'
 import { gql, useMutation } from '@apollo/client'
-import AddTaskIcon from '@mui/icons-material/AddTask'
 import Button from '@mui/material/Button'
-import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import Stack from '@mui/material/Stack'
-import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import Zoom from '@mui/material/Zoom'
 import { prepareGameResultUpdate } from '../handlers'
 import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
 import { EventTypeForm } from './eventTypeForms'
-import { getEventSettings, TEventType } from './gameEvents'
+import { TEventType } from './gameEvents'
 import { GameEventTypes } from './GameEventTypes'
 
 const CREATE_GES = gql`
@@ -659,106 +654,6 @@ const GameEventWizard: React.FC<TGameEventWizard> = ({
   }
   return (
     <Stack>
-      <Tooltip
-        arrow
-        title="Select period to unblock game events"
-        placement="top"
-        disableHoverListener={!!gameData?.gameResult?.periodActive}
-        TransitionComponent={Zoom}
-      >
-        <ButtonGroup
-          orientation="vertical"
-          aria-label="vertical outlined button group"
-          variant="contained"
-          disabled={!gameData?.gameResult?.periodActive}
-        >
-          <Button
-            type="button"
-            color="primary"
-            onClick={() => {
-              update(state => ({
-                ...state,
-                openGameEventDialog: host ? 'host' : 'guest',
-              }))
-            }}
-            startIcon={<AddTaskIcon />}
-          >
-            {`Game Event`}
-          </Button>
-          <Button
-            type="button"
-            color="primary"
-            onClick={() => {
-              const data = getEventSettings('save')
-              if (data) {
-                const { where, update } = prepareGameResultUpdate({
-                  gameData,
-                  gameEventSettings: data,
-                  host,
-                })
-                const input = getInputVarsForGES({
-                  gameEventData,
-                  team,
-                  gameData,
-                  gameEventSettings: data,
-                })
-                createGameEventSimple({
-                  variables: {
-                    input: {
-                      ...input,
-                      timestamp: dayjs().format(),
-                      // remainingTime: tempRemainingTime,
-                      // gameTime: tempGameTime,
-                    },
-                    gameResultWhere: where,
-                    gameResultUpdateInput: update,
-                  },
-                })
-                handleClose()
-              }
-            }}
-          >
-            {`Save`}
-          </Button>
-          <Button
-            type="button"
-            color="primary"
-            onClick={() => {
-              const data = getEventSettings('faceOff')
-
-              if (data) {
-                const { where, update } = prepareGameResultUpdate({
-                  gameData,
-                  gameEventSettings: data,
-                  host,
-                })
-                const input = getInputVarsForGES({
-                  gameEventData,
-                  team,
-                  gameData,
-                  gameEventSettings: data,
-                })
-                createGameEventSimple({
-                  variables: {
-                    input: {
-                      ...input,
-                      timestamp: dayjs().format(),
-                      // remainingTime: tempRemainingTime,
-                      // tempGameTime: tempGameTime,
-                    },
-                    gameResultWhere: where,
-                    gameResultUpdateInput: update,
-                  },
-                })
-
-                handleClose()
-              }
-            }}
-          >
-            {`FaceOff`}
-          </Button>
-        </ButtonGroup>
-      </Tooltip>
       <Divider sx={{ margin: '1rem 0' }} />
       <Typography variant="subtitle2" gutterBottom component="div">
         {`Saves: ${getCountOfEventTypes(

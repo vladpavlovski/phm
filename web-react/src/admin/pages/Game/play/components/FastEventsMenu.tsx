@@ -64,10 +64,10 @@ export const FastEventsMenu = ({
   }, [])
 
   React.useEffect(() => {
-    if (spacePress) {
+    if (spacePress && !!gameData?.gameResult?.periodActive) {
       setOpenMenu(prev => !prev)
     }
-  }, [spacePress])
+  }, [spacePress, gameData])
 
   return gameData ? (
     <ClickAwayListener
@@ -113,6 +113,7 @@ export const FastEventsMenu = ({
         >
           <BottomNavigation showLabels>
             <BottomNavigationAction
+              disabled={!gameData?.gameResult?.periodActive}
               label="Fast Menu"
               sx={{ maxWidth: '100%' }}
               icon={<WidgetsIcon />}
