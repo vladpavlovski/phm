@@ -452,10 +452,7 @@ const getCountOfEventTypes = (
   )?.length
 
 export const useGameEventMutations = (gameData: Game) => {
-  const {
-    // state: { openGameEventDialog, gameEventSettings, gameEventData },
-    update,
-  } = React.useContext(GameEventFormContext)
+  const { update } = React.useContext(GameEventFormContext)
   const { enqueueSnackbar } = useSnackbar()
   const previousGameEventSimpleId = React.useRef()
 
@@ -476,7 +473,7 @@ export const useGameEventMutations = (gameData: Game) => {
               ...queryResult?.games?.[0],
               gameResult: data?.updateGameResults?.gameResults?.[0],
               gameEventsSimple: [
-                data?.createGameEventSimples?.gameEventSimples?.[0],
+                ...data?.createGameEventSimples?.gameEventSimples,
                 ...(queryResult?.games?.[0]?.gameEventsSimple || []),
               ],
             },

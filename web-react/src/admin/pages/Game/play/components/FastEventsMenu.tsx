@@ -128,16 +128,18 @@ export const FastEventsMenu = ({
   ) : null
 }
 
-const useFastSaveClick = ({
+export const useFastSaveClick = ({
   gameData,
   team,
   eventType,
   eventRelationType,
+  eventsCount = 1,
 }: {
   gameData: Game
   team: Team
   eventType: string
   eventRelationType: keyof TWizardGameEventSimple
+  eventsCount?: number
 }) => {
   const { createGameEventSimple } = useGameEventMutations(gameData)
   const {
@@ -169,14 +171,15 @@ const useFastSaveClick = ({
         gameData,
         gameEventSettings: data,
       })
+
       createGameEventSimple({
         variables: {
-          input: {
+          input: new Array(eventsCount).fill(undefined).map(() => ({
             ...input,
             timestamp: dayjs().format(),
             remainingTime: tempRemainingTime,
             gameTime: tempGameTime,
-          },
+          })),
           gameResultWhere: where,
           gameResultUpdateInput: update,
         },

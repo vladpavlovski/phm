@@ -1,3 +1,4 @@
+import { BulkActions } from 'admin/pages/Game/play/components/BulkActions'
 import { FastEventsMenu } from 'admin/pages/Game/play/components/FastEventsMenu'
 import { Error, Loader, Title } from 'components'
 import { LinkButton } from 'components/LinkButton'
@@ -19,7 +20,8 @@ import {
 } from 'utils/types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { Grid, Stack } from '@mui/material'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { Box, Grid, Stack, Tab } from '@mui/material'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
@@ -356,7 +358,11 @@ const Play: React.FC = () => {
   const classes = useStyles()
   const { gameId, organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
+  const [selectedTab, setSelectedTab] = React.useState('eventsTable')
 
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue)
+  }
   const {
     loading: queryLoading,
     data: {
@@ -552,12 +558,43 @@ const Play: React.FC = () => {
               </Paper>
             </Grid>
             <Grid item xs={12}>
-              <EventsTable
-                teams={gameData?.teamsConnection?.edges}
-                players={gameData?.playersConnection?.edges}
-                gameData={gameData}
-                gameSettings={gameSettings}
-              />
+              <TabContext value={selectedTab}>
+                <Box sx={{ width: '100%' }}>
+                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <TabList
+                      onChange={handleChange}
+                      aria-label="control tabs"
+                      centered
+                    >
+                      <Tab
+                        label="Events table"
+                        value="eventsTable"
+                        {...a11yProps(0)}
+                      />
+                      <Tab
+                        label="Bulk Actions"
+                        value="bulkActions"
+                        {...a11yProps(1)}
+                      />
+                    </TabList>
+                  </Box>
+                  <TabPanel value={'eventsTable'} sx={{ p: 0 }}>
+                    <EventsTable
+                      teams={gameData?.teamsConnection?.edges}
+                      players={gameData?.playersConnection?.edges}
+                      gameData={gameData}
+                      gameSettings={gameSettings}
+                    />
+                  </TabPanel>
+                  <TabPanel value={'bulkActions'} sx={{ p: 0 }}>
+                    <BulkActions
+                      teamHost={teamHost}
+                      teamGuest={teamGuest}
+                      gameData={gameData}
+                    />
+                  </TabPanel>
+                </Box>
+              </TabContext>
             </Grid>
           </Grid>
         )}
@@ -571,6 +608,13 @@ const Play: React.FC = () => {
       />
     </>
   )
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  }
 }
 
 const Time = () => {
