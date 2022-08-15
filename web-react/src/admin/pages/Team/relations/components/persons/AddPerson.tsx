@@ -11,7 +11,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Switch from '@mui/material/Switch'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
-import { useStyles } from '../../../../commonComponents/styled'
 
 export const GET_ALL_PERSONS = gql`
   query getPersons {
