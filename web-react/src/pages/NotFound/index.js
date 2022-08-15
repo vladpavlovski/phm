@@ -31,10 +31,9 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const PageNotFound = () => {
-  const classes = useStyles()
   const history = useHistory()
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: '16px' }}>
       <div className={classes.container}>
         <Typography variant="h4">404</Typography>
         <Typography variant="subtitle1">{'Page Not Found'}</Typography>

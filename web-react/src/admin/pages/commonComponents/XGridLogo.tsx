@@ -1,6 +1,5 @@
 import React from 'react'
 import Img from 'react-cool-img'
-import { useStyles } from './styled'
 
 type TXGridLogo = {
   src: string
@@ -10,13 +9,12 @@ type TXGridLogo = {
 
 const XGridLogo: React.FC<TXGridLogo> = props => {
   const { src, placeholder, alt } = props
-  const classes = useStyles()
 
   return (
     <Img
       placeholder={placeholder}
       src={src}
-      className={classes.xGridLogo}
+      style={{ width: '6rem', height: '6rem' }}
       alt={alt}
     />
   )

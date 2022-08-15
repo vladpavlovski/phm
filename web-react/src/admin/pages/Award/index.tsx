@@ -12,7 +12,6 @@ import { Container, Grid, Paper, Toolbar } from '@mui/material'
 import OrganizationContext from '../../../context/organization'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -178,7 +177,6 @@ type TParams = {
 
 const Award: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { awardId, organizationSlug } = useParams<TParams>()
   const { organizationData } = React.useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
@@ -313,8 +311,15 @@ const Award: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title>{'Award'}</Title>
                     </div>

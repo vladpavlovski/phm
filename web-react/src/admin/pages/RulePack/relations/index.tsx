@@ -1,5 +1,4 @@
 import React from 'react'
-import { useStyles } from '../../commonComponents/styled'
 import { GoalTypes } from './components/GoalTypes'
 import { InjuryTypes } from './components/InjuryTypes'
 import { PenaltyShotStatuses } from './components/PenaltyShotStatuses'
@@ -17,10 +16,8 @@ type TRelations = {
   rulePackId: string
 }
 const Relations: React.FC<TRelations> = props => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.accordionWrapper}>
+    <div style={{ paddingTop: '16px' }}>
       <PositionTypes {...props} />
       <Periods {...props} />
       <ShotTypes {...props} />

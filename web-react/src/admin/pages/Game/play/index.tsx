@@ -26,7 +26,6 @@ import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { useStyles } from '../../commonComponents/styled'
 import { EventsTable, Finalization, GameEventWizard, Periods, Timer } from './components'
 
 export const GET_GAME_PLAY = gql`
@@ -355,7 +354,6 @@ export type TQueryTypeVars = {
 }
 
 const Play: React.FC = () => {
-  const classes = useStyles()
   const { gameId, organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
   const [selectedTab, setSelectedTab] = React.useState('eventsTable')
@@ -482,8 +480,15 @@ const Play: React.FC = () => {
               />
             </Grid>
             <Grid item xs={12} lg={8}>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
+              <Paper sx={{ p: '16px' }}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Title>{teamHost?.name ?? 'Host team'}</Title>
                   <Title>{teamGuest?.name ?? 'Guest team'}</Title>
                 </Toolbar>
@@ -491,7 +496,7 @@ const Play: React.FC = () => {
                   <Img
                     placeholder={placeholderPerson}
                     src={teamHost?.logo}
-                    className={classes.gamePlayTeamLogo}
+                    // className={classes.gamePlayTeamLogo}
                     alt={teamHost?.name}
                   />
 
@@ -509,7 +514,7 @@ const Play: React.FC = () => {
                   <Img
                     placeholder={placeholderPerson}
                     src={teamGuest?.logo}
-                    className={classes.gamePlayTeamLogo}
+                    // className={classes.gamePlayTeamLogo}
                     alt={teamGuest?.name}
                   />
                 </Stack>

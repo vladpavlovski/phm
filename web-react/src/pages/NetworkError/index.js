@@ -30,9 +30,8 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const NetworkError = () => {
-  const classes = useStyles()
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: '16px' }}>
       <div className={classes.container}>
         <Typography variant="h4">Oh shucks!</Typography>
         <Typography variant="subtitle1">

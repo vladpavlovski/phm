@@ -24,7 +24,6 @@ import { Loader } from '../../../../../components/Loader'
 import { getAdminOrgCompetitionRoute } from '../../../../../router/routes'
 import { setIdFromEntityId } from '../../../../../utils'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_COMPETITIONS = gql`
   query getCompetitions {
@@ -47,7 +46,6 @@ type TParams = {
 
 const Competitions: React.FC<TCompetitions> = props => {
   const { organizationId, organization, updateOrganization } = props
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
   const handleCloseAddOrganization = useCallback(() => {
@@ -170,26 +168,26 @@ const Competitions: React.FC<TCompetitions> = props => {
         aria-controls="competitions-content"
         id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Competitions
-        </Typography>
+        <Typography>Competitions</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddOrganization}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Competition
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={organizationCompetitionsColumns}
             rows={setIdFromEntityId(organization.competitions, 'competitionId')}
@@ -220,7 +218,7 @@ const Competitions: React.FC<TCompetitions> = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new competition`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allCompetitionsColumns}
                     rows={setIdFromEntityId(

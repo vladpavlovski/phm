@@ -32,7 +32,7 @@ import OrganizationContext from '../../context/organization'
 import * as ROUTES from '../../router/routes'
 import { SubList } from './styled'
 
-const useGeneralMenuState = createPersistedState<boolean>('HMS-GeneralMenu')
+const useGeneralMenuState = createPersistedState('HMS-GeneralMenu')
 
 type TListItemLink = ListItemIconProps &
   ListItemTextProps &

@@ -1,24 +1,19 @@
-import React from 'react'
-import { gql, useMutation, MutationFunction } from '@apollo/client'
+import { LinkButton } from 'components/LinkButton'
 import { useSnackbar } from 'notistack'
-
+import React from 'react'
+import { setIdFromEntityId } from 'utils'
+import { Player, Team } from 'utils/types'
+import { gql, MutationFunction, useMutation } from '@apollo/client'
+import EditIcon from '@mui/icons-material/Edit'
+import Button from '@mui/material/Button'
+import ButtonBase from '@mui/material/ButtonBase'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-import EditIcon from '@mui/icons-material/Edit'
 import Tooltip from '@mui/material/Tooltip'
-import ButtonBase from '@mui/material/ButtonBase'
-import { LinkButton } from 'components/LinkButton'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import { useStyles } from '../../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-// import TeamPlayersContext from './context'
-import { Player, Team } from 'utils/types'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { TeamPlayersContext } from './index'
 
 export const UPDATE_PLAYER = gql`
@@ -49,7 +44,6 @@ type TSetPlayerJersey = {
 
 const SetPlayerJersey: React.FC<TSetPlayerJersey> = React.memo(props => {
   const { player } = props
-  // setPlayerJerseyDialogOpen, setPlayerData
   const { update } = React.useContext(TeamPlayersContext)
 
   return (
@@ -63,8 +57,6 @@ const SetPlayerJersey: React.FC<TSetPlayerJersey> = React.memo(props => {
           playerJerseyDialogOpen: true,
           playerData: player,
         }))
-        // setPlayerData(player)
-        // setPlayerJerseyDialogOpen(true)
       }}
     >
       <Tooltip arrow title="Set Jersey" placement="top">
@@ -81,15 +73,7 @@ type TPlayerJerseyDialog = {
 const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
   const { team } = props
   const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
-  const {
-    // playerJerseyDialogOpen,
-    // setPlayerJerseyDialogOpen,
-    // playerData: player,
-    // setPlayerData,
-    state,
-    update,
-  } = React.useContext(TeamPlayersContext)
+  const { state, update } = React.useContext(TeamPlayersContext)
 
   const handleCloseDialog = React.useCallback(() => {
     update(state => ({
@@ -97,8 +81,6 @@ const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
       playerJerseyDialogOpen: false,
       playerData: null,
     }))
-    // setPlayerJerseyDialogOpen(false)
-    // setPlayerData(null)
   }, [])
 
   const [updatePlayer] = useMutation(UPDATE_PLAYER, {
@@ -161,7 +143,7 @@ const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
         <>
           <DialogTitle id="alert-dialog-title">{`Set ${state?.playerData?.name} jerseys for ${team?.name}`}</DialogTitle>
           <DialogContent>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={teamJerseysColumns}
                 rows={setIdFromEntityId(team?.jerseys, 'jerseyId')}

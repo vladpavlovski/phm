@@ -1,4 +1,3 @@
-import { useStyles } from 'admin/pages/commonComponents/styled'
 import { XGridLogo } from 'admin/pages/commonComponents/XGridLogo'
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
@@ -195,7 +194,6 @@ type TGameReportParams = {
 
 const GameReport: React.FC = () => {
   const { gameId } = useParams<TGameReportParams>()
-  const classes = useStyles()
 
   const {
     loading: queryLoading,
@@ -421,7 +419,7 @@ const GameReport: React.FC = () => {
         <>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <Typography variant="h4" component="div">
                   {`${gameData?.headline}`}
                 </Typography>
@@ -432,7 +430,7 @@ const GameReport: React.FC = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 {upSm && (
                   <>
                     <Typography
@@ -483,7 +481,14 @@ const GameReport: React.FC = () => {
                   </>
                 )}
                 <Divider />
-                <Toolbar disableGutters className={classes.toolbarForm}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Typography
                     sx={{ textAlign: 'left' }}
                     variant="h6"
@@ -542,7 +547,7 @@ const GameReport: React.FC = () => {
                             : theme?.palette?.error?.main,
                         }}
                         src={teamHost?.logo}
-                        className={classes.gamePlayTeamLogo}
+                        // className={classes.gamePlayTeamLogo}
                         alt={teamHost?.name}
                       />
                     </div>
@@ -554,7 +559,7 @@ const GameReport: React.FC = () => {
                         fontFamily: 'Digital Numbers Regular',
                       }}
                       component="div"
-                      className={classes.gamePlayScore}
+                      // className={classes.gamePlayScore}
                     >
                       {`${gameData?.gameResult?.hostGoals}:${gameData?.gameResult?.guestGoals}`}
                     </Typography>
@@ -579,7 +584,7 @@ const GameReport: React.FC = () => {
                             : theme?.palette?.error?.main,
                         }}
                         src={teamGuest?.logo}
-                        className={classes.gamePlayTeamLogo}
+                        // className={classes.gamePlayTeamLogo}
                         alt={teamGuest?.name}
                       />
                     </div>
@@ -663,14 +668,17 @@ const GameReport: React.FC = () => {
               </Paper>
             </Grid>
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <Typography variant="body1" component="div">
                   {`${gameData?.perex}`}
                 </Typography>
               </Paper>
             </Grid>
             <Grid item xs={12}>
-              <div style={{ height: '50rem' }} className={classes.xGridWrapper}>
+              <div
+                style={{ height: '50rem' }}
+                //  className={classes.xGridWrapper}
+              >
                 <DataGridPro
                   columns={columns}
                   rows={setIdFromEntityId(
@@ -713,7 +721,6 @@ const GameReport: React.FC = () => {
 
 const GameLineup = (props: { players: Player[] }) => {
   const { players } = props
-  const classes = useStyles()
 
   const gameLineupColumns = React.useMemo<GridColumns>(
     () => [
@@ -884,7 +891,10 @@ const GameLineup = (props: { players: Player[] }) => {
   )
 
   return (
-    <div style={{ height: '30rem' }} className={classes.xGridWrapper}>
+    <div
+      style={{ height: '30rem' }}
+      //  className={classes.xGridWrapper}
+    >
       <DataGridPro
         columns={gameLineupColumns}
         rows={setIdFromEntityId(players, 'playerId')}

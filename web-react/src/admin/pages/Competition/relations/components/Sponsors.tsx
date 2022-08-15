@@ -22,7 +22,6 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
@@ -45,7 +44,6 @@ type TParams = {
 
 const Sponsors: React.FC<TRelations> = props => {
   const { competitionId, competition, updateCompetition } = props
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
 
@@ -175,17 +173,19 @@ const Sponsors: React.FC<TRelations> = props => {
         aria-controls="sponsors-content"
         id="sponsors-header"
       >
-        <Typography className={classes.accordionFormTitle}>Sponsors</Typography>
+        <Typography>Sponsors</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddSponsor}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Sponsor
@@ -199,7 +199,7 @@ const Sponsors: React.FC<TRelations> = props => {
             </LinkButton>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={competitionSponsorsColumns}
             rows={setIdFromEntityId(competition.sponsors, 'sponsorId')}
@@ -227,7 +227,7 @@ const Sponsors: React.FC<TRelations> = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add new sponsor to ${competition?.name}`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allSponsorsColumns}
                     rows={setIdFromEntityId(

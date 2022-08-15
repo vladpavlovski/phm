@@ -24,7 +24,6 @@ import { Loader } from '../../../../../components/Loader'
 import { getAdminOrgRulePackRoute } from '../../../../../router/routes'
 import { setIdFromEntityId } from '../../../../../utils'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_RULEPACKS = gql`
   query getRulePacks {
@@ -47,7 +46,6 @@ type TParams = {
 const RulePacks: React.FC<TRulePacks> = props => {
   const { organizationId, organization, updateOrganization } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
@@ -171,26 +169,26 @@ const RulePacks: React.FC<TRulePacks> = props => {
         aria-controls="rulePacks-content"
         id="rulePacks-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          RulePacks
-        </Typography>
+        <Typography>RulePacks</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddOrganization}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add RulePack
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={organizationRulePacksColumns}
             rows={setIdFromEntityId(organization.rulePacks, 'rulePackId')}
@@ -221,7 +219,7 @@ const RulePacks: React.FC<TRulePacks> = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new rulePack`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allRulePacksColumns}
                     rows={setIdFromEntityId(

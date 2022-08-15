@@ -1,32 +1,27 @@
-import React, { useState, useCallback } from 'react'
-
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { Error } from 'components/Error'
+import { Loader } from 'components/Loader'
 import { useSnackbar } from 'notistack'
+import React, { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
+import { Competition, Game, Group, Phase, Season } from 'utils/types'
+import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
+import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import Box from '@mui/material/Box'
-import Collapse from '@mui/material/Collapse'
-
-import Switch from '@mui/material/Switch'
-import IconButton from '@mui/material/IconButton'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
-import { Loader } from 'components/Loader'
-import { Error } from 'components/Error'
-import { useStyles } from '../../../commonComponents/styled'
-import { Competition, Game, Phase, Group, Season } from 'utils/types'
+import Typography from '@mui/material/Typography'
 
 const GET_MEMBERSHIP = gql`
   query getMembership(
@@ -98,7 +93,6 @@ type TMembership = {
 
 const Membership: React.FC<TMembership> = props => {
   const { gameId } = props
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [
     getData,
@@ -134,10 +128,7 @@ const Membership: React.FC<TMembership> = props => {
         aria-controls="membership-content"
         id="membership-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Membership
-        </Typography>
-        <Typography className={classes.accordionFormDescription}></Typography>
+        <Typography>Membership</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}

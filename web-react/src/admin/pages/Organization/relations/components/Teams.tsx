@@ -21,7 +21,6 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams {
@@ -39,8 +38,6 @@ type TTeams = {
 
 const Teams: React.FC<TTeams> = props => {
   const { organizationId, organization, updateOrganization } = props
-
-  const classes = useStyles()
 
   const [openAddOrganization, setOpenAddOrganization] = useState(false)
 
@@ -164,24 +161,26 @@ const Teams: React.FC<TTeams> = props => {
         aria-controls="teams-content"
         id="teams-header"
       >
-        <Typography className={classes.accordionFormTitle}>Teams</Typography>
+        <Typography>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddOrganization}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Team
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={organizationTeamsColumns}
             rows={setIdFromEntityId(organization?.teams, 'teamId')}
@@ -212,7 +211,7 @@ const Teams: React.FC<TTeams> = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add ${organization?.name} to new team`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allTeamsColumns}
                     rows={setIdFromEntityId(

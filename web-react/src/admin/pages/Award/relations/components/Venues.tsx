@@ -1,23 +1,18 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
+import { Error, LinkButton, Loader } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import AccountBox from '@mui/icons-material/AccountBox'
-
-import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { getAdminOrgVenueRoute } from 'router/routes'
-
-import { Error, Loader, LinkButton } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from 'utils'
 import { Award } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Switch from '@mui/material/Switch'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 
 export const GET_ALL_VENUES = gql`
   query getVenues($where: VenueWhere) {
@@ -41,7 +36,6 @@ type TParams = {
 const Venues: React.FC<TRelations> = props => {
   const { awardId, updateAward, award } = props
   const { organizationSlug } = useParams<TParams>()
-  const classes = useStyles()
 
   const [
     getData,
@@ -106,13 +100,13 @@ const Venues: React.FC<TRelations> = props => {
         aria-controls="venues-content"
         id="venues-header"
       >
-        <Typography className={classes.accordionFormTitle}>Venues</Typography>
+        <Typography>Venues</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {queryData && (
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               disableMultipleSelection
               disableSelectionOnClick

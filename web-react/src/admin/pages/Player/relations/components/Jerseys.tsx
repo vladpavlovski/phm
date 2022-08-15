@@ -1,26 +1,22 @@
-import React, { useCallback, useState, useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { setIdFromEntityId } from 'utils'
+import { Jersey, Player, Team } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Player, Team, Jersey } from 'utils/types'
 
 type TJerseys = {
   playerId: string
@@ -31,7 +27,6 @@ type TJerseys = {
 const Jerseys: React.FC<TJerseys> = props => {
   const { playerId, player, updatePlayer } = props
 
-  const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
   const handleCloseAddPlayer = useCallback(() => {
@@ -156,24 +151,26 @@ const Jerseys: React.FC<TJerseys> = props => {
         aria-controls="jerseys-content"
         id="jerseys-header"
       >
-        <Typography className={classes.accordionFormTitle}>Jerseys</Typography>
+        <Typography>Jerseys</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddPlayer}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Assign Jersey
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={playerJerseysColumns}
             rows={setIdFromEntityId(player.jerseys, 'jerseyId')}
@@ -193,7 +190,7 @@ const Jerseys: React.FC<TJerseys> = props => {
       >
         <DialogTitle id="alert-dialog-title">{`Assign new jersey to${player?.name}`}</DialogTitle>
         <DialogContent>
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               columns={allJerseysColumns}
               rows={setIdFromEntityId(

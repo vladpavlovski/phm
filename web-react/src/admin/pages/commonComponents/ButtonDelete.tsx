@@ -8,7 +8,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import { useStyles } from './styled'
 
 type TButtonDelete = LoadingButtonProps &
   Omit<DialogProps, 'open'> & {
@@ -17,7 +16,6 @@ type TButtonDelete = LoadingButtonProps &
 
 const ButtonDelete: React.FC<TButtonDelete> = props => {
   const { onClick, className, loading, color, size, variant } = props
-  const classes = useStyles()
 
   const [openDialog, setOpenDialog] = useState(false)
 
@@ -34,7 +32,7 @@ const ButtonDelete: React.FC<TButtonDelete> = props => {
         onClick={() => {
           setOpenDialog(true)
         }}
-        className={clsx(className, classes.submit)}
+        className={clsx(className)}
         startIcon={<DeleteForever />}
         loading={loading}
         loadingPosition="start"

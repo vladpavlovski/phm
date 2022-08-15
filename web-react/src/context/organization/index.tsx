@@ -1,16 +1,16 @@
 import React from 'react'
-
 import createPersistedState from 'use-persisted-state'
+
 type ProviderPropsTypes = {
   children: React.ReactChild
 }
 
-type TOrgData = {
-  organizationId: string
-  urlSlug: string
-  name: string
-  nick: string
-}
+// type TOrgData = {
+//   organizationId: string
+//   urlSlug: string
+//   name: string
+//   nick: string
+// }
 
 type ContextTypes = {
   organizationData: {
@@ -41,9 +41,7 @@ const initialContextState = {
 }
 const OrganizationContext =
   React.createContext<ContextTypes>(initialContextState)
-const useHMSOrganizationDataState = createPersistedState<TOrgData>(
-  'HMS-OrganizationData'
-)
+const useHMSOrganizationDataState = createPersistedState('HMS-OrganizationData')
 
 const OrganizationProvider: React.FC<ProviderPropsTypes> = props => {
   const [organizationData, setOrganizationData] = useHMSOrganizationDataState(

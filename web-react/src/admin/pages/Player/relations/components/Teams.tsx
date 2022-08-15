@@ -1,36 +1,30 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
+import { Error } from 'components/Error'
+import { LinkButton } from 'components/LinkButton'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgTeamRoute } from 'router/routes'
+import { setIdFromEntityId, sortByStatus } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { Player } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgTeamRoute } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
-import { Error } from 'components/Error'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, sortByStatus } from 'utils'
-import { useXGridSearch } from 'utils/hooks'
-import { Player } from 'utils/types'
 
 export const GET_ALL_TEAMS = gql`
   query getTeams($where: TeamWhere) {
@@ -54,8 +48,6 @@ type TTeamsParams = {
 
 const Teams: React.FC<TTeams> = React.memo(props => {
   const { playerId, player, updatePlayer } = props
-
-  const classes = useStyles()
   const { organizationSlug } = useParams<TTeamsParams>()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
 
@@ -211,18 +203,20 @@ const Teams: React.FC<TTeams> = React.memo(props => {
         aria-controls="teams-content"
         id="teams-header"
       >
-        <Typography className={classes.accordionFormTitle}>Teams</Typography>
+        <Typography>Teams</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <>
-          <Toolbar disableGutters className={classes.toolbarForm}>
+          <Toolbar
+            disableGutters
+            sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+          >
             <div />
             <div>
               <Button
                 onClick={handleOpenAddPlayer}
                 variant={'outlined'}
                 size="small"
-                className={classes.submit}
                 startIcon={<AddIcon />}
               >
                 Add To Team
@@ -236,7 +230,7 @@ const Teams: React.FC<TTeams> = React.memo(props => {
               </LinkButton>
             </div>
           </Toolbar>
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               columns={playerTeamsColumns}
               rows={setIdFromEntityId(player.teams, 'teamId')}
@@ -263,7 +257,7 @@ const Teams: React.FC<TTeams> = React.memo(props => {
           <>
             <DialogTitle id="alert-dialog-title">{`Add ${player?.name} to new team`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 1000 }} className={classes.xGridDialog}>
+              <div style={{ height: 1000, width: '100%' }}>
                 <DataGridPro
                   columns={allTeamsColumns}
                   rows={sortByStatus(searchData, 'status')}

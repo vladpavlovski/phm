@@ -1,4 +1,3 @@
-import { useStyles } from 'admin/pages/commonComponents/styled'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import dayjs from 'dayjs'
@@ -243,14 +242,11 @@ type TGamesData = {
   groups: TGroup[]
 }
 
-const useLeagueGroupState = createPersistedState<Group | null>(
-  'HMS-LeagueStandingsGroup'
-)
+const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
 
 const XGridTable: React.FC = () => {
-  const classes = useStyles()
   const { organizationSlug } = useParams<TStandingsParams>()
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState()
+  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -462,7 +458,7 @@ const XGridTable: React.FC = () => {
               style={{
                 height: 800,
               }}
-              className={classes.xGridWrapper}
+              // className={classes.xGridWrapper}
             >
               <DataGridPro
                 apiRef={apiRef}

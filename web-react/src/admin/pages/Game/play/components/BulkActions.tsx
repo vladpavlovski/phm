@@ -2,6 +2,7 @@ import { useFastSaveClick } from 'admin/pages/Game/play/components/FastEventsMen
 import React from 'react'
 import Img from 'react-cool-img'
 import { Game, Team } from 'utils/types'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
@@ -11,7 +12,6 @@ import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/system/Box'
 
 type Props = {
   gameData: Game

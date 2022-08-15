@@ -1,7 +1,6 @@
 import React from 'react'
 import { Organization } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
-import { useStyles } from '../../commonComponents/styled'
 import { Competitions } from './components/Competitions'
 import { Occupations } from './components/Occupations'
 import { Persons } from './components/persons'
@@ -15,10 +14,8 @@ type TRelations = {
   updateOrganization: MutationFunction
 }
 const Relations: React.FC<TRelations> = props => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.accordionWrapper}>
+    <div style={{ paddingTop: '16px' }}>
       <Persons {...props} />
       <Sponsors {...props} />
       <Teams {...props} />

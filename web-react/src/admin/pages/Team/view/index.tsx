@@ -1,13 +1,12 @@
+import { LinkButton, Title, XGridPage } from 'components'
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
 import { useParams } from 'react-router-dom'
-import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
-import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 import { getAdminOrgTeamRoute } from 'router/routes'
-import { Title, LinkButton, XGridPage } from 'components'
-import { setIdFromEntityId, getXGridValueFromArray, sortByStatus } from 'utils'
-import { useStyles } from '../../commonComponents/styled'
+import { getXGridValueFromArray, setIdFromEntityId, sortByStatus } from 'utils'
+import { gql, useQuery } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 export const GET_TEAMS = gql`
   query getTeams($where: TeamWhere) {
@@ -39,7 +38,6 @@ type TParams = {
 
 const View: React.FC = () => {
   const { organizationSlug } = useParams<TParams>()
-  const classes = useStyles()
   const { error, loading, data } = useQuery(GET_TEAMS, {
     variables: {
       where: {
@@ -76,7 +74,7 @@ const View: React.FC = () => {
         renderCell: params => {
           return (
             <img
-              className={classes.teamLogoView}
+              style={{ width: '4rem', height: '4rem' }}
               src={params.value}
               alt={params.row.name}
               loading="lazy"

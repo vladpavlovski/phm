@@ -1,4 +1,3 @@
-import { useStyles } from 'admin/pages/commonComponents/styled'
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
@@ -203,24 +202,25 @@ type TPlayersStatisticsParams = {
   organizationSlug: string
 }
 
-const useLeaguePlayerStatGroup = createPersistedState<Group | null>(
+const useLeaguePlayerStatGroup = createPersistedState(
   'HMS-LeaguePlayerStatGroup'
 )
-const useLeaguePlayerStatPhase = createPersistedState<Phase | null>(
+const useLeaguePlayerStatPhase = createPersistedState(
   'HMS-LeaguePlayerStatPhase'
 )
-const useLeaguePlayerStatCompetition = createPersistedState<Competition | null>(
+const useLeaguePlayerStatCompetition = createPersistedState(
   'HMS-LeaguePlayerStatCompetition'
 )
 
 const XGridTable: React.FC = () => {
-  const classes = useStyles()
   const { organizationSlug } = useParams<TPlayersStatisticsParams>()
 
-  const [selectedGroup, setSelectedGroup] = useLeaguePlayerStatGroup(null)
-  const [selectedPhase, setSelectedPhase] = useLeaguePlayerStatPhase(null)
+  const [selectedGroup, setSelectedGroup] =
+    useLeaguePlayerStatGroup<Group | null>(null)
+  const [selectedPhase, setSelectedPhase] =
+    useLeaguePlayerStatPhase<Phase | null>(null)
   const [selectedCompetition, setSelectedCompetition] =
-    useLeaguePlayerStatCompetition(null)
+    useLeaguePlayerStatCompetition<Competition | null>(null)
 
   const [actualSeason, setActualSeason] = React.useState<Season | null>(null)
   const windowSize = useWindowSize()
@@ -509,7 +509,7 @@ const XGridTable: React.FC = () => {
             style={{
               height: getXGridHeight(toolbarRef.current, windowSize),
             }}
-            className={classes.xGridWrapper}
+            // className={classes.xGridWrapper}
           >
             <DataGridPro
               apiRef={apiRef}

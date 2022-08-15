@@ -21,7 +21,6 @@ import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -146,7 +145,6 @@ type TSeasonParams = {
 
 const Season: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { seasonId, organizationSlug } = useParams<TSeasonParams>()
   const { enqueueSnackbar } = useSnackbar()
 
@@ -220,11 +218,13 @@ const Season: React.FC = () => {
           ...decomposeDate(startDate, 'startDate'),
           ...decomposeDate(endDate, 'endDate'),
           org: {
-            disconnect: {
-              where: {
-                node: {},
+            ...(seasonId !== 'new' && {
+              disconnect: {
+                where: {
+                  node: {},
+                },
               },
-            },
+            }),
             connect: {
               where: {
                 node: { urlSlug: organizationSlug },
@@ -273,8 +273,15 @@ const Season: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title>{'Season'}</Title>
                     </div>
@@ -335,6 +342,7 @@ const Season: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFSelect
                         fullWidth
+                        required
                         control={control}
                         name="status"
                         label="Status"

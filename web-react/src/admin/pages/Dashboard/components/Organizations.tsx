@@ -1,27 +1,17 @@
-import React, { useMemo, useContext } from 'react'
-import { gql, useQuery } from '@apollo/client'
-import Grid from '@mui/material/Grid'
-import Toolbar from '@mui/material/Toolbar'
-import Paper from '@mui/material/Paper'
-import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
-import {
-  DataGridPro,
-  GridColumns,
-  GridRenderCellParams,
-} from '@mui/x-data-grid-pro'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import Tooltip from '@mui/material/Tooltip'
-
+import { Error, LinkButton, Loader, Title } from 'components'
 import OrganizationContext from 'context/organization'
-import { useStyles } from '../../commonComponents/styled'
-import {
-  getAdminOrganizationRoute,
-  getAdminOrganizationDashboardRoute,
-} from 'router/routes'
-import { LinkButton, Title, Error, Loader } from 'components'
-
+import React, { useContext, useMemo } from 'react'
+import { getAdminOrganizationDashboardRoute, getAdminOrganizationRoute } from 'router/routes'
 import { setIdFromEntityId } from 'utils'
+import { gql, useQuery } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
+import DashboardIcon from '@mui/icons-material/Dashboard'
+import EditIcon from '@mui/icons-material/Edit'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import Tooltip from '@mui/material/Tooltip'
+import { DataGridPro, GridColumns, GridRenderCellParams } from '@mui/x-data-grid-pro'
 
 const GET_ORGANIZATIONS = gql`
   query getOrganizations {
@@ -35,7 +25,6 @@ const GET_ORGANIZATIONS = gql`
 `
 
 const Organizations: React.FC = () => {
-  const classes = useStyles()
   const { setOrganizationData } = useContext(OrganizationContext)
   const { error, loading, data } = useQuery(GET_ORGANIZATIONS)
   const columns = useMemo(
@@ -85,10 +74,12 @@ const Organizations: React.FC = () => {
   )
 
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: '16px' }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          <Toolbar className={classes.toolbarForm}>
+          <Toolbar
+            sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+          >
             <div>
               <Title>{'Organizations'}</Title>
             </div>
@@ -105,7 +96,7 @@ const Organizations: React.FC = () => {
           {loading && <Loader />}
           <Error message={error?.message} />
           {data && (
-            <div style={{ height: 440 }} className={classes.xGridWrapper}>
+            <div style={{ height: 440 }}>
               <DataGridPro
                 columns={columns}
                 rows={setIdFromEntityId(data.organizations, 'organizationId')}

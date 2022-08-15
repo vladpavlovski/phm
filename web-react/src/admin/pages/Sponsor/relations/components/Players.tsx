@@ -1,34 +1,28 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgPlayerRoute } from '../../../../../router/routes'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
+import { Error } from '../../../../../components/Error'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
-import { Sponsor } from 'utils/types'
+import { getAdminOrgPlayerRoute } from '../../../../../router/routes'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
 export const GET_ALL_PLAYERS = gql`
   query getPlayers {
@@ -60,7 +54,6 @@ type TParams = {
 const Players: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
 
-  const classes = useStyles()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
   const { organizationSlug } = useParams<TParams>()
   const handleCloseAddPlayer = useCallback(() => {
@@ -221,24 +214,26 @@ const Players: React.FC<TRelations> = props => {
         aria-controls="players-content"
         id="players-header"
       >
-        <Typography className={classes.accordionFormTitle}>Players</Typography>
+        <Typography>Players</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddPlayer}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Player
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={sponsorPlayersColumns}
             rows={setIdFromEntityId(sponsor?.players, 'playerId')}
@@ -269,7 +264,7 @@ const Players: React.FC<TRelations> = props => {
                 sponsor && sponsor.name
               }`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allPlayersColumns}
                     rows={setIdFromEntityId(

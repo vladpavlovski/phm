@@ -1,19 +1,16 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { Error, Loader } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
+import React, { useCallback, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { setIdFromEntityId } from 'utils'
 import { Award } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Switch from '@mui/material/Switch'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 
 export const GET_ALL_GROUPS = gql`
   query getGroups($where: GroupWhere) {
@@ -42,7 +39,6 @@ type TParams = {
 const Groups: React.FC<TRelations> = props => {
   const { awardId, updateAward, award } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [
     getData,
@@ -100,13 +96,13 @@ const Groups: React.FC<TRelations> = props => {
         aria-controls="groups-content"
         id="groups-header"
       >
-        <Typography className={classes.accordionFormTitle}>Groups</Typography>
+        <Typography>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {queryData && (
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               disableMultipleSelection
               disableSelectionOnClick

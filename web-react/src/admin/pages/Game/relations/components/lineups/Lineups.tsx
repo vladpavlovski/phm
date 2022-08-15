@@ -34,7 +34,6 @@ import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
 import { SetLineupJersey } from './SetLineupJersey'
 import { SetLineupPosition } from './SetLineupPosition'
@@ -189,7 +188,6 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
   const { gameId, team, host = false, players, updateGame } = props
   const [playerDialog, setPlayerDialog] = useState(false)
   const { organizationSlug } = useParams<TParams>()
-  const classes = useStyles()
 
   const [
     getTeamPlayers,
@@ -736,8 +734,11 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
 
   return (
     <>
-      <Paper className={classes.paper}>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+      <Paper sx={{ p: '16px' }}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div>
             <Title>{`${host ? 'Host' : 'Guest'} lineup${
               team ? `: ${team?.name}` : ''
@@ -826,7 +827,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
             </Menu>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             density="compact"
             columns={gameLineupColumns}
@@ -859,7 +860,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
                     {`Total players selected: ${lineupPlayers.length}`}
                   </Typography>
                 </div>
-                <div style={{ height: 1000 }} className={classes.xGridDialog}>
+                <div style={{ height: 1000, width: '100%' }}>
                   <DataGridPro
                     density="compact"
                     columns={teamPlayersColumns}

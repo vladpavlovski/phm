@@ -1,47 +1,35 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-  MutationFunction,
-} from '@apollo/client'
-
+import { Error, QuickSearchToolbar, RHFInput, RHFSelect } from 'components'
+import { timeUnitStatusList } from 'components/lists'
 import { useSnackbar } from 'notistack'
-
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { setIdFromEntityId } from 'utils'
+import { useXGridSearch } from 'utils/hooks'
+import { Competition, Group, Season } from 'utils/types'
+import { number, object, string } from 'yup'
+import { gql, MutationFunction, useLazyQuery, useMutation } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { object, string, number } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
-
+import EditIcon from '@mui/icons-material/Edit'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Autocomplete from '@mui/material/Autocomplete'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import Autocomplete from '@mui/material/Autocomplete'
-import TextField from '@mui/material/TextField'
-import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import LoadingButton from '@mui/lab/LoadingButton'
 import MenuItem from '@mui/material/MenuItem'
-import { DataGridPro, GridRowsProp, GridColumns } from '@mui/x-data-grid-pro'
-import { QuickSearchToolbar, RHFInput, RHFSelect, Error } from 'components'
-
-import { timeUnitStatusList } from 'components/lists'
+import TextField from '@mui/material/TextField'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Competition, Group, Season } from 'utils/types'
-import { useXGridSearch } from 'utils/hooks'
 
 const GET_GROUPS = gql`
   query getCompetition($where: CompetitionWhere) {
@@ -143,7 +131,6 @@ type TQueryTypeVars = {
 
 const Groups: React.FC<TRelations> = props => {
   const { competitionId } = props
-  const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
   const deletedItemId = useRef()
@@ -237,7 +224,6 @@ const Groups: React.FC<TRelations> = props => {
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -331,13 +317,16 @@ const Groups: React.FC<TRelations> = props => {
         aria-controls="groups-content"
         id="groups-header"
       >
-        <Typography className={classes.accordionFormTitle}>Groups</Typography>
+        <Typography>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Error message={queryError?.message} />
         {competition && (
           <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
+            <Toolbar
+              disableGutters
+              sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+            >
               <div />
               <div>
                 <Button
@@ -346,14 +335,13 @@ const Groups: React.FC<TRelations> = props => {
                   }}
                   variant={'outlined'}
                   size="small"
-                  className={classes.submit}
                   startIcon={<CreateIcon />}
                 >
                   Create
                 </Button>
               </div>
             </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={competitionGroupsColumns}
                 rows={searchData}

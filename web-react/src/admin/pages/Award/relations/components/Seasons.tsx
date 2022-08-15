@@ -1,21 +1,18 @@
+import { Error, LinkButton, Loader } from 'components'
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
 import { useParams } from 'react-router-dom'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import AccountBox from '@mui/icons-material/AccountBox'
-import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
 import { getAdminOrgSeasonRoute } from 'router/routes'
-import { Error, Loader, LinkButton } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
 import { formatDate, setIdFromEntityId } from 'utils'
 import { Award } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Switch from '@mui/material/Switch'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 
 export const GET_ALL_SEASONS = gql`
   query getSeasons($where: SeasonWhere) {
@@ -42,7 +39,6 @@ type TParams = {
 const Seasons: React.FC<TRelations> = props => {
   const { awardId, award, updateAward } = props
   const { organizationSlug } = useParams<TParams>()
-  const classes = useStyles()
 
   const [
     getData,
@@ -124,13 +120,13 @@ const Seasons: React.FC<TRelations> = props => {
         aria-controls="seasons-content"
         id="seasons-header"
       >
-        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
+        <Typography>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {queryData && (
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               disableMultipleSelection
               disableSelectionOnClick

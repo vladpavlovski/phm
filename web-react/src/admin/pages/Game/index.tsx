@@ -33,7 +33,6 @@ import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { GameInvitation, GameReport, GameStatus } from './components'
 import { Relations } from './relations'
 import { schema } from './schema'
@@ -407,7 +406,6 @@ export type TQueryTypeVars = {
 
 const Game: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const { gameId, organizationSlug } = useParams<TParams>()
@@ -641,8 +639,15 @@ const Game: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={8} lg={8}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title sx={{ display: 'inline' }}>{'Game'}</Title>
                     </div>
@@ -966,8 +971,15 @@ const Game: React.FC = () => {
               </Grid>
               {gameData?.gameId && (
                 <Grid item xs={12} sm={4}>
-                  <Paper className={classes.paper}>
-                    <Toolbar disableGutters className={classes.toolbarForm}>
+                  <Paper sx={{ p: '16px' }}>
+                    <Toolbar
+                      disableGutters
+                      sx={{
+                        p: 0,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <div>
                         <Title>{'Play'}</Title>
                       </div>
@@ -983,7 +995,6 @@ const Game: React.FC = () => {
                           size="medium"
                           target="_blank"
                           variant={'outlined'}
-                          className={classes.submit}
                           startIcon={<PlayCircleIcon />}
                         >
                           Play

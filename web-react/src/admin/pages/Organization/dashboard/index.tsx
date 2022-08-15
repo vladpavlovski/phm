@@ -1,15 +1,13 @@
+import { Error, Loader } from 'components'
+import LayoutContext from 'context/layout'
+import OrganizationContext from 'context/organization'
 import React, { useContext, useEffect } from 'react'
-import { useTheme } from '@mui/material/styles'
+import { useHistory, useParams } from 'react-router-dom'
+import * as ROUTES from 'router/routes'
+import { gql, useLazyQuery } from '@apollo/client'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { gql, useLazyQuery } from '@apollo/client'
-import { useParams, useHistory } from 'react-router-dom'
-import * as ROUTES from 'router/routes'
-import LayoutContext from 'context/layout'
-import OrganizationContext from 'context/organization'
-import { Loader, Error } from 'components'
-import { useStyles } from '../../commonComponents/styled'
 import { ExternalLinks } from './components/ExternalLinks'
 
 const GET_ORGANIZATIONS = gql`
@@ -28,7 +26,6 @@ type TParams = {
 }
 
 const OrganizationDashboard: React.FC = () => {
-  const theme = useTheme()
   const history = useHistory()
   const { organizationSlug } = useParams<TParams>()
   const { setBarTitle } = useContext(LayoutContext)
@@ -67,8 +64,6 @@ const OrganizationDashboard: React.FC = () => {
     }
   }, [])
 
-  const classes = useStyles(theme)
-
   return (
     <Container maxWidth="lg">
       {queryLoading && <Loader />}
@@ -78,7 +73,7 @@ const OrganizationDashboard: React.FC = () => {
           <Grid container spacing={4}>
             <Grid item xs={12} md={8} lg={7}>
               <Paper
-                className={classes.paper}
+                sx={{ p: '16px' }}
               >{`Organization Info: ${organizationData?.name}`}</Paper>
             </Grid>
             <Grid item xs={12} md={4} lg={5}>

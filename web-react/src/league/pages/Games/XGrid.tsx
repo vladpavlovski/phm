@@ -1,4 +1,3 @@
-import { useStyles } from 'admin/pages/commonComponents/styled'
 import { getColumns } from 'admin/pages/Game/view'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
@@ -96,7 +95,6 @@ type TXGridTableParams = {
 }
 
 const XGridTable: React.FC = () => {
-  const classes = useStyles()
   const { organizationSlug } = useParams<TXGridTableParams>()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -205,7 +203,7 @@ const XGridTable: React.FC = () => {
               style={{
                 height: 800,
               }}
-              className={classes.xGridWrapper}
+              // className={classes.xGridWrapper}
             >
               <DataGridPro
                 density="compact"

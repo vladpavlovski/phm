@@ -1,35 +1,28 @@
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgCompetitionRoute } from '../../../../../router/routes'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
+import { Error } from '../../../../../components/Error'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Sponsor } from 'utils/types'
+import { getAdminOrgCompetitionRoute } from '../../../../../router/routes'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
 export const GET_ALL_COMPETITIONS = gql`
   query getCompetitions {
@@ -53,7 +46,6 @@ type TParams = {
 const Competitions: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddCompetition, setOpenAddCompetition] = React.useState(false)
 
@@ -190,26 +182,26 @@ const Competitions: React.FC<TRelations> = props => {
         aria-controls="competitions-content"
         id="competitions-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Competitions
-        </Typography>
+        <Typography>Competitions</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddCompetition}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Competition
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={sponsorCompetitionsColumns}
             rows={setIdFromEntityId(sponsor.competitions, 'competitionId')}
@@ -242,7 +234,7 @@ const Competitions: React.FC<TRelations> = props => {
                 sponsor && sponsor.name
               }`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allCompetitionsColumns}
                     rows={setIdFromEntityId(

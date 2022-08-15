@@ -21,13 +21,6 @@ const useStyles = makeStyles((theme: Theme) => ({
       padding: 0,
     },
   },
-  xGridDialog: {
-    width: '100%',
-  },
-  toolbarForm: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
 }))
 
 export { useStyles }

@@ -1,28 +1,26 @@
+import { Error, LinkButton, Loader } from 'components'
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
+import { getAdminOrgRulePackRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { SystemSettings } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import GavelIcon from '@mui/icons-material/Gavel'
-import AddIcon from '@mui/icons-material/Add'
-
-import Toolbar from '@mui/material/Toolbar'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
 import Switch from '@mui/material/Switch'
-import { getAdminOrgRulePackRoute } from 'router/routes'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
-
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { LinkButton, Error, Loader } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { SystemSettings } from 'utils/types'
+
 export const GET_ALL_RULEPACKS = gql`
   query getRulePacks {
     rulePacks {
@@ -39,7 +37,6 @@ type TRelations = {
 }
 const RulePack: React.FC<TRelations> = props => {
   const { systemSettingsId, systemSettings, updateSystemSettings } = props
-  const classes = useStyles()
   const [openAddSystemSettings, setOpenAddSystemSettings] =
     React.useState(false)
 
@@ -167,26 +164,26 @@ const RulePack: React.FC<TRelations> = props => {
         aria-controls="rulePacks-content"
         id="rulePacks-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Default Rule Pack
-        </Typography>
+        <Typography>Default Rule Pack</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddSystemSettings}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add RulePack
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 110 }} className={classes.xGridDialog}>
+        <div style={{ height: 110, width: '100%' }}>
           <DataGridPro
             columns={systemSettingsRulePackColumns}
             rows={setIdFromEntityId(
@@ -214,7 +211,7 @@ const RulePack: React.FC<TRelations> = props => {
           <>
             <DialogTitle id="alert-dialog-title">{`Add default rulePack to ${systemSettings?.name}`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allRulePackColumns}
                   rows={setIdFromEntityId(

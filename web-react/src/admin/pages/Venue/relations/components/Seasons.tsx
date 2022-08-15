@@ -1,34 +1,26 @@
+import { Error, LinkButton, Loader } from 'components'
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgSeasonRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { Venue } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-
-import Toolbar from '@mui/material/Toolbar'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSeasonRoute } from 'router/routes'
-import { LinkButton, Loader, Error } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Venue } from 'utils/types'
 
 export const GET_ALL_SEASONS = gql`
   query getSeasons {
@@ -51,7 +43,7 @@ type TSeasonsParams = {
 
 const Seasons: React.FC<TRelations> = props => {
   const { venueId, venue, updateVenue } = props
-  const classes = useStyles()
+
   const { organizationSlug } = useParams<TSeasonsParams>()
   const [openAddVenue, setOpenAddVenue] = React.useState(false)
 
@@ -180,24 +172,26 @@ const Seasons: React.FC<TRelations> = props => {
         aria-controls="seasons-content"
         id="seasons-header"
       >
-        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
+        <Typography>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddVenue}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Season
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={venueSeasonsColumns}
             rows={setIdFromEntityId(venue.seasons, 'seasonId')}
@@ -224,7 +218,7 @@ const Seasons: React.FC<TRelations> = props => {
           <>
             <DialogTitle id="alert-dialog-title">{`Add ${venue?.name} to new season`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allSeasonsColumns}
                   rows={setIdFromEntityId(

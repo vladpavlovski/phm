@@ -1,5 +1,3 @@
-// import { Relations } from './relations'
-// import { getAdminUserRoute } from 'router/routes'
 import { Error, Loader, RHFInput, Title, Uploader } from 'components'
 import placeholderAvatar from 'img/placeholderPerson.jpg'
 import React, { useCallback } from 'react'
@@ -9,14 +7,12 @@ import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { isValidUuid } from 'utils'
 import { gql, useApolloClient, useQuery } from '@apollo/client'
-// import { useSnackbar } from 'notistack'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
 const GET_USER = gql`
@@ -30,40 +26,12 @@ const GET_USER = gql`
     }
   }
 `
-
-// const MERGE_USER = gql`
-//   mutation mergeUser(
-//     $userId: ID!
-//     $firstName: String
-//     $lastName: String
-//     $phone: String
-//     $email: String
-//   ) {
-//     mergeUser: MergeUser(
-//       userId: $userId
-//       firstName: $firstName
-//       lastName: $lastName
-//       phone: $phone
-//       email: $email
-//     ) {
-//       userId
-//       firstName
-//       lastName
-//       phone
-//       email
-//     }
-//   }
-// `
-
 type TParams = {
   userId: string
 }
 
 const User: React.FC = () => {
-  // const history = useHistory()
-  const classes = useStyles()
   const { userId } = useParams<TParams>()
-  // const { enqueueSnackbar } = useSnackbar()
   const client = useApolloClient()
   const {
     loading: queryLoading,
@@ -72,19 +40,6 @@ const User: React.FC = () => {
   } = useQuery(GET_USER, {
     variables: { where: { userId } },
   })
-
-  // const [mergeUser, { loading: mutationLoading, error: mutationError }] =
-  //   useMutation(MERGE_USER, {
-  //     onCompleted: data => {
-  //       if (userId === 'new') {
-  //         const newUserId = data.mergeUser.userId
-  //         history.replace(getAdminUserRoute(newUserId))
-  //       }
-  //       enqueueSnackbar(`User saved!`, {
-  //         variant: 'success',
-  //       })
-  //     },
-  //   })
 
   const { handleSubmit, control, errors, setValue, formState } = useForm({
     resolver: yupResolver(schema),
@@ -148,11 +103,11 @@ const User: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={3}>
-                <Paper className={classes.paper}>
+                <Paper sx={{ p: '16px' }}>
                   <Img
                     placeholder={placeholderAvatar}
                     src={userData.avatar}
-                    className={classes.logo}
+                    style={{ width: '100%' }}
                     alt={userData.name}
                   />
 
@@ -178,8 +133,15 @@ const User: React.FC = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={8} lg={9}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title>{'User'}</Title>
                     </div>

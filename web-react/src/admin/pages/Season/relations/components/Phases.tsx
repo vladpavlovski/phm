@@ -1,28 +1,23 @@
+import { Error, Loader } from 'components'
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
+import { formatDate, setIdFromEntityId } from 'utils'
+import { Season } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { Loader, Error } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from 'utils'
-import { Season } from 'utils/types'
 
 export const GET_ALL_PHASES = gql`
   query getPhases {
@@ -49,7 +44,6 @@ type TRelations = {
 const Phases: React.FC<TRelations> = props => {
   const { seasonId, season, updateSeason } = props
 
-  const classes = useStyles()
   const [openAddSeason, setOpenAddSeason] = React.useState(false)
 
   const handleCloseAddSeason = React.useCallback(() => {
@@ -210,24 +204,26 @@ const Phases: React.FC<TRelations> = props => {
         aria-controls="phases-content"
         id="phases-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddSeason}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Phase
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={seasonPhasesColumns}
             rows={setIdFromEntityId(season.phases, 'phaseId')}
@@ -252,7 +248,7 @@ const Phases: React.FC<TRelations> = props => {
           <>
             <DialogTitle id="alert-dialog-title">{`Add ${season?.name} to new phase`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allPhasesColumns}
                   rows={setIdFromEntityId(

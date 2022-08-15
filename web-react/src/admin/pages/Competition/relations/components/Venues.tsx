@@ -22,7 +22,6 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_VENUES = gql`
   query getVenues {
@@ -45,7 +44,6 @@ type TParams = { organizationSlug: string }
 
 const Venues: React.FC<TRelations> = props => {
   const { competitionId, competition, updateCompetition } = props
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddVenue, setOpenAddVenue] = useState(false)
 
@@ -190,17 +188,19 @@ const Venues: React.FC<TRelations> = props => {
         aria-controls="venues-content"
         id="venues-header"
       >
-        <Typography className={classes.accordionFormTitle}>Venues</Typography>
+        <Typography>Venues</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddVenue}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Venue
@@ -214,7 +214,7 @@ const Venues: React.FC<TRelations> = props => {
             </LinkButton>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={competitionVenuesColumns}
             rows={setIdFromEntityId(competition.venues, 'venueId')}
@@ -238,7 +238,7 @@ const Venues: React.FC<TRelations> = props => {
           <>
             <DialogTitle id="alert-dialog-title">{`Add ${competition?.name} to new venue`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allVenuesColumns}
                   rows={setIdFromEntityId(queryAllVenues?.venues, 'venueId')}

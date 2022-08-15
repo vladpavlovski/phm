@@ -23,7 +23,6 @@ import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
-import { useStyles } from '../../../commonComponents/styled'
 import { ensure, prepareGameResultUpdate } from '../handlers'
 import { GET_GAME_PLAY, TQueryTypeData, TQueryTypeVars } from '../index'
 import { getEventSettings, TEventType } from './gameEvents'
@@ -102,7 +101,7 @@ type TEventsTable = {
 
 const EventsTable: React.FC<TEventsTable> = props => {
   const { gameData, players, teams, gameSettings } = props
-  const classes = useStyles()
+
   const { enqueueSnackbar } = useSnackbar()
   const [openDeleteEventDialog, setOpenDeleteEventDialog] =
     React.useState(false)
@@ -682,7 +681,7 @@ const EventsTable: React.FC<TEventsTable> = props => {
   ]
 
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: '16px' }}>
       <div
         style={{
           display: 'flex',
@@ -714,7 +713,10 @@ const EventsTable: React.FC<TEventsTable> = props => {
         </ButtonGroup>
       </div>
       {gameData?.gameEventsSimple && (
-        <div style={{ height: '60rem' }} className={classes.xGridWrapper}>
+        <div
+          style={{ height: '60rem' }}
+          //  className={classes.xGridWrapper}
+        >
           <DataGridPro
             columns={columns}
             rows={setIdFromEntityId(

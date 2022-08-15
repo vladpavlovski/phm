@@ -23,7 +23,6 @@ const TextMaskCustom = React.forwardRef<HTMLElement, CustomProps>(
         }}
         // @ts-expect-error check it later
         inputRef={ref}
-        // @ts-expect-error check it later
         onAccept={(value: string) =>
           onChange({ target: { name: props.name, value } })
         }

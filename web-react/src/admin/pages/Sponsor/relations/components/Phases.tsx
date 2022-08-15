@@ -1,34 +1,28 @@
 import React from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { formatDate, setIdFromEntityId } from 'utils'
+import { Sponsor } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
-
-import Toolbar from '@mui/material/Toolbar'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminPhaseRoute } from '../../../../../router/routes'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
+import { Error } from '../../../../../components/Error'
 import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
-import { Error } from '../../../../../components/Error'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId, formatDate } from 'utils'
-import { Sponsor } from 'utils/types'
+import { getAdminPhaseRoute } from '../../../../../router/routes'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
+
 export const GET_ALL_PHASES = gql`
   query getPhases {
     phases {
@@ -53,7 +47,6 @@ type TRelations = {
 
 const Phases: React.FC<TRelations> = props => {
   const { sponsorId, sponsor, updateSponsor } = props
-  const classes = useStyles()
   const [openAddPhase, setOpenAddPhase] = React.useState(false)
 
   const handleCloseAddPhase = React.useCallback(() => {
@@ -244,24 +237,26 @@ const Phases: React.FC<TRelations> = props => {
         aria-controls="phases-content"
         id="phases-header"
       >
-        <Typography className={classes.accordionFormTitle}>Phases</Typography>
+        <Typography>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddPhase}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Phase
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={sponsorPhasesColumns}
             rows={setIdFromEntityId(sponsor.phases, 'phaseId')}
@@ -288,7 +283,7 @@ const Phases: React.FC<TRelations> = props => {
               sponsor && sponsor.name
             }`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allPhasesColumns}
                   rows={setIdFromEntityId(queryAllPhasesData.phases, 'phaseId')}

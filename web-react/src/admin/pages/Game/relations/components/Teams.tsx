@@ -1,6 +1,5 @@
 import { Error, Loader, QuickSearchToolbar, Title } from 'components'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
-// import Img from 'react-cool-img'
 import { useParams } from 'react-router-dom'
 import { setIdFromEntityId, sortByStatus } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
@@ -28,7 +27,6 @@ import { makeStyles } from '@mui/styles'
 import { Theme } from '@mui/system'
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 export const GET_ALL_TEAMS_BY_ORG = gql`
   query getTeamsByOrg($where: TeamWhere) {
@@ -61,7 +59,7 @@ type TParams = {
 const Teams: React.FC<TTeams> = props => {
   const { gameId, teams, updateGame } = props
   const { organizationSlug } = useParams<TParams>()
-  const classes = useStyles()
+
   const [teamDialog, setTeamDialog] = useState(false)
   const isHost = useRef(true)
 
@@ -105,7 +103,7 @@ const Teams: React.FC<TTeams> = props => {
         renderCell: params => {
           return (
             <img
-              className={classes.teamLogoView}
+              style={{ width: '4rem', height: '4rem' }}
               src={params.value}
               alt={params.row.name}
               loading="lazy"
@@ -136,7 +134,6 @@ const Teams: React.FC<TTeams> = props => {
             <Button
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
               type="button"
               onClick={() => {
@@ -228,7 +225,7 @@ const Teams: React.FC<TTeams> = props => {
             <>
               <DialogTitle id="alert-dialog-title">{`Add team to game`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allTeamsColumns}
                     rows={sortByStatus(searchData, 'status')}
@@ -271,7 +268,7 @@ type TTeamCard = {
   updateGame: MutationFunction
 }
 
-const TeamCard: React.FC<TTeamCard> = React.memo(props => {
+const TeamCard: React.FC<TTeamCard> = props => {
   const {
     team,
     host = false,
@@ -280,14 +277,13 @@ const TeamCard: React.FC<TTeamCard> = React.memo(props => {
     updateGame,
     color,
   } = props
-  const classes = useStyles()
 
   return (
-    <Paper
-      className={classes.paper}
-      style={{ height: '35rem', marginBottom: '2rem' }}
-    >
-      <Toolbar disableGutters className={classes.toolbarForm}>
+    <Paper sx={{ p: '16px' }} style={{ height: '35rem', marginBottom: '2rem' }}>
+      <Toolbar
+        disableGutters
+        sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+      >
         <div>
           <Title>{`${host ? 'Host' : 'Guest'}${
             team ? `: ${team?.name}` : ''
@@ -298,7 +294,6 @@ const TeamCard: React.FC<TTeamCard> = React.memo(props => {
             <Button
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               type="button"
               startIcon={<AddIcon />}
               onClick={() => openTeamDialog({ asHost: host })}
@@ -359,7 +354,8 @@ const TeamCard: React.FC<TTeamCard> = React.memo(props => {
       )}
     </Paper>
   )
-})
+}
+
 const useStylesCard = makeStyles(({ breakpoints, spacing }: Theme) => ({
   cardWrapper: {
     margin: 'auto',
@@ -393,17 +389,6 @@ const useStylesCard = makeStyles(({ breakpoints, spacing }: Theme) => ({
       marginTop: 0,
       transform: 'translateX(-16px)',
     },
-    // '&:after': {
-    //   content: '" "',
-    //   position: 'absolute',
-    //   top: 0,
-    //   left: 0,
-    //   width: '100%',
-    //   height: '100%',
-    //   backgroundImage: 'linear-gradient(147deg, #fe8a39 0%, #fd3838 74%)',
-    //   borderRadius: '50%',
-    //   opacity: 0.5,
-    // },
   },
 }))
 

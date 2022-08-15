@@ -1,18 +1,15 @@
+import { Error, Loader } from 'components'
 import React from 'react'
-
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
+import { Competition, Organization as OrganizationType } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
-import TextField from '@mui/material/TextField'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import Autocomplete from '@mui/material/Autocomplete'
 import Grid from '@mui/material/Grid'
-import { Loader, Error } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { Competition, Organization as OrganizationType } from 'utils/types'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 
 const GET_ORGANIZATIONS = gql`
   query getCompetitionOrganizations($where: OrganizationWhere) {
@@ -31,8 +28,6 @@ type TRelations = {
 
 const Organization: React.FC<TRelations> = props => {
   const { competitionId, competition, updateCompetition } = props
-
-  const classes = useStyles()
 
   const [selectedOrganization, setSelectedOrganization] = React.useState<
     OrganizationType | undefined
@@ -91,9 +86,7 @@ const Organization: React.FC<TRelations> = props => {
         aria-controls="organizations-content"
         id="organizations-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Organization
-        </Typography>
+        <Typography>Organization</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}

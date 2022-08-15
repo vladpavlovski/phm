@@ -11,8 +11,7 @@ import { MainListItems } from './listItems'
 import { AppBar, Drawer, DrawerHeader } from './styled'
 import { UserMenu } from './UserMenu'
 
-export const useLayoutSidebarState =
-  createPersistedState<boolean>('HMS-LayoutSidebar')
+export const useLayoutSidebarState = createPersistedState('HMS-LayoutSidebar')
 
 const Layout = (props: { children: React.ReactElement }) => {
   const { children } = props

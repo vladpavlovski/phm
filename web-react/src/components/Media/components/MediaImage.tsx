@@ -22,7 +22,6 @@ import ImageListItemBar from '@mui/material/ImageListItemBar'
 // import Paper from '@mui/material/Paper'
 import Zoom from '@mui/material/Zoom'
 import { GET_MEDIA } from '../index'
-import { useStyles } from '../styled'
 
 const UPDATE_FILE = gql`
   mutation updateFile($where: FileWhere, $update: FileUpdateInput) {
@@ -74,7 +73,7 @@ type TQueryTypeVars = {
 
 const MediaImage = (props: Props) => {
   const { item, onImageClick, mediaId } = props
-  const classes = useStyles()
+
   const { canEdit } = useUserInfo()
 
   const [checked, setChecked] = React.useState(false)
@@ -169,7 +168,7 @@ const MediaImage = (props: Props) => {
         <Img
           lazy
           width={'100%'}
-          className={classes.imageHover}
+          // className={classes.imageHover}
           src={`${item.src}`}
           srcSet={`${item.src}`}
           alt={item.name}

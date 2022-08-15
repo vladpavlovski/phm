@@ -90,8 +90,6 @@ const useStyles = makeStyles(theme =>
   })
 )
 
-const classes = useStyles()
-
 ;<DropzoneArea
   showPreviews={true}
   showPreviewsInDropzone={false}

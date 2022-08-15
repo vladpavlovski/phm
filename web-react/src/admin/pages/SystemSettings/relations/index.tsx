@@ -1,9 +1,7 @@
-import { MutationFunction } from '@apollo/client'
 import React from 'react'
-
-import { useStyles } from '../../commonComponents/styled'
-import { RulePack } from './components/RulePack'
 import { SystemSettings } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
+import { RulePack } from './components/RulePack'
 
 type TRelations = {
   systemSettingsId: string
@@ -11,10 +9,8 @@ type TRelations = {
   updateSystemSettings: MutationFunction
 }
 const Relations: React.FC<TRelations> = props => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.accordionWrapper}>
+    <div style={{ paddingTop: '16px' }}>
       <RulePack {...props} />
     </div>
   )

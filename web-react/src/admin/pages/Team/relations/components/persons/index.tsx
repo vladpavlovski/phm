@@ -1,31 +1,24 @@
+import { LinkButton } from 'components/LinkButton'
+import placeholderPerson from 'img/placeholderPerson.jpg'
 import React from 'react'
-import { MutationFunction } from '@apollo/client'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgPersonRoute } from 'router/routes'
+import { createCtx, getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { Person, Team } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
 import CreateIcon from '@mui/icons-material/Create'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
 import Toolbar from '@mui/material/Toolbar'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { getAdminOrgPersonRoute } from 'router/routes'
-import { LinkButton } from 'components/LinkButton'
-import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import { setIdFromEntityId, getXGridValueFromArray, createCtx } from 'utils'
 import { AddPerson } from './AddPerson'
-import {
-  SetPersonOccupation,
-  PersonOccupationDialog,
-} from './SetPersonOccupation'
-import placeholderPerson from 'img/placeholderPerson.jpg'
-import { Team, Person } from 'utils/types'
+import { PersonOccupationDialog, SetPersonOccupation } from './SetPersonOccupation'
 
 type TTeamPerson = {
   personOccupationDialogOpen: boolean
@@ -52,7 +45,6 @@ type TPersonsParams = {
 const Persons: React.FC<TPersons> = props => {
   const { teamId, team, updateTeam } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TPersonsParams>()
 
   const teamPersonsColumns = React.useMemo<GridColumns>(
@@ -164,13 +156,14 @@ const Persons: React.FC<TPersons> = props => {
             aria-controls="persons-content"
             id="persons-header"
           >
-            <Typography className={classes.accordionFormTitle}>
-              Persons
-            </Typography>
+            <Typography>Persons</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <>
-              <Toolbar disableGutters className={classes.toolbarForm}>
+              <Toolbar
+                disableGutters
+                sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+              >
                 <div />
                 <div>
                   <AddPerson
@@ -188,7 +181,7 @@ const Persons: React.FC<TPersons> = props => {
                   </LinkButton>
                 </div>
               </Toolbar>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={teamPersonsColumns}
                   rows={setIdFromEntityId(team?.persons, 'personId')}

@@ -25,20 +25,6 @@ import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { RHFInput } from '../../../../../components/RHFInput'
 import { setIdFromEntityId } from '../../../../../utils'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
-
-// const CREATE_DEFAULT_OCCUPATIONS = gql`
-//   mutation createOccupations($organizationId: ID!, $systemSettingsId: ID!) {
-//     defaultOccupations: CreateOrganizationDefaultOccupations(
-//       organizationId: $organizationId
-//       systemSettingsId: $systemSettingsId
-//     ) {
-//       occupationId
-//       name
-//       description
-//     }
-//   }
-// `
 
 type TOccupations = {
   organizationId: string
@@ -50,8 +36,6 @@ const Occupations: React.FC<TOccupations> = props => {
   const { organizationId, organization, updateOrganization } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
-  const classes = useStyles()
-
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false)
 
@@ -139,7 +123,6 @@ const Occupations: React.FC<TOccupations> = props => {
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -202,12 +185,13 @@ const Occupations: React.FC<TOccupations> = props => {
         aria-controls="occupations-content"
         id="occupations-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Occupations
-        </Typography>
+        <Typography>Occupations</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
@@ -215,7 +199,6 @@ const Occupations: React.FC<TOccupations> = props => {
               onClick={() => handleOpenDialog(null)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Create Occupation
@@ -228,7 +211,7 @@ const Occupations: React.FC<TOccupations> = props => {
                     color="primary"
                     size="small"
                     onClick={createDefaultOccupations}
-                    className={classes.submit}
+                    
                     startIcon={<CreateIcon />}
                     loading={queryCreateDefaultLoading}
                     loadingOccupation="start"
@@ -240,7 +223,7 @@ const Occupations: React.FC<TOccupations> = props => {
                 )} */}
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={organizationOccupationsColumns}
             rows={setIdFromEntityId(organization.occupations, 'occupationId')}

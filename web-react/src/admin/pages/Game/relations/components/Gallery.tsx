@@ -7,7 +7,6 @@ import Accordion from '@mui/material/Accordion'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Typography from '@mui/material/Typography'
-import { useStyles } from '../../../commonComponents/styled'
 
 type TParams = {
   organizationSlug: string
@@ -19,7 +18,7 @@ type TGallery = {
 
 const Gallery: React.FC<TGallery> = props => {
   const { gameData } = props
-  const classes = useStyles()
+
   const { organizationSlug } = useParams<TParams>()
 
   return (
@@ -29,7 +28,7 @@ const Gallery: React.FC<TGallery> = props => {
         aria-controls="gallery-content"
         id="gallery-header"
       >
-        <Typography className={classes.accordionFormTitle}>Gallery</Typography>
+        <Typography>Gallery</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Media

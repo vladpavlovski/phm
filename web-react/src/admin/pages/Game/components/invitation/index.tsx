@@ -1,4 +1,3 @@
-import { useStyles } from 'admin/pages/commonComponents/styled'
 import dayjs from 'dayjs'
 import React from 'react'
 import Img from 'react-cool-img'
@@ -57,7 +56,7 @@ type TFormDialog = {
 
 const FormDialog: React.FC<TFormDialog> = props => {
   const { openDialog, setOpenDialog, gameData } = props
-  const classes = useStyles()
+
   const teamHost = getTeamByHost(true, gameData?.teamsConnection?.edges)
   const teamGuest = getTeamByHost(false, gameData?.teamsConnection?.edges)
 
@@ -77,7 +76,7 @@ const FormDialog: React.FC<TFormDialog> = props => {
         <Container>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <>
                   <Typography
                     variant="subtitle2"
@@ -104,7 +103,14 @@ const FormDialog: React.FC<TFormDialog> = props => {
                 </>
 
                 <Divider />
-                <Toolbar disableGutters className={classes.toolbarForm}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Typography
                     sx={{ textAlign: 'left' }}
                     variant="h6"
@@ -134,7 +140,7 @@ const FormDialog: React.FC<TFormDialog> = props => {
                     >
                       <Img
                         src={teamHost?.logo}
-                        className={classes.gamePlayTeamLogo}
+                        // className={classes.gamePlayTeamLogo}
                         alt={teamHost?.name}
                       />
                       <AccountBoxIcon
@@ -167,7 +173,7 @@ const FormDialog: React.FC<TFormDialog> = props => {
                     >
                       <Img
                         src={teamGuest?.logo}
-                        className={classes.gamePlayTeamLogo}
+                        // className={classes.gamePlayTeamLogo}
                         alt={teamGuest?.name}
                       />
                       <AccountBoxIcon
@@ -211,7 +217,7 @@ const FormDialog: React.FC<TFormDialog> = props => {
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <ShareGameInvite
                   gameData={gameData}
                   teamHost={teamHost}

@@ -25,7 +25,6 @@ import Toolbar from '@mui/material/Toolbar'
 import OrganizationContext from '../../../context/organization'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -132,7 +131,6 @@ type TParams = {
 
 const Competition: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const { competitionId, organizationSlug } = useParams<TParams>()
   const client = useApolloClient()
@@ -291,11 +289,11 @@ const Competition: React.FC = () => {
           </Helmet>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4} lg={3}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <Img
                   placeholder={placeholderOrganization}
                   src={competitionData?.logo}
-                  className={classes.logo}
+                  style={{ width: '100%' }}
                   alt={competitionData?.name}
                 />
 
@@ -322,8 +320,15 @@ const Competition: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={12} lg={9}>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
+              <Paper sx={{ p: '16px' }}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <div>
                     <Title>{'Competition'}</Title>
                   </div>

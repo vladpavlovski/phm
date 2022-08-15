@@ -19,7 +19,6 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../../commonComponents/styled'
 import { XGridLogo } from '../../../../commonComponents/XGridLogo'
 import { AddPlayer } from './AddPlayer'
 import { PlayerJerseyDialog, SetPlayerJersey } from './SetPlayerJersey'
@@ -50,7 +49,6 @@ type TPlayersParams = {
 const Players: React.FC<TPlayers> = React.memo(props => {
   const { teamId, team, updateTeam } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TPlayersParams>()
 
   const teamPlayersColumns = React.useMemo<GridColumns>(
@@ -191,12 +189,13 @@ const Players: React.FC<TPlayers> = React.memo(props => {
           aria-controls="players-content"
           id="players-header"
         >
-          <Typography className={classes.accordionFormTitle}>
-            Players
-          </Typography>
+          <Typography>Players</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Toolbar disableGutters className={classes.toolbarForm}>
+          <Toolbar
+            disableGutters
+            sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+          >
             <div />
             <div>
               <AddPlayer team={team} teamId={teamId} updateTeam={updateTeam} />
@@ -210,7 +209,7 @@ const Players: React.FC<TPlayers> = React.memo(props => {
               </LinkButton>
             </div>
           </Toolbar>
-          <div style={{ height: 600 }} className={classes.xGridDialog}>
+          <div style={{ height: 600, width: '100%' }}>
             <DataGridPro
               columns={teamPlayersColumns}
               rows={gridRows}

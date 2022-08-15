@@ -24,7 +24,6 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 const GET_PENALTY_TYPES = gql`
   query getRulePack($where: PenaltyTypeWhere) {
@@ -135,7 +134,6 @@ type TQueryTypeVars = {
 const PenaltyTypes: React.FC<TRelations> = props => {
   const { rulePackId } = props
 
-  const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef<PenaltyType | null>(null)
   const { enqueueSnackbar } = useSnackbar()
@@ -254,7 +252,6 @@ const PenaltyTypes: React.FC<TRelations> = props => {
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -300,16 +297,17 @@ const PenaltyTypes: React.FC<TRelations> = props => {
         aria-controls="penalty-types-content"
         id="penalty-types-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Penalty Types
-        </Typography>
+        <Typography>Penalty Types</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {queryData && (
           <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
+            <Toolbar
+              disableGutters
+              sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+            >
               <div />
               <div>
                 <Button
@@ -318,14 +316,13 @@ const PenaltyTypes: React.FC<TRelations> = props => {
                   }}
                   variant={'outlined'}
                   size="small"
-                  className={classes.submit}
                   startIcon={<CreateIcon />}
                 >
                   Create
                 </Button>
               </div>
             </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={rulePackPenaltyTypesColumns}
                 rows={setIdFromEntityId(

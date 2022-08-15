@@ -11,7 +11,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Switch from '@mui/material/Switch'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
-import { useStyles } from '../../../../commonComponents/styled'
 import { OrganizationPersonsContext } from './index'
 
 const UPDATE_PERSON = gql`
@@ -38,7 +37,6 @@ type TSetPersonOccupation = {
 export const SetPersonOccupation: React.FC<TSetPersonOccupation> = React.memo(
   props => {
     const { person } = props
-    const classes = useStyles()
 
     const { update } = React.useContext(OrganizationPersonsContext)
 
@@ -50,7 +48,6 @@ export const SetPersonOccupation: React.FC<TSetPersonOccupation> = React.memo(
         }}
         variant={'outlined'}
         size="small"
-        className={classes.submit}
         startIcon={<AddIcon />}
       >
         Set Occupation
@@ -68,7 +65,6 @@ export const PersonOccupationDialog: React.FC<
 > = props => {
   const { organization } = props
   const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
   const { state, update } = React.useContext(OrganizationPersonsContext)
 
   const handleCloseDialog = useCallback(() => {
@@ -133,7 +129,7 @@ export const PersonOccupationDialog: React.FC<
         <>
           <DialogTitle id="alert-dialog-title">{`Set ${state?.personData?.name} occupations for ${organization?.name}`}</DialogTitle>
           <DialogContent>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={organizationOccupationsColumns}
                 rows={setIdFromEntityId(

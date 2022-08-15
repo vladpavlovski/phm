@@ -15,7 +15,6 @@ import Toolbar from '@mui/material/Toolbar'
 import OrganizationContext from '../../../context/organization'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -64,7 +63,6 @@ type TParams = {
 
 const RulePack: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { rulePackId, organizationSlug } = useParams<TParams>()
   const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
@@ -171,8 +169,15 @@ const RulePack: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title>{'RulePack'}</Title>
                     </div>

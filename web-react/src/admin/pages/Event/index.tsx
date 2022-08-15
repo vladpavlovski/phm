@@ -15,11 +15,9 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-// import { Relations } from './relations'
 import OrganizationContext from '../../../context/organization'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { schema } from './schema'
 
 const GET_EVENT = gql`
@@ -83,7 +81,6 @@ type TParams = {
 
 const Event: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { organizationData } = useContext(OrganizationContext)
   const { enqueueSnackbar } = useSnackbar()
   const { eventId, organizationSlug } = useParams<TParams>()
@@ -239,11 +236,11 @@ const Event: React.FC = () => {
           </Helmet>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4} lg={3}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <Img
                   placeholder={placeholderEvent}
                   src={eventData?.logo}
-                  className={classes.logo}
+                  style={{ width: '100%' }}
                   alt={eventData?.name}
                 />
 
@@ -270,8 +267,15 @@ const Event: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={12} lg={9}>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
+              <Paper sx={{ p: '16px' }}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <div>
                     <Title>{'Event'}</Title>
                   </div>

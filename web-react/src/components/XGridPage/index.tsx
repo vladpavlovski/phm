@@ -1,15 +1,14 @@
+import { Error, Loader, QuickSearchToolbar } from 'components'
+import LayoutContext from 'context/layout'
 import React from 'react'
+import { Helmet } from 'react-helmet-async'
+import { useXGridSearch } from 'utils/hooks'
+import { ApolloError } from '@apollo/client'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { Helmet } from 'react-helmet-async'
-import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 import Toolbar from '@mui/material/Toolbar'
-import { ApolloError } from '@apollo/client'
-import { Loader, Error, QuickSearchToolbar } from 'components'
-import LayoutContext from 'context/layout'
-import { useXGridSearch } from 'utils/hooks'
-import { useStyles } from './styled'
+import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 type TXGridPage = {
   title: string
@@ -24,7 +23,6 @@ const XGridPage: React.FC<TXGridPage> = props => {
   const { children, title, loading, error, columns, rows, searchIndexes } =
     props
   const { setBarTitle } = React.useContext(LayoutContext)
-  const classes = useStyles()
 
   React.useEffect(() => {
     setBarTitle(title)
@@ -48,14 +46,22 @@ const XGridPage: React.FC<TXGridPage> = props => {
           <Grid container spacing={2}>
             <Grid item xs={12} md={12} lg={12}>
               <Paper>
-                <Toolbar className={classes.toolbarForm}>{children}</Toolbar>
+                <Toolbar
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {children}
+                </Toolbar>
               </Paper>
               {loading && <Loader />}
               <Error message={error?.message} />
 
               <div
                 style={{ height: 'calc(100vh - 230px)' }}
-                className={classes.xGridWrapper}
+                // className={classes.xGridWrapper}
               >
                 <DataGridPro
                   columns={columns}

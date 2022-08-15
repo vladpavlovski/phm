@@ -1,36 +1,24 @@
-import React, { useState, useCallback } from 'react'
-
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
+import { Error, Loader } from 'components'
+import React, { useCallback, useState } from 'react'
+import { Competition, Group, Organization, Phase, Season, Team } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
+import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import Box from '@mui/material/Box'
-import Collapse from '@mui/material/Collapse'
-
-import Switch from '@mui/material/Switch'
-import IconButton from '@mui/material/IconButton'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-
-import { Loader, Error } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import {
-  Team,
-  Organization,
-  Competition,
-  Phase,
-  Group,
-  Season,
-} from 'utils/types'
+import Typography from '@mui/material/Typography'
 
 const GET_MEMBERSHIP = gql`
   query getMembership($where: TeamWhere) {
@@ -109,7 +97,6 @@ type TMembershipData = {
 
 const Membership: React.FC<TMembership> = props => {
   const { teamId, updateTeam } = props
-  const classes = useStyles()
 
   const [
     getData,
@@ -131,10 +118,7 @@ const Membership: React.FC<TMembership> = props => {
         aria-controls="membership-content"
         id="membership-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Membership
-        </Typography>
-        <Typography className={classes.accordionFormDescription}></Typography>
+        <Typography>Membership</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}

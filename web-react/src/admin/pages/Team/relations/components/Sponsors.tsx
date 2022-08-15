@@ -1,33 +1,28 @@
-import React, { useCallback, useState, useMemo } from 'react'
-import { gql, useLazyQuery, MutationFunction } from '@apollo/client'
-
+import { Error, LinkButton, Loader } from 'components'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { getAdminOrgSponsorRoute } from 'router/routes'
+import { setIdFromEntityId } from 'utils'
+import { Team } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
+import AccountBox from '@mui/icons-material/AccountBox'
 import AddIcon from '@mui/icons-material/Add'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import AccountBox from '@mui/icons-material/AccountBox'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { getAdminOrgSponsorRoute } from 'router/routes'
-import { LinkButton, Error, Loader } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { Team } from 'utils/types'
+
 export const GET_ALL_SPONSORS = gql`
   query getSponsors {
     sponsors {
@@ -50,7 +45,6 @@ type TSponsorsParams = {
 const Sponsors: React.FC<TSponsors> = React.memo(props => {
   const { teamId, team, updateTeam } = props
 
-  const classes = useStyles()
   const { organizationSlug } = useParams<TSponsorsParams>()
   const [openAddSponsor, setOpenAddSponsor] = useState(false)
 
@@ -189,17 +183,19 @@ const Sponsors: React.FC<TSponsors> = React.memo(props => {
         aria-controls="sponsors-content"
         id="sponsors-header"
       >
-        <Typography className={classes.accordionFormTitle}>Sponsors</Typography>
+        <Typography>Sponsors</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
               onClick={handleOpenAddSponsor}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Add Sponsor
@@ -213,7 +209,7 @@ const Sponsors: React.FC<TSponsors> = React.memo(props => {
             </LinkButton>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={teamSponsorsColumns}
             rows={setIdFromEntityId(team?.sponsors, 'sponsorId')}
@@ -240,7 +236,7 @@ const Sponsors: React.FC<TSponsors> = React.memo(props => {
               team && team.name
             }`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allSponsorsColumns}
                   rows={setIdFromEntityId(

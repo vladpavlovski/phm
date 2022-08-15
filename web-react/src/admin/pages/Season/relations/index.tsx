@@ -1,13 +1,11 @@
 import React from 'react'
-import { MutationFunction } from '@apollo/client'
-
-import { useStyles } from '../../commonComponents/styled'
-import { Competitions } from './components/Competitions'
-import { Teams } from './components/Teams'
-import { Phases } from './components/Phases'
-import { Groups } from './components/Groups'
-import { Venues } from './components/Venues'
 import { Season } from 'utils/types'
+import { MutationFunction } from '@apollo/client'
+import { Competitions } from './components/Competitions'
+import { Groups } from './components/Groups'
+import { Phases } from './components/Phases'
+import { Teams } from './components/Teams'
+import { Venues } from './components/Venues'
 
 type TRelations = {
   seasonId: string
@@ -16,10 +14,8 @@ type TRelations = {
 }
 
 const Relations: React.FC<TRelations> = props => {
-  const classes = useStyles()
-
   return (
-    <div className={classes.accordionWrapper}>
+    <div style={{ paddingTop: '16px' }}>
       <Competitions {...props} />
       <Teams {...props} />
       <Phases {...props} />

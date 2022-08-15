@@ -44,7 +44,7 @@ type TRelations = {
 
 const Persons: React.FC<TRelations> = props => {
   const { organizationId, organization, updateOrganization } = props
-  const classes = useStyles()
+
   const { organizationSlug } = useParams<TParams>()
 
   const organizationPersonsColumns = useMemo<GridColumns>(
@@ -158,13 +158,14 @@ const Persons: React.FC<TRelations> = props => {
             aria-controls="persons-content"
             id="persons-header"
           >
-            <Typography className={classes.accordionFormTitle}>
-              Persons
-            </Typography>
+            <Typography>Persons</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <>
-              <Toolbar disableGutters className={classes.toolbarForm}>
+              <Toolbar
+                disableGutters
+                sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+              >
                 <div />
                 <div>
                   <AddPerson {...props} />
@@ -178,7 +179,7 @@ const Persons: React.FC<TRelations> = props => {
                   </LinkButton>
                 </div>
               </Toolbar>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={organizationPersonsColumns}
                   rows={setIdFromEntityId(organization?.persons, 'personId')}

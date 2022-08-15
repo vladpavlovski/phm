@@ -10,7 +10,6 @@ import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -44,7 +43,6 @@ const UPDATE_SYSTEM_SETTINGS = gql`
 `
 
 const SystemSettings: React.FC = () => {
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const systemSettingsId = useMemo(() => 'system-settings', [])
 
@@ -121,8 +119,15 @@ const SystemSettings: React.FC = () => {
             </Helmet>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
-                <Paper className={classes.paper}>
-                  <Toolbar disableGutters className={classes.toolbarForm}>
+                <Paper sx={{ p: '16px' }}>
+                  <Toolbar
+                    disableGutters
+                    sx={{
+                      p: 0,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div>
                       <Title>{'SystemSettings'}</Title>
                     </div>

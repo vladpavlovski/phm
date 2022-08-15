@@ -25,7 +25,6 @@ import { LinkButton } from '../../../../../components/LinkButton'
 import { Loader } from '../../../../../components/Loader'
 import { getAdminOrgSeasonRoute } from '../../../../../router/routes'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 
 const GET_SEASONS = gql`
   query getSeasons($where: CompetitionWhere) {
@@ -94,7 +93,6 @@ type TParams = { organizationSlug: string }
 const Seasons: React.FC<TRelations> = props => {
   const { competitionId } = props
   const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
   const { organizationSlug } = useParams<TParams>()
   const [openAddSeason, setOpenAddSeason] = useState(false)
   const updateStatus = React.useRef<string | null>(null)
@@ -336,21 +334,23 @@ const Seasons: React.FC<TRelations> = props => {
         aria-controls="seasons-content"
         id="seasons-header"
       >
-        <Typography className={classes.accordionFormTitle}>Seasons</Typography>
+        <Typography>Seasons</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {competition && (
           <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
+            <Toolbar
+              disableGutters
+              sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+            >
               <div />
               <div>
                 <Button
                   onClick={handleOpenAddSeason}
                   variant={'outlined'}
                   size="small"
-                  className={classes.submit}
                   startIcon={<AddIcon />}
                 >
                   Add Season
@@ -364,7 +364,7 @@ const Seasons: React.FC<TRelations> = props => {
                 </LinkButton>
               </div>
             </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={competitionSeasonsColumns}
                 rows={setIdFromEntityId(competition.seasons, 'seasonId')}
@@ -397,7 +397,7 @@ const Seasons: React.FC<TRelations> = props => {
                 competition && competition.name
               } to new season`}</DialogTitle>
               <DialogContent>
-                <div style={{ height: 600 }} className={classes.xGridDialog}>
+                <div style={{ height: 600, width: '100%' }}>
                   <DataGridPro
                     columns={allSeasonsColumns}
                     rows={setIdFromEntityId(

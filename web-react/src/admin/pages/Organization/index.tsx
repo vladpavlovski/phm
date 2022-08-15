@@ -20,7 +20,6 @@ import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import { ButtonDelete } from '../commonComponents/ButtonDelete'
 import { ButtonSave } from '../commonComponents/ButtonSave'
-import { useStyles } from '../commonComponents/styled'
 import { Relations } from './relations'
 import { schema } from './schema'
 
@@ -208,7 +207,6 @@ type TParams = {
 
 const Organization: React.FC = () => {
   const history = useHistory()
-  const classes = useStyles()
   const { enqueueSnackbar } = useSnackbar()
   const { organizationSlug } = useParams<TParams>()
   const client = useApolloClient()
@@ -369,11 +367,11 @@ const Organization: React.FC = () => {
           </Helmet>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4} lg={3}>
-              <Paper className={classes.paper}>
+              <Paper sx={{ p: '16px' }}>
                 <Img
                   placeholder={placeholderOrganization}
                   src={orgData?.logo}
-                  className={classes.logo}
+                  style={{ width: '100%' }}
                   alt={orgData?.name}
                 />
 
@@ -400,8 +398,15 @@ const Organization: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={12} lg={9}>
-              <Paper className={classes.paper}>
-                <Toolbar disableGutters className={classes.toolbarForm}>
+              <Paper sx={{ p: '16px' }}>
+                <Toolbar
+                  disableGutters
+                  sx={{
+                    p: 0,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <div>
                     <Title>{orgData?.name || 'Organization'}</Title>
                   </div>

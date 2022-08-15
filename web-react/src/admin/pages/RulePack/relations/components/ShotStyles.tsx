@@ -1,37 +1,31 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useLazyQuery, useMutation } from '@apollo/client'
-
+import { Error, Loader, RHFInput } from 'components'
 import { useSnackbar } from 'notistack'
-
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import { setIdFromEntityId } from 'utils'
+import { ShotStyle } from 'utils/types'
 import { object, string } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import EditIcon from '@mui/icons-material/Edit'
+import { gql, useLazyQuery, useMutation } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
-import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import LoadingButton from '@mui/lab/LoadingButton'
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
-import { RHFInput, Error, Loader } from 'components'
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-import { ShotStyle } from 'utils/types'
 const GET_SHOT_STYLES = gql`
   query getRulePack($where: ShotStyleWhere) {
     shotStyles(where: $where) {
@@ -101,8 +95,6 @@ type TQueryTypeVars = {
 
 const ShotStyles: React.FC<TRelations> = props => {
   const { rulePackId } = props
-
-  const classes = useStyles()
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef<ShotStyle | null>(null)
   const { enqueueSnackbar } = useSnackbar()
@@ -200,7 +192,6 @@ const ShotStyles: React.FC<TRelations> = props => {
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -246,30 +237,30 @@ const ShotStyles: React.FC<TRelations> = props => {
         aria-controls="shot-styles-content"
         id="shot-styles-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Shot Styles
-        </Typography>
+        <Typography>Shot Styles</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {queryLoading && <Loader />}
         <Error message={queryError?.message} />
         {queryData && (
           <>
-            <Toolbar disableGutters className={classes.toolbarForm}>
+            <Toolbar
+              disableGutters
+              sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+            >
               <div />
               <div>
                 <Button
                   onClick={handleOpenDialog}
                   variant={'outlined'}
                   size="small"
-                  className={classes.submit}
                   startIcon={<CreateIcon />}
                 >
                   Create
                 </Button>
               </div>
             </Toolbar>
-            <div style={{ height: 600 }} className={classes.xGridDialog}>
+            <div style={{ height: 600, width: '100%' }}>
               <DataGridPro
                 columns={rulePackShotStylesColumns}
                 rows={setIdFromEntityId(queryData?.shotStyles, 'shotStyleId')}

@@ -1,37 +1,31 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { gql, useMutation, MutationFunction } from '@apollo/client'
+import { RHFInput } from 'components'
 import { useSnackbar } from 'notistack'
-
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import { setIdFromEntityId } from 'utils'
+import { Position, Team } from 'utils/types'
 import { object, string } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { gql, MutationFunction, useMutation } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
 import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
 import CreateIcon from '@mui/icons-material/Create'
-import Toolbar from '@mui/material/Toolbar'
+import EditIcon from '@mui/icons-material/Edit'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import { RHFInput } from 'components'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
-import { useStyles } from '../../../commonComponents/styled'
-import { setIdFromEntityId } from 'utils'
-
-import { Team, Position } from 'utils/types'
 
 const CREATE_DEFAULT_POSITIONS = gql`
   mutation createPositions($teamId: ID!, $systemSettingsId: ID!) {
@@ -57,7 +51,6 @@ const Positions: React.FC<TPositions> = props => {
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
   const { enqueueSnackbar } = useSnackbar()
-  const classes = useStyles()
 
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false)
@@ -153,7 +146,6 @@ const Positions: React.FC<TPositions> = props => {
               }}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -212,12 +204,13 @@ const Positions: React.FC<TPositions> = props => {
         aria-controls="positions-content"
         id="positions-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Positions
-        </Typography>
+        <Typography>Positions</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
@@ -225,7 +218,6 @@ const Positions: React.FC<TPositions> = props => {
               onClick={handleOpenDialog}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Create Position
@@ -240,7 +232,6 @@ const Positions: React.FC<TPositions> = props => {
                 onClick={() => {
                   createDefaultPositions()
                 }}
-                className={classes.submit}
                 startIcon={<CreateIcon />}
                 loading={queryCreateDefaultLoading}
               >
@@ -249,7 +240,7 @@ const Positions: React.FC<TPositions> = props => {
             ) : null}
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={teamPositionsColumns}
             rows={setIdFromEntityId(team?.positions, 'positionId')}

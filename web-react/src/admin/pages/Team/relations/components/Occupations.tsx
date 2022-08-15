@@ -1,34 +1,29 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react'
-import { MutationFunction } from '@apollo/client'
-
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import { Occupation, Team } from 'utils/types'
 import { object, string } from 'yup'
-
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { MutationFunction } from '@apollo/client'
+import { yupResolver } from '@hookform/resolvers/yup'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
-
-import Toolbar from '@mui/material/Toolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import LoadingButton from '@mui/lab/LoadingButton'
+import Accordion from '@mui/material/Accordion'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import Button from '@mui/material/Button'
+import Container from '@mui/material/Container'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { RHFInput } from '../../../../../components/RHFInput'
-import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-import { useStyles } from '../../../commonComponents/styled'
 import { setIdFromEntityId } from '../../../../../utils'
-import { Team, Occupation } from 'utils/types'
+import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
 type TOccupations = {
   teamId: string
@@ -40,8 +35,6 @@ const Occupations: React.FC<TOccupations> = React.memo(props => {
   const { teamId, team, updateTeam } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
-
-  const classes = useStyles()
 
   const handleCloseDialog = useCallback(() => {
     setOpenDialog(false)
@@ -80,7 +73,6 @@ const Occupations: React.FC<TOccupations> = React.memo(props => {
               onClick={() => handleOpenDialog(params.row)}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<EditIcon />}
             >
               Edit
@@ -139,12 +131,13 @@ const Occupations: React.FC<TOccupations> = React.memo(props => {
         aria-controls="occupations-content"
         id="occupations-header"
       >
-        <Typography className={classes.accordionFormTitle}>
-          Occupations
-        </Typography>
+        <Typography>Occupations</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Toolbar disableGutters className={classes.toolbarForm}>
+        <Toolbar
+          disableGutters
+          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+        >
           <div />
           <div>
             <Button
@@ -154,14 +147,13 @@ const Occupations: React.FC<TOccupations> = React.memo(props => {
               }}
               variant={'outlined'}
               size="small"
-              className={classes.submit}
               startIcon={<AddIcon />}
             >
               Create Occupation
             </Button>
           </div>
         </Toolbar>
-        <div style={{ height: 600 }} className={classes.xGridDialog}>
+        <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             columns={teamOccupationsColumns}
             rows={setIdFromEntityId(team?.occupations, 'occupationId')}

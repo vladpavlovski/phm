@@ -1,20 +1,16 @@
+import { Error, Loader } from 'components'
 import React from 'react'
-import { gql, useLazyQuery } from '@apollo/client'
-import { MutationFunction } from '@apollo/client'
+import { getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { Team } from 'utils/types'
+import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-
 import Switch from '@mui/material/Switch'
-
-import { DataGridPro, GridToolbar, GridColumns } from '@mui/x-data-grid-pro'
-import { Loader, Error } from 'components'
-import { useStyles } from '../../../../commonComponents/styled'
-import { setIdFromEntityId, getXGridValueFromArray } from 'utils'
-import { Team } from 'utils/types'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 
 export const GET_ALL_PLAYERS = gql`
   query getPlayers {
@@ -43,7 +39,6 @@ type TPlayers = {
 
 const AddPlayer: React.FC<TPlayers> = React.memo(props => {
   const { teamId, team, updateTeam } = props
-  const classes = useStyles()
 
   const [openAddPlayer, setOpenAddPlayer] = React.useState(false)
 
@@ -120,7 +115,6 @@ const AddPlayer: React.FC<TPlayers> = React.memo(props => {
         onClick={handleOpenAddPlayer}
         variant={'outlined'}
         size="small"
-        className={classes.submit}
         startIcon={<AddIcon />}
       >
         Add Player
@@ -141,7 +135,7 @@ const AddPlayer: React.FC<TPlayers> = React.memo(props => {
               team && team.name
             }`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allPlayersColumns}
                   rows={setIdFromEntityId(

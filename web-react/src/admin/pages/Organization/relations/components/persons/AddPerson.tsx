@@ -11,7 +11,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Switch from '@mui/material/Switch'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
-import { useStyles } from '../../../../commonComponents/styled'
 
 export const GET_ALL_PERSONS = gql`
   query getPersons {
@@ -41,7 +40,6 @@ type TAddPerson = {
 
 const AddPerson: React.FC<TAddPerson> = props => {
   const { organization } = props
-  const classes = useStyles()
 
   const [openAddPerson, setOpenAddPerson] = useState(false)
 
@@ -111,7 +109,6 @@ const AddPerson: React.FC<TAddPerson> = props => {
         onClick={handleOpenAddPerson}
         variant={'outlined'}
         size="small"
-        className={classes.submit}
         startIcon={<AddIcon />}
       >
         Add Person
@@ -132,7 +129,7 @@ const AddPerson: React.FC<TAddPerson> = props => {
               organization && organization.name
             }`}</DialogTitle>
             <DialogContent>
-              <div style={{ height: 600 }} className={classes.xGridDialog}>
+              <div style={{ height: 600, width: '100%' }}>
                 <DataGridPro
                   columns={allPersonsColumns}
                   rows={setIdFromEntityId(

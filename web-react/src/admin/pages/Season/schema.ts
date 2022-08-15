@@ -1,4 +1,4 @@
-import { object, string, date } from 'yup'
+import { date, object, string } from 'yup'
 
 export const schema = object().shape({
   name: string().required('Name is required'),
@@ -6,4 +6,5 @@ export const schema = object().shape({
   short: string(),
   startDate: date().nullable(),
   endDate: date().nullable(),
+  status: string().required('Status is required'),
 })
