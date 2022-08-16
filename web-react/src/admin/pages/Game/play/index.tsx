@@ -28,6 +28,8 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { EventsTable, Finalization, GameEventWizard, Periods, Timer } from './components'
 
+const IMG_SIZE = '10rem'
+
 export const GET_GAME_PLAY = gql`
   query getGame(
     $whereGame: GameWhere
@@ -494,9 +496,12 @@ const Play: React.FC = () => {
                 </Toolbar>
                 <Stack direction="row" justifyContent="space-between">
                   <Img
+                    style={{
+                      width: IMG_SIZE,
+                      height: IMG_SIZE,
+                    }}
                     placeholder={placeholderPerson}
                     src={teamHost?.logo}
-                    // className={classes.gamePlayTeamLogo}
                     alt={teamHost?.name}
                   />
 
@@ -512,9 +517,12 @@ const Play: React.FC = () => {
                   </Typography>
 
                   <Img
+                    style={{
+                      width: IMG_SIZE,
+                      height: IMG_SIZE,
+                    }}
                     placeholder={placeholderPerson}
                     src={teamGuest?.logo}
-                    // className={classes.gamePlayTeamLogo}
                     alt={teamGuest?.name}
                   />
                 </Stack>
