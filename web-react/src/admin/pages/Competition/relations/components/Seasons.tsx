@@ -436,7 +436,7 @@ type TToggleNew = {
   setUpdateStatus: (value: string | null) => void
 }
 
-const ToggleNewSeason: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewSeason: React.FC<TToggleNew> = props => {
   const { seasonId, competitionId, competition, update, setUpdateStatus } =
     props
   const [isMember, setIsMember] = useState(
@@ -489,6 +489,6 @@ const ToggleNewSeason: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Seasons }

@@ -46,7 +46,7 @@ type TPlayersParams = {
   organizationSlug: string
 }
 
-const Players: React.FC<TPlayers> = React.memo(props => {
+const Players: React.FC<TPlayers> = props => {
   const { teamId, team, updateTeam } = props
 
   const { organizationSlug } = useParams<TPlayersParams>()
@@ -224,6 +224,6 @@ const Players: React.FC<TPlayers> = React.memo(props => {
       <PlayerJerseyDialog team={team} />
     </TeamPlayersProvider>
   )
-})
+}
 
 export { Players }

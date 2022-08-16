@@ -335,7 +335,7 @@ type TFormDialog = {
   data: ShotType | null
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { rulePackId, openDialog, handleCloseDialog, data } = props
   const [newSubType, setNewSubType] = useState(false)
 
@@ -588,7 +588,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </DialogActions>
     </Dialog>
   )
-})
+}
 
 type TSubFormDialog = {
   rulePackId: string
@@ -598,7 +598,7 @@ type TSubFormDialog = {
   data: ShotSubType | null
 }
 
-const SubType: React.FC<TSubFormDialog> = React.memo(props => {
+const SubType: React.FC<TSubFormDialog> = props => {
   const {
     rulePackId,
     shotTypeId,
@@ -776,6 +776,6 @@ const SubType: React.FC<TSubFormDialog> = React.memo(props => {
       </Grid>
     </form>
   )
-})
+}
 
 export { ShotTypes }

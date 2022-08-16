@@ -241,7 +241,7 @@ type TToggleNewJersey = {
   updatePlayer: MutationFunction
 }
 
-const ToggleNewJersey: React.FC<TToggleNewJersey> = React.memo(props => {
+const ToggleNewJersey: React.FC<TToggleNewJersey> = props => {
   const { playerId, jerseyId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.jerseys.find(p => p.jerseyId === jerseyId)
@@ -292,6 +292,6 @@ const ToggleNewJersey: React.FC<TToggleNewJersey> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Jerseys }

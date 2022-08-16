@@ -125,7 +125,7 @@ const countPlayerStatistics = (
   return { ...player, ...ts }
 }
 
-const Lineups: React.FC<Props> = React.memo(props => {
+const Lineups: React.FC<Props> = props => {
   const { gameId, teams, players, updateGame, gameData } = props
 
   const teamHost = teams.find(t => t.host)?.node || null
@@ -163,7 +163,7 @@ const Lineups: React.FC<Props> = React.memo(props => {
       </Grid>
     </Grid>
   )
-})
+}
 
 type TLineupList = {
   gameId: string
@@ -184,7 +184,7 @@ type TParams = {
   organizationSlug: string
 }
 
-const LineupList: React.FC<TLineupList> = React.memo(props => {
+const LineupList: React.FC<TLineupList> = props => {
   const { gameId, team, host = false, players, updateGame } = props
   const [playerDialog, setPlayerDialog] = useState(false)
   const { organizationSlug } = useParams<TParams>()
@@ -893,7 +893,7 @@ const LineupList: React.FC<TLineupList> = React.memo(props => {
       )}
     </>
   )
-})
+}
 
 type TTogglePlayerGame = {
   gameId: string
@@ -904,7 +904,7 @@ type TTogglePlayerGame = {
   lineupPlayers: Player[]
 }
 
-const TogglePlayerGame: React.FC<TTogglePlayerGame> = React.memo(props => {
+const TogglePlayerGame: React.FC<TTogglePlayerGame> = props => {
   const { gameId, team, player, host, updateGame, lineupPlayers } = props
   const [isMember, setIsMember] = useState(
     !!lineupPlayers?.find(p => p.playerId === player.playerId)
@@ -972,6 +972,6 @@ const TogglePlayerGame: React.FC<TTogglePlayerGame> = React.memo(props => {
       }}
     />
   )
-})
+}
 
 export { Lineups }

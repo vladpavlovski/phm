@@ -34,27 +34,25 @@ type TSetPersonOccupation = {
   person: Person
 }
 
-export const SetPersonOccupation: React.FC<TSetPersonOccupation> = React.memo(
-  props => {
-    const { person } = props
+export const SetPersonOccupation: React.FC<TSetPersonOccupation> = props => {
+  const { person } = props
 
-    const { update } = React.useContext(OrganizationPersonsContext)
+  const { update } = React.useContext(OrganizationPersonsContext)
 
-    return (
-      <Button
-        type="button"
-        onClick={() => {
-          update({ personData: person, personOccupationDialogOpen: true })
-        }}
-        variant={'outlined'}
-        size="small"
-        startIcon={<AddIcon />}
-      >
-        Set Occupation
-      </Button>
-    )
-  }
-)
+  return (
+    <Button
+      type="button"
+      onClick={() => {
+        update({ personData: person, personOccupationDialogOpen: true })
+      }}
+      variant={'outlined'}
+      size="small"
+      startIcon={<AddIcon />}
+    >
+      Set Occupation
+    </Button>
+  )
+}
 
 type TPersonOccupationDialog = {
   organization: Organization

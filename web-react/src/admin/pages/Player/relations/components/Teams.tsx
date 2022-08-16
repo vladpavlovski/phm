@@ -46,7 +46,7 @@ type TTeamsParams = {
   organizationSlug: string
 }
 
-const Teams: React.FC<TTeams> = React.memo(props => {
+const Teams: React.FC<TTeams> = props => {
   const { playerId, player, updatePlayer } = props
   const { organizationSlug } = useParams<TTeamsParams>()
   const [openAddPlayer, setOpenAddPlayer] = useState(false)
@@ -292,7 +292,7 @@ const Teams: React.FC<TTeams> = React.memo(props => {
       </Dialog>
     </Accordion>
   )
-})
+}
 
 type TToggleNewTeam = {
   playerId: string
@@ -301,7 +301,7 @@ type TToggleNewTeam = {
   updatePlayer: MutationFunction
 }
 
-const ToggleNewTeam: React.FC<TToggleNewTeam> = React.memo(props => {
+const ToggleNewTeam: React.FC<TToggleNewTeam> = props => {
   const { playerId, teamId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.teams.find(p => p.teamId === teamId)
@@ -353,6 +353,6 @@ const ToggleNewTeam: React.FC<TToggleNewTeam> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Teams }

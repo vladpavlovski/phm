@@ -1,8 +1,8 @@
 import React from 'react'
-import Typography from '@mui/material/Typography'
 import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
 
-const CopyrightComponent = () => (
+const Copyright = () => (
   <Typography variant="body2" color="textSecondary" align="center">
     {'Copyright © '}
     <Link color="inherit" href="https://phmcup.cz/">
@@ -12,7 +12,5 @@ const CopyrightComponent = () => (
     {'.'}
   </Typography>
 )
-
-const Copyright = React.memo(CopyrightComponent)
 
 export { Copyright }

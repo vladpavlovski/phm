@@ -1,17 +1,16 @@
+import { LinkButton } from 'components/LinkButton'
 import React, { useCallback, useState } from 'react'
+import { GamePlayersRelationship } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
-
-import TextField from '@mui/material/TextField'
+import EditIcon from '@mui/icons-material/Edit'
+import Button from '@mui/material/Button'
+import ButtonBase from '@mui/material/ButtonBase'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import EditIcon from '@mui/icons-material/Edit'
+import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
-import { LinkButton } from 'components/LinkButton'
-import ButtonBase from '@mui/material/ButtonBase'
-import { GamePlayersRelationship } from 'utils/types'
 
 type TSetLineupPosition = {
   player: GamePlayersRelationship
@@ -19,36 +18,34 @@ type TSetLineupPosition = {
   updateGame: MutationFunction
 }
 
-export const SetLineupPosition: React.FC<TSetLineupPosition> = React.memo(
-  props => {
-    const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
-      useState(false)
+export const SetLineupPosition: React.FC<TSetLineupPosition> = props => {
+  const [lineupPositionDialogOpen, setLineupPositionDialogOpen] =
+    useState(false)
 
-    return (
-      <>
-        <LinkButton
-          component={ButtonBase}
-          variant="text"
-          icon
-          onClick={() => {
-            setLineupPositionDialogOpen(true)
-          }}
-        >
-          <Tooltip arrow title="Change Position" placement="top">
-            <EditIcon />
-          </Tooltip>
-        </LinkButton>
-        {lineupPositionDialogOpen && (
-          <PositionDialog
-            {...props}
-            lineupPositionDialogOpen={lineupPositionDialogOpen}
-            setLineupPositionDialogOpen={setLineupPositionDialogOpen}
-          />
-        )}
-      </>
-    )
-  }
-)
+  return (
+    <>
+      <LinkButton
+        component={ButtonBase}
+        variant="text"
+        icon
+        onClick={() => {
+          setLineupPositionDialogOpen(true)
+        }}
+      >
+        <Tooltip arrow title="Change Position" placement="top">
+          <EditIcon />
+        </Tooltip>
+      </LinkButton>
+      {lineupPositionDialogOpen && (
+        <PositionDialog
+          {...props}
+          lineupPositionDialogOpen={lineupPositionDialogOpen}
+          setLineupPositionDialogOpen={setLineupPositionDialogOpen}
+        />
+      )}
+    </>
+  )
+}
 
 type TPositionDialog = {
   player: GamePlayersRelationship
@@ -58,7 +55,7 @@ type TPositionDialog = {
   setLineupPositionDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const PositionDialog: React.FC<TPositionDialog> = React.memo(props => {
+const PositionDialog: React.FC<TPositionDialog> = props => {
   const {
     player,
     gameId,
@@ -141,4 +138,4 @@ const PositionDialog: React.FC<TPositionDialog> = React.memo(props => {
       </DialogActions>
     </Dialog>
   )
-})
+}

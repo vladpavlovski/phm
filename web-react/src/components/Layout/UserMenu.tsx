@@ -8,7 +8,7 @@ import Fade from '@mui/material/Fade'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 
-const UserMenu: React.FC = React.memo(() => {
+const UserMenu: React.FC = () => {
   const [anchorEl, setAnchorEl] = React.useState<
     (EventTarget & Element) | null
   >(null)
@@ -74,6 +74,6 @@ const UserMenu: React.FC = React.memo(() => {
   function handleClose() {
     setAnchorEl(null)
   }
-})
+}
 
 export { UserMenu }

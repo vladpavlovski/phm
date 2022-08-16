@@ -21,7 +21,7 @@ type TSetPlayerPosition = {
   player: Player
 }
 
-const SetPlayerPosition: React.FC<TSetPlayerPosition> = React.memo(props => {
+const SetPlayerPosition: React.FC<TSetPlayerPosition> = props => {
   const { player } = props
   const { update } = React.useContext(TeamPlayersContext)
 
@@ -43,101 +43,99 @@ const SetPlayerPosition: React.FC<TSetPlayerPosition> = React.memo(props => {
       </Tooltip>
     </LinkButton>
   )
-})
+}
 
 type TPlayerPositionDialog = {
   team: Team
 }
 
-const PlayerPositionDialog: React.FC<TPlayerPositionDialog> = React.memo(
-  props => {
-    const { team } = props
-    const { enqueueSnackbar } = useSnackbar()
-    const { state, update } = React.useContext(TeamPlayersContext)
+const PlayerPositionDialog: React.FC<TPlayerPositionDialog> = props => {
+  const { team } = props
+  const { enqueueSnackbar } = useSnackbar()
+  const { state, update } = React.useContext(TeamPlayersContext)
 
-    const handleCloseDialog = React.useCallback(() => {
-      update(state => ({
-        ...state,
-        playerPositionDialogOpen: false,
-        playerData: null,
-      }))
-    }, [])
+  const handleCloseDialog = React.useCallback(() => {
+    update(state => ({
+      ...state,
+      playerPositionDialogOpen: false,
+      playerData: null,
+    }))
+  }, [])
 
-    const [updatePlayer] = useMutation(UPDATE_PLAYER, {
-      onCompleted: () => {
-        enqueueSnackbar(`Player updated!`, {
-          variant: 'success',
-        })
+  const [updatePlayer] = useMutation(UPDATE_PLAYER, {
+    onCompleted: () => {
+      enqueueSnackbar(`Player updated!`, {
+        variant: 'success',
+      })
+    },
+    onError: error => {
+      enqueueSnackbar(`Error: ${error}`, {
+        variant: 'error',
+      })
+      console.error(error)
+    },
+  })
+
+  const teamPositionsColumns = React.useMemo<GridColumns>(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Name',
+        width: 150,
       },
-      onError: error => {
-        enqueueSnackbar(`Error: ${error}`, {
-          variant: 'error',
-        })
-        console.error(error)
-      },
-    })
-
-    const teamPositionsColumns = React.useMemo<GridColumns>(
-      () => [
-        {
-          field: 'name',
-          headerName: 'Name',
-          width: 150,
-        },
-        {
-          field: 'positionId',
-          headerName: 'Has Position',
-          width: 150,
-          disableColumnMenu: true,
-          renderCell: params => {
-            return (
-              state.playerData && (
-                <TogglePosition
-                  positionId={params.value}
-                  player={state.playerData}
-                  updatePlayer={updatePlayer}
-                />
-              )
+      {
+        field: 'positionId',
+        headerName: 'Has Position',
+        width: 150,
+        disableColumnMenu: true,
+        renderCell: params => {
+          return (
+            state.playerData && (
+              <TogglePosition
+                positionId={params.value}
+                player={state.playerData}
+                updatePlayer={updatePlayer}
+              />
             )
-          },
+          )
         },
-      ],
-      [state]
-    )
+      },
+    ],
+    [state]
+  )
 
-    return (
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={state?.playerPositionDialogOpen}
-        onClose={handleCloseDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        {team?.positions && (
-          <>
-            <DialogTitle id="alert-dialog-title">{`Set ${state?.playerData?.name} positions for ${team?.name}`}</DialogTitle>
-            <DialogContent>
-              <div style={{ height: 600, width: '100%' }}>
-                <DataGridPro
-                  columns={teamPositionsColumns}
-                  rows={setIdFromEntityId(team?.positions, 'positionId')}
-                  disableSelectionOnClick
-                  components={{
-                    Toolbar: GridToolbar,
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </>
-        )}
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{'Done'}</Button>
-        </DialogActions>
-      </Dialog>
-    )
-  }
-)
+  return (
+    <Dialog
+      fullWidth
+      maxWidth="md"
+      open={state?.playerPositionDialogOpen}
+      onClose={handleCloseDialog}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
+      {team?.positions && (
+        <>
+          <DialogTitle id="alert-dialog-title">{`Set ${state?.playerData?.name} positions for ${team?.name}`}</DialogTitle>
+          <DialogContent>
+            <div style={{ height: 600, width: '100%' }}>
+              <DataGridPro
+                columns={teamPositionsColumns}
+                rows={setIdFromEntityId(team?.positions, 'positionId')}
+                disableSelectionOnClick
+                components={{
+                  Toolbar: GridToolbar,
+                }}
+              />
+            </div>
+          </DialogContent>
+        </>
+      )}
+      <DialogActions>
+        <Button onClick={handleCloseDialog}>{'Done'}</Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
 
 type TTogglePosition = {
   positionId: string
@@ -145,7 +143,7 @@ type TTogglePosition = {
   updatePlayer: MutationFunction
 }
 
-const TogglePosition: React.FC<TTogglePosition> = React.memo(props => {
+const TogglePosition: React.FC<TTogglePosition> = props => {
   const { positionId, player, updatePlayer } = props
   const [isMember, setIsMember] = React.useState(
     !!player?.positions?.find(p => p.positionId === positionId)
@@ -191,6 +189,6 @@ const TogglePosition: React.FC<TTogglePosition> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { PlayerPositionDialog, SetPlayerPosition }

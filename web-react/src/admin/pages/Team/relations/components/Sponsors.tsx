@@ -42,7 +42,7 @@ type TSponsorsParams = {
   organizationSlug: string
 }
 
-const Sponsors: React.FC<TSponsors> = React.memo(props => {
+const Sponsors: React.FC<TSponsors> = props => {
   const { teamId, team, updateTeam } = props
 
   const { organizationSlug } = useParams<TSponsorsParams>()
@@ -265,7 +265,7 @@ const Sponsors: React.FC<TSponsors> = React.memo(props => {
       </Dialog>
     </Accordion>
   )
-})
+}
 
 type TToggleNewSponsor = {
   team: Team
@@ -274,7 +274,7 @@ type TToggleNewSponsor = {
   updateTeam: MutationFunction
 }
 
-const ToggleNewSponsor: React.FC<TToggleNewSponsor> = React.memo(props => {
+const ToggleNewSponsor: React.FC<TToggleNewSponsor> = props => {
   const { sponsorId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = useState(
     !!team.sponsors.find(p => p.sponsorId === sponsorId)
@@ -325,6 +325,6 @@ const ToggleNewSponsor: React.FC<TToggleNewSponsor> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Sponsors }

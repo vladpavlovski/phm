@@ -316,7 +316,7 @@ type TToggleNew = {
   sponsor: Sponsor
   updateSponsor: MutationFunction
 }
-const ToggleNewPhase: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewPhase: React.FC<TToggleNew> = props => {
   const { phaseId, sponsorId, sponsor, updateSponsor } = props
   const [isMember, setIsMember] = React.useState(
     !!sponsor.phases.find(p => p.phaseId === phaseId)
@@ -368,6 +368,6 @@ const ToggleNewPhase: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Phases }

@@ -37,7 +37,7 @@ type TPlayers = {
   team: Team
 }
 
-const AddPlayer: React.FC<TPlayers> = React.memo(props => {
+const AddPlayer: React.FC<TPlayers> = props => {
   const { teamId, team, updateTeam } = props
 
   const [openAddPlayer, setOpenAddPlayer] = React.useState(false)
@@ -164,13 +164,13 @@ const AddPlayer: React.FC<TPlayers> = React.memo(props => {
       </Dialog>
     </>
   )
-})
+}
 
 type TToggleNewPlayer = TPlayers & {
   playerId: string
 }
 
-const ToggleNewPlayer: React.FC<TToggleNewPlayer> = React.memo(props => {
+const ToggleNewPlayer: React.FC<TToggleNewPlayer> = props => {
   const { playerId, teamId, team, updateTeam } = props
   const [isMember, setIsMember] = React.useState(
     !!team.players.find(p => p.playerId === playerId)
@@ -217,6 +217,6 @@ const ToggleNewPlayer: React.FC<TToggleNewPlayer> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { AddPlayer }

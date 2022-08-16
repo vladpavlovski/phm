@@ -249,7 +249,7 @@ type TToggleNewTeam = {
   updateOrganization: MutationFunction
 }
 
-const ToggleNewTeam: React.FC<TToggleNewTeam> = React.memo(props => {
+const ToggleNewTeam: React.FC<TToggleNewTeam> = props => {
   const { organizationId, teamId, organization, updateOrganization } = props
   const [isMember, setIsMember] = useState(
     !!organization.teams.find(p => p.teamId === teamId)
@@ -295,6 +295,6 @@ const ToggleNewTeam: React.FC<TToggleNewTeam> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Teams }

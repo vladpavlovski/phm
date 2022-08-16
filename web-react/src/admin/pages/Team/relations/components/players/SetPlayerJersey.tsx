@@ -42,7 +42,7 @@ type TSetPlayerJersey = {
   player: Player
 }
 
-const SetPlayerJersey: React.FC<TSetPlayerJersey> = React.memo(props => {
+const SetPlayerJersey: React.FC<TSetPlayerJersey> = props => {
   const { player } = props
   const { update } = React.useContext(TeamPlayersContext)
 
@@ -64,13 +64,13 @@ const SetPlayerJersey: React.FC<TSetPlayerJersey> = React.memo(props => {
       </Tooltip>
     </LinkButton>
   )
-})
+}
 
 type TPlayerJerseyDialog = {
   team: Team
 }
 
-const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
+const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = props => {
   const { team } = props
   const { enqueueSnackbar } = useSnackbar()
   const { state, update } = React.useContext(TeamPlayersContext)
@@ -167,7 +167,7 @@ const PlayerJerseyDialog: React.FC<TPlayerJerseyDialog> = React.memo(props => {
       </DialogActions>
     </Dialog>
   )
-})
+}
 
 type TToggleJersey = {
   jerseyId: string
@@ -175,7 +175,7 @@ type TToggleJersey = {
   updatePlayer: MutationFunction
 }
 
-const ToggleJersey: React.FC<TToggleJersey> = React.memo(props => {
+const ToggleJersey: React.FC<TToggleJersey> = props => {
   const { jerseyId, player, updatePlayer } = props
   const [isMember, setIsMember] = React.useState(
     !!player?.jerseys?.find(p => p.jerseyId === jerseyId)
@@ -221,6 +221,6 @@ const ToggleJersey: React.FC<TToggleJersey> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { PlayerJerseyDialog, SetPlayerJersey }

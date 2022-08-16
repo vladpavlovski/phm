@@ -17,7 +17,7 @@ type TRHFSelect = SelectProps & {
   }
 }
 
-const RHFSelect: React.FC<TRHFSelect> = React.memo(props => {
+const RHFSelect: React.FC<TRHFSelect> = props => {
   const {
     name,
     label,
@@ -60,7 +60,7 @@ const RHFSelect: React.FC<TRHFSelect> = React.memo(props => {
       {error && <FormHelperText>{error.message}</FormHelperText>}
     </FormControl>
   )
-})
+}
 
 RHFSelect.defaultProps = {
   variant: 'standard',

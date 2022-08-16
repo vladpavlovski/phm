@@ -304,7 +304,7 @@ type TFormDialog = {
   data: PositionType | null
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { rulePackId, openDialog, handleCloseDialog, data } = props
 
   const { enqueueSnackbar } = useSnackbar()
@@ -508,6 +508,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </form>
     </Dialog>
   )
-})
+}
 
 export { PositionTypes }

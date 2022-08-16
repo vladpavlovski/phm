@@ -1,17 +1,16 @@
+import { LinkButton } from 'components/LinkButton'
 import React, { useCallback, useState } from 'react'
-
+import { GamePlayersRelationship } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
-import TextField from '@mui/material/TextField'
+import EditIcon from '@mui/icons-material/Edit'
+import Button from '@mui/material/Button'
+import ButtonBase from '@mui/material/ButtonBase'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Button from '@mui/material/Button'
-import EditIcon from '@mui/icons-material/Edit'
+import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
-import { LinkButton } from 'components/LinkButton'
-import ButtonBase from '@mui/material/ButtonBase'
-import { GamePlayersRelationship } from 'utils/types'
 
 type TSetLineupJersey = {
   player: GamePlayersRelationship
@@ -19,7 +18,7 @@ type TSetLineupJersey = {
   updateGame: MutationFunction
 }
 
-export const SetLineupJersey: React.FC<TSetLineupJersey> = React.memo(props => {
+export const SetLineupJersey: React.FC<TSetLineupJersey> = props => {
   const [lineupJerseyDialogOpen, setLineupJerseyDialogOpen] = useState(false)
 
   return (
@@ -45,7 +44,7 @@ export const SetLineupJersey: React.FC<TSetLineupJersey> = React.memo(props => {
       )}
     </>
   )
-})
+}
 
 type TJerseyDialog = {
   player: GamePlayersRelationship
@@ -55,7 +54,7 @@ type TJerseyDialog = {
   setLineupJerseyDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const JerseyDialog: React.FC<TJerseyDialog> = React.memo(props => {
+const JerseyDialog: React.FC<TJerseyDialog> = props => {
   const {
     player,
     gameId,
@@ -136,4 +135,4 @@ const JerseyDialog: React.FC<TJerseyDialog> = React.memo(props => {
       </DialogActions>
     </Dialog>
   )
-})
+}

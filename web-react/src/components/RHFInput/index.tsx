@@ -1,5 +1,5 @@
 import React from 'react'
-import { Controller, Control, FieldError } from 'react-hook-form'
+import { Control, Controller, FieldError } from 'react-hook-form'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
 
 type TRHFInput = TextFieldProps & {
@@ -8,7 +8,7 @@ type TRHFInput = TextFieldProps & {
   error?: FieldError
 }
 
-const RHFInput: React.FC<TRHFInput> = React.memo(props => {
+const RHFInput: React.FC<TRHFInput> = props => {
   const { control, name, defaultValue, error, ...restProps } = props
   return (
     <Controller
@@ -28,7 +28,7 @@ const RHFInput: React.FC<TRHFInput> = React.memo(props => {
       )}
     />
   )
-})
+}
 
 RHFInput.defaultProps = {
   defaultValue: '',

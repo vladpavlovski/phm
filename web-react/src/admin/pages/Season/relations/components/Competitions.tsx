@@ -253,7 +253,7 @@ type TToggleNew = {
   updateSeason: MutationFunction
 }
 
-const ToggleNewCompetition: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewCompetition: React.FC<TToggleNew> = props => {
   const { seasonId, competitionId, season, updateSeason } = props
   const [isMember, setIsMember] = React.useState(
     !!season.competitions.find(p => p.competitionId === competitionId)
@@ -298,6 +298,6 @@ const ToggleNewCompetition: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Competitions }

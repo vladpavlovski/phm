@@ -276,7 +276,7 @@ type TToggleNew = {
   sponsor: Sponsor
   updateSponsor: MutationFunction
 }
-const ToggleNewGroup: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewGroup: React.FC<TToggleNew> = props => {
   const { groupId, sponsorId, sponsor, updateSponsor } = props
   const [isMember, setIsMember] = React.useState(
     !!sponsor.groups.find(p => p.groupId === groupId)
@@ -328,6 +328,6 @@ const ToggleNewGroup: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Groups }

@@ -249,7 +249,7 @@ type TToggleNew = {
   updateSystemSettings: MutationFunction
 }
 
-const ToggleNewRulePack: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewRulePack: React.FC<TToggleNew> = props => {
   const { systemSettingsId, rulePackId, systemSettings, updateSystemSettings } =
     props
   const [isMember, setIsMember] = React.useState(
@@ -304,6 +304,6 @@ const ToggleNewRulePack: React.FC<TToggleNew> = React.memo(props => {
   ) : (
     <></>
   )
-})
+}
 
 export { RulePack }

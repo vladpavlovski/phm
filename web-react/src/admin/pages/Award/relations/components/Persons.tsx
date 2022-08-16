@@ -170,7 +170,7 @@ type TToggleNew = {
   updateAward: MutationFunction
 }
 
-const ToggleNew: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNew: React.FC<TToggleNew> = props => {
   const { personId, awardId, award, updateAward } = props
   const [isMember, setIsMember] = useState(
     !!award?.persons?.find(p => p.personId === personId)
@@ -214,6 +214,6 @@ const ToggleNew: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Persons }

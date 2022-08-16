@@ -257,52 +257,50 @@ type TToggleNewCompetition = {
   updateVenue: MutationFunction
 }
 
-const ToggleNewCompetition: React.FC<TToggleNewCompetition> = React.memo(
-  props => {
-    const { venueId, competitionId, venue, updateVenue } = props
-    const [isMember, setIsMember] = React.useState(
-      !!venue.competitions.find(p => p.competitionId === competitionId)
-    )
+const ToggleNewCompetition: React.FC<TToggleNewCompetition> = props => {
+  const { venueId, competitionId, venue, updateVenue } = props
+  const [isMember, setIsMember] = React.useState(
+    !!venue.competitions.find(p => p.competitionId === competitionId)
+  )
 
-    return (
-      <Switch
-        checked={isMember}
-        onChange={() => {
-          updateVenue({
-            variables: {
-              where: {
-                venueId,
-              },
-              update: {
-                competitions: {
-                  ...(isMember
-                    ? {
-                        disconnect: {
-                          where: {
-                            node: {
-                              competitionId,
-                            },
+  return (
+    <Switch
+      checked={isMember}
+      onChange={() => {
+        updateVenue({
+          variables: {
+            where: {
+              venueId,
+            },
+            update: {
+              competitions: {
+                ...(isMember
+                  ? {
+                      disconnect: {
+                        where: {
+                          node: {
+                            competitionId,
                           },
                         },
-                      }
-                    : {
-                        connect: {
-                          where: {
-                            node: { competitionId },
-                          },
+                      },
+                    }
+                  : {
+                      connect: {
+                        where: {
+                          node: { competitionId },
                         },
-                      }),
-                },
+                      },
+                    }),
               },
             },
-          })
-          setIsMember(!isMember)
-        }}
-        name="competitionMember"
-        color="primary"
-      />
-    )
-  }
-)
+          },
+        })
+        setIsMember(!isMember)
+      }}
+      name="competitionMember"
+      color="primary"
+    />
+  )
+}
 
 export { Competitions }

@@ -31,7 +31,7 @@ type TOccupations = {
   team: Team
 }
 
-const Occupations: React.FC<TOccupations> = React.memo(props => {
+const Occupations: React.FC<TOccupations> = props => {
   const { teamId, team, updateTeam } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
@@ -173,7 +173,7 @@ const Occupations: React.FC<TOccupations> = React.memo(props => {
       />
     </Accordion>
   )
-})
+}
 
 const schema = object().shape({
   name: string().required('Name is required'),
@@ -189,7 +189,7 @@ type TFormDialog = {
   updateTeam: MutationFunction
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { team, teamId, openDialog, handleCloseDialog, data, updateTeam } =
     props
 
@@ -295,6 +295,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </form>
     </Dialog>
   )
-})
+}
 
 export { Occupations }

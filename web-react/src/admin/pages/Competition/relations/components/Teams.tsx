@@ -383,7 +383,7 @@ type TToggleNew = {
   setUpdateStatus: (value: string | null) => void
 }
 
-const ToggleNewTeam: React.FC<TToggleNew> = React.memo(props => {
+const ToggleNewTeam: React.FC<TToggleNew> = props => {
   const { competitionId, teamId, competition, update, setUpdateStatus } = props
   const [isMember, setIsMember] = useState(
     !!competition.teams.find(p => p.teamId === teamId)
@@ -435,6 +435,6 @@ const ToggleNewTeam: React.FC<TToggleNew> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Teams }

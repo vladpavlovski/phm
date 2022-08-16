@@ -57,7 +57,7 @@ type TJerseys = {
   team: Team
 }
 
-const Jerseys: React.FC<TJerseys> = React.memo(props => {
+const Jerseys: React.FC<TJerseys> = props => {
   const { teamId, team } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -284,7 +284,7 @@ const Jerseys: React.FC<TJerseys> = React.memo(props => {
       </Dialog>
     </Accordion>
   )
-})
+}
 
 type TTogglePlayerJersey = {
   jerseyId: string | null
@@ -293,7 +293,7 @@ type TTogglePlayerJersey = {
   playerId: string
 }
 
-const TogglePlayerJersey: React.FC<TTogglePlayerJersey> = React.memo(props => {
+const TogglePlayerJersey: React.FC<TTogglePlayerJersey> = props => {
   const { jerseyId, teamId, player, playerId } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -384,6 +384,6 @@ const TogglePlayerJersey: React.FC<TTogglePlayerJersey> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Jerseys }

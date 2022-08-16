@@ -1,8 +1,8 @@
-import React from 'react'
-import { Controller, Control, ControllerRenderProps } from 'react-hook-form'
-import TextField, { TextFieldProps } from '@mui/material/TextField'
 import dayjs from 'dayjs'
+import React from 'react'
+import { Control, Controller, ControllerRenderProps } from 'react-hook-form'
 import TimePicker, { TimePickerProps } from '@mui/lab/TimePicker'
+import TextField, { TextFieldProps } from '@mui/material/TextField'
 import { getDateFromTime } from '../../utils'
 
 type TRHFTimepickerComponent = TextFieldProps &
@@ -14,7 +14,7 @@ type TRHFTimepickerComponent = TextFieldProps &
     }
   }
 
-const RHFTimepicker: React.FC<TRHFTimepickerComponent> = React.memo(props => {
+const RHFTimepicker: React.FC<TRHFTimepickerComponent> = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (
@@ -41,7 +41,7 @@ const RHFTimepicker: React.FC<TRHFTimepickerComponent> = React.memo(props => {
       defaultValue={defaultValue ? dayjs(getDateFromTime(defaultValue)) : null}
     />
   )
-})
+}
 
 RHFTimepicker.defaultProps = {
   defaultValue: null,

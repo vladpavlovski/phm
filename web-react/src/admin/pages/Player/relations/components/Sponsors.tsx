@@ -258,7 +258,7 @@ type ToggleNewSponsorType = {
   updatePlayer: MutationFunction
 }
 
-const ToggleNewSponsor: React.FC<ToggleNewSponsorType> = React.memo(props => {
+const ToggleNewSponsor: React.FC<ToggleNewSponsorType> = props => {
   const { playerId, sponsorId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.sponsors.find(p => p.sponsorId === sponsorId)
@@ -309,6 +309,6 @@ const ToggleNewSponsor: React.FC<ToggleNewSponsorType> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Sponsors }

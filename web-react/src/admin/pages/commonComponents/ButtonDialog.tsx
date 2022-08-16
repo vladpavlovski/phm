@@ -1,5 +1,4 @@
-import React, { useState, useCallback } from 'react'
-
+import React, { useCallback, useState } from 'react'
 import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
 import Button, { ButtonProps } from '@mui/material/Button'
 import Dialog, { DialogProps } from '@mui/material/Dialog'
@@ -24,7 +23,7 @@ type TButtonDialog = Omit<DialogProps, 'open'> &
     icon?: React.ReactElement
   }
 
-const ButtonDialog: React.FC<TButtonDialog> = React.memo(props => {
+const ButtonDialog: React.FC<TButtonDialog> = props => {
   const {
     onDialogClosePositive,
     onDialogCloseNegative,
@@ -108,7 +107,7 @@ const ButtonDialog: React.FC<TButtonDialog> = React.memo(props => {
       )}
     </>
   )
-})
+}
 
 ButtonDialog.defaultProps = {
   loading: false,

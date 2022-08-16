@@ -221,7 +221,7 @@ type TToggleNewPosition = {
   updatePlayer: MutationFunction
 }
 
-const ToggleNewPosition: React.FC<TToggleNewPosition> = React.memo(props => {
+const ToggleNewPosition: React.FC<TToggleNewPosition> = props => {
   const { playerId, positionId, player, updatePlayer } = props
   const [isMember, setIsMember] = useState(
     !!player.positions.find(p => p.positionId === positionId)
@@ -272,6 +272,6 @@ const ToggleNewPosition: React.FC<TToggleNewPosition> = React.memo(props => {
       color="primary"
     />
   )
-})
+}
 
 export { Positions }

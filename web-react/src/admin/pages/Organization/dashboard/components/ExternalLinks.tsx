@@ -1,18 +1,18 @@
-import React from 'react'
-import { useSnackbar } from 'notistack'
-import Grid from '@mui/material/Grid'
 import { Title } from 'components/Title'
-import Paper from '@mui/material/Paper'
-import Button from '@mui/material/Button'
-import Link from '@mui/material/Link'
+import { useSnackbar } from 'notistack'
+import React from 'react'
 import { useParams } from 'react-router-dom'
-import { copyToClipboard } from 'utils'
 import {
-  getLeagueOrgPlayersRoute,
   getLeagueOrgGamesRoute,
+  getLeagueOrgPlayersRoute,
   getLeagueOrgPlayersStatisticsRoute,
   getLeagueOrgStandingsRoute,
 } from 'router/routes'
+import { copyToClipboard } from 'utils'
+import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid'
+import Link from '@mui/material/Link'
+import Paper from '@mui/material/Paper'
 
 const generateIframeCode = (path: string, cb?: () => void) => {
   const url = `${window.location.origin}${path}`
@@ -69,7 +69,7 @@ type TParams = {
   organizationSlug: string
 }
 
-const ExternalLinks: React.FC = React.memo(() => {
+const ExternalLinks: React.FC = () => {
   const { organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
   return (
@@ -112,6 +112,6 @@ const ExternalLinks: React.FC = React.memo(() => {
       </Grid>
     </Paper>
   )
-})
+}
 
 export { ExternalLinks }

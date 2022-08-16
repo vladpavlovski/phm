@@ -1,9 +1,9 @@
-import React from 'react'
-import Button from '@mui/material/Button'
 import config from 'config'
-import Popover from '@mui/material/Popover'
-import Img from 'react-cool-img'
 import hmsLoader from 'img/hms-loader.gif'
+import React from 'react'
+import Img from 'react-cool-img'
+import Button from '@mui/material/Button'
+import Popover from '@mui/material/Popover'
 
 type TGameQrPayment = {
   bankAccountNumber: string
@@ -16,7 +16,7 @@ type TGameQrPayment = {
 
 const imgQrStyle = { width: '16rem', height: '16rem' }
 
-const GameQrPayment: React.FC<TGameQrPayment> = React.memo(props => {
+const GameQrPayment: React.FC<TGameQrPayment> = props => {
   const { bankAccountNumber, bankCode, currency, vs, message, price } = props
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
@@ -62,6 +62,6 @@ const GameQrPayment: React.FC<TGameQrPayment> = React.memo(props => {
       </Popover>
     </>
   )
-})
+}
 
 export { GameQrPayment }

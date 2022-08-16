@@ -175,7 +175,7 @@ type TCompetitionRow = {
   game: Game
 }
 
-const CompetitionRow: React.FC<TCompetitionRow> = React.memo(props => {
+const CompetitionRow: React.FC<TCompetitionRow> = props => {
   const { competition, game } = props
   const [competitionOpen, setCompetitionOpen] = useState(false)
   const [selectedPhaseId, setSelectedPhaseId] = useState(
@@ -265,7 +265,7 @@ const CompetitionRow: React.FC<TCompetitionRow> = React.memo(props => {
       </TableRow>
     </>
   )
-})
+}
 
 type TPhaseRow = {
   game: Game
@@ -274,7 +274,7 @@ type TPhaseRow = {
   setSelectedPhaseId: React.Dispatch<React.SetStateAction<string>>
 }
 
-const PhaseRow: React.FC<TPhaseRow> = React.memo(props => {
+const PhaseRow: React.FC<TPhaseRow> = props => {
   const { game, phase, selectedPhaseId, setSelectedPhaseId } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -346,7 +346,7 @@ const PhaseRow: React.FC<TPhaseRow> = React.memo(props => {
       </TableCell>
     </TableRow>
   )
-})
+}
 
 type TGroupRow = {
   game: Game
@@ -355,7 +355,7 @@ type TGroupRow = {
   setSelectedGroupId: React.Dispatch<React.SetStateAction<string>>
 }
 
-const GroupRow: React.FC<TGroupRow> = React.memo(props => {
+const GroupRow: React.FC<TGroupRow> = props => {
   const { game, group, selectedGroupId, setSelectedGroupId } = props
   const { enqueueSnackbar } = useSnackbar()
 
@@ -426,6 +426,6 @@ const GroupRow: React.FC<TGroupRow> = React.memo(props => {
       </TableCell>
     </TableRow>
   )
-})
+}
 
 export { Membership }
