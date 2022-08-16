@@ -1,29 +1,14 @@
-import React, { useContext, useEffect } from 'react'
+import React from 'react'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-
-import LayoutContext from '../../../context/layout'
-import { UserCount } from './UserCount'
 import { Organizations } from './components/Organizations'
 
-const Dashboard: React.FC = () => {
-  const { setBarTitle } = useContext(LayoutContext)
-
-  useEffect(() => {
-    setBarTitle('Dashboard')
-    return () => {
-      setBarTitle('')
-    }
-  }, [])
-
+const Dashboard = () => {
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth={false}>
       <Grid container spacing={4}>
-        <Grid item xs={12} md={8} lg={7}>
+        <Grid item xs={12}>
           <Organizations />
-        </Grid>
-        <Grid item xs={12} md={4} lg={5}>
-          <UserCount />
         </Grid>
       </Grid>
     </Container>
