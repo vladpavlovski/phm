@@ -11,33 +11,13 @@ import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
-export const GET_ASSIGNED_PLAYERS = gql`
+export const GET_PLAYERS = gql`
   query getPlayers($where: PlayerWhere) {
     players(where: $where) {
       playerId
       firstName
       lastName
       name
-      levelCode
-      positions {
-        positionId
-        name
-      }
-      teams {
-        teamId
-        name
-      }
-    }
-  }
-`
-
-export const GET_UNASSIGNED_PLAYERS = gql`
-  query getPlayers($where: PlayerWhere) {
-    players(where: $where) {
-      playerId
-      name
-      firstName
-      lastName
       levelCode
       positions {
         positionId
@@ -57,7 +37,7 @@ type TParams = {
 
 const View: React.FC = () => {
   const { organizationSlug } = useParams<TParams>()
-  const { error, loading, data } = useQuery(GET_ASSIGNED_PLAYERS, {
+  const { error, loading, data } = useQuery(GET_PLAYERS, {
     variables: {
       where: {
         teams: {
@@ -72,7 +52,7 @@ const View: React.FC = () => {
   const [
     getUnassignedPlayer,
     { loading: queryLoading, error: queryError, data: data2 },
-  ] = useLazyQuery(GET_UNASSIGNED_PLAYERS, {
+  ] = useLazyQuery(GET_PLAYERS, {
     variables: {
       where: {
         teams: null,
@@ -82,62 +62,53 @@ const View: React.FC = () => {
 
   const [playersView, setPlayersView] = React.useState('assignedPlayers')
 
-  React.useEffect(() => {
-    if (playersView === 'unassignedPlayers' && !queryData) {
-      getUnassignedPlayer()
-    }
-  }, [playersView])
-
-  const columns = React.useMemo<GridColumns>(
-    () => [
-      {
-        field: 'playerId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <LinkButton
-              startIcon={<EditIcon />}
-              to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
-            >
-              Edit
-            </LinkButton>
-          )
-        },
+  const columns: GridColumns = [
+    {
+      field: 'playerId',
+      headerName: 'Edit',
+      width: 120,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <LinkButton
+            startIcon={<EditIcon />}
+            to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
+          >
+            Edit
+          </LinkButton>
+        )
       },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 200,
+    },
+    {
+      field: 'levelCode',
+      headerName: 'Level',
+      width: 150,
+      renderCell: params => {
+        return <PlayerLevel code={params.value} />
       },
-      {
-        field: 'levelCode',
-        headerName: 'Level',
-        width: 150,
-        renderCell: params => {
-          return <PlayerLevel code={params.value} />
-        },
+    },
+    {
+      field: 'teams',
+      headerName: 'Teams',
+      width: 200,
+      valueGetter: params => {
+        return getXGridValueFromArray(params.row.teams, 'name')
       },
-      {
-        field: 'teams',
-        headerName: 'Teams',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.teams, 'name')
-        },
+    },
+    {
+      field: 'positions',
+      headerName: 'Positions',
+      width: 200,
+      valueGetter: params => {
+        return getXGridValueFromArray(params.row.positions, 'name')
       },
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-    ],
-    []
-  )
+    },
+  ]
 
   const queryData: GridRowsProp[] = setIdFromEntityId(
     playersView === 'assignedPlayers'
@@ -175,6 +146,7 @@ const View: React.FC = () => {
             }
             onClick={() => {
               setPlayersView('unassignedPlayers')
+              if (!data2) getUnassignedPlayer()
             }}
           >
             Unassigned

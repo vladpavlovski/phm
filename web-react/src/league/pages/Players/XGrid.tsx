@@ -66,6 +66,7 @@ const GET_PLAYERS = gql`
     seasons(where: $whereSeasons) {
       seasonId
       name
+      status
     }
   }
 `
@@ -103,7 +104,7 @@ const XGridTable: React.FC = () => {
       },
       whereGroups: {
         season: {
-          name: '2021-2022',
+          // name: '2021-2022',
           org: {
             urlSlug: organizationSlug,
           },
@@ -121,89 +122,86 @@ const XGridTable: React.FC = () => {
       },
     },
   })
+  console.log(data?.seasons)
+  const columns: GridColumns = [
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 200,
+      renderCell: params => {
+        return (
+          <Chip
+            size="small"
+            avatar={
+              <Avatar alt={params?.row?.name} src={params?.row?.avatar} />
+            }
+            label={params?.value}
+            color="info"
+          />
+        )
+      },
+    },
+    {
+      field: 'stick',
+      headerName: 'Stick',
+      width: 150,
+      hide: !upSm,
+    },
+    {
+      field: 'levelCode',
+      headerName: 'Level',
+      width: 150,
+      hide: !upSm,
+      renderCell: params => {
+        return <PlayerLevel code={params.value} />
+      },
+    },
 
-  const columns = React.useMemo<GridColumns>(
-    () => [
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-        renderCell: params => {
-          return (
-            <Chip
-              size="small"
-              avatar={
-                <Avatar alt={params?.row?.name} src={params?.row?.avatar} />
-              }
-              label={params?.value}
-              color="info"
-            />
-          )
-        },
+    {
+      field: 'activityStatus',
+      headerName: 'Activity Status',
+      width: 150,
+      hide: !upSm,
+    },
+    {
+      field: 'teams',
+      headerName: 'Teams',
+      width: 200,
+      renderCell: params => {
+        return (
+          <Stack spacing={1} direction="row">
+            {params.row?.teams?.map((team: Team) => {
+              return (
+                <Chip
+                  size="small"
+                  key={team?.teamId}
+                  avatar={<Avatar alt={team?.name} src={team?.logo} />}
+                  label={team?.name}
+                  color="info"
+                />
+              )
+            })}
+          </Stack>
+        )
       },
-      {
-        field: 'stick',
-        headerName: 'Stick',
-        width: 150,
-        hide: !upSm,
+    },
+    {
+      field: 'positions',
+      headerName: 'Positions',
+      width: 200,
+      valueGetter: params => {
+        return getXGridValueFromArray(params.row.positions, 'name')
       },
-      {
-        field: 'levelCode',
-        headerName: 'Level',
-        width: 150,
-        hide: !upSm,
-        renderCell: params => {
-          return <PlayerLevel code={params.value} />
-        },
+    },
+    {
+      field: 'jerseys',
+      headerName: 'Jerseys',
+      width: 200,
+      valueGetter: params => {
+        return getXGridValueFromArray(params.row.jerseys, 'name')
       },
-
-      {
-        field: 'activityStatus',
-        headerName: 'Activity Status',
-        width: 150,
-        hide: !upSm,
-      },
-      {
-        field: 'teams',
-        headerName: 'Teams',
-        width: 200,
-        renderCell: params => {
-          return (
-            <Stack spacing={1} direction="row">
-              {params.row?.teams?.map((team: Team) => {
-                return (
-                  <Chip
-                    size="small"
-                    key={team?.teamId}
-                    avatar={<Avatar alt={team?.name} src={team?.logo} />}
-                    label={team?.name}
-                    color="info"
-                  />
-                )
-              })}
-            </Stack>
-          )
-        },
-      },
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.positions, 'name')
-        },
-      },
-      {
-        field: 'jerseys',
-        headerName: 'Jerseys',
-        width: 200,
-        valueGetter: params => {
-          return getXGridValueFromArray(params.row.jerseys, 'name')
-        },
-      },
-    ],
-    [upSm]
-  )
+    },
+  ]
 
   const playersData = React.useMemo((): GridRowsProp[] => {
     const preparedData = setIdFromEntityId(data?.players || [], 'playerId')
@@ -227,17 +225,14 @@ const XGridTable: React.FC = () => {
     return preparedData
   }, [data, selectedGroup])
 
-  const searchIndexes = React.useMemo(
-    () => [
-      'name',
-      'stick',
-      'activityStatus',
-      'teamsInfo',
-      'jerseysInfo',
-      'positionsInfo',
-    ],
-    []
-  )
+  const searchIndexes = [
+    'name',
+    'stick',
+    'activityStatus',
+    'teamsInfo',
+    'jerseysInfo',
+    'positionsInfo',
+  ]
 
   const [searchText, searchData, requestSearch] = useXGridSearch({
     searchIndexes,

@@ -1,3 +1,4 @@
+import { Organization } from 'admin/pages/entity/relations/Organization'
 import React from 'react'
 import { Season } from 'utils/types'
 import { MutationFunction } from '@apollo/client'
@@ -14,8 +15,15 @@ type TRelations = {
 }
 
 const Relations: React.FC<TRelations> = props => {
+  const { seasonId, season, updateSeason } = props
   return (
     <div style={{ paddingTop: '16px' }}>
+      <Organization
+        entityType="season"
+        update={updateSeason}
+        targetId={seasonId}
+        entity={season}
+      />
       <Competitions {...props} />
       <Teams {...props} />
       <Phases {...props} />

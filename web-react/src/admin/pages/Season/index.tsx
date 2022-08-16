@@ -67,6 +67,10 @@ const GET_SEASON = gql`
         nick
         capacity
       }
+      org {
+        organizationId
+        name
+      }
     }
   }
 `
@@ -124,6 +128,10 @@ const UPDATE_SEASON = gql`
           name
           nick
           capacity
+        }
+        org {
+          organizationId
+          name
         }
       }
     }
