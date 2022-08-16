@@ -1,13 +1,20 @@
 import { LinkButton, XGridPage } from 'components'
 import dayjs from 'dayjs'
+import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import Img from 'react-cool-img'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgGameRoute } from 'router/routes'
 import createPersistedState from 'use-persisted-state'
 import { formatDate, formatTime, setIdFromEntityId } from 'utils'
-import { Game, GameEventSimple, GamePlayersRelationship, GameTeamsRelationship } from 'utils/types'
-import { gql, useLazyQuery } from '@apollo/client'
+import {
+  Game,
+  GameEventSimple,
+  GamePlayersRelationship,
+  GameTeamsRelationship,
+  Season,
+} from 'utils/types'
+import { gql, useQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
 import BalconyIcon from '@mui/icons-material/Balcony'
 import EditIcon from '@mui/icons-material/Edit'
@@ -25,11 +32,12 @@ const useGamesColumnsTypeState = createPersistedState('HMS-GamesColumnsType')
 
 export const GET_GAMES = gql`
   query getGames(
-    $where: GameWhere
+    $whereGames: GameWhere
     $whereGameEvents: GameEventSimpleWhere
     $options: GameOptions
+    $whereSeasons: SeasonWhere
   ) {
-    games(where: $where, options: $options) {
+    games(where: $whereGames, options: $options) {
       gameId
       name
       type
@@ -118,6 +126,13 @@ export const GET_GAMES = gql`
         bankAccountCurrency
         bankCode
       }
+    }
+    seasons(where: $whereSeasons) {
+      seasonId
+      name
+      status
+      startDate
+      endDate
     }
   }
 `
@@ -696,30 +711,48 @@ type TParams = {
   organizationSlug: string
 }
 
+type TData = {
+  games: Game[]
+  seasons: Season[]
+}
+
 const View: React.FC = () => {
   const { organizationSlug } = useParams<TParams>()
+
+  const [selectedSeason, setSelectedSeason] =
+    useLeagueSeasonState<Season | null>(null)
 
   const [gamesView, setGamesView] = useGamesViewState('all')
   const [gamesColumnsType, setGamesColumnsType] =
     useGamesColumnsTypeState('admin')
-  const [getGames, { error: errorGames, loading: loadingGames, data }] =
-    useLazyQuery(GET_GAMES)
-
-  React.useEffect(() => {
-    const variables = {
-      where: {
+  const {
+    error: errorGames,
+    loading: loadingGames,
+    data,
+  } = useQuery<TData>(GET_GAMES, {
+    variables: {
+      whereGames: {
         org: {
           urlSlug: organizationSlug,
         },
-        ...(gamesView === 'today' && {
-          startDate: dayjs().format('YYYY-MM-DD'),
-        }),
-        ...(gamesView === 'past' && {
-          startDate_LT: dayjs().format('YYYY-MM-DD'),
-        }),
-        ...(gamesView === 'future' && {
-          startDate_GT: dayjs().format('YYYY-MM-DD'),
-        }),
+        ...(selectedSeason?.status === 'RUNNING'
+          ? {
+              ...(gamesView === 'today' && {
+                startDate: dayjs().format('YYYY-MM-DD'),
+              }),
+              ...(gamesView === 'past' && {
+                startDate_GTE: selectedSeason?.startDate || null,
+                startDate_LT: dayjs().format('YYYY-MM-DD'),
+              }),
+              ...(gamesView === 'future' && {
+                startDate_GT: dayjs().format('YYYY-MM-DD'),
+                startDate_LTE: selectedSeason?.endDate || null,
+              }),
+            }
+          : {
+              startDate_GTE: selectedSeason?.startDate || null,
+              startDate_LTE: selectedSeason?.endDate || null,
+            }),
       },
       whereGameEvents: {
         eventTypeCode: 'goal',
@@ -729,9 +762,13 @@ const View: React.FC = () => {
           startDate: 'ASC',
         },
       },
-    }
-    getGames({ variables })
-  }, [gamesView])
+      whereSeasons: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+      },
+    },
+  })
 
   const columns = React.useMemo(() => {
     const columnsBase = getColumns(organizationSlug)
@@ -833,27 +870,24 @@ const View: React.FC = () => {
     return preparedData
   }, [data])
 
-  const searchIndexes = React.useMemo(
-    () => [
-      'name',
-      'description',
-      'info',
-      'foreignId',
-      'referee',
-      'startDate',
-      'startTime',
-      'timekeeper',
-      'type',
-      'hostTeamName',
-      'guestTeamName',
-      ['venue', 'name'],
-      ['group', 'name'],
-      ['group', 'competition', 'name'],
-      ['phase', 'name'],
-      ['phase', 'competition', 'name'],
-    ],
-    []
-  )
+  const searchIndexes = [
+    'name',
+    'description',
+    'info',
+    'foreignId',
+    'referee',
+    'startDate',
+    'startTime',
+    'timekeeper',
+    'type',
+    'hostTeamName',
+    'guestTeamName',
+    ['venue', 'name'],
+    ['group', 'name'],
+    ['group', 'competition', 'name'],
+    ['phase', 'name'],
+    ['phase', 'competition', 'name'],
+  ]
   return (
     <XGridPage
       title="Games"
@@ -863,106 +897,120 @@ const View: React.FC = () => {
       rows={gameData}
       searchIndexes={searchIndexes}
     >
-      <div>
-        {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
-                  {'Games'}
-                </Title> */}
-        <ButtonGroup variant="outlined" size="small">
-          <Button
-            variant={gamesView === 'all' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesView('all')
-            }}
-          >
-            All
-          </Button>
-          <Button
-            variant={gamesView === 'today' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesView('today')
-            }}
-          >
-            Today
-          </Button>
-          <Button
-            variant={gamesView === 'past' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesView('past')
-            }}
-          >
-            Past
-          </Button>
-          <Button
-            variant={gamesView === 'future' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesView('future')
-            }}
-          >
-            Future
-          </Button>
-          {/* <DatePicker
-                  // should fix bug with anchorEl prop :( )
-                    open={datepickerIsOpen}
-                    onChange={setSelectedDate}
-                    onClose={() => setDatepickerIsOpen(false)}
-                    inputFormat={'DD/MM/YYYY'}
-                    inputRef={ref}
-                    renderInput={({ ref }) => (
-                      <Button
-                        ref={ref}
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => setDatepickerIsOpen(isOpen => !isOpen)}
-                        startIcon={<TodayIcon />}
-                      >
-                        {dayjs(selectedDate).format('DD/MM/YYYY')}
-                      </Button>
-                    )}
-                    value={selectedDate}
-                  /> */}
+      <Stack gap={2} direction="column" sx={{ width: '100%' }}>
+        <ButtonGroup aria-label="outlined button group" variant="outlined">
+          {data?.seasons?.map(season => {
+            return (
+              <Button
+                key={season.seasonId}
+                type="button"
+                color="primary"
+                variant={
+                  selectedSeason?.seasonId === season?.seasonId
+                    ? 'contained'
+                    : 'outlined'
+                }
+                onClick={() => {
+                  setSelectedSeason(
+                    season?.seasonId === selectedSeason?.seasonId
+                      ? null
+                      : season
+                  )
+                }}
+              >
+                {season?.name}
+              </Button>
+            )
+          })}
         </ButtonGroup>
-      </div>
-      <div>
-        {/* <Title sx={{ display: 'inline-flex', marginRight: '0.4rem' }}>
-                  {'Games'}
-                </Title> */}
-        <ButtonGroup variant="outlined" size="small">
-          <Button
-            variant={gamesColumnsType === 'admin' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesColumnsType('admin')
-            }}
-          >
-            Admin
-          </Button>
-          <Button
-            variant={gamesColumnsType === 'reporter' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setGamesColumnsType('reporter')
-            }}
-          >
-            Reporter
-          </Button>
-          <Button
-            variant={
-              gamesColumnsType === 'statistics' ? 'contained' : 'outlined'
-            }
-            onClick={() => {
-              setGamesColumnsType('statistics')
-            }}
-          >
-            Statistics
-          </Button>
-        </ButtonGroup>
-      </div>
-      <div>
-        <LinkButton
-          startIcon={<AddIcon />}
-          to={getAdminOrgGameRoute(organizationSlug, 'new')}
-        >
-          Create
-        </LinkButton>
-      </div>
+
+        <Stack direction="row" justifyContent="space-between">
+          <div>
+            <ButtonGroup
+              variant="outlined"
+              size="small"
+              disabled={selectedSeason?.status !== 'RUNNING'}
+            >
+              <Button
+                variant={gamesView === 'all' ? 'contained' : 'outlined'}
+                onClick={() => {
+                  setGamesView('all')
+                }}
+              >
+                All
+              </Button>
+              <Button
+                variant={gamesView === 'today' ? 'contained' : 'outlined'}
+                onClick={() => {
+                  setGamesView('today')
+                }}
+              >
+                Today
+              </Button>
+              <Button
+                variant={gamesView === 'past' ? 'contained' : 'outlined'}
+                onClick={() => {
+                  setGamesView('past')
+                }}
+              >
+                Past
+              </Button>
+              <Button
+                variant={gamesView === 'future' ? 'contained' : 'outlined'}
+                onClick={() => {
+                  setGamesView('future')
+                }}
+              >
+                Future
+              </Button>
+            </ButtonGroup>
+          </div>
+
+          <div>
+            <ButtonGroup variant="outlined" size="small">
+              <Button
+                variant={
+                  gamesColumnsType === 'admin' ? 'contained' : 'outlined'
+                }
+                onClick={() => {
+                  setGamesColumnsType('admin')
+                }}
+              >
+                Admin
+              </Button>
+              <Button
+                variant={
+                  gamesColumnsType === 'reporter' ? 'contained' : 'outlined'
+                }
+                onClick={() => {
+                  setGamesColumnsType('reporter')
+                }}
+              >
+                Reporter
+              </Button>
+              <Button
+                variant={
+                  gamesColumnsType === 'statistics' ? 'contained' : 'outlined'
+                }
+                onClick={() => {
+                  setGamesColumnsType('statistics')
+                }}
+              >
+                Statistics
+              </Button>
+            </ButtonGroup>
+          </div>
+
+          <div>
+            <LinkButton
+              startIcon={<AddIcon />}
+              to={getAdminOrgGameRoute(organizationSlug, 'new')}
+            >
+              Create
+            </LinkButton>
+          </div>
+        </Stack>
+      </Stack>
     </XGridPage>
   )
 }

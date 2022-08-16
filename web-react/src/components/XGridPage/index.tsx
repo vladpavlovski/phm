@@ -1,4 +1,4 @@
-import { Error, Loader, QuickSearchToolbar } from 'components'
+import { Error, QuickSearchToolbar } from 'components'
 import LayoutContext from 'context/layout'
 import React from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -48,7 +48,7 @@ const XGridPage: React.FC<TXGridPage> = props => {
               <Paper>
                 <Toolbar
                   sx={{
-                    p: 0,
+                    py: 2,
                     display: 'flex',
                     justifyContent: 'space-between',
                   }}
@@ -56,9 +56,9 @@ const XGridPage: React.FC<TXGridPage> = props => {
                   {children}
                 </Toolbar>
               </Paper>
-              {loading && <Loader />}
               <Error message={error?.message} />
-
+            </Grid>
+            <Grid item xs={12} md={12} lg={12}>
               <div
                 style={{ height: 'calc(100vh - 230px)' }}
                 // className={classes.xGridWrapper}
