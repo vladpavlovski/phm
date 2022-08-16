@@ -98,6 +98,8 @@ export type Season = {
   name: string
   nick: string
   status: string
+  startDate: string
+  endDate: string
   groups: Group[]
   phases: Phase[]
   competitions: Competition[]

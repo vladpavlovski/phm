@@ -17,6 +17,7 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { DataGridPro, GridColumns, GridRowModel, GridRowsProp } from '@mui/x-data-grid-pro'
 
@@ -51,6 +52,9 @@ const GET_PLAYERS = gql`
         logo
         groups {
           groupId
+          season {
+            seasonId
+          }
         }
       }
     }
@@ -67,6 +71,8 @@ const GET_PLAYERS = gql`
       seasonId
       name
       status
+      startDate
+      endDate
     }
   }
 `
@@ -84,12 +90,15 @@ type TPlayersData = {
 }
 
 const useLeagueGroupState = createPersistedState('HMS-LeagueAllPlayersGroup')
+export const useLeagueSeasonState = createPersistedState('HMS-LeagueSeason')
 
-const XGridTable: React.FC = () => {
+const XGridTable = () => {
   const { organizationSlug } = useParams<TXGridTableParams>()
   const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>(
     null
   )
+  const [selectedSeason, setSelectedSeason] =
+    useLeagueSeasonState<Season | null>(null)
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -101,10 +110,22 @@ const XGridTable: React.FC = () => {
             urlSlug: organizationSlug,
           },
         },
+        games: {
+          startDate_GTE: selectedSeason?.startDate || null,
+          startDate_LTE: selectedSeason?.endDate || null,
+          org: {
+            urlSlug: organizationSlug,
+          },
+          ...(selectedGroup && {
+            group: {
+              groupId: selectedGroup.groupId,
+            },
+          }),
+        },
       },
       whereGroups: {
         season: {
-          name: '2021-2022',
+          name: selectedSeason?.name || null,
           org: {
             urlSlug: organizationSlug,
           },
@@ -122,7 +143,7 @@ const XGridTable: React.FC = () => {
       },
     },
   })
-  console.log(data?.seasons)
+
   const columns: GridColumns = [
     {
       field: 'name',
@@ -223,7 +244,7 @@ const XGridTable: React.FC = () => {
       })
 
     return preparedData
-  }, [data, selectedGroup])
+  }, [data, selectedGroup, selectedSeason])
 
   const searchIndexes = [
     'name',
@@ -243,11 +264,40 @@ const XGridTable: React.FC = () => {
     <Container maxWidth={false}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+          {loading && <Loader />}
+          <Error message={error?.message} />
           {data && (
             <>
               <Stack>
+                <ButtonGroup
+                  size={upSm ? 'medium' : 'small'}
+                  aria-label="outlined button group"
+                  variant="outlined"
+                >
+                  {data?.seasons?.map(season => {
+                    return (
+                      <Button
+                        key={season.seasonId}
+                        type="button"
+                        color="primary"
+                        variant={
+                          selectedSeason?.seasonId === season?.seasonId
+                            ? 'contained'
+                            : 'outlined'
+                        }
+                        onClick={() => {
+                          setSelectedSeason(
+                            season?.seasonId === selectedSeason?.seasonId
+                              ? null
+                              : season
+                          )
+                        }}
+                      >
+                        {season?.name}
+                      </Button>
+                    )
+                  })}
+                </ButtonGroup>
                 <ButtonGroup
                   size={upSm ? 'medium' : 'small'}
                   aria-label="outlined button group"
@@ -277,33 +327,37 @@ const XGridTable: React.FC = () => {
                 </ButtonGroup>
               </Stack>
 
-              <div
-                style={{
-                  height: 800,
-                }}
-                // className={classes.xGridWrapper}
-              >
-                <DataGridPro
-                  disableSelectionOnClick
-                  disableMultipleSelection
-                  density="compact"
-                  columns={columns}
-                  rows={searchData}
-                  loading={loading}
-                  components={{
-                    Toolbar: QuickSearchToolbar,
+              {selectedSeason ? (
+                <div
+                  style={{
+                    height: 800,
                   }}
-                  componentsProps={{
-                    toolbar: {
-                      value: searchText,
-                      onChange: (
-                        event: React.ChangeEvent<HTMLInputElement>
-                      ): void => requestSearch(event.target.value),
-                      clearSearch: () => requestSearch(''),
-                    },
-                  }}
-                />
-              </div>
+                  // className={classes.xGridWrapper}
+                >
+                  <DataGridPro
+                    disableSelectionOnClick
+                    disableMultipleSelection
+                    density="compact"
+                    columns={columns}
+                    rows={searchData}
+                    loading={loading}
+                    components={{
+                      Toolbar: QuickSearchToolbar,
+                    }}
+                    componentsProps={{
+                      toolbar: {
+                        value: searchText,
+                        onChange: (
+                          event: React.ChangeEvent<HTMLInputElement>
+                        ): void => requestSearch(event.target.value),
+                        clearSearch: () => requestSearch(''),
+                      },
+                    }}
+                  />
+                </div>
+              ) : (
+                <Typography variant="h6">Select season first</Typography>
+              )}
             </>
           )}
         </Grid>

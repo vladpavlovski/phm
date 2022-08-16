@@ -2,20 +2,25 @@ import { getColumns } from 'admin/pages/Game/view'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Game } from 'utils/types'
+import { Game, Season } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
-import { Container, Grid } from '@mui/material'
+import { Button, ButtonGroup, Container, Grid, Stack, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 const GET_GAMES = gql`
-  query getGames($where: GameWhere, $whereGameEvents: GameEventSimpleWhere) {
-    games(where: $where) {
+  query getGames(
+    $whereGames: GameWhere
+    $whereGameEvents: GameEventSimpleWhere
+    $whereSeasons: SeasonWhere
+  ) {
+    games(where: $whereGames) {
       gameId
       name
       type
@@ -87,6 +92,13 @@ const GET_GAMES = gql`
         bankCode
       }
     }
+    seasons(where: $whereSeasons) {
+      seasonId
+      name
+      status
+      startDate
+      endDate
+    }
   }
 `
 
@@ -94,13 +106,24 @@ type TXGridTableParams = {
   organizationSlug: string
 }
 
+type TData = {
+  games: Game[]
+  seasons: Season[]
+}
+
 const XGridTable: React.FC = () => {
   const { organizationSlug } = useParams<TXGridTableParams>()
+
+  const [selectedSeason, setSelectedSeason] =
+    useLeagueSeasonState<Season | null>(null)
+
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
-  const { error, loading, data } = useQuery(GET_GAMES, {
+  const { error, loading, data } = useQuery<TData>(GET_GAMES, {
     variables: {
-      where: {
+      whereGames: {
+        startDate_GTE: selectedSeason?.startDate || null,
+        startDate_LTE: selectedSeason?.endDate || null,
         org: {
           urlSlug: organizationSlug,
         },
@@ -111,6 +134,11 @@ const XGridTable: React.FC = () => {
       options: {
         sort: {
           startDate: 'ASC',
+        },
+      },
+      whereSeasons: {
+        org: {
+          urlSlug: organizationSlug,
         },
       },
     },
@@ -195,44 +223,81 @@ const XGridTable: React.FC = () => {
   return (
     <Container maxWidth={false} disableGutters={!upSm}>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={12} lg={12}>
-          {loading && !error && <Loader />}
-          {error && !loading && <Error message={error.message} />}
+        <Grid item xs={12}>
+          {loading && <Loader />}
+          <Error message={error?.message} />
           {data && (
-            <div
-              style={{
-                height: 800,
-              }}
-              // className={classes.xGridWrapper}
-            >
-              <DataGridPro
-                density="compact"
-                columns={columns}
-                rows={searchData}
-                loading={loading}
-                components={{
-                  Toolbar: QuickSearchToolbar,
-                }}
-                componentsProps={{
-                  toolbar: {
-                    value: searchText,
-                    onChange: (
-                      event: React.ChangeEvent<HTMLInputElement>
-                    ): void => {
-                      requestSearch(event.target.value)
-                    },
-                    clearSearch: () => requestSearch(''),
-                    hideButtons: true,
-                  },
-                }}
-                sortModel={[
-                  {
-                    field: 'startDate',
-                    sort: 'asc',
-                  },
-                ]}
-              />
-            </div>
+            <>
+              <Stack>
+                <ButtonGroup
+                  size={upSm ? 'medium' : 'small'}
+                  aria-label="outlined button group"
+                  variant="outlined"
+                >
+                  {data?.seasons?.map(season => {
+                    return (
+                      <Button
+                        key={season.seasonId}
+                        type="button"
+                        color="primary"
+                        variant={
+                          selectedSeason?.seasonId === season?.seasonId
+                            ? 'contained'
+                            : 'outlined'
+                        }
+                        onClick={() => {
+                          setSelectedSeason(
+                            season?.seasonId === selectedSeason?.seasonId
+                              ? null
+                              : season
+                          )
+                        }}
+                      >
+                        {season?.name}
+                      </Button>
+                    )
+                  })}
+                </ButtonGroup>
+              </Stack>
+              {selectedSeason ? (
+                <div
+                  style={{
+                    height: 800,
+                  }}
+                  // className={classes.xGridWrapper}
+                >
+                  <DataGridPro
+                    density="compact"
+                    columns={columns}
+                    rows={searchData}
+                    loading={loading}
+                    components={{
+                      Toolbar: QuickSearchToolbar,
+                    }}
+                    componentsProps={{
+                      toolbar: {
+                        value: searchText,
+                        onChange: (
+                          event: React.ChangeEvent<HTMLInputElement>
+                        ): void => {
+                          requestSearch(event.target.value)
+                        },
+                        clearSearch: () => requestSearch(''),
+                        hideButtons: true,
+                      },
+                    }}
+                    sortModel={[
+                      {
+                        field: 'startDate',
+                        sort: 'asc',
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                <Typography variant="h6">Select season first</Typography>
+              )}
+            </>
           )}
         </Grid>
       </Grid>

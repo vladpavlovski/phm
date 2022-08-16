@@ -1,12 +1,12 @@
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
-import dayjs from 'dayjs'
+import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Game, Group, ResultPoint, SystemSettings, Team } from 'utils/types'
+import { Game, Group, ResultPoint, Season, SystemSettings, Team } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
@@ -16,6 +16,7 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   DataGridPro,
@@ -176,6 +177,7 @@ const GET_GAMES = gql`
     $whereGames: GameWhere
     $whereSystemSettings: SystemSettingsWhere
     $whereGroups: GroupWhere
+    $whereSeasons: SeasonWhere
   ) {
     games(where: $whereGames) {
       gameId
@@ -227,6 +229,13 @@ const GET_GAMES = gql`
       groupId
       name
     }
+    seasons(where: $whereSeasons) {
+      seasonId
+      name
+      status
+      startDate
+      endDate
+    }
   }
 `
 
@@ -240,12 +249,17 @@ type TGamesData = {
   games: Game[]
   systemSettings: SystemSettings[]
   groups: TGroup[]
+  seasons: Season[]
 }
 
 const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
 
-const XGridTable: React.FC = () => {
+const XGridTable = () => {
   const { organizationSlug } = useParams<TStandingsParams>()
+
+  const [selectedSeason, setSelectedSeason] =
+    useLeagueSeasonState<Season | null>(null)
+
   const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -253,7 +267,8 @@ const XGridTable: React.FC = () => {
   const { error, loading, data } = useQuery<TGamesData>(GET_GAMES, {
     variables: {
       whereGames: {
-        startDate_LT: dayjs().format('YYYY-MM-DD'),
+        startDate_GTE: selectedSeason?.startDate || null,
+        startDate_LTE: selectedSeason?.endDate || null,
         org: {
           urlSlug: organizationSlug,
         },
@@ -269,10 +284,12 @@ const XGridTable: React.FC = () => {
       whereSystemSettings: { systemSettingsId: 'system-settings' },
       whereGroups: {
         season: {
-          name: '2021-2022',
-          org: {
-            urlSlug: organizationSlug,
-          },
+          seasonId: selectedSeason?.seasonId,
+        },
+      },
+      whereSeasons: {
+        org: {
+          urlSlug: organizationSlug,
         },
       },
     },
@@ -286,115 +303,110 @@ const XGridTable: React.FC = () => {
     [apiRef]
   )
 
-  const columns = React.useMemo<GridColumns>(
-    () => [
-      {
-        field: 'index',
-        headerName: '',
-        width: 5,
-        sortable: false,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return <>{getRowIndex(params.row.id)}</>
-        },
+  const columns: GridColumns = [
+    {
+      field: 'index',
+      headerName: '',
+      width: 5,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return <>{getRowIndex(params.row.id)}</>
       },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: upSm ? 200 : 160,
-        sortable: upSm,
-        disableColumnMenu: !upSm,
-        renderCell: params => {
-          return (
-            <Chip
-              size="small"
-              avatar={
-                <Avatar alt={params?.row?.name} src={params?.row?.logo} />
-              }
-              label={params?.value}
-              color="info"
-            />
-          )
-        },
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: upSm ? 200 : 160,
+      sortable: upSm,
+      disableColumnMenu: !upSm,
+      renderCell: params => {
+        return (
+          <Chip
+            size="small"
+            avatar={<Avatar alt={params?.row?.name} src={params?.row?.logo} />}
+            label={params?.value}
+            color="info"
+          />
+        )
       },
-      {
-        field: 'gamesTotal',
-        headerName: 'GT',
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 20,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.gamesTotal,
-      },
-      {
-        field: 'win',
-        headerName: 'W',
-        align: 'center',
-        headerAlign: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 30,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.win,
-      },
-      {
-        field: 'lost',
-        headerName: 'L',
-        align: 'center',
-        headerAlign: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 30,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.lost,
-      },
-      {
-        field: 'draw',
-        headerName: 'R',
-        align: 'center',
-        headerAlign: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 30,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.draw,
-      },
-      {
-        field: 'score',
-        headerName: 'S',
-        align: 'center',
-        headerAlign: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 30,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.score,
-        renderCell: params => (
-          <>{`${params?.row?.standings?.score}:${params?.row?.standings?.allowed}`}</>
-        ),
-      },
-      {
-        field: 'points',
-        headerName: 'P',
-        align: 'center',
-        headerAlign: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        width: upSm ? 70 : 30,
-        sortable: upSm,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.standings?.points,
-      },
-    ],
-    [upSm]
-  )
+    },
+    {
+      field: 'gamesTotal',
+      headerName: 'GT',
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 20,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.gamesTotal,
+    },
+    {
+      field: 'win',
+      headerName: 'W',
+      align: 'center',
+      headerAlign: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 30,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.win,
+    },
+    {
+      field: 'lost',
+      headerName: 'L',
+      align: 'center',
+      headerAlign: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 30,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.lost,
+    },
+    {
+      field: 'draw',
+      headerName: 'R',
+      align: 'center',
+      headerAlign: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 30,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.draw,
+    },
+    {
+      field: 'score',
+      headerName: 'S',
+      align: 'center',
+      headerAlign: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 30,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.score,
+      renderCell: params => (
+        <>{`${params?.row?.standings?.score}:${params?.row?.standings?.allowed}`}</>
+      ),
+    },
+    {
+      field: 'points',
+      headerName: 'P',
+      align: 'center',
+      headerAlign: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      width: upSm ? 70 : 30,
+      sortable: upSm,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.standings?.points,
+    },
+  ]
 
   const teamsData = React.useMemo(() => {
     const preparedData = data
@@ -426,6 +438,35 @@ const XGridTable: React.FC = () => {
                   aria-label="outlined button group"
                   variant="outlined"
                 >
+                  {data?.seasons?.map(season => {
+                    return (
+                      <Button
+                        key={season.seasonId}
+                        type="button"
+                        color="primary"
+                        variant={
+                          selectedSeason?.seasonId === season?.seasonId
+                            ? 'contained'
+                            : 'outlined'
+                        }
+                        onClick={() => {
+                          setSelectedSeason(
+                            season?.seasonId === selectedSeason?.seasonId
+                              ? null
+                              : season
+                          )
+                        }}
+                      >
+                        {season?.name}
+                      </Button>
+                    )
+                  })}
+                </ButtonGroup>
+                <ButtonGroup
+                  size={upSm ? 'medium' : 'small'}
+                  aria-label="outlined button group"
+                  variant="outlined"
+                >
                   {data?.groups?.map(g => {
                     return (
                       <Button
@@ -451,9 +492,9 @@ const XGridTable: React.FC = () => {
               </Stack>
             </>
           )}
-          {error && !loading ? (
-            <Error message={error.message} />
-          ) : searchData ? (
+          {loading && <Loader />}
+          <Error message={error?.message} />
+          {selectedSeason ? (
             <div
               style={{
                 height: 800,
@@ -487,7 +528,7 @@ const XGridTable: React.FC = () => {
               />
             </div>
           ) : (
-            loading && <Loader />
+            <Typography variant="h6">Select season first</Typography>
           )}
         </Grid>
       </Grid>

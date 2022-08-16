@@ -1,7 +1,7 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import dayjs from 'dayjs'
+import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
@@ -17,6 +17,7 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Stack from '@mui/material/Stack'
 import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   DataGridPro,
@@ -86,6 +87,10 @@ const GET_PLAYERS_STATISTICS = gql`
     }
     seasons(where: $whereSeason) {
       seasonId
+      name
+      status
+      startDate
+      endDate
       competitions {
         competitionId
         name
@@ -212,8 +217,11 @@ const useLeaguePlayerStatCompetition = createPersistedState(
   'HMS-LeaguePlayerStatCompetition'
 )
 
-const XGridTable: React.FC = () => {
+const XGridTable = () => {
   const { organizationSlug } = useParams<TPlayersStatisticsParams>()
+
+  const [selectedSeason, setSelectedSeason] =
+    useLeagueSeasonState<Season | null>(null)
 
   const [selectedGroup, setSelectedGroup] =
     useLeaguePlayerStatGroup<Group | null>(null)
@@ -222,7 +230,7 @@ const XGridTable: React.FC = () => {
   const [selectedCompetition, setSelectedCompetition] =
     useLeaguePlayerStatCompetition<Competition | null>(null)
 
-  const [actualSeason, setActualSeason] = React.useState<Season | null>(null)
+  // const [actualSeason, setActualSeason] = React.useState<Season | null>(null)
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
   const theme = useTheme()
@@ -233,8 +241,8 @@ const XGridTable: React.FC = () => {
     {
       variables: {
         whereGames: {
-          startDate_GTE: '2021-09-01',
-          startDate_LTE: dayjs().format('YYYY-MM-DD'),
+          startDate_GTE: selectedSeason?.startDate,
+          startDate_LTE: selectedSeason?.endDate,
           org: {
             urlSlug: organizationSlug,
           },
@@ -268,7 +276,6 @@ const XGridTable: React.FC = () => {
           }),
         },
         whereSeason: {
-          name: '2021-2022',
           org: {
             urlSlug: organizationSlug,
           },
@@ -277,9 +284,9 @@ const XGridTable: React.FC = () => {
     }
   )
 
-  React.useEffect(() => {
-    data?.seasons && setActualSeason(data?.seasons?.[0] || null)
-  }, [data])
+  // React.useEffect(() => {
+  //   data?.seasons && setActualSeason(data?.seasons?.[0] || null)
+  // }, [data])
 
   const apiRef = useGridApiRef()
 
@@ -419,13 +426,42 @@ const XGridTable: React.FC = () => {
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
           <Error message={error?.message} />
-          <Stack>
+          <Stack gap={1}>
             <ButtonGroup
               size={upSm ? 'medium' : 'small'}
               aria-label="outlined button group"
               variant="outlined"
             >
-              {actualSeason?.competitions?.map(g => {
+              {data?.seasons?.map(season => {
+                return (
+                  <Button
+                    key={season.seasonId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedSeason?.seasonId === season?.seasonId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedSeason(
+                        season?.seasonId === selectedSeason?.seasonId
+                          ? null
+                          : season
+                      )
+                    }}
+                  >
+                    {season?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.competitions?.map(g => {
                 return (
                   <Button
                     key={g.competitionId}
@@ -454,7 +490,7 @@ const XGridTable: React.FC = () => {
               aria-label="outlined button group"
               variant="outlined"
             >
-              {actualSeason?.groups?.map(g => {
+              {selectedSeason?.groups?.map(g => {
                 return (
                   <Button
                     key={g.groupId}
@@ -481,7 +517,7 @@ const XGridTable: React.FC = () => {
               aria-label="outlined button group"
               variant="outlined"
             >
-              {actualSeason?.phases?.map(g => {
+              {selectedSeason?.phases?.map(g => {
                 return (
                   <Button
                     key={g.phaseId}
@@ -505,38 +541,44 @@ const XGridTable: React.FC = () => {
             </ButtonGroup>
           </Stack>
 
-          <div
-            style={{
-              height: getXGridHeight(toolbarRef.current, windowSize),
-            }}
-            // className={classes.xGridWrapper}
-          >
-            <DataGridPro
-              apiRef={apiRef}
-              disableSelectionOnClick
-              disableMultipleSelection
-              density="compact"
-              columns={columns}
-              rows={searchData}
-              loading={loading}
-              components={{
-                Toolbar: QuickSearchToolbar,
+          {selectedSeason ? (
+            <div
+              style={{
+                height: getXGridHeight(toolbarRef.current, windowSize),
               }}
-              componentsProps={{
-                toolbar: {
-                  value: searchText,
-                  onChange: (
-                    event: React.ChangeEvent<HTMLInputElement>
-                  ): void => {
-                    requestSearch(event.target.value)
+              // className={classes.xGridWrapper}
+            >
+              <DataGridPro
+                apiRef={apiRef}
+                disableSelectionOnClick
+                disableMultipleSelection
+                density="compact"
+                columns={columns}
+                rows={searchData}
+                loading={loading}
+                components={{
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => {
+                      requestSearch(event.target.value)
+                    },
+                    clearSearch: () => {
+                      requestSearch('')
+                    },
                   },
-                  clearSearch: () => {
-                    requestSearch('')
-                  },
-                },
-              }}
-            />
-          </div>
+                }}
+              />
+            </div>
+          ) : (
+            <Typography variant="h6" component="h6">
+              Select season to see players
+            </Typography>
+          )}
         </Grid>
       </Grid>
     </Container>
