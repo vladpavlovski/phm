@@ -1,6 +1,7 @@
 import React from 'react'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+import Container from '@mui/material/Container'
 
 type Props = {
   message: string | undefined
@@ -8,10 +9,12 @@ type Props = {
 
 const Warning = ({ message }: Props) => {
   return message ? (
-    <Alert severity="error">
-      <AlertTitle>Warning</AlertTitle>
-      <pre>{message}</pre>
-    </Alert>
+    <Container>
+      <Alert severity="warning">
+        <AlertTitle>Warning</AlertTitle>
+        <pre>{message}</pre>
+      </Alert>
+    </Container>
   ) : null
 }
 
