@@ -369,6 +369,7 @@ const Season: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth
+                        required
                         control={control}
                         variant="standard"
                         name="startDate"
@@ -384,6 +385,7 @@ const Season: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth
+                        required
                         control={control}
                         variant="standard"
                         name="endDate"
