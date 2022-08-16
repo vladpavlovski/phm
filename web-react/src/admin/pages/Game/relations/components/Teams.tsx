@@ -23,8 +23,6 @@ import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { makeStyles } from '@mui/styles'
-import { Theme } from '@mui/system'
 import { DataGridPro, GridColumns } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
 
@@ -356,42 +354,6 @@ const TeamCard: React.FC<TTeamCard> = props => {
   )
 }
 
-const useStylesCard = makeStyles(({ breakpoints, spacing }: Theme) => ({
-  cardWrapper: {
-    margin: 'auto',
-    borderRadius: spacing(2), // 16px
-    transition: '0.3s',
-    boxShadow: '0px 14px 80px rgba(34, 35, 58, 0.2)',
-    position: 'relative',
-    maxWidth: 500,
-    overflow: 'initial',
-    background: '#ffffff',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: ' flex-start',
-    paddingBottom: spacing(2),
-    [breakpoints.up('md')]: {
-      flexDirection: 'row',
-      paddingTop: spacing(2),
-    },
-  },
-  cardMedia: {
-    width: '50%',
-    marginTop: spacing(-3),
-    height: 0,
-    paddingBottom: '48%',
-    borderRadius: '50%',
-    backgroundColor: '#fff',
-    position: 'relative',
-    alignSelf: 'center',
-    [breakpoints.up('md')]: {
-      width: '50%',
-      marginTop: 0,
-      transform: 'translateX(-16px)',
-    },
-  },
-}))
-
 type CardInfoProps = {
   team: Team
   updateGame: MutationFunction
@@ -400,11 +362,39 @@ type CardInfoProps = {
 }
 
 const CardInfo = ({ team, color, updateGame, gameId }: CardInfoProps) => {
-  const classes = useStylesCard()
   const [teamColor, setTeamColor] = useState(color || '')
   return (
-    <Card className={classes.cardWrapper}>
-      <CardMedia className={classes.cardMedia} image={team.logo} />
+    <Card
+      sx={{
+        flexDirection: 'row',
+        margin: 'auto',
+        borderRadius: '16px',
+        transition: '0.3s',
+        boxShadow: '0px 14px 80px rgba(34, 35, 58, 0.2)',
+        position: 'relative',
+        maxWidth: 500,
+        overflow: 'initial',
+        background: '#ffffff',
+        display: 'flex',
+        justifyContent: ' flex-start',
+        paddingTop: '16px',
+        paddingBottom: '16px',
+      }}
+    >
+      <CardMedia
+        sx={{
+          width: '50%',
+          height: 0,
+          paddingBottom: '48%',
+          borderRadius: '50%',
+          backgroundColor: '#fff',
+          position: 'relative',
+          alignSelf: 'center',
+          marginTop: 0,
+          transform: 'translateX(-16px)',
+        }}
+        image={team.logo}
+      />
       <CardContent
         sx={{
           display: 'flex',
