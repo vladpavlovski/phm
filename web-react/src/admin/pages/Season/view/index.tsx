@@ -1,9 +1,11 @@
 import { LinkButton, XGridPage } from 'components'
+import { Warning } from 'components/Warning'
 import dayjs from 'dayjs'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgSeasonRoute } from 'router/routes'
 import { setIdFromEntityId } from 'utils'
+import { Season } from 'utils/types'
 import { gql, useLazyQuery, useQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -124,52 +126,59 @@ const View: React.FC = () => {
     },
   ]
 
-  const queryData: GridRowsProp[] = setIdFromEntityId(
-    view === 'assigned' ? data?.seasons || [] : data2?.seasons || [],
-    'seasonId'
-  )
+  const finalData =
+    view === 'assigned' ? data?.seasons || [] : data2?.seasons || []
+
+  const queryData: GridRowsProp[] = setIdFromEntityId(finalData, 'seasonId')
 
   const searchIndexes = ['name', 'nick', 'status', 'org']
-
+  const warning =
+    finalData.filter((season: Season) => season.status === 'RUNNING').length >
+    1 ? (
+      <Warning message="There are more than one running seasons. Please make sure only one season is running at a time." />
+    ) : null
   return (
-    <XGridPage
-      title="Seasons"
-      loading={loading}
-      error={error}
-      columns={columns}
-      rows={queryData}
-      searchIndexes={searchIndexes}
-    >
-      <div>
-        <ButtonGroup variant="outlined" size="small">
-          <Button
-            variant={view === 'assigned' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setView('assigned')
-            }}
+    <>
+      {warning}
+      <XGridPage
+        title="Seasons"
+        loading={loading}
+        error={error}
+        columns={columns}
+        rows={queryData}
+        searchIndexes={searchIndexes}
+      >
+        <div>
+          <ButtonGroup variant="outlined" size="small">
+            <Button
+              variant={view === 'assigned' ? 'contained' : 'outlined'}
+              onClick={() => {
+                setView('assigned')
+              }}
+            >
+              Assigned
+            </Button>
+            <Button
+              variant={view === 'unassigned' ? 'contained' : 'outlined'}
+              onClick={() => {
+                setView('unassigned')
+                if (!data2) getUnassigned()
+              }}
+            >
+              Unassigned
+            </Button>
+          </ButtonGroup>
+        </div>
+        <div>
+          <LinkButton
+            startIcon={<AddIcon />}
+            to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
           >
-            Assigned
-          </Button>
-          <Button
-            variant={view === 'unassigned' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setView('unassigned')
-              if (!data2) getUnassigned()
-            }}
-          >
-            Unassigned
-          </Button>
-        </ButtonGroup>
-      </div>
-      <div>
-        <LinkButton
-          startIcon={<AddIcon />}
-          to={getAdminOrgSeasonRoute(organizationSlug, 'new')}
-        >
-          Create
-        </LinkButton>
-      </div>
-    </XGridPage>
+            Create
+          </LinkButton>
+        </div>
+      </XGridPage>
+    </>
   )
 }
 

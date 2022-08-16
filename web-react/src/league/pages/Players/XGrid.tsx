@@ -104,7 +104,7 @@ const XGridTable: React.FC = () => {
       },
       whereGroups: {
         season: {
-          // name: '2021-2022',
+          name: '2021-2022',
           org: {
             urlSlug: organizationSlug,
           },
