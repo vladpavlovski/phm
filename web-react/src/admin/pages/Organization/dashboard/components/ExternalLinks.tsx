@@ -13,6 +13,7 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
 
 const generateIframeCode = (path: string, cb?: () => void) => {
   const url = `${window.location.origin}${path}`
@@ -69,7 +70,7 @@ type TParams = {
   organizationSlug: string
 }
 
-const ExternalLinks: React.FC = () => {
+const ExternalLinks = () => {
   const { organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
   return (
@@ -80,12 +81,10 @@ const ExternalLinks: React.FC = () => {
 
           {getLinks(organizationSlug).map(item => {
             return (
-              <div
+              <Stack
                 key={item.title}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}
+                justifyContent="space-between"
+                direction="row"
               >
                 <Link href={item.link} target="_blank" rel="noopener">
                   {item.title}
@@ -105,7 +104,7 @@ const ExternalLinks: React.FC = () => {
                 >
                   {`iFrame`}
                 </Button>
-              </div>
+              </Stack>
             )
           })}
         </Grid>
