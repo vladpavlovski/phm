@@ -14,9 +14,17 @@ type TRHFDatepickerComponent = TextFieldProps &
     defaultValue?: string | number | Date | dayjs.Dayjs | null | undefined
   }
 
-const RHFDatepicker: React.FC<TRHFDatepickerComponent> = props => {
-  const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
-    props
+const RHFDatepicker = (props: TRHFDatepickerComponent) => {
+  const {
+    control,
+    name,
+    defaultValue,
+    variant,
+    error,
+    fullWidth,
+    required,
+    ...rest
+  } = props
   return (
     <Controller
       name={name}
@@ -27,6 +35,7 @@ const RHFDatepicker: React.FC<TRHFDatepickerComponent> = props => {
           renderInput={params => (
             <TextField
               {...params}
+              required={required}
               onBlur={onBlur}
               fullWidth={fullWidth}
               variant={variant}
@@ -50,6 +59,7 @@ RHFDatepicker.defaultProps = {
   openTo: 'year',
   disableFuture: false,
   views: ['year', 'month', 'day'],
+  required: false,
 }
 
 export { RHFDatepicker }
