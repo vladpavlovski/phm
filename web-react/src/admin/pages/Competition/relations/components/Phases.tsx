@@ -1,13 +1,14 @@
-import { Error, QuickSearchToolbar, RHFDatepicker, RHFInput, RHFSelect } from 'components'
+import { GET_COMPETITION } from 'admin/pages/Competition'
+import { QuickSearchToolbar, RHFDatepicker, RHFInput, RHFSelect } from 'components'
 import { timeUnitStatusList } from 'components/lists'
 import { useSnackbar } from 'notistack'
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { decomposeDate, formatDate, setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
 import { Competition, Phase, Season } from 'utils/types'
 import { date, object, string } from 'yup'
-import { gql, MutationFunction, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, MutationFunction, useMutation } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
 import CreateIcon from '@mui/icons-material/Create'
 import EditIcon from '@mui/icons-material/Edit'
@@ -40,32 +41,6 @@ const sortByName = (a: { name: string }, b: { name: string }) => {
   }
   return 0
 }
-
-const GET_PHASES = gql`
-  query getCompetition($where: CompetitionWhere, $whereSeason: SeasonWhere) {
-    competitions(where: $where) {
-      competitionId
-      name
-      phases {
-        phaseId
-        name
-        nick
-        short
-        status
-        startDate
-        endDate
-        season {
-          seasonId
-          name
-        }
-      }
-      seasons(where: $whereSeason) {
-        seasonId
-        name
-      }
-    }
-  }
-`
 
 const CREATE_COMPETITION_PHASE = gql`
   mutation createCompetitionPhase($input: [PhaseCreateInput!]!) {
@@ -122,7 +97,7 @@ const schema = object().shape({
   name: string().required('Name is required'),
   nick: string(),
   short: string(),
-  status: string(),
+  status: string().required('Status is required'),
   startDate: date().nullable(),
   endDate: date().nullable(),
 })
@@ -144,7 +119,7 @@ type TQueryTypeVars = {
 }
 
 const Phases: React.FC<TRelations> = props => {
-  const { competitionId } = props
+  const { competitionId, competition } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
   const deletedItemId = useRef(null)
@@ -155,23 +130,6 @@ const Phases: React.FC<TRelations> = props => {
 
     formData.current = null
   }, [])
-  const [
-    getData,
-    {
-      loading: queryLoading,
-      error: queryError,
-      data: { competitions: [competition] } = { competitions: [] },
-    },
-  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_PHASES, {
-    variables: { where: { competitionId } },
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!competition) {
-      getData()
-    }
-  }, [competition])
 
   const handleOpenDialog = useCallback(data => {
     formData.current = data
@@ -183,7 +141,7 @@ const Phases: React.FC<TRelations> = props => {
       update(cache) {
         try {
           const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_PHASES,
+            query: GET_COMPETITION,
             variables: {
               where: { competitionId },
             },
@@ -201,7 +159,7 @@ const Phases: React.FC<TRelations> = props => {
             ],
           }
           cache.writeQuery({
-            query: GET_PHASES,
+            query: GET_COMPETITION,
             data: updatedResult,
             variables: {
               where: { competitionId },
@@ -217,107 +175,106 @@ const Phases: React.FC<TRelations> = props => {
       },
     })
 
-  const competitionPhasesColumns = useMemo<GridColumns>(
-    () => [
-      {
-        field: 'phaseId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <Button
-              onClick={() => handleOpenDialog(params.row)}
-              variant={'outlined'}
-              size="small"
-              startIcon={<EditIcon />}
-            >
-              Edit
-            </Button>
-          )
-        },
+  const competitionPhasesColumns: GridColumns = [
+    {
+      field: 'phaseId',
+      headerName: 'Edit',
+      width: 120,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <Button
+            onClick={() => handleOpenDialog(params.row)}
+            variant={'outlined'}
+            size="small"
+            startIcon={<EditIcon />}
+          >
+            Edit
+          </Button>
+        )
       },
-      {
-        field: 'removeButton',
-        headerName: 'Delete',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <ButtonDialog
-              text={'Delete'}
-              textLoading={'Deleting...'}
-              loading={mutationLoadingRemove}
-              dialogTitle={'Do you really want to delete this phase?'}
-              dialogDescription={'Phase will be completely delete'}
-              dialogNegativeText={'No, keep phase'}
-              dialogPositiveText={'Yes, delete phase'}
-              onDialogClosePositive={() => {
-                deletedItemId.current = params.row.phaseId
-                deleteCompetitionPhase({
-                  variables: {
-                    where: { phaseId: params.row.phaseId },
-                  },
-                })
-              }}
-            />
-          )
-        },
+    },
+    {
+      field: 'removeButton',
+      headerName: 'Delete',
+      width: 120,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <ButtonDialog
+            text={'Delete'}
+            textLoading={'Deleting...'}
+            loading={mutationLoadingRemove}
+            dialogTitle={'Do you really want to delete this phase?'}
+            dialogDescription={'Phase will be completely delete'}
+            dialogNegativeText={'No, keep phase'}
+            dialogPositiveText={'Yes, delete phase'}
+            onDialogClosePositive={() => {
+              deletedItemId.current = params.row.phaseId
+              deleteCompetitionPhase({
+                variables: {
+                  where: { phaseId: params.row.phaseId },
+                },
+              })
+            }}
+          />
+        )
       },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 200,
+    },
 
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 120,
-      },
-      {
-        field: 'short',
-        headerName: 'Short',
-        width: 120,
-      },
-      {
-        field: 'status',
-        headerName: 'Status',
-        width: 120,
-      },
-      {
-        field: 'startDate',
-        headerName: 'Start Date',
-        width: 180,
-        valueGetter: params => params.row.startDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'endDate',
-        headerName: 'End Date',
-        width: 180,
-        valueGetter: params => params.row.endDate,
-        valueFormatter: params => formatDate(params.value),
-      },
-      {
-        field: 'season',
-        headerName: 'Season',
-        width: 150,
-        valueGetter: params => params.row?.season?.name,
-      },
-    ],
-    []
-  )
+    {
+      field: 'nick',
+      headerName: 'Nick',
+      width: 120,
+    },
+    {
+      field: 'short',
+      headerName: 'Short',
+      width: 120,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 120,
+    },
+    {
+      field: 'startDate',
+      headerName: 'Start Date',
+      width: 180,
+      valueGetter: params => params.row.startDate,
+      valueFormatter: params => formatDate(params.value),
+    },
+    {
+      field: 'endDate',
+      headerName: 'End Date',
+      width: 180,
+      valueGetter: params => params.row.endDate,
+      valueFormatter: params => formatDate(params.value),
+    },
+    {
+      field: 'season',
+      headerName: 'Season',
+      width: 150,
+      valueGetter: params => params.row?.season?.name,
+    },
+  ]
 
-  const searchIndexes = React.useMemo(
-    () => ['name', 'nick', 'short', 'status', 'startDate', 'endDate'],
-    []
-  )
+  const searchIndexes = [
+    'name',
+    'nick',
+    'short',
+    'status',
+    'startDate',
+    'endDate',
+  ]
 
-  const queryData = React.useMemo(
-    (): GridRowsProp[] =>
-      setIdFromEntityId(competition?.phases || [], 'phaseId'),
-
+  const queryData: GridRowsProp[] = React.useMemo(
+    () => setIdFromEntityId(competition?.phases || [], 'phaseId'),
     [competition]
   )
 
@@ -327,7 +284,7 @@ const Phases: React.FC<TRelations> = props => {
   })
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="phases-content"
@@ -336,54 +293,50 @@ const Phases: React.FC<TRelations> = props => {
         <Typography>Phases</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Error message={queryError?.message} />
-        {competition && (
-          <>
-            <Toolbar
-              disableGutters
-              sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
-            >
-              <div />
-              <div>
-                <Button
-                  onClick={() => {
-                    handleOpenDialog(null)
-                  }}
-                  variant={'outlined'}
-                  size="small"
-                  startIcon={<CreateIcon />}
-                >
-                  Create
-                </Button>
-              </div>
-            </Toolbar>
-            <div style={{ height: 600, width: '100%' }}>
-              <DataGridPro
-                columns={competitionPhasesColumns}
-                rows={searchData}
-                loading={queryLoading}
-                components={{
-                  Toolbar: QuickSearchToolbar,
+        <>
+          <Toolbar
+            disableGutters
+            sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
+          >
+            <div />
+            <div>
+              <Button
+                onClick={() => {
+                  handleOpenDialog(null)
                 }}
-                componentsProps={{
-                  toolbar: {
-                    value: searchText,
-                    onChange: (
-                      event: React.ChangeEvent<HTMLInputElement>
-                    ): void => requestSearch(event.target.value),
-                    clearSearch: () => requestSearch(''),
-                  },
-                }}
-                sortModel={[
-                  {
-                    field: 'startDate',
-                    sort: 'desc',
-                  },
-                ]}
-              />
+                variant={'outlined'}
+                size="small"
+                startIcon={<CreateIcon />}
+              >
+                Create
+              </Button>
             </div>
-          </>
-        )}
+          </Toolbar>
+          <div style={{ height: 600, width: '100%' }}>
+            <DataGridPro
+              columns={competitionPhasesColumns}
+              rows={searchData}
+              components={{
+                Toolbar: QuickSearchToolbar,
+              }}
+              componentsProps={{
+                toolbar: {
+                  value: searchText,
+                  onChange: (
+                    event: React.ChangeEvent<HTMLInputElement>
+                  ): void => requestSearch(event.target.value),
+                  clearSearch: () => requestSearch(''),
+                },
+              }}
+              sortModel={[
+                {
+                  field: 'startDate',
+                  sort: 'desc',
+                },
+              ]}
+            />
+          </div>
+        </>
       </AccordionDetails>
 
       <FormDialog
@@ -405,21 +358,16 @@ type TFormDialog = {
   data: Phase | null
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { competition, competitionId, openDialog, handleCloseDialog, data } =
     props
-  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>()
-  const { enqueueSnackbar } = useSnackbar()
+  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>(
+    data?.season
+  )
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
-
-  React.useEffect(() => {
-    if (data?.season) {
-      setSelectedSeason(data?.season)
-    }
-  }, [data])
 
   const [createCompetitionPhase, { loading: mutationLoadingCreate }] =
     useMutation(CREATE_COMPETITION_PHASE, {
@@ -433,7 +381,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       ) {
         try {
           const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_PHASES,
+            query: GET_COMPETITION,
             variables: {
               where: { competitionId },
             },
@@ -460,7 +408,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
             ],
           }
           cache.writeQuery({
-            query: GET_PHASES,
+            query: GET_COMPETITION,
             data: updatedResult,
             variables: {
               where: { competitionId },
@@ -471,7 +419,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar('Competition phase created!', { variant: 'success' })
         handleCloseDialog()
         setSelectedSeason(undefined)
       },
@@ -480,7 +427,8 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const [updateCompetitionPhase, { loading: mutationLoadingUpdate }] =
     useMutation(UPDATE_COMPETITION_PHASE, {
       onCompleted: () => {
-        enqueueSnackbar('Competition phase updated!', { variant: 'success' })
+        handleCloseDialog()
+        setSelectedSeason(undefined)
       },
     })
 
@@ -610,6 +558,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFSelect
                       fullWidth
+                      required
                       control={control}
                       name="status"
                       label="Status"
@@ -713,6 +662,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </form>
     </Dialog>
   )
-})
+}
 
 export { Phases }

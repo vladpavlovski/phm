@@ -1,13 +1,13 @@
-import { Error, QuickSearchToolbar, RHFInput, RHFSelect } from 'components'
+import { QuickSearchToolbar, RHFInput, RHFSelect } from 'components'
 import { timeUnitStatusList } from 'components/lists'
 import { useSnackbar } from 'notistack'
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
 import { Competition, Group, Season } from 'utils/types'
 import { number, object, string } from 'yup'
-import { gql, MutationFunction, useLazyQuery, useMutation } from '@apollo/client'
+import { gql, MutationFunction, useMutation } from '@apollo/client'
 import { yupResolver } from '@hookform/resolvers/yup'
 import CreateIcon from '@mui/icons-material/Create'
 import EditIcon from '@mui/icons-material/Edit'
@@ -30,31 +30,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../commonComponents/ButtonDialog'
-
-const GET_GROUPS = gql`
-  query getCompetition($where: CompetitionWhere) {
-    competitions(where: $where) {
-      competitionId
-      name
-      groups {
-        groupId
-        name
-        nick
-        short
-        status
-        teamsLimit
-        season {
-          seasonId
-          name
-        }
-      }
-      seasons {
-        seasonId
-        name
-      }
-    }
-  }
-`
+import { GET_COMPETITION } from '../../index'
 
 const CREATE_COMPETITION_GROUP = gql`
   mutation createCompetitionGroup($input: [GroupCreateInput!]!) {
@@ -109,7 +85,7 @@ const schema = object().shape({
   name: string().required('Name is required'),
   nick: string(),
   short: string(),
-  status: string(),
+  status: string().required('Status is required'),
   teamsLimit: number().integer().positive().required('Teams limit is required'),
 })
 
@@ -130,7 +106,7 @@ type TQueryTypeVars = {
 }
 
 const Groups: React.FC<TRelations> = props => {
-  const { competitionId } = props
+  const { competitionId, competition } = props
   const [openDialog, setOpenDialog] = useState(false)
   const formData = useRef(null)
   const deletedItemId = useRef()
@@ -141,22 +117,6 @@ const Groups: React.FC<TRelations> = props => {
 
     formData.current = null
   }, [])
-  const [
-    getData,
-    {
-      loading: queryLoading,
-      error: queryError,
-      data: { competitions: [competition] } = { competitions: [] },
-    },
-  ] = useLazyQuery<TQueryTypeData, TQueryTypeVars>(GET_GROUPS, {
-    variables: { where: { competitionId } },
-  })
-
-  const openAccordion = useCallback(() => {
-    if (!competition) {
-      getData()
-    }
-  }, [competition])
 
   const handleOpenDialog = useCallback(data => {
     formData.current = data
@@ -169,7 +129,7 @@ const Groups: React.FC<TRelations> = props => {
       update(cache) {
         try {
           const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_GROUPS,
+            query: GET_COMPETITION,
             variables: {
               where: { competitionId },
             },
@@ -187,7 +147,7 @@ const Groups: React.FC<TRelations> = props => {
             ],
           }
           cache.writeQuery({
-            query: GET_GROUPS,
+            query: GET_COMPETITION,
             data: updatedResult,
             variables: {
               where: { competitionId },
@@ -211,93 +171,87 @@ const Groups: React.FC<TRelations> = props => {
     }
   )
 
-  const competitionGroupsColumns = useMemo<GridColumns>(
-    () => [
-      {
-        field: 'groupId',
-        headerName: 'Edit',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <Button
-              onClick={() => handleOpenDialog(params.row)}
-              variant={'outlined'}
-              size="small"
-              startIcon={<EditIcon />}
-            >
-              Edit
-            </Button>
-          )
-        },
+  const competitionGroupsColumns: GridColumns = [
+    {
+      field: 'groupId',
+      headerName: 'Edit',
+      width: 120,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <Button
+            onClick={() => handleOpenDialog(params.row)}
+            variant={'outlined'}
+            size="small"
+            startIcon={<EditIcon />}
+          >
+            Edit
+          </Button>
+        )
       },
-      {
-        field: 'removeButton',
-        headerName: 'Delete',
-        width: 120,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <ButtonDialog
-              text={'Delete'}
-              textLoading={'Deleting...'}
-              loading={mutationLoadingRemove}
-              dialogTitle={'Do you really want to delete this group?'}
-              dialogDescription={'Group will be completely delete'}
-              dialogNegativeText={'No, keep group'}
-              dialogPositiveText={'Yes, delete group'}
-              onDialogClosePositive={() => {
-                deletedItemId.current = params.row.groupId
-                deleteGroup({
-                  variables: {
-                    where: { groupId: params.row.groupId },
-                  },
-                })
-              }}
-            />
-          )
-        },
+    },
+    {
+      field: 'removeButton',
+      headerName: 'Delete',
+      width: 120,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <ButtonDialog
+            text={'Delete'}
+            textLoading={'Deleting...'}
+            loading={mutationLoadingRemove}
+            dialogTitle={'Do you really want to delete this group?'}
+            dialogDescription={'Group will be completely delete'}
+            dialogNegativeText={'No, keep group'}
+            dialogPositiveText={'Yes, delete group'}
+            onDialogClosePositive={() => {
+              deletedItemId.current = params.row.groupId
+              deleteGroup({
+                variables: {
+                  where: { groupId: params.row.groupId },
+                },
+              })
+            }}
+          />
+        )
       },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 200,
-      },
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 200,
+    },
 
-      {
-        field: 'nick',
-        headerName: 'Nick',
-        width: 120,
-      },
-      {
-        field: 'short',
-        headerName: 'Short',
-        width: 120,
-      },
-      {
-        field: 'status',
-        headerName: 'Status',
-        width: 120,
-      },
-      {
-        field: 'teamsLimit',
-        headerName: 'Limit',
-        width: 120,
-      },
-      {
-        field: 'season',
-        headerName: 'Season',
-        width: 150,
-        valueGetter: params => params.row?.season?.name,
-      },
-    ],
-    []
-  )
+    {
+      field: 'nick',
+      headerName: 'Nick',
+      width: 120,
+    },
+    {
+      field: 'short',
+      headerName: 'Short',
+      width: 120,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 120,
+    },
+    {
+      field: 'teamsLimit',
+      headerName: 'Limit',
+      width: 120,
+    },
+    {
+      field: 'season',
+      headerName: 'Season',
+      width: 150,
+      valueGetter: params => params.row?.season?.name,
+    },
+  ]
 
-  const searchIndexes = React.useMemo(
-    () => ['name', 'nick', 'short', 'status', 'limit'],
-    []
-  )
+  const searchIndexes = ['name', 'nick', 'short', 'status', 'limit']
 
   const queryData = React.useMemo(
     (): GridRowsProp[] => setIdFromEntityId(competition?.groups, 'groupId'),
@@ -311,7 +265,7 @@ const Groups: React.FC<TRelations> = props => {
   })
 
   return (
-    <Accordion onChange={openAccordion}>
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="groups-content"
@@ -320,7 +274,6 @@ const Groups: React.FC<TRelations> = props => {
         <Typography>Groups</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Error message={queryError?.message} />
         {competition && (
           <>
             <Toolbar
@@ -345,7 +298,6 @@ const Groups: React.FC<TRelations> = props => {
               <DataGridPro
                 columns={competitionGroupsColumns}
                 rows={searchData}
-                loading={queryLoading}
                 components={{
                   Toolbar: QuickSearchToolbar,
                 }}
@@ -389,21 +341,16 @@ type TFormDialog = {
   data: Group | null
 }
 
-const FormDialog: React.FC<TFormDialog> = React.memo(props => {
+const FormDialog: React.FC<TFormDialog> = props => {
   const { competition, competitionId, openDialog, handleCloseDialog, data } =
     props
-  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>()
-  const { enqueueSnackbar } = useSnackbar()
+  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>(
+    data?.season
+  )
 
   const { handleSubmit, control, errors } = useForm({
     resolver: yupResolver(schema),
   })
-
-  React.useEffect(() => {
-    if (data?.season) {
-      setSelectedSeason(data?.season)
-    }
-  }, [data])
 
   const [createCompetitionGroup, { loading: mutationLoadingCreate }] =
     useMutation(CREATE_COMPETITION_GROUP, {
@@ -417,7 +364,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       ) {
         try {
           const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-            query: GET_GROUPS,
+            query: GET_COMPETITION,
             variables: {
               where: { competitionId },
             },
@@ -445,7 +392,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
             ],
           }
           cache.writeQuery({
-            query: GET_GROUPS,
+            query: GET_COMPETITION,
             data: updatedResult,
             variables: {
               where: { competitionId },
@@ -456,7 +403,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
         }
       },
       onCompleted: () => {
-        enqueueSnackbar('Competition group created!', { variant: 'success' })
         handleCloseDialog()
         setSelectedSeason(undefined)
       },
@@ -465,7 +411,8 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const [updateCompetitionGroup, { loading: mutationLoadingUpdate }] =
     useMutation(UPDATE_COMPETITION_GROUP, {
       onCompleted: () => {
-        enqueueSnackbar('Competition group updated!', { variant: 'success' })
+        handleCloseDialog()
+        setSelectedSeason(undefined)
       },
     })
 
@@ -501,8 +448,6 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
   const onSubmit = useCallback(
     dataToCheck => {
       try {
-        const { teamsLimit, ...rest } = dataToCheck
-
         data?.groupId
           ? updateCompetitionGroup({
               variables: {
@@ -510,16 +455,14 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                   groupId: data?.groupId,
                 },
                 update: {
-                  ...rest,
-                  teamsLimit: `${teamsLimit}`,
+                  ...dataToCheck,
                 },
               },
             })
           : createCompetitionGroup({
               variables: {
                 input: {
-                  ...rest,
-                  teamsLimit: `${teamsLimit}`,
+                  ...dataToCheck,
                   competition: {
                     connect: {
                       where: {
@@ -604,6 +547,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
                   <Grid item xs={12} sm={6} md={3} lg={3}>
                     <RHFSelect
                       fullWidth
+                      required
                       control={control}
                       name="status"
                       label="Status"
@@ -677,7 +621,7 @@ const FormDialog: React.FC<TFormDialog> = React.memo(props => {
       </form>
     </Dialog>
   )
-})
+}
 
 const sortByName = (a: { name: string }, b: { name: string }) => {
   if (a?.name < b?.name) {

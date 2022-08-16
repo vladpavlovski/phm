@@ -28,7 +28,7 @@ import { ButtonSave } from '../commonComponents/ButtonSave'
 import { Relations } from './relations'
 import { schema } from './schema'
 
-const GET_COMPETITION = gql`
+export const GET_COMPETITION = gql`
   query getCompetition($where: CompetitionWhere) {
     competitions(where: $where) {
       competitionId
@@ -49,6 +49,35 @@ const GET_COMPETITION = gql`
       }
       sponsors {
         sponsorId
+        name
+      }
+      groups {
+        groupId
+        name
+        nick
+        short
+        status
+        teamsLimit
+        season {
+          seasonId
+          name
+        }
+      }
+      phases {
+        phaseId
+        name
+        nick
+        short
+        status
+        startDate
+        endDate
+        season {
+          seasonId
+          name
+        }
+      }
+      seasons {
+        seasonId
         name
       }
     }
@@ -77,6 +106,35 @@ const CREATE_COMPETITION = gql`
         }
         sponsors {
           sponsorId
+          name
+        }
+        groups {
+          groupId
+          name
+          nick
+          short
+          status
+          teamsLimit
+          season {
+            seasonId
+            name
+          }
+        }
+        phases {
+          phaseId
+          name
+          nick
+          short
+          status
+          startDate
+          endDate
+          season {
+            seasonId
+            name
+          }
+        }
+        seasons {
+          seasonId
           name
         }
       }
@@ -109,6 +167,35 @@ const UPDATE_COMPETITION = gql`
         }
         sponsors {
           sponsorId
+          name
+        }
+        groups {
+          groupId
+          name
+          nick
+          short
+          status
+          teamsLimit
+          season {
+            seasonId
+            name
+          }
+        }
+        phases {
+          phaseId
+          name
+          nick
+          short
+          status
+          startDate
+          endDate
+          season {
+            seasonId
+            name
+          }
+        }
+        seasons {
+          seasonId
           name
         }
       }
