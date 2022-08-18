@@ -727,7 +727,6 @@ const Game: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFTimepicker
                         fullWidth
-                        required
                         control={control}
                         variant="standard"
                         name="startTime"
@@ -744,6 +743,7 @@ const Game: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth
+                        required
                         control={control}
                         variant="standard"
                         name="endDate"
