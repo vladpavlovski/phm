@@ -1,4 +1,5 @@
 import { LinkButton, XGridPage } from 'components'
+import { RUNNING } from 'components/lists'
 import dayjs from 'dayjs'
 import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
@@ -735,8 +736,12 @@ const View: React.FC = () => {
         org: {
           urlSlug: organizationSlug,
         },
-        ...(selectedSeason?.status === 'RUNNING'
+        ...(selectedSeason?.status === RUNNING
           ? {
+              ...(gamesView === 'all' && {
+                startDate_GTE: selectedSeason?.startDate || null,
+                startDate_LTE: selectedSeason?.endDate || null,
+              }),
               ...(gamesView === 'today' && {
                 startDate: dayjs().format('YYYY-MM-DD'),
               }),
@@ -888,6 +893,9 @@ const View: React.FC = () => {
     ['phase', 'name'],
     ['phase', 'competition', 'name'],
   ]
+
+  const isRunningSeason = selectedSeason?.status === RUNNING
+
   return (
     <XGridPage
       title="Games"
@@ -916,6 +924,9 @@ const View: React.FC = () => {
                       ? null
                       : season
                   )
+                  if (season?.status !== RUNNING) {
+                    setGamesView('all')
+                  }
                 }}
               >
                 {season?.name}
@@ -929,7 +940,7 @@ const View: React.FC = () => {
             <ButtonGroup
               variant="outlined"
               size="small"
-              disabled={selectedSeason?.status !== 'RUNNING'}
+              disabled={!isRunningSeason}
             >
               <Button
                 variant={gamesView === 'all' ? 'contained' : 'outlined'}

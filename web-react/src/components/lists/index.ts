@@ -5,44 +5,54 @@ type EnumListItem = {
 
 type EnumListItems = Array<EnumListItem>
 
+export const NOTSTARTED = 'NOTSTARTED'
+export const RUNNING = 'RUNNING'
+export const FINISHED = 'FINISHED'
+export const POSTPONED = 'POSTPONED'
+export const CANCELLED = 'CANCELLED'
+export const ACTIVE = 'ACTIVE'
+export const INACTIVE = 'INACTIVE'
+export const RETIRED = 'RETIRED'
+export const UNKNOWN = 'UNKNOWN'
+
 export const timeUnitStatusList: EnumListItems = [
   {
     name: 'Not Started',
-    value: 'NOTSTARTED',
+    value: NOTSTARTED,
   },
   {
     name: 'Running',
-    value: 'RUNNING',
+    value: RUNNING,
   },
   {
     name: 'Finished',
-    value: 'FINISHED',
+    value: FINISHED,
   },
   {
     name: 'Postponed',
-    value: 'POSTPONED',
+    value: POSTPONED,
   },
   {
     name: 'Cancelled',
-    value: 'CANCELLED',
+    value: CANCELLED,
   },
 ]
 
 export const activityStatusList: EnumListItems = [
   {
     name: 'Active',
-    value: 'ACTIVE',
+    value: ACTIVE,
   },
   {
     name: 'Inactive',
-    value: 'INACTIVE',
+    value: INACTIVE,
   },
   {
     name: 'Retired',
-    value: 'RETIRED',
+    value: RETIRED,
   },
   {
     name: 'Unknown',
-    value: 'UNKNOWN',
+    value: UNKNOWN,
   },
 ]
