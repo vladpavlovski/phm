@@ -708,6 +708,7 @@ const Game: React.FC = () => {
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFDatepicker
                         fullWidth
+                        required
                         control={control}
                         variant="standard"
                         name="startDate"
@@ -718,11 +719,15 @@ const Game: React.FC = () => {
                         views={['year', 'month', 'day']}
                         error={errors?.startDate}
                         defaultValue={gameData?.startDate}
+                        onUpdate={date => {
+                          setValue('endDate', date)
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3} lg={3}>
                       <RHFTimepicker
                         fullWidth
+                        required
                         control={control}
                         variant="standard"
                         name="startTime"

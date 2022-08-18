@@ -12,6 +12,7 @@ type TRHFDatepickerComponent = TextFieldProps &
       message: string
     }
     defaultValue?: string | number | Date | dayjs.Dayjs | null | undefined
+    onUpdate?(value: dayjs.Dayjs): void
   }
 
 const RHFDatepicker = (props: TRHFDatepickerComponent) => {
@@ -23,8 +24,10 @@ const RHFDatepicker = (props: TRHFDatepickerComponent) => {
     error,
     fullWidth,
     required,
+    onUpdate,
     ...rest
   } = props
+
   return (
     <Controller
       name={name}
@@ -44,7 +47,10 @@ const RHFDatepicker = (props: TRHFDatepickerComponent) => {
             />
           )}
           inputRef={ref}
-          onChange={onChange}
+          onChange={(date, keyboardInputValue) => {
+            onChange(date, keyboardInputValue)
+            onUpdate && onUpdate(date)
+          }}
           value={value}
         />
       )}

@@ -1,4 +1,4 @@
-import { object, string, date } from 'yup'
+import { date, object, string } from 'yup'
 
 export const schema = object().shape({
   name: string().required('Name is required'),
@@ -7,8 +7,8 @@ export const schema = object().shape({
   info: string(),
   description: string(),
   short: string(),
-  startDate: date().nullable(),
-  endDate: date().nullable(),
+  startDate: date().nullable().required('Start date is required'),
+  endDate: date().nullable().required('End date is required'),
   startTime: date().nullable(),
   endTime: date().nullable(),
   gameVenue: object()
