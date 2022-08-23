@@ -1,3 +1,4 @@
+import { GamePlayProvider } from 'admin/pages/Game/play'
 import { GameTimerProvider } from 'admin/pages/Game/play/components/Timer'
 import React from 'react'
 import { Route, Switch } from 'react-router-dom'
@@ -221,11 +222,13 @@ const RouteSwitcher: React.FC = () => {
       <PrivateRoute path={ROUTES.ADMIN_ORG_GAME} exact component={AdminGame} />
       <GameEventFormProvider>
         <GameTimerProvider>
-          <PrivateRoute
-            path={ROUTES.ADMIN_ORG_GAME_PLAY}
-            exact
-            component={AdminGamePlay}
-          />
+          <GamePlayProvider>
+            <PrivateRoute
+              path={ROUTES.ADMIN_ORG_GAME_PLAY}
+              exact
+              component={AdminGamePlay}
+            />
+          </GamePlayProvider>
         </GameTimerProvider>
       </GameEventFormProvider>
 

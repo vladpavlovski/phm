@@ -10,12 +10,13 @@ import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
 import { useTime } from 'react-timer-hook'
 import { getAdminOrgGameRoute } from 'router/routes'
-import { formatDate, formatTime, formatTimeValue } from 'utils'
+import { createCtx, formatDate, formatTime, formatTimeValue } from 'utils'
 import {
   Game as GameType,
   GamePlayersRelationship,
   GameTeamsRelationship,
   Period,
+  RulePack,
   SystemSettings as SystemSettingsType,
 } from 'utils/types'
 import { gql, useMutation, useQuery } from '@apollo/client'
@@ -355,6 +356,23 @@ export type TQueryTypeVars = {
   }
 }
 
+type GamePlayProps = {
+  gameId: string
+  gameData?: GameType
+  gameSettings?: RulePack
+}
+
+const [GamePlayContext, GamePlayProvider] = createCtx<GamePlayProps>({
+  gameId: '',
+  gameData: undefined,
+  gameSettings: undefined,
+})
+
+export const useGamePlay = () => {
+  const context = React.useContext(GamePlayContext)
+  return context.state
+}
+
 const Play: React.FC = () => {
   const { gameId, organizationSlug } = useParams<TParams>()
   const { enqueueSnackbar } = useSnackbar()
@@ -363,6 +381,8 @@ const Play: React.FC = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setSelectedTab(newValue)
   }
+  const { update: updateGamePlay } = React.useContext(GamePlayContext)
+
   const {
     loading: queryLoading,
     data: {
@@ -379,6 +399,15 @@ const Play: React.FC = () => {
       whereSystemSettings: { systemSettingsId: 'system-settings' },
     },
     skip: gameId === 'new',
+    onCompleted: data => {
+      if (data.games?.[0]) {
+        updateGamePlay({
+          gameId,
+          gameData: data.games?.[0],
+          gameSettings: data.systemSettings?.[0]?.rulePack,
+        })
+      }
+    },
   })
 
   const [updateGameResult] = useMutation(UPDATE_GAME_RESULT, {
@@ -415,7 +444,14 @@ const Play: React.FC = () => {
         console.error(error)
       }
     },
-    onCompleted: () => {
+    onCompleted: data => {
+      if (data.games?.[0]) {
+        // updateGamePlay({
+        //   gameId,
+        //   gameData: data.games?.[0],
+        //   gameSettings: data.systemSettings?.[0]?.rulePack,
+        // })
+      }
       enqueueSnackbar('Game Result updated!', { variant: 'success' })
     },
     onError: error => {
@@ -646,4 +682,4 @@ const Time = () => {
   )
 }
 
-export default Play
+export { Play as default, GamePlayContext, GamePlayProvider }
