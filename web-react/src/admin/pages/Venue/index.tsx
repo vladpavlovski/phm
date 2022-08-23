@@ -192,11 +192,10 @@ const Venue: React.FC = () => {
   const onSubmit = React.useCallback(
     dataToCheck => {
       try {
-        const { foundDate, capacity, ...rest } = dataToCheck
+        const { foundDate, ...rest } = dataToCheck
 
         const dataToSubmit = {
           ...rest,
-          capacity: capacity ? `${capacity}` : null,
           ...decomposeDate(foundDate, 'foundDate'),
         }
 
