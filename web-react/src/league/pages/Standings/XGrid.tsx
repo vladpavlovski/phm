@@ -1,12 +1,11 @@
 import { Error } from 'components/Error'
-import { Loader } from 'components/Loader'
 import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Game, Group, ResultPoint, Season, SystemSettings, Team } from 'utils/types'
+import { Game, Group, Phase, ResultPoint, Season, SystemSettings, Team } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
@@ -176,7 +175,6 @@ const GET_GAMES = gql`
   query getGames(
     $whereGames: GameWhere
     $whereSystemSettings: SystemSettingsWhere
-    $whereGroups: GroupWhere
     $whereSeasons: SeasonWhere
   ) {
     games(where: $whereGames) {
@@ -225,16 +223,20 @@ const GET_GAMES = gql`
         }
       }
     }
-    groups(where: $whereGroups) {
-      groupId
-      name
-    }
     seasons(where: $whereSeasons) {
       seasonId
       name
       status
       startDate
       endDate
+      phases {
+        phaseId
+        name
+      }
+      groups {
+        groupId
+        name
+      }
     }
   }
 `
@@ -253,6 +255,7 @@ type TGamesData = {
 }
 
 const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
+const useLeaguePhaseState = createPersistedState('HMS-LeagueStandingsPhase')
 
 const XGridTable = () => {
   const { organizationSlug } = useParams<TStandingsParams>()
@@ -261,6 +264,9 @@ const XGridTable = () => {
     useLeagueSeasonState<Season | null>(null)
 
   const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
+  const [selectedPhase, setSelectedPhase] = useLeaguePhaseState<Phase | null>(
+    null
+  )
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -272,9 +278,11 @@ const XGridTable = () => {
         org: {
           urlSlug: organizationSlug,
         },
-        phase: {
-          name: 'Základní část 21-22',
-        },
+        ...(selectedPhase && {
+          phase: {
+            phaseId: selectedPhase.phaseId,
+          },
+        }),
         ...(selectedGroup && {
           group: {
             groupId: selectedGroup?.groupId,
@@ -282,11 +290,6 @@ const XGridTable = () => {
         }),
       },
       whereSystemSettings: { systemSettingsId: 'system-settings' },
-      whereGroups: {
-        season: {
-          seasonId: selectedSeason?.seasonId,
-        },
-      },
       whereSeasons: {
         org: {
           urlSlug: organizationSlug,
@@ -430,70 +433,93 @@ const XGridTable = () => {
     <Container maxWidth={false} disableGutters={!upSm}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={12} lg={12}>
-          {data?.groups && (
-            <>
-              <Stack>
-                <ButtonGroup
-                  size={upSm ? 'medium' : 'small'}
-                  aria-label="outlined button group"
-                  variant="outlined"
-                >
-                  {data?.seasons?.map(season => {
-                    return (
-                      <Button
-                        key={season.seasonId}
-                        type="button"
-                        color="primary"
-                        variant={
-                          selectedSeason?.seasonId === season?.seasonId
-                            ? 'contained'
-                            : 'outlined'
-                        }
-                        onClick={() => {
-                          setSelectedSeason(
-                            season?.seasonId === selectedSeason?.seasonId
-                              ? null
-                              : season
-                          )
-                        }}
-                      >
-                        {season?.name}
-                      </Button>
-                    )
-                  })}
-                </ButtonGroup>
-                <ButtonGroup
-                  size={upSm ? 'medium' : 'small'}
-                  aria-label="outlined button group"
-                  variant="outlined"
-                >
-                  {data?.groups?.map(g => {
-                    return (
-                      <Button
-                        key={g.groupId}
-                        type="button"
-                        color="primary"
-                        variant={
-                          selectedGroup?.groupId === g?.groupId
-                            ? 'contained'
-                            : 'outlined'
-                        }
-                        onClick={() => {
-                          setSelectedGroup(
-                            g?.groupId === selectedGroup?.groupId ? null : g
-                          )
-                        }}
-                      >
-                        {g?.name}
-                      </Button>
-                    )
-                  })}
-                </ButtonGroup>
-              </Stack>
-            </>
-          )}
-          {loading && <Loader />}
+          <Stack>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {data?.seasons?.map(season => {
+                return (
+                  <Button
+                    key={season.seasonId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedSeason?.seasonId === season?.seasonId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedSeason(
+                        season?.seasonId === selectedSeason?.seasonId
+                          ? null
+                          : season
+                      )
+                    }}
+                  >
+                    {season?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.groups?.map(g => {
+                return (
+                  <Button
+                    key={g.groupId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedGroup?.groupId === g?.groupId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedGroup(
+                        g?.groupId === selectedGroup?.groupId ? null : g
+                      )
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.phases?.map(g => {
+                return (
+                  <Button
+                    key={g.phaseId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedPhase?.phaseId === g?.phaseId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setSelectedPhase(
+                        g?.phaseId === selectedPhase?.phaseId ? null : g
+                      )
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+          </Stack>
           <Error message={error?.message} />
+
           {selectedSeason ? (
             <div
               style={{
