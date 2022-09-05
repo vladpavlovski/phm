@@ -537,6 +537,8 @@ const GameReport: React.FC = () => {
                     >
                       <Img
                         style={{
+                          width: '100px',
+                          height: '100px',
                           borderWidth: '0.2rem',
                           borderStyle: 'solid',
                           borderRadius: '50%',
@@ -547,7 +549,6 @@ const GameReport: React.FC = () => {
                             : theme?.palette?.error?.main,
                         }}
                         src={teamHost?.logo}
-                        // className={classes.gamePlayTeamLogo}
                         alt={teamHost?.name}
                       />
                     </div>
@@ -574,6 +575,8 @@ const GameReport: React.FC = () => {
                     >
                       <Img
                         style={{
+                          width: '100px',
+                          height: '100px',
                           borderWidth: '0.2rem',
                           borderStyle: 'solid',
                           borderRadius: '50%',
@@ -584,7 +587,6 @@ const GameReport: React.FC = () => {
                             : theme?.palette?.error?.main,
                         }}
                         src={teamGuest?.logo}
-                        // className={classes.gamePlayTeamLogo}
                         alt={teamGuest?.name}
                       />
                     </div>
