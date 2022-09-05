@@ -25,7 +25,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import Chip from '@mui/material/Chip'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
-import { GridColumns } from '@mui/x-data-grid-pro'
+import { GridColumns, GridPinnedColumns } from '@mui/x-data-grid-pro'
 import { GameQrPayment } from '../components'
 
 const useGamesViewState = createPersistedState('HMS-GamesView')
@@ -69,6 +69,7 @@ export const GET_GAMES = gql`
             name
             nick
             logo
+            externalId
           }
         }
       }
@@ -142,7 +143,7 @@ export const getColumns = (organizationSlug: string): GridColumns => [
   {
     field: 'gameId',
     headerName: 'Edit',
-    width: 140,
+    width: 100,
     disableColumnMenu: true,
     renderCell: params => {
       return (
@@ -440,6 +441,34 @@ export const getColumns = (organizationSlug: string): GridColumns => [
     field: 'referee',
     headerName: 'Referee',
     width: 200,
+  },
+  {
+    field: 'hostExternalId',
+    headerName: 'Host External Id',
+    width: 150,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const externalId = params?.row?.teamsConnection?.edges?.find(
+        (t: GameTeamsRelationship) => t?.host
+      )?.node.externalId
+
+      return externalId
+    },
+  },
+  {
+    field: 'guestExternalId',
+    headerName: 'Guest External Id',
+    width: 150,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: params => {
+      const externalId = params?.row?.teamsConnection?.edges?.find(
+        (t: GameTeamsRelationship) => !t?.host
+      )?.node.externalId
+
+      return externalId
+    },
   },
   {
     field: 'foreignId',
@@ -825,6 +854,8 @@ const View: React.FC = () => {
           'hostFaceOffs',
           'guestFaceOffs',
           'GameQrPayment',
+          'hostExternalId',
+          'guestExternalId',
         ]
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
 
@@ -847,6 +878,8 @@ const View: React.FC = () => {
           'gameStatus',
           'foreignId',
           'GameQrPayment',
+          'hostExternalId',
+          'guestExternalId',
         ]
 
         cols = columnsBase.filter(c => !stopList.find(sl => sl === c.field))
@@ -896,12 +929,16 @@ const View: React.FC = () => {
 
   const isRunningSeason = selectedSeason?.status === RUNNING
 
+  const pinnedColumns: GridPinnedColumns = {
+    left: ['gameId', 'name'],
+  }
   return (
     <XGridPage
       title="Games"
       loading={loadingGames}
       error={errorGames}
       columns={columns}
+      pinnedColumns={pinnedColumns}
       rows={gameData}
       searchIndexes={searchIndexes}
     >

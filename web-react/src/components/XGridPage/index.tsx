@@ -8,20 +8,29 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
-import { DataGridPro, GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns, GridPinnedColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
-type TXGridPage = {
+type Props = {
   title: string
   loading: boolean
   error?: ApolloError
   columns: GridColumns
   rows: GridRowsProp[]
   searchIndexes: (string | string[])[]
+  pinnedColumns?: GridPinnedColumns
+  children?: React.ReactNode
 }
 
-const XGridPage: React.FC<TXGridPage> = props => {
-  const { children, title, loading, error, columns, rows, searchIndexes } =
-    props
+const XGridPage = ({
+  children,
+  title,
+  loading,
+  error,
+  columns,
+  pinnedColumns,
+  rows,
+  searchIndexes,
+}: Props) => {
   const { setBarTitle } = React.useContext(LayoutContext)
 
   React.useEffect(() => {
@@ -59,10 +68,7 @@ const XGridPage: React.FC<TXGridPage> = props => {
               <Error message={error?.message} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <div
-                style={{ height: 'calc(100vh - 230px)' }}
-                // className={classes.xGridWrapper}
-              >
+              <div style={{ height: 'calc(100vh - 230px)' }}>
                 <DataGridPro
                   columns={columns}
                   rows={searchData}
@@ -78,6 +84,9 @@ const XGridPage: React.FC<TXGridPage> = props => {
                       ): void => requestSearch(event.target.value),
                       clearSearch: () => requestSearch(''),
                     },
+                  }}
+                  initialState={{
+                    pinnedColumns,
                   }}
                 />
               </div>
