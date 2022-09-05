@@ -140,12 +140,16 @@ const FormDialog: React.FC<TFormDialog> = props => {
                     >
                       <Img
                         src={teamHost?.logo}
-                        // className={classes.gamePlayTeamLogo}
+                        style={{
+                          width: '150px',
+                          height: '150px',
+                          objectFit: 'contain',
+                        }}
                         alt={teamHost?.name}
                       />
                       <AccountBoxIcon
                         sx={{
-                          color: teamHost.connection.color,
+                          color: teamHost?.connection?.color || 'primary',
                           fontSize: '6em',
                         }}
                       />
@@ -173,12 +177,16 @@ const FormDialog: React.FC<TFormDialog> = props => {
                     >
                       <Img
                         src={teamGuest?.logo}
-                        // className={classes.gamePlayTeamLogo}
+                        style={{
+                          width: '150px',
+                          height: '150px',
+                          objectFit: 'contain',
+                        }}
                         alt={teamGuest?.name}
                       />
                       <AccountBoxIcon
                         sx={{
-                          color: teamGuest.connection.color,
+                          color: teamGuest?.connection?.color || 'primary',
                           fontSize: '6em',
                         }}
                       />
@@ -250,7 +258,6 @@ type Props = {
 }
 
 const ShareGameInvite = ({ gameData, teamHost, teamGuest }: Props) => {
-  console.log(gameData)
   const gameInviteSubject = `Game Invitation: ${gameData?.name} - ${gameData?.startDate} - ${gameData?.startTime}`
   const gameInviteBody = `
 Game Event: ${gameData?.name} - ${dayjs(gameData?.startDate).format(
@@ -285,7 +292,7 @@ ${gameData?.timekeeper ? 'Timekeeper: ' : ''}${gameData?.timekeeper || ''}
       >
         Share invitation
       </Typography>
-      <Divider />
+      <Divider sx={{ my: 2 }} />
       <Stack
         spacing={2}
         direction="row"
