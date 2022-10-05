@@ -136,4 +136,4 @@ REACT_APP_X_GRID_KEY
 This monorepo deployed to Netlify. The frontend application will be served over Netlify's CDN and the GraphQL API will be provisioned as a serverless GraphQL API lambda function deployed to AWS (via Netlify). A netlify.toml file is included with the necessary build configurations.
 
 This project is licensed under the Apache License v2.
-Copyright (c) 2022 HMS
+Copyright (c) 2022 HMS - Hockey Management System
