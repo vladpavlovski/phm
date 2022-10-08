@@ -273,6 +273,9 @@ const XGridTable = () => {
   const { error, loading, data } = useQuery<TGamesData>(GET_GAMES, {
     variables: {
       whereGames: {
+        gameResult: {
+          gameStatus: 'Finished',
+        },
         startDate_GTE: selectedSeason?.startDate || null,
         startDate_LTE: selectedSeason?.endDate || null,
         org: {
