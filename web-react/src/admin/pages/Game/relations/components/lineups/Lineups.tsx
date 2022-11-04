@@ -1,5 +1,6 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error, LinkButton, Loader, QuickSearchToolbar, Title } from 'components'
+import * as R from 'ramda'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute } from 'router/routes'
@@ -16,6 +17,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import StarIcon from '@mui/icons-material/Star'
 import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import { Box } from '@mui/material'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
@@ -732,6 +734,8 @@ const LineupList: React.FC<TLineupList> = props => {
   const [anchorEl, setAnchorEl] =
     React.useState<React.SetStateAction<Element>>()
 
+  const [itemsMenu, setItemsMenu] = useState<boolean>(false)
+
   return (
     <>
       <Paper sx={{ p: '16px' }}>
@@ -749,6 +753,17 @@ const LineupList: React.FC<TLineupList> = props => {
               variant="contained"
               aria-label="contained button group"
             >
+              <Button
+                type="button"
+                onClick={() => {
+                  getTeamPlayers()
+                  setItemsMenu(s => !s)
+                }}
+                size="small"
+                startIcon={<AddIcon />}
+              >
+                New add players
+              </Button>
               <Button
                 aria-controls="add-players-menu"
                 aria-haspopup="true"
@@ -827,6 +842,7 @@ const LineupList: React.FC<TLineupList> = props => {
             </Menu>
           </div>
         </Toolbar>
+        {itemsMenu && <ItemsMenu players={queryTeam?.players} />}
         <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             density="compact"
@@ -892,6 +908,82 @@ const LineupList: React.FC<TLineupList> = props => {
         </Dialog>
       )}
     </>
+  )
+}
+
+const addGroupName = (player: Player) => ({
+  ...player,
+  groupName: player.lastName.charAt(0),
+})
+const sortGroupByJersey = (groupArray: any) =>
+  R.sort(
+    (a: Player, b: Player) =>
+      a.jerseys[0] && b.jerseys[0]
+        ? a.jerseys[0].number - b.jerseys[0].number
+        : -1,
+    groupArray
+  )
+
+const transform = R.pipe(
+  R.map(addGroupName),
+  R.groupBy(R.prop('groupName')),
+  R.mapObjIndexed(sortGroupByJersey),
+  R.toPairs,
+  R.sort(R.ascend(R.head))
+)
+
+const ItemsMenu = ({ players }: { players?: Player[] }) => {
+  if (!players) return null
+  const data = transform(players)
+
+  console.log(data)
+  return (
+    <Box sx={{ mt: 2 }}>
+      {data.map(group => {
+        let [groupName, groupArray] = group
+        return (
+          <>
+            <div>{groupName}</div>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                // minWidth: 300,
+                width: '100%',
+                // justifyContent: 'space-evenly',
+              }}
+            >
+              {groupArray.map(p => (
+                <Button
+                  type="button"
+                  size="large"
+                  // sx={{ width: '15%', m: 1 }}
+                  key={p.playerId}
+                  variant="outlined"
+                  //  variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
+                  color="primary"
+                  //  onClick={() => {
+                  //    onClick(p)
+                  //  }}
+                  //  disabled={disabled?.node?.playerId === p.node.playerId}
+                >
+                  <Typography
+                    variant="h5"
+                    component="div"
+                    sx={{ marginRight: 1 }}
+                  >
+                    {p.jerseys.length > 0 ? p.jerseys[0].number : ''}
+                  </Typography>
+                  <Typography variant="body1" component="div">
+                    {p.name}
+                  </Typography>
+                </Button>
+              ))}
+            </div>
+          </>
+        )
+      })}
+    </Box>
   )
 }
 
