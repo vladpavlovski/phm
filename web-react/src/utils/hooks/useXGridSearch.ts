@@ -55,4 +55,49 @@ const useXGridSearch = (
   return [searchText, searchData, setSearchText]
 }
 
-export { useXGridSearch }
+type useSearchProps = {
+  searchIndexes: (string | string[])[]
+  data: any[]
+}
+const useSearch = (props: useSearchProps) => {
+  const { searchIndexes, data } = props
+  const [searchDataEngine] = React.useState<JsSearch.Search>(
+    new JsSearch.Search('id')
+  )
+  const [isInitialization, setIsInitialization] = React.useState(true)
+
+  React.useEffect(() => {
+    if (isInitialization) {
+      searchDataEngine.indexStrategy = new JsSearch.AllSubstringsIndexStrategy()
+
+      setIsInitialization(false)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    searchIndexes?.forEach(si => {
+      searchDataEngine.addIndex(si)
+    })
+  }, [searchIndexes])
+
+  const [searchText, setSearchText] = React.useState<string>('')
+  const [searchData, setSearchData] = React.useState<any>([])
+  const debouncedSearch = useDebounce(searchText, 500)
+
+  React.useEffect(() => {
+    // search on user input
+    const filteredRows = searchDataEngine.search(debouncedSearch)
+    const newSearchData = debouncedSearch === '' ? data : filteredRows
+    setSearchData(newSearchData)
+  }, [debouncedSearch, data])
+
+  React.useEffect(() => {
+    // adding new data if initial data set changed
+    setSearchData(data)
+    searchDataEngine.addDocuments(data)
+  }, [data])
+
+  return [searchText, searchData, setSearchText]
+}
+
+export { useXGridSearch, useSearch }

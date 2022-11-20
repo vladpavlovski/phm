@@ -1,15 +1,14 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
-import { Error, LinkButton, Loader, QuickSearchToolbar, Title } from 'components'
+import { LinkButton, Title } from 'components'
 import * as R from 'ramda'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute } from 'router/routes'
-import { getXGridValueFromArray, setIdFromEntityId, setXGridForRelation, sortByStatus } from 'utils'
-import { useXGridSearch } from 'utils/hooks'
-import { Game, GameEventSimple, Jersey, Player, Position, Team } from 'utils/types'
+import { addFieldToObjectWithoutDiacritics, setIdFromEntity, setXGridForRelation } from 'utils'
+import { useSearch } from 'utils/hooks'
+import { Game, GameEventSimple, Player, Team } from 'utils/types'
 import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
 import AccountBox from '@mui/icons-material/AccountBox'
-import AddIcon from '@mui/icons-material/Add'
 import AddReactionIcon from '@mui/icons-material/AddReaction'
 import BalconyIcon from '@mui/icons-material/Balcony'
 import HowToRegIcon from '@mui/icons-material/HowToReg'
@@ -17,20 +16,12 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import StarIcon from '@mui/icons-material/Star'
 import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import { Box } from '@mui/material'
+import { Avatar, Box, Chip, Divider, TextField } from '@mui/material'
 import Button from '@mui/material/Button'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import Paper from '@mui/material/Paper'
-import Switch from '@mui/material/Switch'
-import Toolbar from '@mui/material/Toolbar'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
@@ -143,7 +134,7 @@ const Lineups: React.FC<Props> = props => {
       .map(p => countPlayerStatistics(p, gameData.gameEventsSimple)) || null
 
   return (
-    <Grid container spacing={2}>
+    <Grid container>
       <Grid item xs={12}>
         <LineupList
           host
@@ -185,172 +176,87 @@ type TLineupList = {
 type TParams = {
   organizationSlug: string
 }
+interface TabPanelProps {
+  children?: React.ReactNode
+  dir?: string
+  index: number
+  value: number
+}
+
+const TabPanel = (props: TabPanelProps) => {
+  const { children, value, index, ...other } = props
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  )
+}
 
 const LineupList: React.FC<TLineupList> = props => {
   const { gameId, team, host = false, players, updateGame } = props
-  const [playerDialog, setPlayerDialog] = useState(false)
   const { organizationSlug } = useParams<TParams>()
 
-  const [
-    getTeamPlayers,
-    {
-      loading: queryTeamPlayersLoading,
-      error: queryTeamPlayersError,
-      data: { teams: [queryTeam] } = { teams: [] },
-    },
-  ] = useLazyQuery(GET_TEAM_PLAYERS, {
-    variables: {
-      where: { teamId: team?.teamId },
-    },
-  })
-
-  const openPlayerDialog = useCallback(() => {
-    if (!players) {
-      getTeamPlayers()
-    }
-    setPlayerDialog(true)
-  }, [])
-
-  const addAllTeamPlayersToGame = useCallback(() => {
-    const allPlayers: Player[] = queryTeam?.players
-
-    const dataToConnect = allPlayers.map(player => {
-      const position =
-        player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
-          ?.name || ''
-
-      const firstJersey = player?.jerseys?.filter(
-        p => p.team?.teamId === team?.teamId
-      )?.[0]
-
-      const jersey =
-        typeof firstJersey?.number === 'string'
-          ? parseInt(firstJersey.number)
-          : firstJersey?.number || null
-
-      // typeof firstJersey?.number === 'object'
-      //   ? firstJersey?.number?.low
-      //   : firstJersey?.number || null
-
-      return {
-        where: {
-          node: { playerId: player.playerId },
-        },
-        edge: {
-          host,
-          position,
-          jersey,
-          captain: false,
-          goalkeeper: false,
-          teamId: team?.teamId,
-        },
-      }
-    })
-
-    updateGame({
+  const [getTeamPlayers, { data: { teams: [queryTeam] } = { teams: [] } }] =
+    useLazyQuery(GET_TEAM_PLAYERS, {
       variables: {
-        where: {
-          gameId,
-        },
-        update: {
-          players: {
-            connect: dataToConnect,
-          },
-        },
+        where: { teamId: team?.teamId },
       },
     })
-  }, [team, host, gameId, queryTeam])
 
-  const handleClosePlayerDialog = useCallback(() => {
-    setPlayerDialog(false)
-  }, [])
+  // const addAllTeamPlayersToGame = useCallback(() => {
+  //   const allPlayers: Player[] = queryTeam?.players
+
+  //   const dataToConnect = allPlayers.map(player => {
+  //     const position =
+  //       player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
+  //         ?.name || ''
+
+  //     const firstJersey = player?.jerseys?.filter(
+  //       p => p.team?.teamId === team?.teamId
+  //     )?.[0]
+
+  //     const jersey =
+  //       typeof firstJersey?.number === 'string'
+  //         ? parseInt(firstJersey.number)
+  //         : firstJersey?.number || null
+
+  //     return {
+  //       where: {
+  //         node: { playerId: player.playerId },
+  //       },
+  //       edge: {
+  //         host,
+  //         position,
+  //         jersey,
+  //         captain: false,
+  //         goalkeeper: false,
+  //         teamId: team?.teamId,
+  //       },
+  //     }
+  //   })
+
+  //   updateGame({
+  //     variables: {
+  //       where: {
+  //         gameId,
+  //       },
+  //       update: {
+  //         players: {
+  //           connect: dataToConnect,
+  //         },
+  //       },
+  //     },
+  //   })
+  // }, [team, host, gameId, queryTeam])
 
   const lineupPlayers = setXGridForRelation(players, 'playerId', 'node')
-
-  const teamPlayersColumns = useMemo<GridColumns>(
-    () => [
-      {
-        field: 'avatar',
-        headerName: 'Photo',
-        width: 80,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <XGridLogo
-              src={params.value}
-              placeholder={placeholderPerson}
-              alt={params.row.name}
-            />
-          )
-        },
-      },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 150,
-      },
-
-      {
-        field: 'positions',
-        headerName: 'Positions',
-        width: 150,
-        valueGetter: params => {
-          const positions: Position[] =
-            params?.row?.positions?.filter(
-              (p: Position) => p.team?.teamId === team?.teamId
-            ) || []
-          return getXGridValueFromArray(positions, 'name')
-        },
-      },
-
-      {
-        field: 'jerseys',
-        headerName: 'Jerseys',
-        width: 100,
-        valueGetter: params => {
-          const jerseys: Jersey[] =
-            params.row?.jerseys?.filter(
-              (p: Jersey) => p.team?.teamId === team?.teamId
-            ) || []
-          return getXGridValueFromArray(jerseys, 'number')
-        },
-      },
-      {
-        field: 'levelCode',
-        headerName: 'Level',
-        width: 150,
-        renderCell: params => {
-          return <PlayerLevel code={params.value} />
-        },
-      },
-      {
-        field: 'activityStatus',
-        headerName: 'Status',
-        width: 120,
-        disableColumnMenu: true,
-        sortable: true,
-      },
-      {
-        field: 'playerId',
-        headerName: 'Member',
-        width: 250,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <TogglePlayerGame
-              gameId={gameId}
-              player={params.row}
-              team={team}
-              host={host}
-              lineupPlayers={lineupPlayers}
-              updateGame={updateGame}
-            />
-          )
-        },
-      },
-    ],
-    [gameId, host, team, lineupPlayers]
-  )
 
   const setCaptain = React.useCallback(({ playerId, captain }) => {
     updateGame({
@@ -718,131 +624,70 @@ const LineupList: React.FC<TLineupList> = props => {
     [gameId, lineupPlayers]
   )
 
-  const searchIndexes = React.useMemo(() => ['name', 'status'], [])
+  const [tabIndex, setTabIndex] = React.useState(0)
 
-  const teamPlayersData = useMemo(
-    () =>
-      queryTeam ? setIdFromEntityId(queryTeam?.players || [], 'playerId') : [],
-    [queryTeam]
-  )
-
-  const [searchText, searchData, requestSearch] = useXGridSearch({
-    searchIndexes,
-    data: teamPlayersData,
-  })
-
-  const [anchorEl, setAnchorEl] =
-    React.useState<React.SetStateAction<Element>>()
-
-  const [itemsMenu, setItemsMenu] = useState<boolean>(false)
-
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue)
+  }
   return (
     <>
-      <Paper sx={{ p: '16px' }}>
-        <Toolbar
-          disableGutters
-          sx={{ p: 0, display: 'flex', justifyContent: 'space-between' }}
-        >
-          <div>
-            <Title>{`${host ? 'Host' : 'Guest'} lineup${
-              team ? `: ${team?.name}` : ''
-            }`}</Title>
-          </div>
-          <div>
-            <ButtonGroup
-              variant="contained"
-              aria-label="contained button group"
-            >
-              <Button
-                type="button"
-                onClick={() => {
-                  getTeamPlayers()
-                  setItemsMenu(s => !s)
-                }}
-                size="small"
-                startIcon={<AddIcon />}
-              >
-                New add players
-              </Button>
-              <Button
-                aria-controls="add-players-menu"
-                aria-haspopup="true"
-                type="button"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={event => {
-                  getTeamPlayers()
-                  setAnchorEl(event.currentTarget)
-                }}
-              >
-                Add Players
-              </Button>
-              {players.length > 0 && (
-                <ButtonDialog
-                  text={'Remove Players'}
-                  textLoading={'Removing...'}
-                  size="small"
-                  startIcon={<RemoveCircleOutlineIcon />}
-                  dialogTitle={'Do you want to remove all players from lineup?'}
-                  dialogDescription={'You can add players to lineup later'}
-                  dialogNegativeText={'No, keep players'}
-                  dialogPositiveText={'Yes, remove players'}
-                  onDialogClosePositive={() => {
-                    const dataToDisconnect = players.map(player => {
-                      return {
-                        where: {
-                          node: {
-                            playerId: player?.node?.playerId,
-                          },
-                        },
-                      }
-                    })
-                    updateGame({
-                      variables: {
-                        where: {
-                          gameId,
-                        },
-                        update: {
-                          players: {
-                            disconnect: dataToDisconnect,
-                          },
-                        },
-                      },
-                    })
-                  }}
-                />
-              )}
-            </ButtonGroup>
-            <Menu
-              id="add-players-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={Boolean(anchorEl)}
-              onClose={() => {
-                setAnchorEl(undefined)
-              }}
-            >
-              <MenuItem
-                onClick={() => {
-                  openPlayerDialog()
-                  setAnchorEl(undefined)
-                }}
-              >
-                Choose specific
-              </MenuItem>
-              <MenuItem
-                disabled={!queryTeam}
-                onClick={() => {
-                  addAllTeamPlayersToGame()
-                  setAnchorEl(undefined)
-                }}
-              >
-                All
-              </MenuItem>
-            </Menu>
-          </div>
-        </Toolbar>
-        {itemsMenu && <ItemsMenu players={queryTeam?.players} />}
+      <Divider sx={{ mt: 2 }}>
+        <Title>{`${host ? 'Host' : 'Guest'} lineup${
+          team ? `: ${team?.name}` : ''
+        }`}</Title>
+      </Divider>
+      <Tabs
+        value={tabIndex}
+        onChange={handleChangeTab}
+        indicatorColor="primary"
+        textColor="inherit"
+        variant="fullWidth"
+      >
+        <Tab label="View lineup" />
+        <Tab
+          label="Select players for lineup"
+          onClick={() => {
+            getTeamPlayers()
+          }}
+        />
+      </Tabs>
+      <TabPanel value={tabIndex} index={0} dir={'x'}>
+        {players.length > 0 && (
+          <ButtonDialog
+            sx={{ my: 2 }}
+            text={'Remove All Players'}
+            textLoading={'Removing...'}
+            size="small"
+            startIcon={<RemoveCircleOutlineIcon />}
+            dialogTitle={'Do you want to remove all players from lineup?'}
+            dialogDescription={'You can add players to lineup later'}
+            dialogNegativeText={'No, keep players'}
+            dialogPositiveText={'Yes, remove players'}
+            onDialogClosePositive={() => {
+              const dataToDisconnect = players.map(player => {
+                return {
+                  where: {
+                    node: {
+                      playerId: player?.node?.playerId,
+                    },
+                  },
+                }
+              })
+              updateGame({
+                variables: {
+                  where: {
+                    gameId,
+                  },
+                  update: {
+                    players: {
+                      disconnect: dataToDisconnect,
+                    },
+                  },
+                },
+              })
+            }}
+          />
+        )}
         <div style={{ height: 600, width: '100%' }}>
           <DataGridPro
             density="compact"
@@ -854,59 +699,19 @@ const LineupList: React.FC<TLineupList> = props => {
             }}
           />
         </div>
-      </Paper>
-      {playerDialog && (
-        <Dialog
-          fullWidth
-          maxWidth="lg"
-          open={playerDialog}
-          onClose={handleClosePlayerDialog}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          {queryTeamPlayersLoading && <Loader />}
-
-          <Error message={queryTeamPlayersError?.message} />
-          {queryTeam && (
-            <>
-              <DialogTitle id="alert-dialog-title">{`Add player to game`}</DialogTitle>
-              <DialogContent>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Typography variant="body1" gutterBottom>
-                    {`Total players selected: ${lineupPlayers.length}`}
-                  </Typography>
-                </div>
-                <div style={{ height: 1000, width: '100%' }}>
-                  <DataGridPro
-                    density="compact"
-                    columns={teamPlayersColumns}
-                    rows={sortByStatus(searchData, 'activityStatus')}
-                    disableSelectionOnClick
-                    loading={queryTeamPlayersLoading}
-                    components={{
-                      Toolbar: QuickSearchToolbar,
-                    }}
-                    componentsProps={{
-                      toolbar: {
-                        value: searchText,
-                        onChange: (
-                          event: React.ChangeEvent<HTMLInputElement>
-                        ): void => requestSearch(event.target.value),
-                        clearSearch: () => requestSearch(''),
-                      },
-                    }}
-                  />
-                </div>
-              </DialogContent>
-            </>
-          )}
-          <DialogActions>
-            <Button type="button" onClick={handleClosePlayerDialog}>
-              {'Done'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      </TabPanel>
+      <TabPanel value={tabIndex} index={1} dir={'x'}>
+        <TeamPlayersByLastName
+          players={queryTeam?.players
+            ?.map((p: Player) => addFieldToObjectWithoutDiacritics(p, 'name'))
+            .map((p: Player) => setIdFromEntity(p, 'playerId'))}
+          gameId={gameId}
+          team={team}
+          host={host}
+          updateGame={updateGame}
+          lineupPlayers={lineupPlayers}
+        />
+      </TabPanel>
     </>
   )
 }
@@ -932,137 +737,150 @@ const transform = R.pipe(
   R.sort(R.ascend(R.head))
 )
 
-const ItemsMenu = ({ players }: { players?: Player[] }) => {
-  if (!players) return null
-  const data = transform(players)
-
-  console.log(data)
-  return (
-    <Box sx={{ mt: 2 }}>
-      {data.map(group => {
-        let [groupName, groupArray] = group
-        return (
-          <>
-            <div>{groupName}</div>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                // minWidth: 300,
-                width: '100%',
-                // justifyContent: 'space-evenly',
-              }}
-            >
-              {groupArray.map(p => (
-                <Button
-                  type="button"
-                  size="large"
-                  // sx={{ width: '15%', m: 1 }}
-                  key={p.playerId}
-                  variant="outlined"
-                  //  variant={selected?.jersey === p.jersey ? 'outlined' : 'contained'}
-                  color="primary"
-                  //  onClick={() => {
-                  //    onClick(p)
-                  //  }}
-                  //  disabled={disabled?.node?.playerId === p.node.playerId}
-                >
-                  <Typography
-                    variant="h5"
-                    component="div"
-                    sx={{ marginRight: 1 }}
-                  >
-                    {p.jerseys.length > 0 ? p.jerseys[0].number : ''}
-                  </Typography>
-                  <Typography variant="body1" component="div">
-                    {p.name}
-                  </Typography>
-                </Button>
-              ))}
-            </div>
-          </>
-        )
-      })}
-    </Box>
-  )
-}
-
-type TTogglePlayerGame = {
+type TeamPlayersByLastNameProps = {
   gameId: string
   team: Team | null
-  player: Player
   host: boolean
   updateGame: MutationFunction
+  players?: Player[]
   lineupPlayers: Player[]
 }
 
-const TogglePlayerGame: React.FC<TTogglePlayerGame> = props => {
-  const { gameId, team, player, host, updateGame, lineupPlayers } = props
-  const [isMember, setIsMember] = useState(
-    !!lineupPlayers?.find(p => p.playerId === player.playerId)
-  )
+const TeamPlayersByLastName = ({
+  players,
+  gameId,
+  team,
+  host,
+  updateGame,
+  lineupPlayers,
+}: TeamPlayersByLastNameProps) => {
+  if (!players) return null
+  const searchIndexes = ['nameWithoutDiacritics', 'firstName', 'lastName']
+  const [searchText, searchData, requestSearch] = useSearch({
+    searchIndexes,
+    data: players,
+  })
 
-  const position = useMemo(
-    () =>
+  const data = transform(searchData)
+
+  const addPlayerToLineup = (isMember: boolean, player: Player) => {
+    const position =
       player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
-        ?.name || null,
-    []
-  )
+        ?.name || null
 
-  const jersey = useMemo(() => {
-    const jersey = player?.jerseys?.filter(
-      p => p.team?.teamId === team?.teamId
-    )?.[0]
-    const number = jersey?.number
+    const jersey = parseInt(
+      player?.jerseys
+        ?.filter(p => p.team?.teamId === team?.teamId)?.[0]
+        ?.number.toString()
+    )
 
-    // typeof jersey?.number === 'string'
-    //   ? jersey?.number
-    //   : jersey?.number?.low || null
-    return parseInt(number + '')
-  }, [])
+    updateGame({
+      variables: {
+        where: {
+          gameId,
+        },
+        update: {
+          players: {
+            ...(isMember
+              ? {
+                  disconnect: {
+                    where: {
+                      node: {
+                        playerId: player.playerId,
+                      },
+                    },
+                  },
+                }
+              : {
+                  connect: {
+                    where: {
+                      node: { playerId: player.playerId },
+                    },
+                    edge: {
+                      host,
+                      position,
+                      jersey,
+                      teamId: team?.teamId,
+                    },
+                  },
+                }),
+          },
+        },
+      },
+    })
+  }
 
   return (
-    <Switch
-      checked={isMember}
-      onChange={() => {
-        updateGame({
-          variables: {
-            where: {
-              gameId,
-            },
-            update: {
-              players: {
-                ...(isMember
-                  ? {
-                      disconnect: {
-                        where: {
-                          node: {
-                            playerId: player.playerId,
-                          },
-                        },
-                      },
-                    }
-                  : {
-                      connect: {
-                        where: {
-                          node: { playerId: player.playerId },
-                        },
-                        edge: {
-                          host,
-                          position,
-                          jersey,
-                          teamId: team?.teamId,
-                        },
-                      },
-                    }),
-              },
-            },
-          },
-        })
-
-        setIsMember(!isMember)
-      }}
-    />
+    <Box sx={{ my: 2 }}>
+      <TextField
+        fullWidth
+        label="Search player"
+        variant="standard"
+        value={searchText}
+        onFocus={event => {
+          const target = event.target
+          target.select()
+        }}
+        onChange={e => {
+          requestSearch(e.target.value)
+        }}
+        sx={{ mb: 2 }}
+      />
+      <Box sx={{ height: '30rem', maxHeight: '30rem', overflow: 'auto' }}>
+        {data.map(group => {
+          const name = group[0] as string
+          const groupPlayers = group[1] as Player[]
+          return (
+            <div key={name}>
+              <Divider>
+                <Chip label={name} color="primary" />
+              </Divider>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  py: 1,
+                }}
+              >
+                {groupPlayers.map(player => {
+                  const isMember = !!lineupPlayers?.find(
+                    p => p.playerId === player.playerId
+                  )
+                  return (
+                    <Button
+                      type="button"
+                      size="medium"
+                      key={player.playerId}
+                      variant={isMember ? 'outlined' : 'contained'}
+                      color="primary"
+                      onClick={() => {
+                        addPlayerToLineup(isMember, player)
+                      }}
+                      //  disabled=
+                    >
+                      <Avatar
+                        alt={player.name}
+                        src={player.avatar}
+                        sx={{ mr: 1 }}
+                      />
+                      <Typography variant="h5" component="div" sx={{ mr: 1 }}>
+                        {player.jerseys.length > 0
+                          ? player.jerseys[0].number
+                          : ''}
+                      </Typography>
+                      <Typography variant="body1" component="div">
+                        {player.name}
+                      </Typography>
+                    </Button>
+                  )
+                })}
+              </Box>
+            </div>
+          )
+        })}
+      </Box>
+    </Box>
   )
 }
 

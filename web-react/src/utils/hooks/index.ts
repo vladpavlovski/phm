@@ -1,6 +1,6 @@
 export { useDebounce } from './useDebounce'
 export { useWindowSize } from './useWindowSize'
 export { useUserSetup } from './useUserSetup'
-export { useXGridSearch } from './useXGridSearch'
+export { useXGridSearch, useSearch } from './useXGridSearch'
 export { useUserInfo } from './useUserInfo'
 export { useKeyPress } from './useKeyPress'

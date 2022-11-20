@@ -1,6 +1,7 @@
 import React from 'react'
 import * as R from 'ramda'
 import dayjs from 'dayjs'
+import accents from 'remove-accents'
 
 export const capitalize = R.converge(R.concat, [
   R.compose(R.toUpper, R.head),
@@ -41,6 +42,11 @@ export const arrayToStringList = (data, keyId, keyValue = 'name') =>
 
 export const setIdFromEntityId = (array, filedId) =>
   array?.map(item => ({ ...item, id: item[filedId] })) || []
+
+export const setIdFromEntity = (item, filedId) => ({
+  ...item,
+  id: item[filedId],
+})
 
 export const setXGridForRelation = (array, filedId, propertyName) => {
   return array.map(item => {
@@ -156,3 +162,9 @@ export const getTeamByHost = (host, teams) => {
 }
 
 export const formatTimeValue = time => (time < 10 ? `0${time}` : `${time}`)
+
+export const addFieldToObjectWithoutDiacritics = (object, field) => {
+  const value = object[field] || ''
+  const valueWithoutDiacritics = accents.remove(value)
+  return { ...object, [`${field}WithoutDiacritics`]: valueWithoutDiacritics }
+}
