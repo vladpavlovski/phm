@@ -1,14 +1,13 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
-import { LinkButton, Title } from 'components'
+import { Title } from 'components'
 import * as R from 'ramda'
 import React, { useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link as RouterLink, useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute } from 'router/routes'
 import { addFieldToObjectWithoutDiacritics, setIdFromEntity, setXGridForRelation } from 'utils'
 import { useSearch } from 'utils/hooks'
 import { Game, GameEventSimple, Player, Team } from 'utils/types'
 import { gql, MutationFunction, useLazyQuery } from '@apollo/client'
-import AccountBox from '@mui/icons-material/AccountBox'
 import AddReactionIcon from '@mui/icons-material/AddReaction'
 import BalconyIcon from '@mui/icons-material/Balcony'
 import HowToRegIcon from '@mui/icons-material/HowToReg'
@@ -16,7 +15,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import StarIcon from '@mui/icons-material/Star'
 import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import { Avatar, Box, Chip, Divider, TextField } from '@mui/material'
+import { Avatar, Box, Chip, Divider, Link, TextField } from '@mui/material'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
@@ -24,12 +23,9 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
-import placeholderPerson from '../../../../../../img/placeholderPerson.jpg'
+import { Stack } from '@mui/system'
+import { DataGridPro, GridColumns, GridToolbar, useGridApiRef } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
-import { XGridLogo } from '../../../../commonComponents/XGridLogo'
-import { SetLineupJersey } from './SetLineupJersey'
-import { SetLineupPosition } from './SetLineupPosition'
 
 const GET_TEAM_PLAYERS = gql`
   query getTeamPlayers($where: TeamWhere) {
@@ -335,7 +331,7 @@ const LineupList: React.FC<TLineupList> = props => {
       {
         field: 'actions',
         headerName: 'Actions',
-        width: 200,
+        width: 170,
         sortable: false,
         disableColumnMenu: true,
         renderCell: params => {
@@ -351,18 +347,6 @@ const LineupList: React.FC<TLineupList> = props => {
 
           return (
             <>
-              <LinkButton
-                to={getAdminOrgPlayerRoute(
-                  organizationSlug,
-                  params.row.playerId
-                )}
-                target="_blank"
-                icon
-              >
-                <Tooltip arrow title="Profile" placement="top">
-                  <AccountBox />
-                </Tooltip>
-              </LinkButton>
               <ButtonDialog
                 icon={
                   <Tooltip arrow title="Remove Player" placement="top">
@@ -481,67 +465,52 @@ const LineupList: React.FC<TLineupList> = props => {
         },
       },
       {
-        field: 'avatar',
-        headerName: 'Photo',
-        width: 80,
-        sortable: false,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
-            <XGridLogo
-              src={params.value}
-              placeholder={placeholderPerson}
-              alt={params.row.name}
-            />
-          )
-        },
-      },
-      {
         field: 'name',
         headerName: 'Name',
         width: 200,
+        renderCell: params => {
+          return (
+            <Link
+              underline="hover"
+              component={RouterLink}
+              to={getAdminOrgPlayerRoute(organizationSlug, params.row.playerId)}
+              target="_blank"
+            >
+              <Stack
+                direction="row"
+                spacing={1}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Avatar alt={params.value} src={params.row.avatar} />
+                <Typography variant="body2">{params.value}</Typography>
+              </Stack>
+            </Link>
+          )
+        },
       },
       {
         field: 'jersey',
-        headerName: 'Jersey',
-        width: 100,
-        renderCell: params => {
-          return (
-            <>
-              <SetLineupJersey
-                player={params.row}
-                gameId={gameId}
-                updateGame={updateGame}
-              />
-              <span style={{ marginRight: '4px' }}>{params.value}</span>
-            </>
-          )
-        },
+        editable: true,
+        type: 'number',
+        headerName: '#',
+        width: 50,
+        disableColumnMenu: true,
+        sortable: false,
       },
       {
         field: 'position',
         headerName: 'Position',
+        editable: true,
         width: 120,
-        renderCell: params => {
-          return (
-            <>
-              <SetLineupPosition
-                player={params.row}
-                gameId={gameId}
-                updateGame={updateGame}
-              />
-              <span style={{ marginRight: '4px' }}>{params.value}</span>
-            </>
-          )
-        },
+        disableColumnMenu: true,
+        sortable: false,
       },
       {
         field: 'levelCode',
         headerName: 'Level',
         width: 150,
-        renderCell: params => {
-          return <PlayerLevel code={params.row.levelCode} />
-        },
+        renderCell: params => <PlayerLevel code={params.row.levelCode} />,
       },
       {
         field: 'scoredByCount',
@@ -629,6 +598,34 @@ const LineupList: React.FC<TLineupList> = props => {
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue)
   }
+  const apiRef = useGridApiRef()
+
+  React.useEffect(() => {
+    return apiRef.current.subscribeEvent('cellEditCommit', params => {
+      const { id, field, value } = params
+
+      updateGame({
+        variables: {
+          where: {
+            gameId,
+          },
+          update: {
+            players: {
+              connect: {
+                where: {
+                  node: { playerId: id },
+                },
+                edge: {
+                  [field]: value,
+                },
+              },
+            },
+          },
+        },
+      })
+    })
+  }, [apiRef])
+
   return (
     <>
       <Divider sx={{ mt: 2 }}>
@@ -688,8 +685,33 @@ const LineupList: React.FC<TLineupList> = props => {
             }}
           />
         )}
-        <div style={{ height: 600, width: '100%' }}>
+        <Box
+          sx={{
+            height: 600,
+            width: '100%',
+            '& .MuiDataGrid-cell--editing': {
+              bgcolor: 'rgb(255,215,115, 0.19)',
+              color: '#1a3e72',
+              '& .MuiInputBase-root': {
+                height: '100%',
+              },
+            },
+            '& .MuiInputBase-input': {
+              '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                '-webkit-appearance': 'none',
+                '-moz-appearance': 'textfield',
+              },
+            },
+            '& .Mui-error': {
+              bgcolor: theme =>
+                `rgb(126,10,15, ${theme.palette.mode === 'dark' ? 0 : 0.1})`,
+              color: theme =>
+                theme.palette.mode === 'dark' ? '#ff4343' : '#750f0f',
+            },
+          }}
+        >
           <DataGridPro
+            apiRef={apiRef}
             density="compact"
             columns={gameLineupColumns}
             rows={lineupPlayers}
@@ -698,7 +720,7 @@ const LineupList: React.FC<TLineupList> = props => {
               Toolbar: GridToolbar,
             }}
           />
-        </div>
+        </Box>
       </TabPanel>
       <TabPanel value={tabIndex} index={1} dir={'x'}>
         <TeamPlayersByLastName

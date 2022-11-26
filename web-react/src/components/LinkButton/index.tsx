@@ -1,10 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { ButtonProps, ButtonTypeMap } from '@mui/material'
 import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-
 import { ExtendButtonBase } from '@mui/material/ButtonBase'
-import { ButtonTypeMap, ButtonProps } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
 
 interface ILinkButton extends ButtonProps {
   icon?: boolean
@@ -16,10 +15,7 @@ interface ILinkButton extends ButtonProps {
 
 const LinkButton: React.FC<ILinkButton> = props => {
   const { icon, children, ...restProps } = props
-  const WrapTag = React.useMemo(
-    (): ExtendButtonBase<ButtonTypeMap> => (icon ? IconButton : Button),
-    [icon]
-  )
+  const WrapTag: ExtendButtonBase<ButtonTypeMap> = icon ? IconButton : Button
   return <WrapTag {...restProps}>{children}</WrapTag>
 }
 
