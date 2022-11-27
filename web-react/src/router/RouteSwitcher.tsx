@@ -11,6 +11,9 @@ const NotFound = React.lazy(() => import('../pages/NotFound'))
 const NetworkError = React.lazy(() => import('../pages/NetworkError'))
 
 const AdminPlayersView = React.lazy(() => import('../admin/pages/Player/view'))
+const AdminPlayersAllDataView = React.lazy(
+  () => import('../admin/pages/Player/view/allData')
+)
 const AdminPlayer = React.lazy(() => import('../admin/pages/Player'))
 const AdminTeamsView = React.lazy(() => import('../admin/pages/Team/view'))
 const AdminTeam = React.lazy(() => import('../admin/pages/Team'))
@@ -96,6 +99,12 @@ const RouteSwitcher: React.FC = () => {
         exact
         component={AdminPlayersView}
       />
+      <PrivateRoute
+        path={ROUTES.ADMIN_ORG_PLAYERS_ALL_DATA}
+        exact
+        component={AdminPlayersAllDataView}
+      />
+
       <PrivateRoute
         path={ROUTES.ADMIN_ORG_PLAYER}
         exact

@@ -521,3 +521,7 @@ export type PlayerLevelType = {
 }
 
 export type UniversalType = GoalType | PenaltyType | undefined
+
+export type ParamsProps = {
+  organizationSlug: string
+}

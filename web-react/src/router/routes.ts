@@ -14,6 +14,7 @@ export const ADMIN_USER = '/admin/user/:userId'
 export const ADMIN_SYSTEM_SETTINGS = '/admin/systemSettings'
 
 export const ADMIN_ORG_PLAYERS = '/admin/players/:organizationSlug'
+export const ADMIN_ORG_PLAYERS_ALL_DATA = '/admin/playersData/:organizationSlug'
 export const ADMIN_ORG_PLAYER = '/admin/player/:organizationSlug/:playerId'
 export const ADMIN_ORG_TEAMS = '/admin/teams/:organizationSlug'
 export const ADMIN_ORG_TEAM = '/admin/team/:organizationSlug/:teamId'
@@ -57,6 +58,9 @@ export const WEB_LEAGUE_STANDINGS = '/web/league/:organizationSlug/standings'
 
 export const getAdminOrgPlayersRoute = (organizationSlug: string): string =>
   generatePath(ADMIN_ORG_PLAYERS, { organizationSlug })
+export const getAdminOrgPlayersAllDataRoute = (
+  organizationSlug: string
+): string => generatePath(ADMIN_ORG_PLAYERS_ALL_DATA, { organizationSlug })
 export const getAdminOrgPlayerRoute = (
   organizationSlug: string,
   playerId: string

@@ -2,6 +2,7 @@ import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import { TeamWithLogo } from 'components/XGridPage/components/TeamWithLogo'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
@@ -189,21 +190,7 @@ const XGridTable = () => {
       headerName: 'Teams',
       width: 200,
       renderCell: params => {
-        return (
-          <Stack spacing={1} direction="row">
-            {params.row?.teams?.map((team: Team) => {
-              return (
-                <Chip
-                  size="small"
-                  key={team?.teamId}
-                  avatar={<Avatar alt={team?.name} src={team?.logo} />}
-                  label={team?.name}
-                  color="info"
-                />
-              )
-            })}
-          </Stack>
-        )
+        return <TeamWithLogo teams={params.row?.teams} />
       },
     },
     {

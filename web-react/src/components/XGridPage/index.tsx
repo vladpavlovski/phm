@@ -4,6 +4,7 @@ import React from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useXGridSearch } from 'utils/hooks'
 import { ApolloError } from '@apollo/client'
+import { Stack } from '@mui/material'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
@@ -53,22 +54,24 @@ const XGridPage = ({
       <Grid item xs={12}>
         <Container maxWidth={false}>
           <Grid container spacing={2}>
+            {children && (
+              <Grid item xs={12} md={12} lg={12}>
+                <Paper>
+                  <Toolbar
+                    sx={{
+                      py: 2,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    {children}
+                  </Toolbar>
+                </Paper>
+                <Error message={error?.message} />
+              </Grid>
+            )}
             <Grid item xs={12} md={12} lg={12}>
-              <Paper>
-                <Toolbar
-                  sx={{
-                    py: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  {children}
-                </Toolbar>
-              </Paper>
-              <Error message={error?.message} />
-            </Grid>
-            <Grid item xs={12} md={12} lg={12}>
-              <div style={{ height: 'calc(100vh - 230px)' }}>
+              <Stack sx={{ height: 'calc(100vh - 230px)' }}>
                 <DataGridPro
                   columns={columns}
                   rows={searchData}
@@ -83,13 +86,14 @@ const XGridPage = ({
                         event: React.ChangeEvent<HTMLInputElement>
                       ): void => requestSearch(event.target.value),
                       clearSearch: () => requestSearch(''),
+                      csvOptions: { allColumns: true },
                     },
                   }}
                   initialState={{
                     pinnedColumns,
                   }}
                 />
-              </div>
+              </Stack>
             </Grid>
           </Grid>
         </Container>

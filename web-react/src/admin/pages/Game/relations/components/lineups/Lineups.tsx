@@ -1,9 +1,8 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Title } from 'components'
+import { PlayerWithAvatar } from 'components/XGridPage/components/PlayerWithAvatar'
 import * as R from 'ramda'
 import React, { useMemo } from 'react'
-import { Link as RouterLink, useParams } from 'react-router-dom'
-import { getAdminOrgPlayerRoute } from 'router/routes'
 import { addFieldToObjectWithoutDiacritics, setIdFromEntity, setXGridForRelation } from 'utils'
 import { useSearch } from 'utils/hooks'
 import { Game, GameEventSimple, Player, Team } from 'utils/types'
@@ -15,7 +14,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import StarIcon from '@mui/icons-material/Star'
 import StarOutlineIcon from '@mui/icons-material/StarOutline'
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import { Avatar, Box, Chip, Divider, Link, TextField } from '@mui/material'
+import { Avatar, Box, Chip, Divider, TextField } from '@mui/material'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
@@ -23,7 +22,6 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { Stack } from '@mui/system'
 import { DataGridPro, GridColumns, GridToolbar, useGridApiRef } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 
@@ -168,10 +166,6 @@ type TLineupList = {
   }[]
   updateGame: MutationFunction
 }
-
-type TParams = {
-  organizationSlug: string
-}
 interface TabPanelProps {
   children?: React.ReactNode
   dir?: string
@@ -197,7 +191,6 @@ const TabPanel = (props: TabPanelProps) => {
 
 const LineupList: React.FC<TLineupList> = props => {
   const { gameId, team, host = false, players, updateGame } = props
-  const { organizationSlug } = useParams<TParams>()
 
   const [getTeamPlayers, { data: { teams: [queryTeam] } = { teams: [] } }] =
     useLazyQuery(GET_TEAM_PLAYERS, {
@@ -470,22 +463,11 @@ const LineupList: React.FC<TLineupList> = props => {
         width: 200,
         renderCell: params => {
           return (
-            <Link
-              underline="hover"
-              component={RouterLink}
-              to={getAdminOrgPlayerRoute(organizationSlug, params.row.playerId)}
-              target="_blank"
-            >
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Avatar alt={params.value} src={params.row.avatar} />
-                <Typography variant="body2">{params.value}</Typography>
-              </Stack>
-            </Link>
+            <PlayerWithAvatar
+              playerId={params.row.playerId}
+              name={params.row.name}
+              avatar={params.row.avatar}
+            />
           )
         },
       },

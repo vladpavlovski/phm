@@ -2,13 +2,17 @@ import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { LinkButton, XGridPage } from 'components'
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { getAdminOrgPlayerRoute } from 'router/routes'
+import { getAdminOrgPlayerRoute, getAdminOrgPlayersAllDataRoute } from 'router/routes'
 import { getXGridValueFromArray, setIdFromEntityId } from 'utils'
 import { gql, useLazyQuery, useQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
+import AssignmentLateIcon from '@mui/icons-material/AssignmentLate'
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
+import DataArrayIcon from '@mui/icons-material/DataArray'
 import EditIcon from '@mui/icons-material/Edit'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
+import Stack from '@mui/system/Stack'
 import { GridColumns, GridRowsProp } from '@mui/x-data-grid-pro'
 
 export const GET_PLAYERS = gql`
@@ -117,7 +121,7 @@ const View: React.FC = () => {
     'playerId'
   )
 
-  const searchIndexes = ['name', 'leveleCode']
+  const searchIndexes = ['name', 'levelCode']
 
   return (
     <XGridPage
@@ -128,9 +132,10 @@ const View: React.FC = () => {
       rows={queryData}
       searchIndexes={searchIndexes}
     >
-      <div>
+      <Stack direction="row" gap={2}>
         <ButtonGroup variant="outlined" size="small">
           <Button
+            startIcon={<AssignmentTurnedInIcon />}
             variant={
               playersView === 'assignedPlayers' ? 'contained' : 'outlined'
             }
@@ -141,6 +146,7 @@ const View: React.FC = () => {
             Assigned
           </Button>
           <Button
+            startIcon={<AssignmentLateIcon />}
             variant={
               playersView === 'unassignedPlayers' ? 'contained' : 'outlined'
             }
@@ -152,7 +158,15 @@ const View: React.FC = () => {
             Unassigned
           </Button>
         </ButtonGroup>
-      </div>
+        <LinkButton
+          startIcon={<DataArrayIcon />}
+          size="small"
+          variant={'contained'}
+          to={getAdminOrgPlayersAllDataRoute(organizationSlug)}
+        >
+          All Data
+        </LinkButton>
+      </Stack>
       <div>
         <LinkButton
           startIcon={<AddIcon />}
