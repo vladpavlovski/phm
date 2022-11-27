@@ -1,15 +1,17 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { LinkButton, XGridPage } from 'components'
+import { PlayerWithAvatar } from 'components/XGridPage/components/PlayerWithAvatar'
+import { TeamWithLogo } from 'components/XGridPage/components/TeamWithLogo'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { getAdminOrgPlayerRoute, getAdminOrgPlayersAllDataRoute } from 'router/routes'
 import { getXGridValueFromArray, setIdFromEntityId } from 'utils'
+import { ParamsProps } from 'utils/types'
 import { gql, useLazyQuery, useQuery } from '@apollo/client'
 import AddIcon from '@mui/icons-material/Add'
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
 import DataArrayIcon from '@mui/icons-material/DataArray'
-import EditIcon from '@mui/icons-material/Edit'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Stack from '@mui/system/Stack'
@@ -22,6 +24,7 @@ export const GET_PLAYERS = gql`
       firstName
       lastName
       name
+      avatar
       levelCode
       positions {
         positionId
@@ -30,17 +33,14 @@ export const GET_PLAYERS = gql`
       teams {
         teamId
         name
+        logo
       }
     }
   }
 `
 
-type TParams = {
-  organizationSlug: string
-}
-
 const View: React.FC = () => {
-  const { organizationSlug } = useParams<TParams>()
+  const { organizationSlug } = useParams<ParamsProps>()
   const { error, loading, data } = useQuery(GET_PLAYERS, {
     variables: {
       where: {
@@ -68,25 +68,18 @@ const View: React.FC = () => {
 
   const columns: GridColumns = [
     {
-      field: 'playerId',
-      headerName: 'Edit',
-      width: 120,
-      disableColumnMenu: true,
-      renderCell: params => {
-        return (
-          <LinkButton
-            startIcon={<EditIcon />}
-            to={getAdminOrgPlayerRoute(organizationSlug, params.value)}
-          >
-            Edit
-          </LinkButton>
-        )
-      },
-    },
-    {
       field: 'name',
       headerName: 'Name',
       width: 200,
+      renderCell: params => {
+        return (
+          <PlayerWithAvatar
+            playerId={params.row.playerId}
+            name={params.row.name}
+            avatar={params.row.avatar}
+          />
+        )
+      },
     },
     {
       field: 'levelCode',
@@ -99,7 +92,12 @@ const View: React.FC = () => {
     {
       field: 'teams',
       headerName: 'Teams',
-      width: 200,
+      width: 300,
+      disableColumnMenu: true,
+      sortable: false,
+      renderCell: params => {
+        return <TeamWithLogo teams={params.row?.teams} />
+      },
       valueGetter: params => {
         return getXGridValueFromArray(params.row.teams, 'name')
       },
