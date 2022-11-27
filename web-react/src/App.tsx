@@ -1,26 +1,26 @@
-import React from 'react'
-import { Router } from 'react-router-dom'
-import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-
-import { HelmetProvider } from 'react-helmet-async'
+import 'dayjs/locale/cs'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 import objectSupport from 'dayjs/plugin/objectSupport'
-import WebFont from 'webfontloader'
-import theme from './styles/global'
-import 'dayjs/locale/cs'
-import AdapterDayJs from '@mui/lab/AdapterDayjs'
-import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { History } from 'history'
 import { SnackbarProvider } from 'notistack'
+import React from 'react'
+import { HelmetProvider } from 'react-helmet-async'
+import { Router } from 'react-router-dom'
+import WebFont from 'webfontloader'
+import CssBaseline from '@mui/material/CssBaseline'
+import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { Loader } from './components/Loader'
 import { LayoutProvider } from './context/layout/Provider'
 import { OrganizationProvider } from './context/organization'
-import { ErrorBoundary } from './components/ErrorBoundary'
 import { RouteSwitcher } from './router/RouteSwitcher'
-import { Loader } from './components/Loader'
+import theme from './styles/global'
+
 const Layout = React.lazy(() => import('./components/Layout'))
 
 const userLanguage = 'cs' // window?.navigator?.language
@@ -45,7 +45,7 @@ const App: React.FC<TApp> = ({ history }) => {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
-        <LocalizationProvider dateAdapter={AdapterDayJs}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           <CssBaseline />
           <ErrorBoundary>
             <Router history={history}>

@@ -1,21 +1,26 @@
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import React from 'react'
 import { Control, Controller, ControllerRenderProps } from 'react-hook-form'
-import DatePicker, { DatePickerProps } from '@mui/lab/DatePicker'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
+import { DatePicker, DatePickerProps } from '@mui/x-date-pickers'
 
-type TRHFDatepickerComponent = TextFieldProps &
-  Omit<DatePickerProps, 'renderInput' | 'onChange' | 'value'> & {
+type TRHFDatepickerComponent<TI, T> = TextFieldProps &
+  Omit<DatePickerProps<TI, T>, 'renderInput' | 'onChange' | 'value'> & {
     control: Control
     name: string
     error?: {
       message: string
     }
-    defaultValue?: string | number | Date | dayjs.Dayjs | null | undefined
-    onUpdate?(value: dayjs.Dayjs): void
+    defaultValue?: string | number | Date | Dayjs | null | undefined
+    onUpdate?(value: Dayjs): void
   }
 
-const RHFDatepicker = (props: TRHFDatepickerComponent) => {
+const RHFDatepicker = (
+  props: TRHFDatepickerComponent<
+    string | number | Date | Dayjs | null | undefined,
+    Dayjs
+  >
+) => {
   const {
     control,
     name,
@@ -49,7 +54,9 @@ const RHFDatepicker = (props: TRHFDatepickerComponent) => {
           inputRef={ref}
           onChange={(date, keyboardInputValue) => {
             onChange(date, keyboardInputValue)
-            onUpdate && onUpdate(date)
+            if (onUpdate && date) {
+              onUpdate(date)
+            }
           }}
           value={value}
         />
