@@ -57,6 +57,7 @@ const AdminEventView = React.lazy(() => import('../admin/pages/Event/view'))
 const AdminGame = React.lazy(() => import('../admin/pages/Game'))
 const AdminGameView = React.lazy(() => import('../admin/pages/Game/view'))
 const AdminGamePlay = React.lazy(() => import('../admin/pages/Game/play'))
+const AdminImport = React.lazy(() => import('../admin/pages/Import'))
 const WebLeagueGames = React.lazy(() => import('../league/pages/Games'))
 const WebLeagueGameReport = React.lazy(
   () => import('../league/pages/GameReport')
@@ -229,6 +230,7 @@ const RouteSwitcher: React.FC = () => {
         component={AdminGameView}
       />
       <PrivateRoute path={ROUTES.ADMIN_ORG_GAME} exact component={AdminGame} />
+      <PrivateRoute path={ROUTES.ADMIN_IMPORT} exact component={AdminImport} />
       <GameEventFormProvider>
         <GameTimerProvider>
           <GamePlayProvider>

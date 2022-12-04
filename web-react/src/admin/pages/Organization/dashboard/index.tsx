@@ -1,10 +1,12 @@
-import { Error, Loader } from 'components'
+import { Error, LinkButton, Loader } from 'components'
 import LayoutContext from 'context/layout'
 import OrganizationContext from 'context/organization'
 import React, { useContext, useEffect } from 'react'
 import { useHistory, useParams } from 'react-router-dom'
 import * as ROUTES from 'router/routes'
 import { gql, useLazyQuery } from '@apollo/client'
+import PublishIcon from '@mui/icons-material/Publish'
+import { Stack, Typography } from '@mui/material'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
@@ -72,9 +74,22 @@ const OrganizationDashboard: React.FC = () => {
         <>
           <Grid container spacing={4}>
             <Grid item xs={12} md={8} lg={7}>
-              <Paper
-                sx={{ p: '16px' }}
-              >{`Organization Info: ${organizationData?.name}`}</Paper>
+              <Paper sx={{ p: 2 }}>
+                <Typography>
+                  {`Organization Info: ${organizationData?.name}`}
+                </Typography>
+                <Stack justifyContent="space-between" direction="row">
+                  <LinkButton
+                    startIcon={<PublishIcon />}
+                    type="button"
+                    variant="outlined"
+                    color="primary"
+                    to={ROUTES.getAdminImportRoute(organizationData?.urlSlug)}
+                  >
+                    Import Data
+                  </LinkButton>
+                </Stack>
+              </Paper>
             </Grid>
             <Grid item xs={12} md={4} lg={5}>
               <ExternalLinks />

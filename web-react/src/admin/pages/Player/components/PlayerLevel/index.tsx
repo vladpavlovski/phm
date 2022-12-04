@@ -29,12 +29,11 @@ export const PlayerLevel = ({ code }: Props) => {
   const playerLevel = playerLevelTypes?.find(
     (level: any) => level.code === code
   )
-
   const { icon: Icon = Circle } = levelsIcon?.[playerLevel?.icon] || {}
 
   if (loading) return null
 
-  return code ? (
+  return code && playerLevel ? (
     <Chip icon={<Icon />} label={playerLevel.name} size="small" />
   ) : null
 }
