@@ -44,6 +44,8 @@ const GET_PLAYER = gql`
       activityStatus
       country
       city
+      countryBirth
+      cityBirth
       stick
       height
       weight
@@ -111,6 +113,8 @@ const CREATE_PLAYER = gql`
         activityStatus
         country
         city
+        countryBirth
+        cityBirth
         stick
         height
         weight
@@ -137,6 +141,8 @@ const UPDATE_PLAYER = gql`
         activityStatus
         country
         city
+        countryBirth
+        cityBirth
         stick
         height
         weight
@@ -287,6 +293,8 @@ const Player = () => {
       externalId: playerData?.externalId,
       activityStatus: playerData?.activityStatus,
       city: playerData?.city,
+      cityBirth: playerData?.cityBirth,
+      countryBirth: playerData?.countryBirth,
       stick: playerData?.stick,
       height: playerData?.height,
       weight: playerData?.weight,
@@ -301,12 +309,19 @@ const Player = () => {
   const onSubmit = useCallback(
     async dataToCheck => {
       try {
-        const { levelCode, country, activityStatus, birthday, ...rest } =
-          dataToCheck
+        const {
+          levelCode,
+          country,
+          countryBirth,
+          activityStatus,
+          birthday,
+          ...rest
+        } = dataToCheck
         const dataToSubmit = {
           ...rest,
           ...decomposeDate(birthday, 'birthday'),
           country: country || '',
+          countryBirth: countryBirth || '',
           levelCode,
           activityStatus,
         }
@@ -553,14 +568,6 @@ const Player = () => {
                           fullWidth
                           options={countriesNames}
                           defaultValue={playerData?.country}
-                          // getOptionLabel={option => {
-                          //   console.log(option)
-                          //   return option
-                          // }}
-                          // isOptionEqualToValue={(option, value) => {
-                          //   console.log(option, value)
-                          //   return equals(option, value)
-                          // }}
                           control={control}
                           name="country"
                           label="Country"
@@ -575,6 +582,27 @@ const Player = () => {
                           fullWidth
                           variant="standard"
                           error={errors?.city}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFAutocomplete
+                          fullWidth
+                          options={countriesNames}
+                          defaultValue={playerData?.countryBirth}
+                          control={control}
+                          name="countryBirth"
+                          label="Country Birth"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3} lg={3}>
+                        <RHFInput
+                          defaultValue={playerData?.cityBirth}
+                          control={control}
+                          name="cityBirth"
+                          label="City Birth"
+                          fullWidth
+                          variant="standard"
+                          error={errors?.cityBirth}
                         />
                       </Grid>
 

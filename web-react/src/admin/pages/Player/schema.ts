@@ -9,6 +9,8 @@ export const schema = object().shape({
   activityStatus: string(),
   country: string(),
   city: string(),
+  countryBirth: string(),
+  cityBirth: string(),
   stick: string(),
   height: string(),
   weight: string(),
