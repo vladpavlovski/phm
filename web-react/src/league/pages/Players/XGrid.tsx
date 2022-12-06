@@ -90,16 +90,20 @@ type TPlayersData = {
   groups: Group[]
 }
 
-const useLeagueGroupState = createPersistedState('HMS-LeagueAllPlayersGroup')
-export const useLeagueSeasonState = createPersistedState('HMS-LeagueSeason')
+const useLeagueStore = createPersistedState('HMS-store-players')
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+    group: Group | null
+  }
+}
 
 const XGridTable = () => {
   const { organizationSlug } = useParams<TXGridTableParams>()
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>(
-    null
-  )
-  const [selectedSeason, setSelectedSeason] =
-    useLeagueSeasonState<Season | null>(null)
+
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
+  const selectedGroup = leagueStore?.[organizationSlug]?.group
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -273,17 +277,27 @@ const XGridTable = () => {
                             : 'outlined'
                         }
                         onClick={() => {
-                          setSelectedSeason(
-                            season?.seasonId === selectedSeason?.seasonId
-                              ? null
-                              : season
-                          )
+                          setLeagueStore(state => ({
+                            ...state,
+                            [organizationSlug]: {
+                              ...state[organizationSlug],
+                              season:
+                                state[organizationSlug]?.season?.seasonId ===
+                                season?.seasonId
+                                  ? null
+                                  : season,
+                            },
+                          }))
                         }}
                       >
                         {season?.name}
                       </Button>
                     )
-                  })}
+                  }) || (
+                    <Button type="button" color="primary">
+                      Loading...
+                    </Button>
+                  )}
                 </ButtonGroup>
                 <ButtonGroup
                   size={upSm ? 'medium' : 'small'}
@@ -302,9 +316,17 @@ const XGridTable = () => {
                             : 'outlined'
                         }
                         onClick={() => {
-                          setSelectedGroup(
-                            g?.groupId === selectedGroup?.groupId ? null : g
-                          )
+                          setLeagueStore(state => ({
+                            ...state,
+                            [organizationSlug]: {
+                              ...state[organizationSlug],
+                              group:
+                                state[organizationSlug]?.group?.groupId ===
+                                g?.groupId
+                                  ? null
+                                  : g,
+                            },
+                          }))
                         }}
                       >
                         {g?.name}

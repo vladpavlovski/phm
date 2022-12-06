@@ -2,12 +2,12 @@ import { getColumns } from 'admin/pages/Game/view'
 import { Error } from 'components/Error'
 import { Loader } from 'components/Loader'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
+import createPersistedState from 'use-persisted-state'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Game, Season } from 'utils/types'
+import { Game, ParamsProps, Season } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
 import { Button, ButtonGroup, Container, Grid, Stack, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -102,20 +102,22 @@ const GET_GAMES = gql`
   }
 `
 
-type TXGridTableParams = {
-  organizationSlug: string
-}
-
 type TData = {
   games: Game[]
   seasons: Season[]
 }
 
-const XGridTable: React.FC = () => {
-  const { organizationSlug } = useParams<TXGridTableParams>()
+const useLeagueStore = createPersistedState('HMS-store-games')
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+  }
+}
 
-  const [selectedSeason, setSelectedSeason] =
-    useLeagueSeasonState<Season | null>(null)
+const XGridTable: React.FC = () => {
+  const { organizationSlug } = useParams<ParamsProps>()
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
 
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
@@ -246,17 +248,27 @@ const XGridTable: React.FC = () => {
                             : 'outlined'
                         }
                         onClick={() => {
-                          setSelectedSeason(
-                            season?.seasonId === selectedSeason?.seasonId
-                              ? null
-                              : season
-                          )
+                          setLeagueStore(state => ({
+                            ...state,
+                            [organizationSlug]: {
+                              ...state[organizationSlug],
+                              season:
+                                state[organizationSlug]?.season?.seasonId ===
+                                season?.seasonId
+                                  ? null
+                                  : season,
+                            },
+                          }))
                         }}
                       >
                         {season?.name}
                       </Button>
                     )
-                  })}
+                  }) || (
+                    <Button type="button" color="primary">
+                      Loading...
+                    </Button>
+                  )}
                 </ButtonGroup>
               </Stack>
               {selectedSeason ? (

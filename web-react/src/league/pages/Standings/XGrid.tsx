@@ -1,11 +1,19 @@
 import { Error } from 'components/Error'
-import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
 import { setIdFromEntityId } from 'utils'
 import { useXGridSearch } from 'utils/hooks'
-import { Game, Group, Phase, ResultPoint, Season, SystemSettings, Team } from 'utils/types'
+import {
+  Game,
+  Group,
+  ParamsProps,
+  Phase,
+  ResultPoint,
+  Season,
+  SystemSettings,
+  Team,
+} from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
@@ -243,10 +251,6 @@ const GET_GAMES = gql`
 
 type TGroup = GridRowModel & Group
 
-type TStandingsParams = {
-  organizationSlug: string
-}
-
 type TGamesData = {
   games: Game[]
   systemSettings: SystemSettings[]
@@ -254,19 +258,23 @@ type TGamesData = {
   seasons: Season[]
 }
 
-const useLeagueGroupState = createPersistedState('HMS-LeagueStandingsGroup')
-const useLeaguePhaseState = createPersistedState('HMS-LeagueStandingsPhase')
+const useLeagueStore = createPersistedState('HMS-store-standings')
+
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+    group: Group | null
+    phase: Phase | null
+  }
+}
 
 const XGridTable = () => {
-  const { organizationSlug } = useParams<TStandingsParams>()
+  const { organizationSlug } = useParams<ParamsProps>()
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
+  const selectedGroup = leagueStore?.[organizationSlug]?.group
+  const selectedPhase = leagueStore?.[organizationSlug]?.phase
 
-  const [selectedSeason, setSelectedSeason] =
-    useLeagueSeasonState<Season | null>(null)
-
-  const [selectedGroup, setSelectedGroup] = useLeagueGroupState<Group | null>()
-  const [selectedPhase, setSelectedPhase] = useLeaguePhaseState<Phase | null>(
-    null
-  )
   const theme = useTheme()
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
 
@@ -454,17 +462,27 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedSeason(
-                        season?.seasonId === selectedSeason?.seasonId
-                          ? null
-                          : season
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          season:
+                            state[organizationSlug]?.season?.seasonId ===
+                            season?.seasonId
+                              ? null
+                              : season,
+                        },
+                      }))
                     }}
                   >
                     {season?.name}
                   </Button>
                 )
-              })}
+              }) || (
+                <Button type="button" color="primary">
+                  Loading...
+                </Button>
+              )}
             </ButtonGroup>
             <ButtonGroup
               size={upSm ? 'medium' : 'small'}
@@ -483,9 +501,17 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedGroup(
-                        g?.groupId === selectedGroup?.groupId ? null : g
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          group:
+                            state[organizationSlug]?.group?.groupId ===
+                            g?.groupId
+                              ? null
+                              : g,
+                        },
+                      }))
                     }}
                   >
                     {g?.name}
@@ -510,9 +536,17 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedPhase(
-                        g?.phaseId === selectedPhase?.phaseId ? null : g
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          phase:
+                            state[organizationSlug]?.phase?.phaseId ===
+                            g?.phaseId
+                              ? null
+                              : g,
+                        },
+                      }))
                     }}
                   >
                     {g?.name}

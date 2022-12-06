@@ -1,13 +1,12 @@
 import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
 import { Error } from 'components/Error'
 import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
-import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import createPersistedState from 'use-persisted-state'
 import { getXGridHeight } from 'utils'
 import { useWindowSize, useXGridSearch } from 'utils/hooks'
-import { Competition, Group, Phase, Player, Season, Team } from 'utils/types'
+import { Competition, Group, ParamsProps, Phase, Player, Season, Team } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
@@ -203,34 +202,25 @@ const countPlayersStatisticsData = (data: PlayersData | undefined) => {
   return output
 }
 
-type TPlayersStatisticsParams = {
-  organizationSlug: string
+const useLeagueStore = createPersistedState('HMS-store-players-statistics')
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+    group: Group | null
+    phase: Phase | null
+    competition: Competition | null
+  }
 }
 
-const useLeaguePlayerStatGroup = createPersistedState(
-  'HMS-LeaguePlayerStatGroup'
-)
-const useLeaguePlayerStatPhase = createPersistedState(
-  'HMS-LeaguePlayerStatPhase'
-)
-const useLeaguePlayerStatCompetition = createPersistedState(
-  'HMS-LeaguePlayerStatCompetition'
-)
-
 const XGridTable = () => {
-  const { organizationSlug } = useParams<TPlayersStatisticsParams>()
+  const { organizationSlug } = useParams<ParamsProps>()
 
-  const [selectedSeason, setSelectedSeason] =
-    useLeagueSeasonState<Season | null>(null)
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
+  const selectedGroup = leagueStore?.[organizationSlug]?.group
+  const selectedPhase = leagueStore?.[organizationSlug]?.phase
+  const selectedCompetition = leagueStore?.[organizationSlug]?.competition
 
-  const [selectedGroup, setSelectedGroup] =
-    useLeaguePlayerStatGroup<Group | null>(null)
-  const [selectedPhase, setSelectedPhase] =
-    useLeaguePlayerStatPhase<Phase | null>(null)
-  const [selectedCompetition, setSelectedCompetition] =
-    useLeaguePlayerStatCompetition<Competition | null>(null)
-
-  // const [actualSeason, setActualSeason] = React.useState<Season | null>(null)
   const windowSize = useWindowSize()
   const toolbarRef = React.useRef()
   const theme = useTheme()
@@ -284,10 +274,6 @@ const XGridTable = () => {
     }
   )
 
-  // React.useEffect(() => {
-  //   data?.seasons && setActualSeason(data?.seasons?.[0] || null)
-  // }, [data])
-
   const apiRef = useGridApiRef()
 
   const getRowIndex = React.useCallback<GridSortApi['getRowIndex']>(
@@ -296,117 +282,114 @@ const XGridTable = () => {
     [apiRef]
   )
 
-  const columns = React.useMemo<GridColumns>(
-    () => [
-      {
-        field: 'index',
-        headerName: '',
-        width: 5,
-        sortable: false,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return <>{getRowIndex(params.row.id)}</>
-        },
+  const columns: GridColumns = [
+    {
+      field: 'index',
+      headerName: '',
+      width: 5,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return <>{getRowIndex(params.row.id)}</>
       },
-      {
-        field: 'name',
-        headerName: 'Name',
-        width: 160,
-        disableColumnMenu: true,
-        renderCell: params => {
-          return (
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 160,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <Chip
+            size="small"
+            avatar={
+              <Avatar alt={params?.row?.name} src={params?.row?.avatar} />
+            }
+            label={params?.value}
+            color="info"
+          />
+        )
+      },
+    },
+    {
+      field: 'team',
+      headerName: 'Team',
+      width: 160,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.team?.name,
+      renderCell: params => {
+        const team = params.row?.team
+        return (
+          <Stack spacing={1} direction="row">
             <Chip
               size="small"
-              avatar={
-                <Avatar alt={params?.row?.name} src={params?.row?.avatar} />
-              }
-              label={params?.value}
+              avatar={<Avatar alt={team?.name} src={team?.logo} />}
+              label={team?.name}
               color="info"
             />
-          )
-        },
+          </Stack>
+        )
       },
-      {
-        field: 'team',
-        headerName: 'Team',
-        width: 160,
-        disableColumnMenu: true,
-        valueGetter: params => params?.row?.team?.name,
-        renderCell: params => {
-          const team = params.row?.team
-          return (
-            <Stack spacing={1} direction="row">
-              <Chip
-                size="small"
-                avatar={<Avatar alt={team?.name} src={team?.logo} />}
-                label={team?.name}
-                color="info"
-              />
-            </Stack>
-          )
-        },
+    },
+    {
+      field: 'levelCode',
+      headerName: 'Level',
+      width: 150,
+      renderCell: params => {
+        return <PlayerLevel code={params.value} />
       },
-      {
-        field: 'levelCode',
-        headerName: 'Level',
-        width: 150,
-        renderCell: params => {
-          return <PlayerLevel code={params.value} />
-        },
-      },
-      {
-        field: 'gamesPlayed',
-        headerName: 'GP',
-        width: 50,
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        disableColumnMenu: true,
-      },
-      {
-        field: 'goals',
-        headerName: 'G',
-        width: 50,
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        disableColumnMenu: true,
-      },
-      {
-        field: 'assists',
-        headerName: 'A',
-        width: 50,
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        disableColumnMenu: true,
-      },
-      {
-        field: 'points',
-        headerName: 'PTS',
-        width: 50,
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        disableColumnMenu: true,
-      },
-      {
-        field: 'stars',
-        headerName: 'Star',
-        width: 50,
-        headerAlign: 'center',
-        align: 'center',
-        headerClassName: upSm ? '' : 'hms-iframe--header',
-        cellClassName: upSm ? '' : 'hms-iframe--cell',
-        disableColumnMenu: true,
-      },
-    ],
-    [upSm]
-  )
+    },
+    {
+      field: 'gamesPlayed',
+      headerName: 'GP',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'goals',
+      headerName: 'G',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'assists',
+      headerName: 'A',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'points',
+      headerName: 'PTS',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'stars',
+      headerName: 'Star',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+  ]
 
   const playersData = React.useMemo((): GridRowsProp[] => {
     const preparedData = countPlayersStatisticsData(data)
@@ -444,17 +427,27 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedSeason(
-                        season?.seasonId === selectedSeason?.seasonId
-                          ? null
-                          : season
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          season:
+                            state[organizationSlug]?.season?.seasonId ===
+                            season?.seasonId
+                              ? null
+                              : season,
+                        },
+                      }))
                     }}
                   >
                     {season?.name}
                   </Button>
                 )
-              })}
+              }) || (
+                <Button type="button" color="primary">
+                  Loading...
+                </Button>
+              )}
             </ButtonGroup>
             <ButtonGroup
               size={upSm ? 'medium' : 'small'}
@@ -473,11 +466,17 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedCompetition(
-                        g?.competitionId === selectedCompetition?.competitionId
-                          ? null
-                          : g
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          competition:
+                            state[organizationSlug]?.competition
+                              ?.competitionId === g?.competitionId
+                              ? null
+                              : g,
+                        },
+                      }))
                     }}
                   >
                     {g?.name}
@@ -502,9 +501,17 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedGroup(
-                        g?.groupId === selectedGroup?.groupId ? null : g
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          group:
+                            state[organizationSlug]?.group?.groupId ===
+                            g?.groupId
+                              ? null
+                              : g,
+                        },
+                      }))
                     }}
                   >
                     {g?.name}
@@ -529,9 +536,17 @@ const XGridTable = () => {
                         : 'outlined'
                     }
                     onClick={() => {
-                      setSelectedPhase(
-                        g?.phaseId === selectedPhase?.phaseId ? null : g
-                      )
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          phase:
+                            state[organizationSlug]?.phase?.phaseId ===
+                            g?.phaseId
+                              ? null
+                              : g,
+                        },
+                      }))
                     }}
                   >
                     {g?.name}
@@ -546,7 +561,6 @@ const XGridTable = () => {
               style={{
                 height: getXGridHeight(toolbarRef.current, windowSize),
               }}
-              // className={classes.xGridWrapper}
             >
               <DataGridPro
                 apiRef={apiRef}

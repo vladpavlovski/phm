@@ -1,7 +1,6 @@
 import { LinkButton, XGridPage } from 'components'
 import { RUNNING } from 'components/lists'
 import dayjs from 'dayjs'
-import { useLeagueSeasonState } from 'league/pages/Players/XGrid'
 import React from 'react'
 import Img from 'react-cool-img'
 import { useParams } from 'react-router-dom'
@@ -13,6 +12,7 @@ import {
   GameEventSimple,
   GamePlayersRelationship,
   GameTeamsRelationship,
+  ParamsProps,
   Season,
 } from 'utils/types'
 import { gql, useQuery } from '@apollo/client'
@@ -737,20 +737,23 @@ export const getColumns = (organizationSlug: string): GridColumns => [
   },
 ]
 
-type TParams = {
-  organizationSlug: string
-}
-
 type TData = {
   games: Game[]
   seasons: Season[]
 }
 
-const View: React.FC = () => {
-  const { organizationSlug } = useParams<TParams>()
+const useLeagueStore = createPersistedState('HMS-store-admin-game')
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+  }
+}
 
-  const [selectedSeason, setSelectedSeason] =
-    useLeagueSeasonState<Season | null>(null)
+const View: React.FC = () => {
+  const { organizationSlug } = useParams<ParamsProps>()
+
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
 
   const [gamesView, setGamesView] = useGamesViewState('all')
   const [gamesColumnsType, setGamesColumnsType] =
@@ -956,11 +959,17 @@ const View: React.FC = () => {
                     : 'outlined'
                 }
                 onClick={() => {
-                  setSelectedSeason(
-                    season?.seasonId === selectedSeason?.seasonId
-                      ? null
-                      : season
-                  )
+                  setLeagueStore(state => ({
+                    ...state,
+                    [organizationSlug]: {
+                      ...state[organizationSlug],
+                      season:
+                        state[organizationSlug]?.season?.seasonId ===
+                        season?.seasonId
+                          ? null
+                          : season,
+                    },
+                  }))
                   if (season?.status !== RUNNING) {
                     setGamesView('all')
                   }
