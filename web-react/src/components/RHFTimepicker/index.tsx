@@ -1,12 +1,12 @@
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import React from 'react'
 import { Control, Controller, ControllerRenderProps } from 'react-hook-form'
+import TimePicker, { TimePickerProps } from '@mui/lab/TimePicker'
 import TextField, { TextFieldProps } from '@mui/material/TextField'
-import { TimePicker, TimePickerProps } from '@mui/x-date-pickers/TimePicker'
 import { getDateFromTime } from '../../utils'
 
-type TRHFTimepickerComponent<TI, T> = TextFieldProps &
-  Omit<TimePickerProps<TI, T>, 'onChange' | 'value' | 'renderInput'> & {
+type TRHFTimepickerComponent = TextFieldProps &
+  Omit<TimePickerProps, 'onChange' | 'value' | 'renderInput'> & {
     name: string
     control: Control
     error: {
@@ -14,12 +14,7 @@ type TRHFTimepickerComponent<TI, T> = TextFieldProps &
     }
   }
 
-const RHFTimepicker = (
-  props: TRHFTimepickerComponent<
-    string | number | Date | Dayjs | null | undefined,
-    Dayjs
-  >
-) => {
+const RHFTimepicker: React.FC<TRHFTimepickerComponent> = props => {
   const { control, name, defaultValue, variant, error, fullWidth, ...rest } =
     props
   return (

@@ -10,10 +10,10 @@ import React from 'react'
 import { HelmetProvider } from 'react-helmet-async'
 import { Router } from 'react-router-dom'
 import WebFont from 'webfontloader'
+import AdapterDayJs from '@mui/lab/AdapterDayjs'
+import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import CssBaseline from '@mui/material/CssBaseline'
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
-import { LocalizationProvider } from '@mui/x-date-pickers'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Loader } from './components/Loader'
 import { LayoutProvider } from './context/layout/Provider'
@@ -45,7 +45,7 @@ const App: React.FC<TApp> = ({ history }) => {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDayJs}>
           <CssBaseline />
           <ErrorBoundary>
             <Router history={history}>
