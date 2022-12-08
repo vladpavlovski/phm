@@ -226,162 +226,154 @@ const GameReport: React.FC = () => {
   const upSm = useMediaQuery(theme.breakpoints.up('sm'))
   const upMd = useMediaQuery(theme.breakpoints.up('md'))
 
-  const columns = React.useMemo<GridColumns>(
-    () => [
-      {
-        field: 'period',
-        headerName: 'Period',
-        width: 100,
-        hide: !upSm,
-        disableColumnMenu: true,
-        resizable: true,
-        sortable: false,
+  const columns: GridColumns = [
+    {
+      field: 'period',
+      headerName: 'Period',
+      width: 100,
+      hide: !upSm,
+      disableColumnMenu: true,
+      resizable: true,
+      sortable: false,
+    },
+    {
+      field: 'remainingTime',
+      headerName: 'Remaining Time',
+      width: 80,
+      hide: !upSm,
+      disableColumnMenu: true,
+      resizable: true,
+      sortable: false,
+    },
+    {
+      field: 'team',
+      headerName: 'Team',
+      width: upSm ? 200 : 50,
+      disableColumnMenu: !upSm,
+      resizable: true,
+      sortable: false,
+      renderCell: params => {
+        return (
+          <>
+            <Img
+              src={params?.row?.team?.logo}
+              style={{
+                display: 'inline',
+                width: upSm ? '2rem' : '1.5rem',
+                height: upSm ? '2rem' : '1.5rem',
+                marginRight: '1rem',
+              }}
+              alt={params?.row?.team?.name}
+            />
+            {upSm && <span>{params?.row?.team?.nick}</span>}
+          </>
+        )
       },
-      {
-        field: 'remainingTime',
-        headerName: 'Remaining Time',
-        width: 80,
-        hide: !upSm,
-        disableColumnMenu: true,
-        resizable: true,
-        sortable: false,
-      },
-      {
-        field: 'team',
-        headerName: 'Team',
-        width: upSm ? 200 : 50,
-        disableColumnMenu: !upSm,
-        resizable: true,
-        sortable: false,
-        renderCell: params => {
-          return (
-            <>
-              <Img
-                src={params?.row?.team?.logo}
-                style={{
-                  display: 'inline',
-                  width: upSm ? '2rem' : '1.5rem',
-                  height: upSm ? '2rem' : '1.5rem',
-                  marginRight: '1rem',
-                }}
-                alt={params?.row?.team?.name}
-              />
-              {upSm && <span>{params?.row?.team?.nick}</span>}
-            </>
-          )
-        },
-      },
-      {
-        field: 'eventType',
-        headerName: 'Event',
-        width: upSm ? 120 : 80,
-        resizable: true,
-        disableColumnMenu: !upSm,
-        sortable: false,
-      },
-      {
-        field: 'eventDescription',
-        headerName: 'Info',
-        width: 550,
-        resizable: true,
-        sortable: false,
-        renderCell: params => {
-          let playerMeta1
-          let playerMeta2
-          let playerMeta3
-          let player1
-          let player2
-          let player3
-          let template
-          switch (params?.row?.eventTypeCode) {
-            case 'goal':
-              playerMeta1 = params?.row?.scoredBy
-              playerMeta2 = params?.row?.firstAssist
-              playerMeta3 = params?.row?.secondAssist
-              player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
-              player2 = getPlayerByMetaId(playerMeta2?.metaPlayerId)
-              player3 = getPlayerByMetaId(playerMeta3?.metaPlayerId)
-              template = (
-                <div>
-                  {player1 && (
-                    <strong>
-                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
-                        player1?.node?.name
-                      }`}
-                    </strong>
-                  )}
-                  {player2 && (
-                    <span>
-                      {` (${player2?.jersey || ''} ${player2?.node?.name}${
-                        player3 ? ', ' : ')'
-                      }`}
-                    </span>
-                  )}
-                  {player3 && (
-                    <span>{`${!player2 ? ' (' : ''}${player3?.jersey || ''} ${
-                      player3?.node?.name
-                    })`}</span>
-                  )}
-                  {params?.row?.goalType && (
-                    <span>{` - ${params?.row?.goalType} ${
-                      params?.row?.shotType && ' - ' + params?.row?.shotType
-                    }`}</span>
-                  )}
-                </div>
-              )
-              break
-            case 'penalty':
-              playerMeta1 = params?.row?.penalized
-              player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
-              template = (
-                <div>
-                  {player1 && (
-                    <strong>
-                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
-                        player1?.node?.name
-                      }`}
-                    </strong>
-                  )}
-                  {params?.row?.penaltyType && (
-                    <span>{` - ${params?.row?.penaltyType}`}</span>
-                  )}
-                  {params?.row?.duration && (
-                    <span>{` - ${params?.row?.duration}min`}</span>
-                  )}
-                  {params?.row?.penaltySubType && (
-                    <span>{` - ${params?.row?.penaltySubType}`}</span>
-                  )}
-                </div>
-              )
-              break
-            case 'penaltyShot':
-              playerMeta1 = params?.row?.executedBy
-              playerMeta2 = params?.row?.facedAgainst
-              player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
-              player2 = getPlayerByMetaId(playerMeta2?.metaPlayerId)
-              template = (
-                <div>
-                  {player1 && (
-                    <strong>
-                      {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
-                        player1?.node?.name
-                      }`}
-                    </strong>
-                  )}
-                  {player2 && (
-                    <span>{`${player2?.jersey} ${player2?.node?.name}`}</span>
-                  )}
-                </div>
-              )
-              break
-          }
+    },
+    {
+      field: 'eventType',
+      headerName: 'Event',
+      width: upSm ? 120 : 80,
+      resizable: true,
+      disableColumnMenu: !upSm,
+      sortable: false,
+    },
+    {
+      field: 'eventDescription',
+      headerName: 'Info',
+      width: 550,
+      resizable: true,
+      sortable: false,
+      renderCell: params => {
+        let playerMeta1
+        let playerMeta2
+        let playerMeta3
+        let player1
+        let player2
+        let player3
 
-          return <>{template}</>
-        },
+        switch (params?.row?.eventTypeCode) {
+          case 'goal':
+            playerMeta1 = params?.row?.scoredBy
+            playerMeta2 = params?.row?.firstAssist
+            playerMeta3 = params?.row?.secondAssist
+            player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
+            player2 = getPlayerByMetaId(playerMeta2?.metaPlayerId)
+            player3 = getPlayerByMetaId(playerMeta3?.metaPlayerId)
+            return (
+              <div>
+                {player1 && (
+                  <strong>
+                    {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                      player1?.node?.name
+                    }`}
+                  </strong>
+                )}
+                {player2 && (
+                  <span>
+                    {` (${player2?.jersey || ''} ${player2?.node?.name}${
+                      player3 ? ', ' : ')'
+                    }`}
+                  </span>
+                )}
+                {player3 && (
+                  <span>{`${!player2 ? ' (' : ''}${player3?.jersey || ''} ${
+                    player3?.node?.name
+                  })`}</span>
+                )}
+                {params?.row?.goalType && (
+                  <span>{` - ${params?.row?.goalType} ${
+                    params?.row?.shotType && ' - ' + params?.row?.shotType
+                  }`}</span>
+                )}
+              </div>
+            )
+          case 'penalty':
+            playerMeta1 = params?.row?.penalized
+            player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
+            return (
+              <div>
+                {player1 && (
+                  <strong>
+                    {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                      player1?.node?.name
+                    }`}
+                  </strong>
+                )}
+                {params?.row?.penaltyType && (
+                  <span>{` - ${params?.row?.penaltyType}`}</span>
+                )}
+                {params?.row?.duration && (
+                  <span>{` - ${params?.row?.duration}min`}</span>
+                )}
+                {params?.row?.penaltySubType && (
+                  <span>{` - ${params?.row?.penaltySubType}`}</span>
+                )}
+              </div>
+            )
+          case 'penaltyShot':
+            playerMeta1 = params?.row?.executedBy
+            playerMeta2 = params?.row?.facedAgainst
+            player1 = getPlayerByMetaId(playerMeta1?.metaPlayerId)
+            player2 = getPlayerByMetaId(playerMeta2?.metaPlayerId)
+            return (
+              <div>
+                {player1 && (
+                  <strong>
+                    {`${player1?.jersey ? `(${player1?.jersey}) - ` : ''}${
+                      player1?.node?.name
+                    }`}
+                  </strong>
+                )}
+                {player2 && (
+                  <span>{`${player2?.jersey} ${player2?.node?.name}`}</span>
+                )}
+              </div>
+            )
+        }
       },
-    ],
-    [upSm, getPlayerByMetaId]
-  )
+    },
+  ]
 
   const playersHost = React.useMemo(
     () =>
@@ -558,9 +550,8 @@ const GameReport: React.FC = () => {
                       sx={{
                         textAlign: 'center',
                         fontFamily: 'Digital Numbers Regular',
+                        fontSize: upMd ? '6rem' : upSm ? '4rem' : '2.5rem',
                       }}
-                      component="div"
-                      // className={classes.gamePlayScore}
                     >
                       {`${gameData?.gameResult?.hostGoals}:${gameData?.gameResult?.guestGoals}`}
                     </Typography>
