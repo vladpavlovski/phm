@@ -72,8 +72,10 @@ const Teams: React.FC<TTeams> = props => {
     },
   ] = useLazyQuery(GET_ALL_TEAMS_BY_ORG, {
     variables: {
-      orgs: {
-        urlSlug: organizationSlug,
+      where: {
+        orgs: {
+          urlSlug: organizationSlug,
+        },
       },
     },
   })
