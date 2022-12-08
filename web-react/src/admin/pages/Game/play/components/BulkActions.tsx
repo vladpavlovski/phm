@@ -2,15 +2,15 @@ import { useFastSaveClick } from 'admin/pages/Game/play/components/FastEventsMen
 import React from 'react'
 import Img from 'react-cool-img'
 import { Game, Team } from 'utils/types'
+import { LoadingButton } from '@mui/lab'
+import { Chip } from '@mui/material'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
 type Props = {
@@ -27,29 +27,26 @@ const TeamBulkActions = ({
   team: Team
 }) => {
   const [eventType, setEventType] = React.useState('')
-  const [eventsCount, setEventsCount] = React.useState('')
-
-  const resetState = () => {
-    setEventType('')
-    setEventsCount('')
-  }
-
-  const saveClick = useFastSaveClick({
+  const [createdEventsCounter, setCreatedEventsCounter] = React.useState(0)
+  const {
+    saveClick,
+    status: { createGameEventSimpleLoading },
+  } = useFastSaveClick({
     gameData,
     team,
     eventType,
     eventRelationType: 'savedBy', // will not use for saving, but need for ts
-    eventsCount: parseInt(eventsCount),
   })
   return (
     <Box sx={{ height: '50%', overflow: 'auto', mb: 2 }}>
       <Stack
         direction="row"
         alignItems="center"
+        justifyItems="center"
         spacing={2}
-        sx={{
-          width: '100%',
-        }}
+        // sx={{
+        //   width: '100%',
+        // }}
       >
         <Img
           src={team?.logo}
@@ -72,6 +69,7 @@ const TeamBulkActions = ({
             label="Event Type"
             onChange={e => {
               setEventType(e.target.value)
+              setCreatedEventsCounter(0)
             }}
           >
             <MenuItem value="">
@@ -81,30 +79,21 @@ const TeamBulkActions = ({
             <MenuItem value={'faceOff'}>FaceOff</MenuItem>
           </Select>
         </FormControl>
-        <TextField
-          variant="standard"
-          id="events-count"
-          label="Events Count"
-          type="number"
-          value={eventsCount}
-          onChange={e => {
-            setEventsCount(e.target.value)
-          }}
-        />
-        <Button
+        <LoadingButton
+          size="small"
+          loading={createGameEventSimpleLoading}
           type="button"
           variant="contained"
           color="primary"
           onClick={() => {
+            setCreatedEventsCounter(state => state + 1)
             saveClick()
-            resetState()
           }}
-          disabled={eventType === '' || eventsCount === ''}
+          disabled={createGameEventSimpleLoading || !eventType}
         >
-          <Typography variant="body1" component="div">
-            Create Events
-          </Typography>
-        </Button>
+          Create Event
+        </LoadingButton>
+        <Chip size="medium" label={createdEventsCounter} variant="outlined" />
       </Stack>
     </Box>
   )

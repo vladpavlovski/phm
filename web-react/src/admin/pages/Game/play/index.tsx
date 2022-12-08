@@ -620,11 +620,7 @@ const Play: React.FC = () => {
                         value="eventsTable"
                         {...a11yProps(0)}
                       />
-                      <Tab
-                        label="Bulk Actions"
-                        value="bulkActions"
-                        {...a11yProps(1)}
-                      />
+                      <Tab label="Actions" value="actions" {...a11yProps(1)} />
                     </TabList>
                   </Box>
                   <TabPanel value={'eventsTable'} sx={{ p: 0 }}>
@@ -635,7 +631,7 @@ const Play: React.FC = () => {
                       gameSettings={gameSettings}
                     />
                   </TabPanel>
-                  <TabPanel value={'bulkActions'} sx={{ p: 0 }}>
+                  <TabPanel value={'actions'} sx={{ p: 0 }}>
                     <BulkActions
                       teamHost={teamHost}
                       teamGuest={teamGuest}

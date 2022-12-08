@@ -456,65 +456,66 @@ export const useGameEventMutations = (gameData: Game) => {
   const { enqueueSnackbar } = useSnackbar()
   const previousGameEventSimpleId = React.useRef()
 
-  const [createGameEventSimple] = useMutation(CREATE_GES, {
-    update(cache, { data }) {
-      try {
-        const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
-          query: GET_GAME_PLAY,
-          variables: {
-            whereGame: { gameId: gameData?.gameId },
-            whereSystemSettings: { systemSettingsId: 'system-settings' },
-          },
-        })
-
-        const updatedResult = {
-          games: [
-            {
-              ...queryResult?.games?.[0],
-              gameResult: data?.updateGameResults?.gameResults?.[0],
-              gameEventsSimple: [
-                ...data?.createGameEventSimples?.gameEventSimples,
-                ...(queryResult?.games?.[0]?.gameEventsSimple || []),
-              ],
+  const [createGameEventSimple, { loading: createGameEventSimpleLoading }] =
+    useMutation(CREATE_GES, {
+      update(cache, { data }) {
+        try {
+          const queryResult = cache.readQuery<TQueryTypeData, TQueryTypeVars>({
+            query: GET_GAME_PLAY,
+            variables: {
+              whereGame: { gameId: gameData?.gameId },
+              whereSystemSettings: { systemSettingsId: 'system-settings' },
             },
-          ],
-          systemSettings: queryResult?.systemSettings,
+          })
+
+          const updatedResult = {
+            games: [
+              {
+                ...queryResult?.games?.[0],
+                gameResult: data?.updateGameResults?.gameResults?.[0],
+                gameEventsSimple: [
+                  ...data?.createGameEventSimples?.gameEventSimples,
+                  ...(queryResult?.games?.[0]?.gameEventsSimple || []),
+                ],
+              },
+            ],
+            systemSettings: queryResult?.systemSettings,
+          }
+          cache.writeQuery({
+            query: GET_GAME_PLAY,
+            data: updatedResult,
+            variables: {
+              whereGame: { gameId: gameData?.gameId },
+              whereSystemSettings: { systemSettingsId: 'system-settings' },
+            },
+          })
+        } catch (error) {
+          console.error(error)
         }
-        cache.writeQuery({
-          query: GET_GAME_PLAY,
-          data: updatedResult,
-          variables: {
-            whereGame: { gameId: gameData?.gameId },
-            whereSystemSettings: { systemSettingsId: 'system-settings' },
-          },
+      },
+      onCompleted: data => {
+        previousGameEventSimpleId.current =
+          data?.createGameEventSimples?.gameEventSimples?.[0]?.gameEventSimpleId
+
+        enqueueSnackbar(
+          `${data?.createGameEventSimples?.gameEventSimples?.[0]?.eventType} event created 🏒`,
+          {
+            variant: 'success',
+          }
+        )
+
+        update(state => ({
+          ...state,
+          gameEventData: null,
+        }))
+      },
+      onError: error => {
+        enqueueSnackbar(`${error}`, {
+          variant: 'error',
         })
-      } catch (error) {
         console.error(error)
-      }
-    },
-    onCompleted: data => {
-      previousGameEventSimpleId.current =
-        data?.createGameEventSimples?.gameEventSimples?.[0]?.gameEventSimpleId
-
-      enqueueSnackbar(
-        `${data?.createGameEventSimples?.gameEventSimples?.[0]?.eventType} event created 🏒`,
-        {
-          variant: 'success',
-        }
-      )
-
-      update(state => ({
-        ...state,
-        gameEventData: null,
-      }))
-    },
-    onError: error => {
-      enqueueSnackbar(`${error}`, {
-        variant: 'error',
-      })
-      console.error(error)
-    },
-  })
+      },
+    })
 
   const [updateGameEventSimple] = useMutation(UPDATE_GES, {
     update(cache, { data }) {
@@ -584,7 +585,13 @@ export const useGameEventMutations = (gameData: Game) => {
     },
   })
 
-  return { createGameEventSimple, updateGameEventSimple }
+  return {
+    createGameEventSimple,
+    updateGameEventSimple,
+    status: {
+      createGameEventSimpleLoading,
+    },
+  }
 }
 
 const GameEventWizard: React.FC<TGameEventWizard> = ({

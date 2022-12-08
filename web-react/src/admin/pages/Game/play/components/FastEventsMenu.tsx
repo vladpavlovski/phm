@@ -141,7 +141,7 @@ export const useFastSaveClick = ({
   eventRelationType: keyof TWizardGameEventSimple
   eventsCount?: number
 }) => {
-  const { createGameEventSimple } = useGameEventMutations(gameData)
+  const { createGameEventSimple, status } = useGameEventMutations(gameData)
   const {
     state: { gameEventData },
   } = React.useContext(GameEventFormContext)
@@ -149,42 +149,45 @@ export const useFastSaveClick = ({
     state: { tempGameTime, tempRemainingTime },
   } = React.useContext(GameTimerContext)
 
-  return (player?: GamePlayersRelationship) => {
-    const data = getEventSettings(eventType)
-    if (data) {
-      const { where, update } = prepareGameResultUpdate({
-        gameData,
-        gameEventSettings: data,
-        host: true,
-      })
-      const input = getInputVarsForGES({
-        gameEventData: {
-          ...getPlayerObject({
-            player,
-            playerTitle: eventRelationType,
-            playerToCheck: gameEventData?.[
-              eventRelationType
-            ] as GamePlayersRelationship,
-          }),
-        },
-        team,
-        gameData,
-        gameEventSettings: data,
-      })
+  return {
+    saveClick: (player?: GamePlayersRelationship) => {
+      const data = getEventSettings(eventType)
+      if (data) {
+        const { where, update } = prepareGameResultUpdate({
+          gameData,
+          gameEventSettings: data,
+          host: true,
+        })
+        const input = getInputVarsForGES({
+          gameEventData: {
+            ...getPlayerObject({
+              player,
+              playerTitle: eventRelationType,
+              playerToCheck: gameEventData?.[
+                eventRelationType
+              ] as GamePlayersRelationship,
+            }),
+          },
+          team,
+          gameData,
+          gameEventSettings: data,
+        })
 
-      createGameEventSimple({
-        variables: {
-          input: new Array(eventsCount).fill(undefined).map(() => ({
-            ...input,
-            timestamp: dayjs().format(),
-            remainingTime: tempRemainingTime,
-            gameTime: tempGameTime,
-          })),
-          gameResultWhere: where,
-          gameResultUpdateInput: update,
-        },
-      })
-    }
+        createGameEventSimple({
+          variables: {
+            input: new Array(eventsCount).fill(undefined).map(() => ({
+              ...input,
+              timestamp: dayjs().format(),
+              remainingTime: tempRemainingTime,
+              gameTime: tempGameTime,
+            })),
+            gameResultWhere: where,
+            gameResultUpdateInput: update,
+          },
+        })
+      }
+    },
+    status,
   }
 }
 
@@ -199,14 +202,14 @@ const TeamFastEvents = ({
   gameData: Game
   host: boolean
 }) => {
-  const saveClick = useFastSaveClick({
+  const { saveClick } = useFastSaveClick({
     gameData,
     team,
     eventType: 'save',
     eventRelationType: 'savedBy' as keyof TWizardGameEventSimple,
   })
 
-  const faceOffClick = useFastSaveClick({
+  const { saveClick: faceOffClick } = useFastSaveClick({
     gameData,
     team,
     eventType: 'faceOff',
