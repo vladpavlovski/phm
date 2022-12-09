@@ -22,7 +22,7 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { DataGridPro, GridColumns, GridToolbar, useGridApiRef } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColumns, GridToolbar } from '@mui/x-data-grid-pro'
 import { ButtonDialog } from '../../../../commonComponents/ButtonDialog'
 
 const GET_TEAM_PLAYERS = gql`
@@ -198,52 +198,6 @@ const LineupList: React.FC<TLineupList> = props => {
         where: { teamId: team?.teamId },
       },
     })
-
-  // const addAllTeamPlayersToGame = useCallback(() => {
-  //   const allPlayers: Player[] = queryTeam?.players
-
-  //   const dataToConnect = allPlayers.map(player => {
-  //     const position =
-  //       player?.positions?.filter(p => p.team?.teamId === team?.teamId)?.[0]
-  //         ?.name || ''
-
-  //     const firstJersey = player?.jerseys?.filter(
-  //       p => p.team?.teamId === team?.teamId
-  //     )?.[0]
-
-  //     const jersey =
-  //       typeof firstJersey?.number === 'string'
-  //         ? parseInt(firstJersey.number)
-  //         : firstJersey?.number || null
-
-  //     return {
-  //       where: {
-  //         node: { playerId: player.playerId },
-  //       },
-  //       edge: {
-  //         host,
-  //         position,
-  //         jersey,
-  //         captain: false,
-  //         goalkeeper: false,
-  //         teamId: team?.teamId,
-  //       },
-  //     }
-  //   })
-
-  //   updateGame({
-  //     variables: {
-  //       where: {
-  //         gameId,
-  //       },
-  //       update: {
-  //         players: {
-  //           connect: dataToConnect,
-  //         },
-  //       },
-  //     },
-  //   })
-  // }, [team, host, gameId, queryTeam])
 
   const lineupPlayers = setXGridForRelation(players, 'playerId', 'node')
 
@@ -580,33 +534,6 @@ const LineupList: React.FC<TLineupList> = props => {
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue)
   }
-  const apiRef = useGridApiRef()
-
-  React.useEffect(() => {
-    return apiRef.current.subscribeEvent('cellEditCommit', params => {
-      const { id, field, value } = params
-
-      updateGame({
-        variables: {
-          where: {
-            gameId,
-          },
-          update: {
-            players: {
-              connect: {
-                where: {
-                  node: { playerId: id },
-                },
-                edge: {
-                  [field]: value,
-                },
-              },
-            },
-          },
-        },
-      })
-    })
-  }, [apiRef])
 
   return (
     <>
@@ -693,11 +620,41 @@ const LineupList: React.FC<TLineupList> = props => {
           }}
         >
           <DataGridPro
-            apiRef={apiRef}
             density="compact"
             columns={gameLineupColumns}
             rows={lineupPlayers}
+            experimentalFeatures={{ preventCommitWhileValidating: true }}
             disableSelectionOnClick
+            // onCellEditStop={(params: any, event) => {
+            //   if (params.reason === 'cellFocusOut') {
+            //     event.defaultMuiPrevented = true
+            //   }
+            // }}
+            onCellEditCommit={params => {
+              console.log('onCellEditCommit', params)
+              const { id, field, value } = params
+              if (value) {
+                updateGame({
+                  variables: {
+                    where: {
+                      gameId,
+                    },
+                    update: {
+                      players: {
+                        connect: {
+                          where: {
+                            node: { playerId: id },
+                          },
+                          edge: {
+                            [field]: value,
+                          },
+                        },
+                      },
+                    },
+                  },
+                })
+              }
+            }}
             components={{
               Toolbar: GridToolbar,
             }}
