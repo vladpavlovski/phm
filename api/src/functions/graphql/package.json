@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "apollo-server-lambda": "2.25.3",
-    "@neo4j/graphql": "2.1.0",
+    "@neo4j/graphql": "3.0.0",
     "graphql": "15.7.2",
     "neo4j-driver": "4.4.0"
   }
