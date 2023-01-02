@@ -34,10 +34,9 @@ JWT_SECRET="-----BEGIN PUBLIC KEY-----<ACTUAL_PUBLIC_KEY_CONTENT_WITH_CRLF>-----
 
 Note that grand-stack-starter does not currently bundle a distribution of Neo4j. You can download [Neo4j Desktop](https://neo4j.com/download/) and run locally for development, spin up a [hosted Neo4j Sandbox instance](https://neo4j.com/download/), run Neo4j in one of the [many cloud options](https://neo4j.com/developer/guide-cloud-deployment/), or [spin up Neo4j in a Docker container](https://neo4j.com/developer/docker/). Just be sure to update the Neo4j connection string and credentials accordingly in `.env`.
 
-## Configuring Auth0 for GRANDstack - GraphQL.
+## Configuring Auth0 for GRANDstack - GraphQL
 
 Please read this [write-up](auth0-howto.md) for more information on configuring `Auth0` for GRANDStack - GraphQL.
-
 
 ## Deployment
 
@@ -49,7 +48,7 @@ To deploy your GraphQL service on Zeit Now, first install [Vercel](https://verce
 vercel
 ```
 
-to deploy your GraphQL service on Vercel. Once deployed you'll be given a fresh URL that represents the current state of your application where you can access your GraphQL endpoint and GraphQL Playgound. For example: https://grand-stack-starter-api-pqdeodpvok.vercel.sh/
+to deploy your GraphQL service on Vercel. Once deployed you'll be given a fresh URL that represents the current state of your application where you can access your GraphQL endpoint and GraphQL Playgound. For example: <https://grand-stack-starter-api-pqdeodpvok.vercel.sh/>
 
 ## Seeding The Database
 
@@ -58,3 +57,5 @@ Optionally you can seed the GraphQL service by executing mutations that will wri
 ```
 npm run seedDb
 ```
+
+Good luck!
