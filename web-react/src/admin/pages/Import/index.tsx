@@ -17,6 +17,27 @@ export enum IMPORT_TYPE {
 
 const DEFAULT_SELECTED_TYPE = IMPORT_TYPE.player
 
+const getValue = ({
+  cell,
+  cellName,
+}: {
+  cell: { value: string }
+  cellName: string
+}) => {
+  if (cell?.value) {
+    return cell.value
+  } else {
+    switch (cellName) {
+      case 'birthday':
+        return '1990-01-01'
+      case 'activityStatus':
+        return 'UNKNOWN'
+      default:
+        return ''
+    }
+  }
+}
+
 const prepareDataForImport = (
   worksheet: { value: string }[][],
   columns: string[]
@@ -27,7 +48,7 @@ const prepareDataForImport = (
       const obj: { [key: string]: string } = {}
       row.forEach((cell, index) => {
         if (columns[index]) {
-          obj[columns[index]] = cell.value
+          obj[columns[index]] = getValue({ cell, cellName: columns[index] })
         }
       })
       return obj

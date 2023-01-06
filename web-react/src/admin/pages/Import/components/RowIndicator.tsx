@@ -22,7 +22,7 @@ export const RowIndicator = ({
     importType,
     data,
   })
-  const lintToNewEntity = () => {
+  const linkToNewEntity = () => {
     if (entityLink) {
       return (
         <LinkButton
@@ -65,7 +65,7 @@ export const RowIndicator = ({
           >
             {saved ? 'Saved' : `Save ${row + 1}`}
           </Button>
-          {lintToNewEntity()}
+          {linkToNewEntity()}
         </>
       )}
     </Stack>
