@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'
 import {
   getLeagueOrgGamesRoute,
   getLeagueOrgPlayersRoute,
+  getLeagueOrgPlayersStatisticsByTeamRoute,
   getLeagueOrgPlayersStatisticsRoute,
   getLeagueOrgStandingsRoute,
 } from 'router/routes'
@@ -55,6 +56,10 @@ const getLinks = (
   {
     title: 'Players Statistics',
     link: getLeagueOrgPlayersStatisticsRoute(organizationSlug),
+  },
+  {
+    title: 'Players Statistics By Team',
+    link: getLeagueOrgPlayersStatisticsByTeamRoute(organizationSlug),
   },
   {
     title: 'Standings',

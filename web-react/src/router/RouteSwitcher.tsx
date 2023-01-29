@@ -66,6 +66,10 @@ const WebLeaguePlayers = React.lazy(() => import('../league/pages/Players'))
 const WebLeaguePlayersStatistics = React.lazy(
   () => import('../league/pages/PlayersStatistics')
 )
+
+const WebLeaguePlayersStatisticsByTeam = React.lazy(
+  () => import('../league/pages/PlayersStatisticsByTeam')
+)
 const WebLeagueStandings = React.lazy(() => import('../league/pages/Standings'))
 
 const RouteSwitcher: React.FC = () => {
@@ -81,6 +85,11 @@ const RouteSwitcher: React.FC = () => {
         path={ROUTES.WEB_LEAGUE_PLAYERS_STATISTICS}
         exact
         component={WebLeaguePlayersStatistics}
+      />
+      <Route
+        path={ROUTES.WEB_LEAGUE_PLAYERS_STATISTICS_BY_TEAM}
+        exact
+        component={WebLeaguePlayersStatisticsByTeam}
       />
       <Route
         path={ROUTES.WEB_LEAGUE_STANDINGS}

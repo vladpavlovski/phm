@@ -1,0 +1,720 @@
+import { PlayerLevel } from 'admin/pages/Player/components/PlayerLevel'
+import { Error } from 'components/Error'
+import { QuickSearchToolbar } from 'components/QuickSearchToolbar'
+import React, { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import createPersistedState from 'use-persisted-state'
+import { getXGridHeight } from 'utils'
+import { useWindowSize, useXGridSearch } from 'utils/hooks'
+import {
+  Competition,
+  Group,
+  ParamsProps,
+  Phase,
+  Player,
+  Season,
+  Team,
+} from 'utils/types'
+import { gql, useLazyQuery, useQuery } from '@apollo/client'
+import Avatar from '@mui/material/Avatar'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Chip from '@mui/material/Chip'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
+import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import {
+  DataGridPro,
+  GridColumns,
+  GridRowModel,
+  GridRowsProp,
+  GridSortApi,
+  useGridApiRef,
+} from '@mui/x-data-grid-pro'
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
+
+const GET_SEASONS = gql`
+  query getSeasons($whereSeason: SeasonWhere) {
+    seasons(where: $whereSeason) {
+      seasonId
+      name
+      status
+      startDate
+      endDate
+      competitions {
+        competitionId
+        name
+      }
+      phases {
+        phaseId
+        name
+      }
+      groups {
+        groupId
+        name
+      }
+    }
+  }
+`
+
+const GET_TEAMS = gql`
+  query getTeams($where: TeamWhere, $options: TeamOptions) {
+    teams(where: $where, options: $options) {
+      teamId
+      name
+      logo
+    }
+  }
+`
+
+const GET_PLAYERS_STATISTICS = gql`
+  query getPlayersStatistics(
+    $whereGames: GameWhere
+    $whereTeam: PlayerTeamsConnectionWhere
+  ) {
+    players(where: { games: $whereGames, teamsConnection: $whereTeam }) {
+      playerId
+      name
+      firstName
+      lastName
+      avatar
+      levelCode
+      gamesConnection(where: { node: $whereGames, edge: { star: true } }) {
+        totalCount
+        edges {
+          star
+          teamId
+        }
+      }
+      teams {
+        teamId
+        name
+        logo
+      }
+      meta {
+        eventsGoalConnection(where: { node: { game: $whereGames } }) {
+          totalCount
+          edges {
+            node {
+              team {
+                teamId
+              }
+            }
+          }
+        }
+        eventsFirstAssistConnection(where: { node: { game: $whereGames } }) {
+          totalCount
+          edges {
+            node {
+              team {
+                teamId
+              }
+            }
+          }
+        }
+        eventsSecondAssistConnection(where: { node: { game: $whereGames } }) {
+          totalCount
+          edges {
+            node {
+              team {
+                teamId
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+type TPlayer = GridRowModel & Player
+
+type PlayersData = {
+  players: TPlayer[]
+}
+
+type TeamsData = {
+  teams: Team[]
+}
+
+type SeasonsData = {
+  seasons: Season[]
+}
+
+const countPlayersStatisticsData = (
+  data?: PlayersData,
+  selectedTeam: Team | null = null
+) => {
+  if (!data) return []
+  const output = [...data?.players]
+    .reduce((acc: GridRowModel[], p: GridRowModel) => {
+      let rowForm
+      if (p?.teams.length > 1) {
+        rowForm = p.teams
+          .filter((t: Team) => {
+            if (selectedTeam) {
+              return t.teamId === selectedTeam.teamId
+            }
+            return true
+          })
+          .map((t: Team) => {
+            function countValues(data: {
+              totalCount: number
+              edges: {
+                node: {
+                  team: {
+                    teamId: string
+                  }
+                }
+              }[]
+            }) {
+              return data.edges?.filter(
+                edge => edge.node.team.teamId === t.teamId
+              ).length
+            }
+
+            const goalsForTeam = countValues(p.meta.eventsGoalConnection)
+            const firstAssistsForTeam = countValues(
+              p.meta.eventsFirstAssistConnection
+            )
+
+            const secondAssistsForTeam = countValues(
+              p.meta.eventsSecondAssistConnection
+            )
+
+            const starsForTeam = p?.gamesConnection?.edges.filter(
+              (edge: { star: boolean | null; teamId: string }) =>
+                edge.teamId === t.teamId && edge.star
+            ).length
+
+            const gamesForTeam = p?.gamesConnection?.edges.filter(
+              (edge: { star: boolean | null; teamId: string }) =>
+                edge.teamId === t.teamId
+            ).length
+
+            return {
+              name: p?.name,
+              playerId: p?.playerId,
+              id: p?.playerId + t.teamId,
+              avatar: p?.avatar,
+              levelCode: p?.levelCode,
+              team: t,
+              teamName: t.name,
+              gamesPlayed: gamesForTeam,
+              goals: goalsForTeam,
+              assists: firstAssistsForTeam + secondAssistsForTeam,
+              points: goalsForTeam + firstAssistsForTeam + secondAssistsForTeam,
+              stars: starsForTeam,
+            }
+          })
+      } else {
+        rowForm = [
+          {
+            name: p?.name,
+            playerId: p?.playerId,
+            id: p?.playerId,
+            avatar: p?.avatar,
+            levelCode: p?.levelCode,
+            team: p?.teams?.[0],
+            teamName: p?.teams?.[0]?.name,
+            gamesPlayed: p?.gamesConnection?.totalCount,
+            goals: p?.meta?.eventsGoalConnection?.totalCount,
+            assists:
+              p?.meta?.eventsFirstAssistConnection?.totalCount +
+              p?.meta?.eventsSecondAssistConnection?.totalCount,
+            points:
+              p?.meta?.eventsFirstAssistConnection?.totalCount +
+              p?.meta?.eventsSecondAssistConnection?.totalCount +
+              p?.meta?.eventsGoalConnection?.totalCount,
+            stars: p?.gamesConnection?.edges?.filter(
+              (e: { star: boolean | null }) => e?.star
+            )?.length,
+          },
+        ]
+      }
+
+      return [...acc, ...rowForm]
+    }, [])
+    .sort((a, b) => b.points - a.points)
+
+  return output
+}
+
+const useLeagueStore = createPersistedState('HMS-store-players-statistics')
+type TLeagueStore = {
+  [key: string]: {
+    season: Season | null
+    group: Group | null
+    phase: Phase | null
+    competition: Competition | null
+    team: Team | null
+  }
+}
+
+const XGridTable = () => {
+  const { organizationSlug } = useParams<ParamsProps>()
+
+  const [leagueStore, setLeagueStore] = useLeagueStore<TLeagueStore>({})
+  const selectedSeason = leagueStore?.[organizationSlug]?.season
+  const selectedGroup = leagueStore?.[organizationSlug]?.group
+  const selectedPhase = leagueStore?.[organizationSlug]?.phase
+  const selectedCompetition = leagueStore?.[organizationSlug]?.competition
+  const selectedTeam = leagueStore?.[organizationSlug]?.team
+
+  const windowSize = useWindowSize()
+  const toolbarRef = React.useRef()
+  const theme = useTheme()
+  const upSm = useMediaQuery(theme.breakpoints.up('sm'))
+
+  const { data: seasonsData } = useQuery<SeasonsData>(GET_SEASONS, {
+    variables: {
+      whereSeason: {
+        org: {
+          urlSlug: organizationSlug,
+        },
+      },
+      options: {
+        sort: {
+          startDate: 'DESC',
+        },
+      },
+    },
+  })
+
+  const { data: teamsData } = useQuery<TeamsData>(GET_TEAMS, {
+    variables: {
+      where: {
+        orgs: {
+          urlSlug: organizationSlug,
+        },
+        status: 'ACTIVE',
+      },
+      options: {
+        sort: {
+          name: 'ASC',
+        },
+      },
+    },
+  })
+
+  const [getPlayersStatistics, { error, loading, data }] =
+    useLazyQuery<PlayersData>(GET_PLAYERS_STATISTICS, {
+      variables: {
+        whereGames: {
+          startDate_GTE: selectedSeason?.startDate,
+          startDate_LTE: selectedSeason?.endDate,
+          org: {
+            urlSlug: organizationSlug,
+          },
+          ...(selectedPhase && {
+            phase: {
+              phaseId: selectedPhase.phaseId,
+            },
+          }),
+          ...(selectedGroup && {
+            group: {
+              groupId: selectedGroup.groupId,
+            },
+          }),
+          ...(selectedCompetition && {
+            OR: [
+              {
+                phase: {
+                  competition: {
+                    competitionId: selectedCompetition.competitionId,
+                  },
+                },
+              },
+              {
+                group: {
+                  competition: {
+                    competitionId: selectedCompetition.competitionId,
+                  },
+                },
+              },
+            ],
+          }),
+        },
+        whereTeam: {
+          node: {
+            teamId: selectedTeam?.teamId,
+          },
+        },
+      },
+    })
+
+  useEffect(() => {
+    if (selectedTeam) {
+      getPlayersStatistics()
+    }
+  }, [selectedTeam])
+
+  const apiRef = useGridApiRef()
+
+  const getRowIndex = React.useCallback<GridSortApi['getRowIndex']>(
+    id =>
+      apiRef.current ? apiRef.current.getSortedRowIds().indexOf(id) + 1 : 0,
+    [apiRef]
+  )
+
+  const columns: GridColumns = [
+    {
+      field: 'index',
+      headerName: '',
+      width: 5,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return <>{getRowIndex(params.row.id)}</>
+      },
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 160,
+      disableColumnMenu: true,
+      renderCell: params => {
+        return (
+          <Chip
+            size="small"
+            avatar={
+              <Avatar alt={params?.row?.name} src={params?.row?.avatar} />
+            }
+            label={params?.value}
+            color="info"
+          />
+        )
+      },
+    },
+    {
+      field: 'team',
+      headerName: 'Team',
+      width: 160,
+      disableColumnMenu: true,
+      valueGetter: params => params?.row?.team?.name,
+      renderCell: params => {
+        const team = params.row?.team
+        return (
+          <Stack spacing={1} direction="row">
+            <Chip
+              size="small"
+              avatar={<Avatar alt={team?.name} src={team?.logo} />}
+              label={team?.name}
+              color="info"
+            />
+          </Stack>
+        )
+      },
+    },
+    {
+      field: 'levelCode',
+      headerName: 'Level',
+      width: 150,
+      renderCell: params => {
+        return <PlayerLevel code={params.value} />
+      },
+    },
+    {
+      field: 'gamesPlayed',
+      headerName: 'GP',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'goals',
+      headerName: 'G',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'assists',
+      headerName: 'A',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'points',
+      headerName: 'PTS',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+    {
+      field: 'stars',
+      headerName: 'Star',
+      width: 50,
+      headerAlign: 'center',
+      align: 'center',
+      headerClassName: upSm ? '' : 'hms-iframe--header',
+      cellClassName: upSm ? '' : 'hms-iframe--cell',
+      disableColumnMenu: true,
+    },
+  ]
+
+  const playersData = React.useMemo((): GridRowsProp[] => {
+    const preparedData = countPlayersStatisticsData(data, selectedTeam)
+
+    return preparedData as GridRowsProp[]
+  }, [data, selectedTeam])
+
+  const searchIndexes = React.useMemo(() => ['name', 'teamName'], [])
+
+  const [searchText, searchData, requestSearch] = useXGridSearch({
+    searchIndexes,
+    data: playersData,
+  })
+
+  const handleSelectTeam = (event: any) => {
+    const team =
+      teamsData?.teams?.find(team => team.teamId === event.target.value) || null
+    setLeagueStore(state => ({
+      ...state,
+      [organizationSlug]: {
+        ...state[organizationSlug],
+        team:
+          state[organizationSlug]?.team?.teamId === team?.teamId ? null : team,
+        group: null,
+        phase: null,
+      },
+    }))
+    return
+  }
+
+  return (
+    <Container maxWidth={false}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={12} lg={12}>
+          <Error message={error?.message} />
+          <Stack gap={1}>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {seasonsData?.seasons?.map(season => {
+                return (
+                  <Button
+                    key={season.seasonId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedSeason?.seasonId === season?.seasonId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          season:
+                            state[organizationSlug]?.season?.seasonId ===
+                            season?.seasonId
+                              ? null
+                              : season,
+                        },
+                      }))
+                    }}
+                  >
+                    {season?.name}
+                  </Button>
+                )
+              }) || (
+                <Button type="button" color="primary">
+                  Loading...
+                </Button>
+              )}
+            </ButtonGroup>
+
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.competitions?.map(g => {
+                return (
+                  <Button
+                    key={g.competitionId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedCompetition?.competitionId === g?.competitionId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          competition:
+                            state[organizationSlug]?.competition
+                              ?.competitionId === g?.competitionId
+                              ? null
+                              : g,
+                        },
+                      }))
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+
+            <FormControl required sx={{ my: 1, minWidth: 120, maxWidth: 450 }}>
+              <InputLabel id="team-select">Team</InputLabel>
+              <Select
+                labelId="team-select"
+                id="team-select-required"
+                value={selectedTeam?.teamId}
+                label="Team *"
+                onChange={handleSelectTeam}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {teamsData?.teams?.map(team => {
+                  return (
+                    <MenuItem key={team.teamId} value={team.teamId}>
+                      {team.name}
+                    </MenuItem>
+                  )
+                })}
+              </Select>
+            </FormControl>
+
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.groups?.map(g => {
+                return (
+                  <Button
+                    key={g.groupId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedGroup?.groupId === g?.groupId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          group:
+                            state[organizationSlug]?.group?.groupId ===
+                            g?.groupId
+                              ? null
+                              : g,
+                        },
+                      }))
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+            <ButtonGroup
+              size={upSm ? 'medium' : 'small'}
+              aria-label="outlined button group"
+              variant="outlined"
+            >
+              {selectedSeason?.phases?.map(g => {
+                return (
+                  <Button
+                    key={g.phaseId}
+                    type="button"
+                    color="primary"
+                    variant={
+                      selectedPhase?.phaseId === g?.phaseId
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => {
+                      setLeagueStore(state => ({
+                        ...state,
+                        [organizationSlug]: {
+                          ...state[organizationSlug],
+                          phase:
+                            state[organizationSlug]?.phase?.phaseId ===
+                            g?.phaseId
+                              ? null
+                              : g,
+                        },
+                      }))
+                    }}
+                  >
+                    {g?.name}
+                  </Button>
+                )
+              })}
+            </ButtonGroup>
+          </Stack>
+
+          {selectedSeason ? (
+            <div
+              style={{
+                height: getXGridHeight(toolbarRef.current, windowSize),
+              }}
+            >
+              <DataGridPro
+                apiRef={apiRef}
+                disableSelectionOnClick
+                disableMultipleSelection
+                density="compact"
+                columns={columns}
+                rows={searchData}
+                loading={loading}
+                components={{
+                  Toolbar: QuickSearchToolbar,
+                }}
+                componentsProps={{
+                  toolbar: {
+                    value: searchText,
+                    onChange: (
+                      event: React.ChangeEvent<HTMLInputElement>
+                    ): void => {
+                      requestSearch(event.target.value)
+                    },
+                    clearSearch: () => {
+                      requestSearch('')
+                    },
+                  },
+                }}
+              />
+            </div>
+          ) : (
+            <Typography variant="h6" component="h6">
+              Select season to see players
+            </Typography>
+          )}
+        </Grid>
+      </Grid>
+    </Container>
+  )
+}
+
+export { XGridTable as default }

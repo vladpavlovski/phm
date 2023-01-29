@@ -55,6 +55,8 @@ export const WEB_LEAGUE_GAME_REPORT = '/web/league/gameReport/:gameId'
 export const WEB_LEAGUE_PLAYERS = '/web/league/:organizationSlug/players'
 export const WEB_LEAGUE_PLAYERS_STATISTICS =
   '/web/league/:organizationSlug/players-statistics'
+export const WEB_LEAGUE_PLAYERS_STATISTICS_BY_TEAM =
+  '/web/league/:organizationSlug/players-statistics-by-team'
 export const WEB_LEAGUE_STANDINGS = '/web/league/:organizationSlug/standings'
 
 export const getAdminOrgPlayersRoute = (organizationSlug: string): string =>
@@ -184,6 +186,11 @@ export const getLeagueOrgPlayersRoute = (organizationSlug: string): string =>
 export const getLeagueOrgPlayersStatisticsRoute = (
   organizationSlug: string
 ): string => generatePath(WEB_LEAGUE_PLAYERS_STATISTICS, { organizationSlug })
+
+export const getLeagueOrgPlayersStatisticsByTeamRoute = (
+  organizationSlug: string
+): string =>
+  generatePath(WEB_LEAGUE_PLAYERS_STATISTICS_BY_TEAM, { organizationSlug })
 
 export const getLeagueOrgStandingsRoute = (organizationSlug: string): string =>
   generatePath(WEB_LEAGUE_STANDINGS, { organizationSlug })
